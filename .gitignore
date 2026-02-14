@@ -39,3 +39,35 @@
 
 # debug information files
 *.dwo
+
+# Build directories
+build/
+_build/
+cmake-build-*/
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+_deps/
+
+# IDE
+.idea/
+*.swp
+*~
+
+# Clangd cache
+.cache/
+
+# macOS
+.DS_Store
+._*
+
+# Test output
+test_dir/
+logs/
+*.log
+
+# CMakeLists.txt.user
+CMakeLists.txt.user
