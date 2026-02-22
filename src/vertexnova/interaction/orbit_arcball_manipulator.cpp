@@ -191,7 +191,7 @@ void OrbitArcballManipulator::dragRotate(float x_px, float y_px, double delta_ti
     camera_->updateMatrices();
     if (delta_time > 0.0 && std::abs(angle) > 1e-6f) {
         inertia_rot_axis_ = axis.normalized();
-        inertia_rot_speed_ = std::clamp(static_cast<float>(angle / delta_time), -10.0f, 10.0f);
+        inertia_rot_speed_ = std::clamp(angle / static_cast<float>(delta_time), -10.0f, 10.0f);
     }
 }
 
