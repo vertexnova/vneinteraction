@@ -49,6 +49,15 @@ endif()
 #==============================================================================
 set(TEST_SOURCES
     interaction_test.cpp
+    version_test.cpp
+    camera_manipulator_factory_test.cpp
+    camera_system_controller_test.cpp
+    orbit_manipulator_test.cpp
+    arcball_manipulator_test.cpp
+    fps_manipulator_test.cpp
+    fly_manipulator_test.cpp
+    ortho_pan_zoom_manipulator_test.cpp
+    follow_manipulator_test.cpp
 )
 
 #==============================================================================
