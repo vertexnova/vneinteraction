@@ -3,22 +3,25 @@
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
  * Author:    Ajeet Singh Yadav
- * Created:   February 2026
- *
- * Autodoc:   yes
+ * Created:   March 2026
  * ----------------------------------------------------------------------
  */
 
 #include "common/logging_guard.h"
-#include "vertexnova/template/template.h"
+#include "vertexnova/interaction/version.h"
+#include "vertexnova/interaction/interaction.h"
 
 int main() {
-    vne::template_ns::examples::LoggingGuard logging_guard;
+    vne::interaction::examples::LoggingGuard logging_guard;
 
-    using namespace vne::template_ns;
+    VNE_LOG_INFO << "VneInteraction version: " << vne::interaction::get_version();
 
-    VNE_LOG_INFO << hello();
-    VNE_LOG_INFO << "Version: " << get_version();
+    auto factory = std::make_shared<vne::interaction::CameraManipulatorFactory>();
+    auto orbit = factory->create(vne::interaction::CameraManipulatorType::eOrbit);
+    if (orbit) {
+        orbit->setViewportSize(1280.0f, 720.0f);
+        VNE_LOG_INFO << "OrbitManipulator created, scene scale: " << orbit->getSceneScale();
+    }
 
     return 0;
 }

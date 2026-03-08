@@ -2,7 +2,7 @@
 
 **Version:** 1.1  
 **Last Updated:** January 2026  
-**C++ Standard:** C++20 (VneTemplate uses C++20)
+**C++ Standard:** C++20 (VneInteraction uses C++20)
 
 ## Table of Contents
 

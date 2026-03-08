@@ -1,8 +1,8 @@
-# VertexNova Template
+# VertexNova Interaction
 
 ## Overview
 
-VneTemplate is a minimal C++ project template for the VertexNova ecosystem. It provides a standard layout (include, src, tests, examples), CMake setup with vnecmake, optional internal deps (vnecommon, vnelogging), and a tiny API so you can build and run out of the box. Use it as a starting point for new libraries or applications.
+VneInteraction is a C++ library providing camera manipulators and interaction for the VertexNova ecosystem. It includes orbit, arcball, FPS, fly, orthographic pan/zoom, and follow manipulators, minimal camera interfaces (ICamera, PerspectiveCamera, OrthographicCamera), a factory, and a controller. The library uses vnemath for all math and follows CODING_GUIDELINES.md.
 
 ![System Context](diagrams/context.png)
 
@@ -10,12 +10,12 @@ VneTemplate is a minimal C++ project template for the VertexNova ecosystem. It p
 
 | Element | Description |
 |---------|-------------|
-| C++ Application | Developer/user code (tests, examples, or your app) that uses the template API |
-| VneTemplate | Template library; provides `get_version()`, `hello()`, and the project scaffold |
+| C++ Application | Code that uses the interaction API (tests, examples, or your app) |
+| VneInteraction | Interaction library; provides `get_version()`, manipulators, factory, controller, and camera types |
 
 ## Project layout and build
 
-The template follows a standard directory layout and builds one library per build (static or shared), plus tests and optional examples. The library target is always `vnetemplate` with alias `vne::template`.
+The project uses a standard layout and builds one library per build (static or shared), plus tests and optional examples. The library target is `vneinteraction` with alias `vne::interaction`.
 
 ![Project layout](diagrams/architecture.png)
 
@@ -23,55 +23,55 @@ The template follows a standard directory layout and builds one library per buil
 
 | Element | Description |
 |---------|-------------|
-| include/vertexnova/template/ | Public API headers (e.g. `template.h`) |
-| src/vertexnova/template/ | Implementation |
+| include/vertexnova/interaction/ | Public API headers (manipulators, factory, controller, types, version) |
+| include/vertexnova/scene/camera/ | Camera interfaces (ICamera, PerspectiveCamera, OrthographicCamera) |
+| src/vertexnova/interaction/ | Implementation |
 | tests/ | Unit tests (Google Test) |
 | examples/ | Example apps (e.g. `01_hello_template`) |
-| cmake/vnecmake/ | CMake modules submodule |
-| deps/internal/, deps/external/ | Internal (vnecommon, vnelogging) and external (googletest) deps |
-| CMake configure + build | Produces one lib: `libvnetemplate.a` or `libvnetemplate.so` (or `.dylib`/`.dll`), plus tests and examples |
+| deps/internal/ | Internal deps (vnemath, vnecommon, vnelogging) |
+| CMake configure + build | Produces `libvneinteraction.a` or `libvneinteraction.so` (or `.dylib`/`.dll`), plus tests and examples |
 
 See the root [README.md](../../../README.md) for prerequisites, dependencies, and build commands.
 
 ## API usage
 
-The public API lives in namespace `vne::template_ns` and exposes two functions:
+The public API lives in namespace `vne::interaction` and includes:
 
-![API flow](diagrams/api.png)
-
-**Figure 3: API usage**
-
-| Step | Function | Description |
-|------|----------|-------------|
-| 1 | `get_version()` | Returns the project version string (e.g. from `VERSION` file). |
-| 2 | `hello()` | Returns a greeting string (minimal placeholder). |
+- **Version:** `get_version()` returns the project version string (e.g. `"1.0.0"`).
+- **Factory:** `CameraManipulatorFactory::create(CameraManipulatorType)` creates manipulators (eOrbit, eArcball, eFps, eFly, eOrthoPanZoom, eFollow).
+- **Controller:** `CameraSystemController` holds the current manipulator and forwards input.
+- **Manipulators:** Implement `ICameraManipulator` (setCamera, setViewportSize, handleMouseMove, handleMouseButton, handleMouseScroll, getSceneScale, resetState, fitToAABB, etc.).
+- **Cameras:** `ICamera`, `PerspectiveCamera`, `OrthographicCamera` from `vertexnova/scene/camera/`.
 
 Example:
 
 ```cpp
-#include <vertexnova/template/template.h>
+#include <vertexnova/interaction/interaction.h>
+#include <vertexnova/interaction/version.h>
 
-const char* ver = vne::template_ns::get_version();  // e.g. "1.0.0"
-const char* msg = vne::template_ns::hello();        // e.g. "Hello from VneTemplate"
+const char* ver = vne::interaction::get_version();  // e.g. "1.0.0"
+auto factory = std::make_shared<vne::interaction::CameraManipulatorFactory>();
+auto orbit = factory->create(vne::interaction::CameraManipulatorType::eOrbit);
+orbit->setViewportSize(1280.0f, 720.0f);
 ```
 
 ## CMake options
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `VNE_TEMPLATE_TESTS` | ON | Build unit tests. |
-| `VNE_TEMPLATE_EXAMPLES` | ON (dev/top-level) / OFF (submodule) | Build examples (on by default in dev builds, off when used as a submodule). |
-| `VNE_TEMPLATE_LIB_TYPE` | shared | Library type: `static` or `shared`. One library per build; target is always `vnetemplate` (alias `vne::template`). |
+| `VNE_INTERACTION_TESTS` | ON | Build unit tests. |
+| `VNE_INTERACTION_EXAMPLES` | ON (dev/top-level) / OFF (submodule) | Build examples. |
+| `VNE_INTERACTION_LIB_TYPE` | shared | Library type: `static` or `shared`. Target is `vneinteraction` (alias `vne::interaction`). |
 | `WARNINGS_AS_ERRORS` | OFF | Treat compiler warnings as errors. |
 | `ENABLE_DOXYGEN` | OFF | Generate Doxygen documentation. |
 
 ## Static vs shared for deployment
 
-- **Static** (`-DVNE_TEMPLATE_LIB_TYPE=static`): Single executable, no runtime lib to ship. Best for one-binary deploy.
-- **Shared** (`-DVNE_TEMPLATE_LIB_TYPE=shared`, default): For plugins, many apps sharing one lib, or ABI versioning. Preferred for **cross-platform GL / multibackend** libs (one `libvnetemplate.so` plus backend plugins).
+- **Static** (`-DVNE_INTERACTION_LIB_TYPE=static`): Single executable, no runtime lib to ship.
+- **Shared** (`-DVNE_INTERACTION_LIB_TYPE=shared`, default): For plugins or many apps sharing one lib. On Windows, use `VNE_INTERACTION_API` for DLL export/import.
 
 ## Documentation
 
 - **This document:** `docs/vertexnova/template/template.md`
-- **Diagrams:** `docs/vertexnova/template/diagrams/` (Draw.io sources; export to PNG as described in [diagrams/README.md](diagrams/README.md))
+- **Diagrams:** `docs/vertexnova/template/diagrams/` (Draw.io sources; see [diagrams/README.md](diagrams/README.md))
 - **API reference:** Generated by Doxygen when `-DENABLE_DOXYGEN=ON` (see root README)

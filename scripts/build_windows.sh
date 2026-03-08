@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #==============================================================================
-# VneTemplate Windows Build Script
+# VneInteraction Windows Build Script
 #==============================================================================
 # Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License")
@@ -11,7 +11,7 @@
 #
 # Autodoc:   yes
 #
-# This script builds VneTemplate for Windows with Visual Studio integration
+# This script builds VneInteraction for Windows with Visual Studio integration
 #==============================================================================
 
 set -e

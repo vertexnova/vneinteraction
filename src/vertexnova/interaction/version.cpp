@@ -3,25 +3,17 @@
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
  * Author:    Ajeet Singh Yadav
- * Created:   February 2026
- *
- * Autodoc:   yes
+ * Created:   March 2026
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/template/template.h"
+#include "vertexnova/interaction/version.h"
 #include "config.h"
 
-namespace vne {
-namespace template_ns {
+namespace vne::interaction {
 
 const char* get_version() {
     return PROJECT_VERSION;
 }
 
-const char* hello() {
-    return "Hello from VneTemplate";
-}
-
-}  // namespace template_ns
-}  // namespace vne
+}  // namespace vne::interaction

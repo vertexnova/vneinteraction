@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #==============================================================================
-# VneTemplate macOS Build Script
+# VneInteraction macOS Build Script
 #==============================================================================
 # Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License")
@@ -11,7 +11,7 @@
 #
 # Autodoc:   yes
 #
-# This script builds VneTemplate for macOS with Xcode integration
+# This script builds VneInteraction for macOS with Xcode integration
 #==============================================================================
 
 set -e
@@ -81,10 +81,10 @@ else
   BUILD_DIR="$PROJECT_ROOT/build/${LIB_TYPE}/${BUILD_TYPE}/build-macos-$COMPILER-${COMPILER_VERSION}"
 fi
 
-[ "$GENERATE_XCODE" = true ] && CONFIGURE_CMD="cmake -G Xcode -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DVNE_TEMPLATE_LIB_TYPE=$LIB_TYPE -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DVNE_TEMPLATE_TESTS=ON $PROJECT_ROOT" \
-  || CONFIGURE_CMD="cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DVNE_TEMPLATE_LIB_TYPE=$LIB_TYPE -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DVNE_TEMPLATE_TESTS=ON $PROJECT_ROOT"
+[ "$GENERATE_XCODE" = true ] && CONFIGURE_CMD="cmake -G Xcode -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DVNE_INTERACTION_LIB_TYPE=$LIB_TYPE -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DVNE_INTERACTION_TESTS=ON $PROJECT_ROOT" \
+  || CONFIGURE_CMD="cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DVNE_INTERACTION_LIB_TYPE=$LIB_TYPE -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_OSX_DEPLOYMENT_TARGET=10.15 -DVNE_INTERACTION_TESTS=ON $PROJECT_ROOT"
 
-[ "$GENERATE_XCODE" = true ] && BUILD_CMD="xcodebuild -project VneTemplate.xcodeproj -configuration $BUILD_TYPE -parallelizeTargets -jobs $JOBS" && TEST_CMD="xcodebuild -project VneTemplate.xcodeproj -configuration $BUILD_TYPE -target RUN_TESTS" \
+[ "$GENERATE_XCODE" = true ] && BUILD_CMD="xcodebuild -project VneInteraction.xcodeproj -configuration $BUILD_TYPE -parallelizeTargets -jobs $JOBS" && TEST_CMD="xcodebuild -project VneInteraction.xcodeproj -configuration $BUILD_TYPE -target RUN_TESTS" \
   || BUILD_CMD="make -j$JOBS" && TEST_CMD="ctest --output-on-failure"
 
 clean_build() { rm -rf "$BUILD_DIR"; mkdir -p "$BUILD_DIR"; cd "$BUILD_DIR" || exit; }
@@ -95,7 +95,7 @@ case $ACTION in
   build) [ "$CLEAN_BUILD" = true ] && clean_build || ensure_build_dir; eval $CONFIGURE_CMD; eval $BUILD_CMD ;;
   configure_and_build) [ "$CLEAN_BUILD" = true ] && clean_build || ensure_build_dir; eval $CONFIGURE_CMD; eval $BUILD_CMD ;;
   test) [ "$CLEAN_BUILD" = true ] && clean_build || ensure_build_dir; eval $CONFIGURE_CMD; eval $BUILD_CMD; eval $TEST_CMD ;;
-  xcode) [ "$CLEAN_BUILD" = true ] && clean_build || ensure_build_dir; eval $CONFIGURE_CMD; echo "Xcode project: $BUILD_DIR (VneTemplate.xcodeproj)" ;;
+  xcode) [ "$CLEAN_BUILD" = true ] && clean_build || ensure_build_dir; eval $CONFIGURE_CMD; echo "Xcode project: $BUILD_DIR (VneInteraction.xcodeproj)" ;;
   xcode_build) [ "$CLEAN_BUILD" = true ] && clean_build || ensure_build_dir; eval $CONFIGURE_CMD; eval $BUILD_CMD; echo "Xcode build done: $BUILD_DIR" ;;
   *) usage ;;
 esac

@@ -96,7 +96,7 @@ Apply this section when the PR changes files under `tests/` or `*_test.cpp`.
 - If mocking: keep mocks minimal and verify behavior, not implementation details.
 - Ensure tests run fast and don't require special hardware unless explicitly marked.
 
-## This repository (VneTemplate)
+## This repository (VneInteraction)
 
 ### Project layout
 

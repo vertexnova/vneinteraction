@@ -1,6 +1,6 @@
 # Dependencies
 
-This directory holds external and internal dependencies for VneTemplate.
+This directory holds external and internal dependencies for VneInteraction.
 
 ## Layout
 
@@ -11,7 +11,7 @@ CMake modules (vnecmake) live in **cmake/vnecmake** at the project root; see mai
 
 ## Getting dependencies
 
-VneTemplate’s `.gitmodules` already defines all four submodules:
+VneInteraction’s `.gitmodules` already defines all four submodules:
 
 | Submodule | Path | URL |
 |-----------|------|-----|
@@ -62,7 +62,7 @@ The library optionally links to VertexNova internal dependencies when present:
 - **deps/internal/vnecommon** – Common utilities.
 - **deps/internal/vnelogging** – Logging (e.g. spdlog-based).
 
-**In this repo (VneTemplate):** `.gitmodules` already lists these paths. Just run from the project root:
+**In this repo (VneInteraction):** `.gitmodules` already lists these paths. Just run from the project root:
 
 ```bash
 git submodule update --init --recursive

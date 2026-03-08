@@ -23,7 +23,7 @@ if(NOT DEFINED PROJECT_VERSION_INIT)
     set(PROJECT_VERSION_INIT "1.0.0")
 endif()
 
-project(vnetemplate VERSION ${PROJECT_VERSION_INIT} LANGUAGES CXX)
+project(vneinteraction VERSION ${PROJECT_VERSION_INIT} LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -96,7 +96,7 @@ endif()
 #==============================================================================
 include(VneUseDep)
 
-function(_vnetemplate_configure_vnecommon_dep)
+function(_vneinteraction_configure_vnecommon_dep)
     get_property(_vt_build_examples_ty CACHE BUILD_EXAMPLES PROPERTY TYPE)
     if(NOT _vt_build_examples_ty STREQUAL "NOTFOUND" AND _vt_build_examples_ty)
         set(_vt_build_examples_saved "${BUILD_EXAMPLES}")
@@ -109,9 +109,9 @@ function(_vnetemplate_configure_vnecommon_dep)
         unset(BUILD_EXAMPLES CACHE)
     endif()
 endfunction()
-_vnetemplate_configure_vnecommon_dep()
+_vneinteraction_configure_vnecommon_dep()
 
-function(_vnetemplate_configure_vnelogging_dep)
+function(_vneinteraction_configure_vnelogging_dep)
     get_property(_vt_build_tests_ty CACHE BUILD_TESTS PROPERTY TYPE)
     if(NOT _vt_build_tests_ty STREQUAL "NOTFOUND" AND _vt_build_tests_ty)
         set(_vt_build_tests_saved "${BUILD_TESTS}")
@@ -135,7 +135,34 @@ function(_vnetemplate_configure_vnelogging_dep)
         unset(BUILD_EXAMPLES CACHE)
     endif()
 endfunction()
-_vnetemplate_configure_vnelogging_dep()
+_vneinteraction_configure_vnelogging_dep()
+
+function(_vneinteraction_configure_vnemath_dep)
+    get_property(_vt_build_tests_ty CACHE BUILD_TESTS PROPERTY TYPE)
+    if(NOT _vt_build_tests_ty STREQUAL "NOTFOUND" AND _vt_build_tests_ty)
+        set(_vt_build_tests_saved "${BUILD_TESTS}")
+    endif()
+    get_property(_vt_build_examples_ty CACHE BUILD_EXAMPLES PROPERTY TYPE)
+    if(NOT _vt_build_examples_ty STREQUAL "NOTFOUND" AND _vt_build_examples_ty)
+        set(_vt_build_examples_saved "${BUILD_EXAMPLES}")
+    endif()
+    set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    set(VNE_MATH_TESTS OFF CACHE BOOL "" FORCE)
+    vne_use_dep(TARGET vne::math SUBDIR "${VNE_DEPS_INTERNAL_DIR}/vnemath" BINARY_DIR "${CMAKE_BINARY_DIR}/deps/internal/vnemath"
+        CACHE_VARS BUILD_TESTS OFF BUILD_EXAMPLES OFF VNE_MATH_TESTS OFF)
+    if(DEFINED _vt_build_tests_saved)
+        set(BUILD_TESTS "${_vt_build_tests_saved}" CACHE BOOL "" FORCE)
+    else()
+        unset(BUILD_TESTS CACHE)
+    endif()
+    if(DEFINED _vt_build_examples_saved)
+        set(BUILD_EXAMPLES "${_vt_build_examples_saved}" CACHE BOOL "" FORCE)
+    else()
+        unset(BUILD_EXAMPLES CACHE)
+    endif()
+endfunction()
+_vneinteraction_configure_vnemath_dep()
 
 # Include dirs and config
 set(VNE_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
@@ -147,8 +174,8 @@ include_directories(${CMAKE_BINARY_DIR})
 # Build Options
 #==============================================================================
 # Option naming and deps:
-# - Use VNE_TEMPLATE_* for vnetemplate-only options so there is no conflict when
-#   this project is used as a submodule (parent can set VNE_TEMPLATE_TESTS=OFF
+# - Use VNE_INTERACTION_* for vneinteraction-only options so there is no conflict when
+#   this project is used as a submodule (parent can set VNE_INTERACTION_TESTS=OFF
 #   without affecting BUILD_TESTS used by other deps).
 # - BUILD_TESTS / BUILD_EXAMPLES are global; we force them (via VneUseDep
 #   CACHE_VARS) before add_subdirectory for each dep so deps do not build their
@@ -158,25 +185,25 @@ include_directories(${CMAKE_BINARY_DIR})
 #   default; -D from the command line applies to all. No duplicate option()
 #   definition (CMake uses cache), but behavior is "one value for the whole tree."
 #==============================================================================
-if(CMAKE_PROJECT_NAME STREQUAL "vnetemplate")
-    set(VNE_TEMPLATE_DEV_DEFAULT ON)
+if(CMAKE_PROJECT_NAME STREQUAL "vneinteraction")
+    set(VNE_INTERACTION_DEV_DEFAULT ON)
 else()
-    set(VNE_TEMPLATE_DEV_DEFAULT OFF)
+    set(VNE_INTERACTION_DEV_DEFAULT OFF)
 endif()
-option(VNE_TEMPLATE_DEV "Dev build: enable tests (local development)" ${VNE_TEMPLATE_DEV_DEFAULT})
-option(VNE_TEMPLATE_CI "CI build: enable tests (e.g. -DVNE_TEMPLATE_CI=ON in pipelines)" OFF)
+option(VNE_INTERACTION_DEV "Dev build: enable tests (local development)" ${VNE_INTERACTION_DEV_DEFAULT})
+option(VNE_INTERACTION_CI "CI build: enable tests (e.g. -DVNE_INTERACTION_CI=ON in pipelines)" OFF)
 
-if(VNE_TEMPLATE_CI)
-    set(VNE_TEMPLATE_DEV OFF CACHE BOOL "" FORCE)
+if(VNE_INTERACTION_CI)
+    set(VNE_INTERACTION_DEV OFF CACHE BOOL "" FORCE)
 endif()
 
-option(VNE_TEMPLATE_TESTS "Build vnetemplate test suite (turn OFF when used as submodule)" ON)
-option(VNE_TEMPLATE_EXAMPLES "Build vnetemplate example programs (turn OFF when used as submodule)" OFF)
-set(VNE_TEMPLATE_LIB_TYPE "shared" CACHE STRING "Library type for vnetemplate: static or shared (one per build)")
-set_property(CACHE VNE_TEMPLATE_LIB_TYPE PROPERTY STRINGS "static" "shared")
-if(NOT VNE_TEMPLATE_LIB_TYPE STREQUAL "static" AND NOT VNE_TEMPLATE_LIB_TYPE STREQUAL "shared")
+option(VNE_INTERACTION_TESTS "Build vneinteraction test suite (turn OFF when used as submodule)" ON)
+option(VNE_INTERACTION_EXAMPLES "Build vneinteraction example programs (turn OFF when used as submodule)" OFF)
+set(VNE_INTERACTION_LIB_TYPE "shared" CACHE STRING "Library type for vneinteraction: static or shared (one per build)")
+set_property(CACHE VNE_INTERACTION_LIB_TYPE PROPERTY STRINGS "static" "shared")
+if(NOT VNE_INTERACTION_LIB_TYPE STREQUAL "static" AND NOT VNE_INTERACTION_LIB_TYPE STREQUAL "shared")
     message(FATAL_ERROR
-        "VNE_TEMPLATE_LIB_TYPE must be 'static' or 'shared'. Got: ${VNE_TEMPLATE_LIB_TYPE}")
+        "VNE_INTERACTION_LIB_TYPE must be 'static' or 'shared'. Got: ${VNE_INTERACTION_LIB_TYPE}")
 endif()
 option(ENABLE_DOXYGEN "Enable Doxygen documentation builds" OFF)
 option(ENABLE_COVERAGE "Enable code coverage reporting" OFF)
@@ -220,59 +247,59 @@ if(ENABLE_ASAN)
     endif()
 endif()
 
-if(VNE_TEMPLATE_CI)
-    # CI enables tests by default, but allow explicit -DVNE_TEMPLATE_TESTS=OFF to override
+if(VNE_INTERACTION_CI)
+    # CI enables tests by default, but allow explicit -DVNE_INTERACTION_TESTS=OFF to override
     # (e.g. iOS/Android cross-compile builds: Xcode requires bundle ID for test targets).
-    if(NOT DEFINED VNE_TEMPLATE_TESTS OR VNE_TEMPLATE_TESTS)
-        set(VNE_TEMPLATE_TESTS ON CACHE BOOL "" FORCE)
+    if(NOT DEFINED VNE_INTERACTION_TESTS OR VNE_INTERACTION_TESTS)
+        set(VNE_INTERACTION_TESTS ON CACHE BOOL "" FORCE)
     endif()
-    set(VNE_TEMPLATE_EXAMPLES OFF CACHE BOOL "" FORCE)
-    message(STATUS "VneTemplate: CI build -> VNE_TEMPLATE_TESTS=${VNE_TEMPLATE_TESTS}, VNE_TEMPLATE_EXAMPLES=OFF")
-elseif(VNE_TEMPLATE_DEV)
-    set(VNE_TEMPLATE_TESTS ON CACHE BOOL "" FORCE)
-    set(VNE_TEMPLATE_EXAMPLES ON CACHE BOOL "" FORCE)
-    message(STATUS "VneTemplate: DEV build -> VNE_TEMPLATE_TESTS=ON, VNE_TEMPLATE_EXAMPLES=ON")
+    set(VNE_INTERACTION_EXAMPLES OFF CACHE BOOL "" FORCE)
+    message(STATUS "VneInteraction: CI build -> VNE_INTERACTION_TESTS=${VNE_INTERACTION_TESTS}, VNE_INTERACTION_EXAMPLES=OFF")
+elseif(VNE_INTERACTION_DEV)
+    set(VNE_INTERACTION_TESTS ON CACHE BOOL "" FORCE)
+    set(VNE_INTERACTION_EXAMPLES ON CACHE BOOL "" FORCE)
+    message(STATUS "VneInteraction: DEV build -> VNE_INTERACTION_TESTS=ON, VNE_INTERACTION_EXAMPLES=ON")
 endif()
 
 #==============================================================================
 # Compiler Warnings
 #==============================================================================
-add_library(TemplateWarnings INTERFACE)
+add_library(InteractionWarnings INTERFACE)
 include(ProjectWarnings)
-set_project_warnings(TemplateWarnings)
-add_library(vne::template::Warnings ALIAS TemplateWarnings)
+set_project_warnings(InteractionWarnings)
+add_library(vne::interaction::Warnings ALIAS InteractionWarnings)
 
 #==============================================================================
 # Build Settings Interface Library
 #==============================================================================
-add_library(TemplateBuildSettings INTERFACE)
-target_compile_features(TemplateBuildSettings INTERFACE cxx_std_20)
-add_library(vne::template::BuildSettings ALIAS TemplateBuildSettings)
+add_library(InteractionBuildSettings INTERFACE)
+target_compile_features(InteractionBuildSettings INTERFACE cxx_std_20)
+add_library(vne::interaction::BuildSettings ALIAS InteractionBuildSettings)
 
 if(CMAKE_BUILD_TYPE MATCHES Debug)
-    target_compile_definitions(TemplateBuildSettings INTERFACE VNE_BUILD_TYPE_DEBUG VNE_DEVELOPER_BUILD)
+    target_compile_definitions(InteractionBuildSettings INTERFACE VNE_BUILD_TYPE_DEBUG VNE_DEVELOPER_BUILD)
 elseif(CMAKE_BUILD_TYPE MATCHES Release)
-    target_compile_definitions(TemplateBuildSettings INTERFACE VNE_BUILD_TYPE_RELEASE)
+    target_compile_definitions(InteractionBuildSettings INTERFACE VNE_BUILD_TYPE_RELEASE)
 elseif(CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
-    target_compile_definitions(TemplateBuildSettings INTERFACE VNE_BUILD_TYPE_RELWITHDEBINFO)
+    target_compile_definitions(InteractionBuildSettings INTERFACE VNE_BUILD_TYPE_RELWITHDEBINFO)
 elseif(CMAKE_BUILD_TYPE MATCHES MinSizeRel)
-    target_compile_definitions(TemplateBuildSettings INTERFACE VNE_BUILD_TYPE_MINSIZEREL)
+    target_compile_definitions(InteractionBuildSettings INTERFACE VNE_BUILD_TYPE_MINSIZEREL)
 endif()
 
 if(VNE_TARGET_PLATFORM STREQUAL "Windows")
-    target_compile_definitions(TemplateBuildSettings INTERFACE VNE_PLATFORM_WIN)
+    target_compile_definitions(InteractionBuildSettings INTERFACE VNE_PLATFORM_WIN)
 elseif(VNE_TARGET_PLATFORM STREQUAL "Linux")
-    target_compile_definitions(TemplateBuildSettings INTERFACE VNE_PLATFORM_LINUX)
+    target_compile_definitions(InteractionBuildSettings INTERFACE VNE_PLATFORM_LINUX)
 elseif(VNE_TARGET_PLATFORM STREQUAL "macOS")
-    target_compile_definitions(TemplateBuildSettings INTERFACE VNE_PLATFORM_MACOS)
+    target_compile_definitions(InteractionBuildSettings INTERFACE VNE_PLATFORM_MACOS)
 elseif(VNE_TARGET_PLATFORM STREQUAL "iOS")
-    target_compile_definitions(TemplateBuildSettings INTERFACE VNE_PLATFORM_IOS)
+    target_compile_definitions(InteractionBuildSettings INTERFACE VNE_PLATFORM_IOS)
 elseif(VNE_TARGET_PLATFORM STREQUAL "visionOS")
-    target_compile_definitions(TemplateBuildSettings INTERFACE VNE_PLATFORM_VISIONOS)
+    target_compile_definitions(InteractionBuildSettings INTERFACE VNE_PLATFORM_VISIONOS)
 elseif(VNE_TARGET_PLATFORM STREQUAL "Android")
-    target_compile_definitions(TemplateBuildSettings INTERFACE VNE_PLATFORM_ANDROID)
+    target_compile_definitions(InteractionBuildSettings INTERFACE VNE_PLATFORM_ANDROID)
 elseif(VNE_TARGET_PLATFORM STREQUAL "Web")
-    target_compile_definitions(TemplateBuildSettings INTERFACE VNE_PLATFORM_WEB)
+    target_compile_definitions(InteractionBuildSettings INTERFACE VNE_PLATFORM_WEB)
 endif()
 
 #==============================================================================
@@ -283,7 +310,7 @@ add_subdirectory(src)
 #==============================================================================
 # Tests
 #==============================================================================
-if(VNE_TEMPLATE_TESTS)
+if(VNE_INTERACTION_TESTS)
     enable_testing()
     add_subdirectory(tests)
 endif()
@@ -291,7 +318,7 @@ endif()
 #==============================================================================
 # Examples
 #==============================================================================
-if(VNE_TEMPLATE_EXAMPLES)
+if(VNE_INTERACTION_EXAMPLES)
     add_subdirectory(examples)
 endif()
 
@@ -305,13 +332,13 @@ if(ENABLE_DOXYGEN)
         set(DOXYGEN_OUT ${CMAKE_BINARY_DIR}/doxyfile)
         set(DOXYGEN_HAVE_DOT ${DOXYGEN_DOT_FOUND})
         configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
-        add_custom_target(vnetemplate_doc_doxygen ALL
+        add_custom_target(vneinteraction_doc_doxygen ALL
             COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
             COMMENT "Generating API documentation with Doxygen"
             VERBATIM
         )
-        message(STATUS "Doxygen target: vnetemplate_doc_doxygen")
+        message(STATUS "Doxygen target: vneinteraction_doc_doxygen")
     else()
         message(STATUS "Doxygen not found. Install doxygen to build documentation.")
     endif()
@@ -319,23 +346,23 @@ endif()
 
 #==============================================================================
 # Installation
-# Use COMPONENT vnetemplate so that `cmake --install . --component vnetemplate`
+# Use COMPONENT vneinteraction so that `cmake --install . --component vneinteraction`
 # installs only this library — not the internal deps (vnecommon, vnelogging)
 # which register their own install() rules via add_subdirectory.
 #==============================================================================
 include(GNUInstallDirs)
-install(TARGETS vnetemplate TemplateWarnings TemplateBuildSettings
+install(TARGETS vneinteraction InteractionWarnings InteractionBuildSettings
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-    COMPONENT vnetemplate
+    COMPONENT vneinteraction
 )
 install(DIRECTORY include/vertexnova/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/vertexnova
-    COMPONENT vnetemplate
+    COMPONENT vneinteraction
     FILES_MATCHING PATTERN "*.h")
 install(DIRECTORY src/vertexnova/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/vertexnova
-    COMPONENT vnetemplate
+    COMPONENT vneinteraction
     FILES_MATCHING PATTERN "*.h")
-install(FILES ${CMAKE_BINARY_DIR}/config.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/vertexnova/template
-    COMPONENT vnetemplate)
+install(FILES ${CMAKE_BINARY_DIR}/config.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/vertexnova/interaction
+    COMPONENT vneinteraction)

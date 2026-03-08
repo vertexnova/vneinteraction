@@ -3,25 +3,25 @@
 </p>
 
 <p align="center">
-  <strong>Minimal C++ project template for the VertexNova ecosystem</strong>
+  <strong>Camera interaction library (manipulators, minimal cameras) for the VertexNova ecosystem</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/vertexnova/vnetemplate/actions/workflows/ci.yml">
-    <img src="https://github.com/vertexnova/vnetemplate/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"/>
+  <a href="https://github.com/vertexnova/vneinteraction/actions/workflows/ci.yml">
+    <img src="https://github.com/vertexnova/vneinteraction/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"/>
   </a>
   <img src="https://img.shields.io/badge/C%2B%2B-20-blue.svg" alt="C++ Standard"/>
-  <a href="https://codecov.io/gh/vertexnova/vnetemplate">
-    <img src="https://codecov.io/gh/vertexnova/vnetemplate/branch/main/graph/badge.svg" alt="Coverage"/>
+  <a href="https://codecov.io/gh/vertexnova/vneinteraction">
+    <img src="https://codecov.io/gh/vertexnova/vneinteraction/branch/main/graph/badge.svg" alt="Coverage"/>
   </a>
   <img src="https://img.shields.io/badge/license-Apache%202.0-green.svg" alt="License"/>
 </p>
 
 ---
 
-# VneTemplate
+# VneInteraction
 
-Minimal VertexNova-standard C++ template: CMake, deps (external + internal), tests, examples, and documentation. Use it as a starting point for new libraries or apps in the [VertexNova](https://github.com/vertexnova) stack.
+Camera manipulators (orbit, arcball, FPS, fly, ortho pan/zoom, follow), minimal camera interfaces, and system controller for the [VertexNova](https://github.com/vertexnova) stack. Uses [vnemath](https://github.com/vertexnova/vnemath) for vectors and quaternions.
 
 ## Directory layout
 
@@ -30,8 +30,8 @@ Minimal VertexNova-standard C++ template: CMake, deps (external + internal), tes
 | `cmake/vnecmake/` | CMake modules submodule (ProjectSetup, ProjectWarnings, VneUseDep) |
 | `configs/` | Configured headers (e.g. `config.h.in`) |
 | `deps/external/` | Third-party deps (e.g. googletest) |
-| `deps/internal/` | VertexNova internal libs (vnecommon, vnelogging) |
-| `include/` | Public API headers (`vertexnova/template/`) |
+| `deps/internal/` | VertexNova internal libs (vnecommon, vnelogging, vnemath) |
+| `include/` | Public API headers (`vertexnova/interaction/`, `vertexnova/scene/camera/`) |
 | `src/` | Implementation |
 | `tests/` | Unit tests (Google Test) |
 | `docs/` | Doxygen input (`doxyfile.in`) and extra docs |
@@ -62,11 +62,11 @@ Builds use **`build/static`** or **`build/shared`** (one library type per direct
 
 ```bash
 # Shared library (default)
-cmake -B build/shared -DCMAKE_BUILD_TYPE=Debug -DVNE_TEMPLATE_TESTS=ON
+cmake -B build/shared -DCMAKE_BUILD_TYPE=Debug -DVNE_INTERACTION_TESTS=ON
 cmake --build build/shared
 
 # Static library
-cmake -B build/static -DCMAKE_BUILD_TYPE=Debug -DVNE_TEMPLATE_LIB_TYPE=static -DVNE_TEMPLATE_TESTS=ON
+cmake -B build/static -DCMAKE_BUILD_TYPE=Debug -DVNE_INTERACTION_LIB_TYPE=static -DVNE_INTERACTION_TESTS=ON
 cmake --build build/static
 ```
 
@@ -108,7 +108,7 @@ Or:
 
   ```bash
   cmake -B build/shared -DENABLE_DOXYGEN=ON
-  cmake --build build/shared --target vnetemplate_doc_doxygen
+  cmake --build build/shared --target vneinteraction_doc_doxygen
   ```
 
   Output: `build/shared/docs/html/index.html`.

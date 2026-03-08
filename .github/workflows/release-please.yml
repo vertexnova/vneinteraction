@@ -76,10 +76,10 @@ jobs:
   # was merged in this run (release-please then creates the tag + GitHub Release).
   #
   # Produces 3 tarballs per release (Release build only):
-  #   vnetemplate-vX.Y.Z-{platform}.tar.gz
+  #   vneinteraction-vX.Y.Z-{platform}.tar.gz
   #
-  # Contents: one library per build in lib/ (static or shared via VNE_TEMPLATE_LIB_TYPE;
-  #           e.g. libvnetemplate.so or libvnetemplate.a on Unix), include/vertexnova/template/
+  # Contents: one library per build in lib/ (static or shared via VNE_INTERACTION_LIB_TYPE;
+  #           e.g. libvneinteraction.so or libvneinteraction.a on Unix), include/vertexnova/interaction/
   # --------------------------------------------------------------------
   publish:
     name: "Release / publish (${{ matrix.platform }})"
@@ -130,8 +130,8 @@ jobs:
           fi
           cmake -B build/shared -S . \
             -DCMAKE_BUILD_TYPE=Release \
-            -DVNE_TEMPLATE_CI=ON \
-            -DVNE_TEMPLATE_LIB_TYPE=shared \
+            -DVNE_INTERACTION_CI=ON \
+            -DVNE_INTERACTION_LIB_TYPE=shared \
             -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/install" \
             $COMPILER_FLAGS
 
@@ -141,12 +141,12 @@ jobs:
 
       - name: Install to staging directory
         shell: bash
-        run: cmake --install build/shared --config Release --component vnetemplate
+        run: cmake --install build/shared --config Release --component vneinteraction
 
       - name: Package artifact
         shell: bash
         run: |
-          ARTIFACT="vnetemplate-v${{ needs.release-please.outputs.version }}-${{ matrix.platform }}.tar.gz"
+          ARTIFACT="vneinteraction-v${{ needs.release-please.outputs.version }}-${{ matrix.platform }}.tar.gz"
           # -C changes into the install dir so tar sees only its contents (no path prefix).
           # The output path is relative to CWD (repo root) — avoids Windows drive-letter issues.
           tar -czf "${ARTIFACT}" -C "${{ github.workspace }}/install" .

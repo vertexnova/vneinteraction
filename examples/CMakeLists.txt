@@ -3,9 +3,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License")
 #==============================================================================
 
-if(NOT TARGET vnetemplate)
+if(NOT TARGET vneinteraction)
     return()
 endif()
 
-# 01 - Hello Template: minimal usage of vne::template_ns (hello, get_version)
+# 01 - Hello Template: minimal usage of vne::interaction (hello, get_version)
 add_subdirectory(01_hello_template)

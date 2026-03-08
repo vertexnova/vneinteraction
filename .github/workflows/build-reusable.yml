@@ -168,15 +168,15 @@ jobs:
           # Use validated CACHE_LIB_TYPE from previous step (empty/shared/static only).
           LIB_TYPE_FLAGS=""
           if [[ "$CACHE_LIB_TYPE" == "static" ]]; then
-            LIB_TYPE_FLAGS="-DVNE_TEMPLATE_LIB_TYPE=static"
+            LIB_TYPE_FLAGS="-DVNE_INTERACTION_LIB_TYPE=static"
           else
-            LIB_TYPE_FLAGS="-DVNE_TEMPLATE_LIB_TYPE=shared"
+            LIB_TYPE_FLAGS="-DVNE_INTERACTION_LIB_TYPE=shared"
           fi
 
           # shellcheck disable=SC2086  # intentional word-splitting for flag vars
           cmake -B "$BUILD_DIR" -S . \
             -DCMAKE_BUILD_TYPE="$EFFECTIVE_BUILD_TYPE" \
-            -DVNE_TEMPLATE_CI=ON \
+            -DVNE_INTERACTION_CI=ON \
             -DWARNINGS_AS_ERRORS="$WAE" \
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
             ${COVERAGE_FLAG} \
