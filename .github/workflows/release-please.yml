@@ -1,0 +1,159 @@
+# ----------------------------------------------------------------------
+# Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
+# Licensed under the Apache License, Version 2.0 (the "License")
+#
+# Author:    Ajeet Singh Yadav
+# Created:   February 2026
+#
+# Description: Release Please: opens/updates a Release PR from conventional commits.
+# When the Release PR is merged, publishes pre-built Release binary artifacts
+# for all supported platforms to the GitHub Release.
+# Two-tier release model:
+#   Tier 1 — source consumers: pin the release tag as a git submodule.
+#   Tier 2 — binary consumers: download .tar.gz from GitHub Releases.
+# Repo Settings required (one-time):
+#   Settings → General → Pull Requests → "Allow auto-merge" — ON
+#   REPO_ACCESS_TOKEN (optional): use for higher limits; else github.token is used.
+#
+# Autodoc:   yes
+# ----------------------------------------------------------------------
+
+name: Release Please
+
+on:
+  push:
+    branches: ["main"]
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false   # NEVER cancel an in-progress release
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  # --------------------------------------------------------------------
+  # Stage 1: Create or update the Release PR via release-please.
+  #          Auto-merge it once all required CI checks pass.
+  # --------------------------------------------------------------------
+  release-please:
+    name: "Release / release-please"
+    runs-on: ubuntu-latest
+    outputs:
+      release_created: ${{ steps.rp.outputs.release_created }}
+      tag_name:        ${{ steps.rp.outputs.tag_name }}
+      version:         ${{ steps.rp.outputs.version }}
+    steps:
+      - name: Run release-please
+        id: rp
+        uses: googleapis/release-please-action@v4
+        with:
+          config-file: .github/release-please-config.json
+          token: ${{ secrets.REPO_ACCESS_TOKEN || github.token }}
+
+      # Enable auto-merge so the Release PR merges once CI Gate passes. If the repo
+      # has not enabled "Allow auto-merge" (Settings → General, and Branches → main),
+      # we warn and leave the PR open for manual merge instead of failing the workflow.
+      - name: Enable auto-merge on Release PR
+        if: steps.rp.outputs.pr != ''
+        env:
+          GH_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN || github.token }}
+          PR_RAW: ${{ steps.rp.outputs.pr }}
+        run: |
+          PR_NUMBER="$(echo "$PR_RAW" | python3 -c 'import sys,json; print(json.load(sys.stdin)["number"])')"
+          if ! gh pr merge --repo "${{ github.repository }}" --auto --squash "$PR_NUMBER" 2>&1 | tee /tmp/gh-out; then
+            if grep -q "enablePullRequestAutoMerge\|Auto merge is not allowed" /tmp/gh-out; then
+              echo "::warning::Auto-merge is disabled for this repo. Enable it under Settings → General → Pull Requests → 'Allow auto-merge'. Release PR #$PR_NUMBER remains open for manual merge."
+              exit 0
+            fi
+            exit 1
+          fi
+
+  # --------------------------------------------------------------------
+  # Stage 2: Build and publish artifacts (only when a release was created this run).
+  # Skipped on most pushes — release_created is true only when the Release PR
+  # was merged in this run (release-please then creates the tag + GitHub Release).
+  #
+  # Produces 3 tarballs per release (Release build only):
+  #   vnetemplate-vX.Y.Z-{platform}.tar.gz
+  #
+  # Contents: one library per build in lib/ (static or shared via VNE_TEMPLATE_LIB_TYPE;
+  #           e.g. libvnetemplate.so or libvnetemplate.a on Unix), include/vertexnova/template/
+  # --------------------------------------------------------------------
+  publish:
+    name: "Release / publish (${{ matrix.platform }})"
+    needs: [release-please]
+    if: needs.release-please.outputs.release_created == 'true'
+    permissions:
+      contents: write   # upload release assets
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: linux-gcc
+            runner:   ubuntu-latest
+            c:        gcc
+            cpp:      g++
+          - platform: macos
+            runner:   macos-latest
+            c:        ""
+            cpp:      ""
+          - platform: windows
+            runner:   windows-latest
+            c:        ""
+            cpp:      ""
+
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - name: Use HTTPS for GitHub (CI runners have no SSH key)
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+
+      - uses: actions/checkout@v4
+        with:
+          # Check out the exact release tag — not HEAD — so artifacts are
+          # built from the same tree that release-please tagged.
+          ref: ${{ needs.release-please.outputs.tag_name }}
+          submodules: recursive
+
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update -qq && sudo apt-get install -y build-essential cmake
+
+      - name: Configure CMake
+        shell: bash
+        run: |
+          COMPILER_FLAGS=""
+          if [[ -n "${{ matrix.c }}" ]]; then
+            COMPILER_FLAGS="-DCMAKE_C_COMPILER=${{ matrix.c }} -DCMAKE_CXX_COMPILER=${{ matrix.cpp }}"
+          fi
+          cmake -B build/shared -S . \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DVNE_TEMPLATE_CI=ON \
+            -DVNE_TEMPLATE_LIB_TYPE=shared \
+            -DCMAKE_INSTALL_PREFIX="${{ github.workspace }}/install" \
+            $COMPILER_FLAGS
+
+      - name: Build
+        shell: bash
+        run: cmake --build build/shared --config Release --parallel
+
+      - name: Install to staging directory
+        shell: bash
+        run: cmake --install build/shared --config Release --component vnetemplate
+
+      - name: Package artifact
+        shell: bash
+        run: |
+          ARTIFACT="vnetemplate-v${{ needs.release-please.outputs.version }}-${{ matrix.platform }}.tar.gz"
+          # -C changes into the install dir so tar sees only its contents (no path prefix).
+          # The output path is relative to CWD (repo root) — avoids Windows drive-letter issues.
+          tar -czf "${ARTIFACT}" -C "${{ github.workspace }}/install" .
+          echo "ARTIFACT=${ARTIFACT}" >> "$GITHUB_ENV"
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.release-please.outputs.tag_name }}
+          files: ${{ env.ARTIFACT }}

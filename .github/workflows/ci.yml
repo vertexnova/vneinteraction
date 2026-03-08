@@ -1,0 +1,509 @@
+# ----------------------------------------------------------------------
+# Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
+# Licensed under the Apache License, Version 2.0 (the "License")
+#
+# Author:    Ajeet Singh Yadav
+# Created:   February 2026
+#
+# Description: CI pipeline — staged, gated, with concurrency cancellation.
+# Stage 1 — Pre-checks  : clang-format (fail-fast gate), commit-lint (warning only)
+# Stage 2+3 — Build+Test: Linux GCC/Clang/ASan, macOS, Windows (parallel)
+# Stage 4 — Analysis    : clang-tidy (reuses Clang build cache)
+# Stage 5 — CI Gate     : single required status check for branch protection
+# Branch protection: require only "CI Gate" — not individual job names.
+#
+# Autodoc:   yes
+# ----------------------------------------------------------------------
+
+name: CI
+
+# Push: no paths-ignore so CI runs on every merge to main (including release-please
+# merges that only touch CHANGELOG/VERSION/manifest). Otherwise the release merge
+# would skip CI and the release branch would appear "not merged" / checks missing.
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+# PRs: same group per branch so a new push to the PR cancels the previous run.
+# Push: unique group per commit (ci-push-<sha>) so each push runs in parallel
+# and no run cancels another; release merges complete fully.
+concurrency:
+  group: ${{ github.event_name == 'push' && format('ci-push-{0}', github.sha) || format('ci-pr-{0}', github.ref) }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+  checks: write        # for test result annotations (mikepenz/action-junit-report)
+  pull-requests: write # for step summaries on PRs
+
+jobs:
+  # ====================================================================
+  # STAGE 0: DETECT RELEASE-PLEASE COMMITS
+  # Release-please merges only touch: CHANGELOG.md, VERSION,
+  # .release-please-manifest.json, release-please-config.json.
+  # Skip all builds for those commits — CI already ran on the source PR.
+  # ====================================================================
+
+  detect-release:
+    name: "Pre-checks / detect release commit"
+    runs-on: ubuntu-latest
+    outputs:
+      is_release: ${{ steps.check.outputs.is_release }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+          fetch-depth: 2   # need parent to diff changed files
+      - id: check
+        env:
+          ACTOR: ${{ github.actor }}
+          EVENT: ${{ github.event_name }}
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          IS_RELEASE=false
+
+          # Case 1: release-please PR open/updated (pull_request event).
+          # Branch name always starts with "release-please--".
+          if [[ "$EVENT" == "pull_request" ]]; then
+            if [[ "$HEAD_REF" == release-please--* ]]; then
+              IS_RELEASE=true
+              echo "Release-please PR detected (branch: $HEAD_REF) — skipping builds."
+            fi
+          fi
+
+          # Case 2: release-please PR merged to main (push event).
+          # Actor is the bot AND changed files are exclusively release-please managed files
+          # (CHANGELOG.md, VERSION, .release-please-manifest.json, release-please-config.json).
+          if [[ "$EVENT" == "push" ]]; then
+            ACTOR_MATCH=false
+            if [[ "$ACTOR" == "release-please[bot]" || "$ACTOR" == "github-actions[bot]" ]]; then
+              ACTOR_MATCH=true
+            fi
+
+            CHANGED="$(git diff --name-only HEAD~1 HEAD 2>/dev/null || true)"
+            echo "Changed files: $CHANGED"
+            NON_RELEASE=$(echo "$CHANGED" | grep -vE '^(CHANGELOG\.md|VERSION|\.release-please-manifest\.json|release-please-config\.json)$' || true)
+
+            if [[ "$ACTOR_MATCH" == "true" && -z "$NON_RELEASE" && -n "$CHANGED" ]]; then
+              IS_RELEASE=true
+              echo "Release-please merge detected (actor: $ACTOR, files: $CHANGED) — skipping builds."
+            fi
+          fi
+
+          echo "is_release=$IS_RELEASE" >> "$GITHUB_OUTPUT"
+
+  # ====================================================================
+  # STAGE 1: PRE-CHECKS (fail-fast gate)
+  # These jobs do NOT clone submodules — they only need source files.
+  # If any pre-check fails the gate blocks all downstream builds.
+  # ====================================================================
+
+  format-check:
+    name: "Pre-checks / clang-format"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false   # clang-format only reads src/ include/ — no deps needed
+
+      - name: Install clang-format-17
+        # Pin to 17: the .clang-format file uses options removed in clang-format 18+
+        # (AllowAllConstructorInitializersOnNextLine, ConstructorInitializerAllOnOneLineOrOnePerLine).
+        # Update this pin together with .clang-format when upgrading.
+        run: sudo apt-get update -qq && sudo apt-get install -y clang-format-17
+
+      - name: Alias clang-format
+        run: sudo ln -sf /usr/bin/clang-format-17 /usr/local/bin/clang-format
+
+      - name: Check formatting (uses project .clang-format, no modifications)
+        run: |
+          find src include examples tests \
+            -type f \( -name '*.h' -o -name '*.hpp' -o -name '*.cpp' -o -name '*.c' \) \
+            -print0 \
+          | xargs -0 -r clang-format --dry-run --Werror \
+              --style=file --fallback-style=Google
+
+  commit-lint:
+    name: "Pre-checks / commit messages"
+    runs-on: ubuntu-latest
+    # Only validate on PRs. Push-to-main arrives as release-please merge
+    # commits (chore(main): release X.Y.Z) which are always valid — and
+    # validating every commit in a merge-commit ancestry is fragile.
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
+          fetch-depth: 0   # full history needed to enumerate PR commits
+
+      - name: Validate Conventional Commits format
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          PATTERN='^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\(.+\))?(!)?: .+$'
+          FAILED=0
+          while IFS= read -r msg; do
+            if ! echo "$msg" | grep -qP "$PATTERN"; then
+              echo "::warning::Commit message does not follow Conventional Commits: $msg"
+              echo "  Expected: type(scope?): description"
+              echo "  Valid types: feat fix docs style refactor perf test build ci chore revert"
+              FAILED=1
+            fi
+          done < <(git log --format="%s" "${BASE_SHA}..${HEAD_SHA}")
+          if [[ $FAILED -eq 1 ]]; then
+            echo "::warning::One or more commits do not follow Conventional Commits format (this check does not block the gate)."
+          else
+            echo "All commits follow Conventional Commits format."
+          fi
+
+  # Logical AND gate: build jobs declare `needs: [pre-checks-gate]` so
+  # they only run after format-check has passed. Commit-lint runs in parallel
+  # and does not block the gate (warnings only).
+  pre-checks-gate:
+    name: "Pre-checks gate"
+    runs-on: ubuntu-latest
+    needs: [detect-release, format-check]
+    if: always()
+    steps:
+      - name: Verify all pre-checks passed
+        run: |
+          FORMAT="${{ needs.format-check.result }}"
+
+          if [[ "$FORMAT" != "success" ]]; then
+            echo "::error::format-check did not pass (result: $FORMAT)"
+            exit 1
+          fi
+
+          echo "All pre-checks passed."
+
+  # ====================================================================
+  # STAGE 2+3: BUILD + TEST (parallel across platforms)
+  # All jobs delegate to build-reusable.yml to eliminate boilerplate.
+  # ====================================================================
+
+  build-linux-gcc:
+    name: "Build+Test / Linux GCC"
+    needs: [detect-release, pre-checks-gate]
+    if: needs.pre-checks-gate.result == 'success' && needs.detect-release.outputs.is_release != 'true'
+    uses: ./.github/workflows/build-reusable.yml
+    with:
+      runner:             ubuntu-latest
+      c_compiler:         gcc
+      cpp_compiler:       g++
+      platform:           linux-gcc
+      build_type:         Release
+      enable_coverage:    true
+      warnings_as_errors: true
+    secrets:
+      codecov_token: ${{ secrets.CODECOV_TOKEN }}
+
+  build-linux-clang:
+    name: "Build+Test / Linux Clang"
+    needs: [detect-release, pre-checks-gate]
+    if: needs.pre-checks-gate.result == 'success' && needs.detect-release.outputs.is_release != 'true'
+    uses: ./.github/workflows/build-reusable.yml
+    with:
+      runner:             ubuntu-latest
+      c_compiler:         clang
+      cpp_compiler:       clang++
+      platform:           linux-clang
+      build_type:         Release
+      enable_coverage:    false
+      warnings_as_errors: true
+    secrets: inherit
+
+  build-macos:
+    name: "Build+Test / macOS"
+    needs: [detect-release, pre-checks-gate]
+    if: needs.pre-checks-gate.result == 'success' && needs.detect-release.outputs.is_release != 'true'
+    uses: ./.github/workflows/build-reusable.yml
+    with:
+      runner:             macos-latest
+      c_compiler:         ""
+      cpp_compiler:       ""
+      platform:           macos
+      build_type:         Release
+      enable_coverage:    false
+      warnings_as_errors: true
+    secrets: inherit
+
+  build-windows:
+    name: "Build+Test / Windows"
+    needs: [detect-release, pre-checks-gate]
+    if: needs.pre-checks-gate.result == 'success' && needs.detect-release.outputs.is_release != 'true'
+    uses: ./.github/workflows/build-reusable.yml
+    with:
+      runner:             windows-latest
+      c_compiler:         ""
+      cpp_compiler:       ""
+      platform:           windows
+      build_type:         Release
+      enable_coverage:    false
+      warnings_as_errors: true
+    secrets: inherit
+
+  build-linux-clang-static:
+    name: "Build+Test / Linux Clang (static)"
+    needs: [detect-release, pre-checks-gate]
+    if: needs.pre-checks-gate.result == 'success' && needs.detect-release.outputs.is_release != 'true'
+    uses: ./.github/workflows/build-reusable.yml
+    with:
+      runner:             ubuntu-latest
+      c_compiler:         clang
+      cpp_compiler:       clang++
+      platform:           linux-clang
+      build_type:         Release
+      enable_coverage:    false
+      warnings_as_errors: true
+      lib_type:           static
+    secrets: inherit
+
+  build-web:
+    name: "Build / Web (Emscripten)"
+    needs: [detect-release, pre-checks-gate]
+    if: needs.pre-checks-gate.result == 'success' && needs.detect-release.outputs.is_release != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Use HTTPS for GitHub (CI runners have no SSH key)
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Emscripten
+        uses: mymindstorm/setup-emscripten@v14
+
+      - name: Configure CMake (Emscripten)
+        run: |
+          cmake -B build/shared -S . \
+            -DCMAKE_TOOLCHAIN_FILE="$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DVNE_TEMPLATE_CI=ON \
+            -DVNE_TEMPLATE_LIB_TYPE=shared \
+            -DVNE_TEMPLATE_TESTS=OFF   # wasm cannot link -lpthread or run natively; build-only check
+
+      - name: Build
+        run: cmake --build build/shared --parallel
+
+  build-ios:
+    name: "Build / iOS"
+    needs: [detect-release, pre-checks-gate]
+    if: needs.pre-checks-gate.result == 'success' && needs.detect-release.outputs.is_release != 'true'
+    runs-on: macos-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Use HTTPS for GitHub (CI runners have no SSH key)
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Configure CMake (iOS)
+        run: |
+          cmake -B build/static -S . \
+            -G Xcode \
+            -DCMAKE_SYSTEM_NAME=iOS \
+            -DCMAKE_OSX_ARCHITECTURES=arm64 \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DVNE_TEMPLATE_CI=ON \
+            -DVNE_TEMPLATE_LIB_TYPE=static \
+            -DVNE_TEMPLATE_TESTS=OFF   # Xcode requires bundle ID for test targets; build-only check
+
+      - name: Build
+        run: cmake --build build/static --config Release --parallel
+
+  build-android:
+    name: "Build / Android (arm64-v8a)"
+    needs: [detect-release, pre-checks-gate]
+    if: needs.pre-checks-gate.result == 'success' && needs.detect-release.outputs.is_release != 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Use HTTPS for GitHub (CI runners have no SSH key)
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Configure CMake (Android)
+        run: |
+          cmake -B build/shared -S . \
+            -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK/build/cmake/android.toolchain.cmake" \
+            -DANDROID_ABI=arm64-v8a \
+            -DANDROID_PLATFORM=android-24 \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DVNE_TEMPLATE_CI=ON \
+            -DVNE_TEMPLATE_LIB_TYPE=shared \
+            -DVNE_TEMPLATE_TESTS=OFF   # Android binaries cannot run on the host runner; build-only check
+
+      - name: Build
+        run: cmake --build build/shared --parallel
+
+  build-linux-asan:
+    name: "Build+Test / Linux ASan+UBSan"
+    needs: [detect-release, pre-checks-gate]
+    if: needs.pre-checks-gate.result == 'success' && needs.detect-release.outputs.is_release != 'true'
+    uses: ./.github/workflows/build-reusable.yml
+    with:
+      runner:             ubuntu-latest
+      c_compiler:         clang
+      cpp_compiler:       clang++
+      platform:           linux-asan
+      build_type:         Debug
+      enable_coverage:    false
+      warnings_as_errors: true
+      extra_cmake_flags:  "-DENABLE_ASAN=ON"
+    secrets: inherit
+
+  # ====================================================================
+  # STAGE 4: STATIC ANALYSIS
+  # clang-tidy runs after the Clang build so it can reuse the
+  # compile_commands.json from the cached build directory.
+  # ====================================================================
+
+  clang-tidy:
+    name: "Analysis / clang-tidy"
+    runs-on: ubuntu-latest
+    needs: [build-linux-clang]
+    if: needs.build-linux-clang.result == 'success'
+    permissions:
+      contents: read
+
+    steps:
+      - name: Use HTTPS for GitHub (CI runners have no SSH key)
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+
+      # Submodules fetched here; not cached (cache after checkout would not reduce fetch cost).
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # Restore the Clang Release/shared build cache written by build-linux-clang.
+      # Same key as build-reusable.yml for linux-clang/Release/shared.
+      - name: Restore CMake build cache (Clang)
+        uses: actions/cache@v4
+        with:
+          path: build/shared
+          key: build-linux-clang-Release-shared-${{ hashFiles('CMakeLists.txt') }}-${{ hashFiles('**/CMakeLists.txt') }}-${{ hashFiles('.gitmodules') }}
+          restore-keys: |
+            build-linux-clang-Release-shared-
+            build-linux-clang-Release-
+            build-linux-clang-
+
+      - name: Install clang and clang-tidy
+        run: sudo apt-get update -qq && sudo apt-get install -y build-essential cmake clang clang-tidy
+
+      # Reconfigure only if the cache was missing (compile_commands.json needed).
+      - name: Configure CMake (cache miss fallback)
+        run: |
+          if [ ! -f build/shared/compile_commands.json ]; then
+            cmake -B build/shared -S . \
+              -DCMAKE_BUILD_TYPE=Release \
+              -DCMAKE_C_COMPILER=clang \
+              -DCMAKE_CXX_COMPILER=clang++ \
+              -DVNE_TEMPLATE_CI=ON \
+              -DVNE_TEMPLATE_LIB_TYPE=shared \
+              -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+            cmake --build build/shared --config Release --parallel
+          fi
+
+      - name: Run clang-tidy
+        run: |
+          find src -type f \( -name '*.cpp' -o -name '*.h' \) -print0 \
+            | xargs -0 -r clang-tidy -p build/shared \
+                --warnings-as-errors='*'
+
+      - name: Write clang-tidy summary
+        if: always()
+        run: |
+          echo "## clang-tidy" >> "$GITHUB_STEP_SUMMARY"
+          echo "Analyzed \`src/\` using Clang compile database (\`build/shared/compile_commands.json\`)" >> "$GITHUB_STEP_SUMMARY"
+
+  # ====================================================================
+  # STAGE 5: CI GATE
+  # Single required status check. Branch protection should require only
+  # this job — not the individual build job names. This ensures the
+  # required check name stays stable even as build jobs are renamed.
+  # ====================================================================
+
+  ci-gate:
+    name: "CI Gate"
+    runs-on: ubuntu-latest
+    if: always()
+    needs:
+      - detect-release
+      - pre-checks-gate
+      - build-linux-gcc
+      - build-linux-clang
+      - build-linux-clang-static
+      - build-linux-asan
+      - build-macos
+      - build-windows
+      - build-web
+      - build-ios
+      - build-android
+      - clang-tidy
+
+    steps:
+      - name: Check all required jobs passed
+        run: |
+          RESULTS=(
+            "pre-checks-gate=${{ needs.pre-checks-gate.result }}"
+            "build-linux-gcc=${{ needs.build-linux-gcc.result }}"
+            "build-linux-clang=${{ needs.build-linux-clang.result }}"
+            "build-linux-clang-static=${{ needs.build-linux-clang-static.result }}"
+            "build-linux-asan=${{ needs.build-linux-asan.result }}"
+            "build-macos=${{ needs.build-macos.result }}"
+            "build-windows=${{ needs.build-windows.result }}"
+            "build-web=${{ needs.build-web.result }}"
+            "build-ios=${{ needs.build-ios.result }}"
+            "build-android=${{ needs.build-android.result }}"
+            "clang-tidy=${{ needs.clang-tidy.result }}"
+          )
+          FAILED=0
+          for entry in "${RESULTS[@]}"; do
+            JOB="${entry%%=*}"
+            RESULT="${entry##*=}"
+            if [[ "$RESULT" != "success" && "$RESULT" != "skipped" ]]; then
+              echo "::error::Job '$JOB' did not pass (result: $RESULT)"
+              FAILED=1
+            fi
+          done
+          if [[ $FAILED -eq 1 ]]; then
+            exit 1
+          fi
+          echo "All CI jobs passed."
+
+      - name: Write pipeline summary
+        if: always()
+        run: |
+          echo "# CI Pipeline Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Job | Result |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-----|--------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| pre-checks-gate   | ${{ needs.pre-checks-gate.result }}   |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| build-linux-gcc   | ${{ needs.build-linux-gcc.result }}   |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| build-linux-clang | ${{ needs.build-linux-clang.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| build-linux-clang-static | ${{ needs.build-linux-clang-static.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| build-linux-asan  | ${{ needs.build-linux-asan.result }}  |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| build-macos       | ${{ needs.build-macos.result }}       |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| build-windows     | ${{ needs.build-windows.result }}     |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| build-web         | ${{ needs.build-web.result }}         |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| build-ios         | ${{ needs.build-ios.result }}         |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| build-android     | ${{ needs.build-android.result }}     |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| clang-tidy        | ${{ needs.clang-tidy.result }}        |" >> "$GITHUB_STEP_SUMMARY"

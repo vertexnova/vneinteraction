@@ -1,0 +1,21 @@
+# Line endings: auto-normalize and prefer LF for text files
+* text=auto
+*.cpp text eol=lf
+*.h text eol=lf
+*.hpp text eol=lf
+*.c text eol=lf
+*.cmake text eol=lf
+CMakeLists.txt text eol=lf
+*.md text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.sh text eol=lf
+*.ps1 text eol=lf
+*.py text eol=lf
+.editorconfig text eol=lf
+.gitignore text eol=lf
+.gitattributes text eol=lf
+
+# Dependencies: exclude from language stats (Linguist)
+deps/ linguist-vendored
+cmake/vnecmake linguist-vendored

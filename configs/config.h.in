@@ -1,0 +1,22 @@
+#pragma once
+/* ---------------------------------------------------------------------
+ * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License")
+ *
+ * Author:    Ajeet Singh Yadav
+ * Created:   February 2026
+ *
+ * Autodoc:   yes
+ * ----------------------------------------------------------------------
+ */
+
+#define PROJECT_NAME            "@CMAKE_PROJECT_NAME@"
+#define PROJECT_VERSION_MAJOR   @PROJECT_VERSION_MAJOR@
+#define PROJECT_VERSION_MINOR   @PROJECT_VERSION_MINOR@
+#define PROJECT_VERSION_PATCH   @PROJECT_VERSION_PATCH@
+#define PROJECT_VERSION         "@PROJECT_VERSION@"
+
+#define VNE_ROOT_DIR            "@CMAKE_SOURCE_DIR@"
+#define VNE_INCLUDE_DIR         "@VNE_INCLUDE_DIR@"
+#define VNE_SRC_DIR             "@VNE_SRC_DIR@"
+#define VNE_BUILD_DIR           "@CMAKE_BINARY_DIR@"

@@ -1,0 +1,297 @@
+# ----------------------------------------------------------------------
+# Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
+# Licensed under the Apache License, Version 2.0 (the "License")
+#
+# Author:    Ajeet Singh Yadav
+# Created:   March 2026
+#
+# Description: Reusable workflow: configure, build, test, and optionally
+# collect coverage for one platform. Called only by ci.yml. (release-please.yml
+# builds and publishes release artifacts in its own job and does not use this.)
+#
+# Autodoc:   yes
+# ----------------------------------------------------------------------
+
+name: "Build and Test (Reusable)"
+
+on:
+  workflow_call:
+    inputs:
+      runner:
+        description: "GitHub-hosted runner label (e.g. ubuntu-latest)"
+        required: true
+        type: string
+      c_compiler:
+        description: "C compiler to use (empty = runner default)"
+        required: false
+        type: string
+        default: ""
+      cpp_compiler:
+        description: "C++ compiler to use (empty = runner default)"
+        required: false
+        type: string
+        default: ""
+      platform:
+        description: "Platform identifier used as cache key discriminator"
+        required: true
+        type: string
+      build_type:
+        description: "CMake build type: Release or Debug"
+        required: false
+        type: string
+        default: "Release"
+      enable_coverage:
+        description: "Enable lcov coverage collection and Codecov upload (Linux only; no-op on macOS/Windows)"
+        required: false
+        type: boolean
+        default: false
+      warnings_as_errors:
+        description: "Enable -DWARNINGS_AS_ERRORS=ON"
+        required: false
+        type: boolean
+        default: true
+      extra_cmake_flags:
+        description: "Extra CMake -D flags appended verbatim (e.g. -DENABLE_ASAN=ON)"
+        required: false
+        type: string
+        default: ""
+      lib_type:
+        description: "Library type: 'static' or 'shared' (one per build). Default shared."
+        required: false
+        type: string
+        default: ""
+    secrets:
+      codecov_token:
+        description: "Codecov upload token (required when enable_coverage is true)"
+        required: false
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  build-and-test:
+    name: "Build + Test (${{ inputs.platform }}, ${{ inputs.build_type }}${{ inputs.lib_type && format(', {0}', inputs.lib_type) || '' }})"
+    runs-on: ${{ inputs.runner }}
+
+    steps:
+      - name: Use HTTPS for GitHub (CI runners have no SSH key)
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+
+      # Submodules are fetched here; we do not cache them (a cache restored
+      # after checkout would not reduce fetch cost). We rely on the build cache only.
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # ------------------------------------------------------------------
+      # Single effective build type: always inputs.build_type (CI runs Release only).
+      # Coverage uses Release + --coverage; cache key adds -coverage when enabled.
+      # ------------------------------------------------------------------
+      - name: Set effective build type and cache key
+        shell: bash
+        env:
+          BUILD_TYPE:      ${{ inputs.build_type }}
+          ENABLE_COVERAGE: ${{ inputs.enable_coverage }}
+          LIB_TYPE:        ${{ inputs.lib_type }}
+        run: |
+          echo "EFFECTIVE_BUILD_TYPE=$BUILD_TYPE" >> "$GITHUB_ENV"
+          if [[ "$ENABLE_COVERAGE" == "true" ]]; then
+            echo "CACHE_BUILD_TYPE=${BUILD_TYPE}-coverage" >> "$GITHUB_ENV"
+          else
+            echo "CACHE_BUILD_TYPE=$BUILD_TYPE" >> "$GITHUB_ENV"
+          fi
+          # Validate / normalize library type: allow only empty, "shared", or "static".
+          EFFECTIVE_LIB_TYPE="shared"
+          if [[ -z "$LIB_TYPE" ]]; then
+            # Empty input => default to shared (matches CMake default).
+            :
+          elif [[ "$LIB_TYPE" == "shared" || "$LIB_TYPE" == "static" ]]; then
+            EFFECTIVE_LIB_TYPE="$LIB_TYPE"
+          else
+            echo "Error: invalid lib_type '$LIB_TYPE'. Expected '', 'shared', or 'static'." >&2
+            exit 1
+          fi
+          echo "CACHE_LIB_TYPE=$EFFECTIVE_LIB_TYPE" >> "$GITHUB_ENV"
+          echo "BUILD_DIR=build/$EFFECTIVE_LIB_TYPE" >> "$GITHUB_ENV"
+
+      # Skip cache for coverage: we clean build/ right after to force instrumented rebuild,
+      # so restore would be discarded and would waste time/bandwidth.
+      - name: Cache CMake build
+        if: ${{ !inputs.enable_coverage }}
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.BUILD_DIR }}
+          key: build-${{ inputs.platform }}-${{ env.CACHE_BUILD_TYPE }}-${{ env.CACHE_LIB_TYPE }}-${{ hashFiles('CMakeLists.txt') }}-${{ hashFiles('**/CMakeLists.txt') }}-${{ hashFiles('.gitmodules') }}
+          restore-keys: |
+            build-${{ inputs.platform }}-${{ env.CACHE_BUILD_TYPE }}-${{ env.CACHE_LIB_TYPE }}-
+            build-${{ inputs.platform }}-${{ env.CACHE_BUILD_TYPE }}-
+            build-${{ inputs.platform }}-
+
+      - name: Install Linux build dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update -qq && sudo apt-get install -y build-essential cmake
+
+      - name: Install lcov (coverage builds only)
+        if: runner.os == 'Linux' && inputs.enable_coverage
+        run: sudo apt-get install -y lcov
+
+      # Coverage builds must start clean — cached Release objects lack
+      # --coverage instrumentation and CMake will not recompile them.
+      - name: Clean build directory (coverage only)
+        if: inputs.enable_coverage
+        shell: bash
+        run: rm -rf ${{ env.BUILD_DIR }}
+
+      # ------------------------------------------------------------------
+      # Configure — use EFFECTIVE_BUILD_TYPE from previous step (single source of truth).
+      # ------------------------------------------------------------------
+      - name: Configure CMake
+        shell: bash
+        env:
+          ENABLE_COVERAGE: ${{ inputs.enable_coverage }}
+          C_COMPILER:      ${{ inputs.c_compiler }}
+          CPP_COMPILER:    ${{ inputs.cpp_compiler }}
+          EXTRA_FLAGS:     ${{ inputs.extra_cmake_flags }}
+          WAE:             ${{ inputs.warnings_as_errors && 'ON' || 'OFF' }}
+        run: |
+          COVERAGE_FLAG=""
+          if [[ "$ENABLE_COVERAGE" == "true" ]]; then
+            COVERAGE_FLAG="-DENABLE_COVERAGE=ON"
+          fi
+
+          COMPILER_FLAGS=""
+          if [[ -n "$C_COMPILER" ]]; then
+            COMPILER_FLAGS="-DCMAKE_C_COMPILER=$C_COMPILER -DCMAKE_CXX_COMPILER=$CPP_COMPILER"
+          fi
+
+          # Use validated CACHE_LIB_TYPE from previous step (empty/shared/static only).
+          LIB_TYPE_FLAGS=""
+          if [[ "$CACHE_LIB_TYPE" == "static" ]]; then
+            LIB_TYPE_FLAGS="-DVNE_TEMPLATE_LIB_TYPE=static"
+          else
+            LIB_TYPE_FLAGS="-DVNE_TEMPLATE_LIB_TYPE=shared"
+          fi
+
+          # shellcheck disable=SC2086  # intentional word-splitting for flag vars
+          cmake -B "$BUILD_DIR" -S . \
+            -DCMAKE_BUILD_TYPE="$EFFECTIVE_BUILD_TYPE" \
+            -DVNE_TEMPLATE_CI=ON \
+            -DWARNINGS_AS_ERRORS="$WAE" \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            ${COVERAGE_FLAG} \
+            ${LIB_TYPE_FLAGS} \
+            ${COMPILER_FLAGS} \
+            ${EXTRA_FLAGS}
+
+      - name: Build
+        shell: bash
+        run: cmake --build "$BUILD_DIR" --config "$EFFECTIVE_BUILD_TYPE" --parallel
+
+      - name: Verify coverage instrumentation (coverage builds only, Linux)
+        if: runner.os == 'Linux' && inputs.enable_coverage
+        shell: bash
+        run: |
+          echo "--- .gcno files (produced at compile time) ---"
+          find "$BUILD_DIR" -name "*.gcno" | head -20
+          GCNO_COUNT=$(find "$BUILD_DIR" -name "*.gcno" | wc -l)
+          echo "Total .gcno files: $GCNO_COUNT"
+          if [[ "$GCNO_COUNT" -eq 0 ]]; then
+            echo "::error::No .gcno files found — binary was not compiled with --coverage. Check ENABLE_COVERAGE and build type."
+            exit 1
+          fi
+
+      # ------------------------------------------------------------------
+      # Test — JUnit XML output for inline PR annotations
+      # Note: --output-junit requires CMake 3.21+; ubuntu-latest ships 3.22+
+      # ------------------------------------------------------------------
+      - name: Test
+        shell: bash
+        working-directory: ${{ env.BUILD_DIR }}
+        run: |
+          ctest \
+            --output-on-failure \
+            --output-junit test-results.xml \
+            -C "$EFFECTIVE_BUILD_TYPE"
+
+      - name: Verify .gcda files emitted (coverage builds only, Linux)
+        if: runner.os == 'Linux' && inputs.enable_coverage
+        shell: bash
+        run: |
+          echo "--- .gcda files (produced at test runtime) ---"
+          find "$BUILD_DIR" -name "*.gcda" | head -20
+          GCDA_COUNT=$(find "$BUILD_DIR" -name "*.gcda" | wc -l)
+          echo "Total .gcda files: $GCDA_COUNT"
+          if [[ "$GCDA_COUNT" -eq 0 ]]; then
+            echo "::error::No .gcda files found after running tests — tests may not have executed or binary not linked with --coverage."
+            exit 1
+          fi
+
+      - name: Publish test results
+        uses: mikepenz/action-junit-report@v4
+        if: always()
+        with:
+          report_paths: "${{ env.BUILD_DIR }}/test-results.xml"
+          check_name: "Tests (${{ inputs.platform }}, ${{ env.EFFECTIVE_BUILD_TYPE }}${{ inputs.lib_type && format(', {0}', inputs.lib_type) || '' }})"
+          fail_on_failure: true
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results-${{ inputs.platform }}-${{ env.EFFECTIVE_BUILD_TYPE }}${{ inputs.lib_type && format('-{0}', inputs.lib_type) || '' }}
+          path: ${{ env.BUILD_DIR }}/test-results.xml
+          retention-days: 7
+
+      - name: Write test summary
+        if: always()
+        shell: bash
+        run: |
+          echo "## Test Results: ${{ inputs.platform }} (${{ env.EFFECTIVE_BUILD_TYPE }}, ${{ env.CACHE_LIB_TYPE }})" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f "$BUILD_DIR/test-results.xml" ]; then
+            TOTAL=$(grep -o 'tests="[0-9]*"' "$BUILD_DIR/test-results.xml" | head -1 | grep -o '[0-9]*' || echo "?")
+            FAIL=$(grep -o 'failures="[0-9]*"' "$BUILD_DIR/test-results.xml" | head -1 | grep -o '[0-9]*' || echo "?")
+            if [[ "$TOTAL" != "?" && "$FAIL" != "?" ]]; then
+              echo "Passed: $((TOTAL - FAIL)) / $TOTAL" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "Could not parse test-results.xml" >> "$GITHUB_STEP_SUMMARY"
+            fi
+          else
+            echo "No test-results.xml found" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      # ------------------------------------------------------------------
+      # Coverage (Linux/GCC only; lcov/codecov run only on Linux)
+      # ------------------------------------------------------------------
+      - name: Generate lcov coverage report
+        if: runner.os == 'Linux' && inputs.enable_coverage
+        run: |
+          lcov --capture --directory "$BUILD_DIR" --output-file coverage.info \
+            --ignore-errors mismatch,unused,empty
+          lcov --remove coverage.info \
+            '/usr/*' '*/tests/*' '*/deps/external/*' '*/deps/internal/*' \
+            '*/_deps/*' '*/googletest/*' '*/googlemock/*' \
+            --output-file coverage.info --ignore-errors mismatch,unused
+          lcov --list coverage.info --ignore-errors mismatch,unused
+
+      - name: Generate HTML coverage report
+        if: runner.os == 'Linux' && inputs.enable_coverage
+        run: genhtml coverage.info --output-directory coverage-html
+
+      - name: Upload coverage HTML
+        if: runner.os == 'Linux' && inputs.enable_coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report-${{ inputs.platform }}
+          path: coverage-html/
+          retention-days: 14
+
+      - name: Upload coverage to Codecov
+        if: runner.os == 'Linux' && inputs.enable_coverage
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.codecov_token }}
+          files: ./coverage.info
+          fail_ci_if_error: false
+          verbose: true
+          flags: ${{ inputs.platform }}

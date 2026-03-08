@@ -1,0 +1,78 @@
+# ----------------------------------------------------------------------
+# Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
+# Licensed under the Apache License, Version 2.0 (the "License")
+#
+# Author:    Ajeet Singh Yadav
+# Created:   February 2026
+#
+# Description: CodeQL security analysis for C++. Runs on push/PR to main and
+# weekly (to catch newly discovered patterns).
+#
+# Autodoc:   yes
+# ----------------------------------------------------------------------
+
+name: CodeQL
+
+on:
+  push:
+    branches: ["main"]
+    paths-ignore:
+      - "CHANGELOG.md"
+      - "VERSION"
+      - ".release-please-manifest.json"
+      - ".github/release-please-config.json"
+      - "docs/**"
+      - "**/*.md"
+  pull_request:
+    branches: ["main"]
+  schedule:
+    - cron: "0 2 * * 1"   # Weekly Monday 02:00 UTC
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  security-events: write
+  contents: read
+
+jobs:
+  analyze:
+    name: "Security / CodeQL (C++)"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Use HTTPS for GitHub (CI runners have no SSH key)
+        run: git config --global url."https://github.com/".insteadOf "git@github.com:"
+
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # No build cache: CodeQL must trace a full build. Restoring a cached build
+      # would let cmake --build skip most compilations, so CodeQL would miss
+      # compilation units and analysis would be incomplete.
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y build-essential cmake
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: cpp
+          queries: security-extended
+
+      - name: Build (traced by CodeQL)
+        run: |
+          cmake -B build/shared -S . \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DVNE_TEMPLATE_CI=ON \
+            -DVNE_TEMPLATE_LIB_TYPE=shared \
+            -DWARNINGS_AS_ERRORS=OFF
+          cmake --build build/shared --config Release --parallel
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:cpp"

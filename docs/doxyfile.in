@@ -1,0 +1,73 @@
+#==============================================================================
+# Doxyfile Configuration for VneTemplate
+#==============================================================================
+
+PROJECT_NAME           = "@CMAKE_PROJECT_NAME@"
+PROJECT_NUMBER         = @PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@
+PROJECT_BRIEF          = "Minimal VertexNova C++ template"
+PROJECT_LOGO           =
+
+INPUT                  = @PROJECT_SOURCE_DIR@/include \
+                         @PROJECT_SOURCE_DIR@/src \
+                         @PROJECT_SOURCE_DIR@/docs/ \
+                         @PROJECT_SOURCE_DIR@/README.md
+
+OUTPUT_DIRECTORY       = @CMAKE_BINARY_DIR@/docs
+
+FILE_PATTERNS          = *.h \
+                         *.hpp \
+                         *.cpp \
+                         *.md
+
+RECURSIVE              = YES
+
+USE_MDFILE_AS_MAINPAGE = @PROJECT_SOURCE_DIR@/README.md
+
+HTML_COLORSTYLE_HUE    = 200
+HTML_COLORSTYLE_SAT    = 100
+HTML_COLORSTYLE_GAMMA  = 60
+
+OUTPUT_LANGUAGE        = English
+
+EXTRACT_ALL            = YES
+EXTRACT_STATIC          = YES
+EXTRACT_PRIVATE         = YES
+
+UML_LOOK               = YES
+UML_LIMIT_NUM_FIELDS   = 16
+
+REFERENCED_BY_RELATION = YES
+REFERENCES_RELATION    = YES
+
+GENERATE_LATEX          = NO
+USE_PDFLATEX            = NO
+
+GENERATE_TREEVIEW       = YES
+
+BUILTIN_STL_SUPPORT     = YES
+
+JAVADOC_AUTOBRIEF       = YES
+
+GENERATE_TODOLIST       = YES
+
+IMAGE_PATH              = @PROJECT_SOURCE_DIR@/docs/
+DOT_PATH                =
+DOT_CLEANUP             = NO
+HAVE_DOT                = @DOXYGEN_HAVE_DOT@
+CALL_GRAPH              = @DOXYGEN_HAVE_DOT@
+CALLER_GRAPH            = @DOXYGEN_HAVE_DOT@
+GRAPHICAL_HIERARCHY     = @DOXYGEN_HAVE_DOT@
+DIRECTORY_GRAPH         = @DOXYGEN_HAVE_DOT@
+GENERATE_LEGEND         = @DOXYGEN_HAVE_DOT@
+INCLUDED_BY_GRAPH       = @DOXYGEN_HAVE_DOT@
+INCLUDE_GRAPH           = @DOXYGEN_HAVE_DOT@
+DOT_IMAGE_FORMAT        = png
+
+EXCLUDE_PATTERNS        = */tests/* \
+                          */examples/* \
+                          */mocks/*
+
+MARKDOWN_SUPPORT        = YES
+
+SEARCHENGINE            = YES
+SERVER_BASED_SEARCH     = NO

@@ -1,0 +1,90 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Linker files
+*.ilk
+
+# Debugger Files
+*.pdb
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# debug information files
+*.dwo
+
+# Build directories
+build/
+_build/
+cmake-build-*/
+build-*/
+out/
+target/
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+compile_commands.json
+_deps/
+
+# IDE
+.idea/
+*.swp
+*~
+
+# Clangd cache
+.cache/
+
+# macOS
+.DS_Store
+._*
+
+# Test output
+test_dir/
+logs/
+*.log
+
+# CMakeLists.txt.user
+CMakeLists.txt.user
+
+# AI tools
+.cursor/
+.copilot/
+.claude/
+.deepseek/
+.gemini/
+.google/
+.openai/
+.anthropic/
+.perplexity/
+.grok/
+.grok/
+.grok/

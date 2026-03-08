@@ -1,0 +1,58 @@
+# ----------------------------------------------------------------------
+# Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
+# Licensed under the Apache License, Version 2.0 (the "License")
+#
+# Author:    Ajeet Singh Yadav
+# Created:   February 2026
+#
+# Description: Delete the source branch when a pull request is merged. Skips
+# deletion for the default branch (main) and for forks (no write access).
+# If your org disables "Read and write permissions" for GITHUB_TOKEN, add
+# a PAT (repo scope) as repository secret REPO_ACCESS_TOKEN; this job will use it.
+#
+# Autodoc:   yes
+# ----------------------------------------------------------------------
+
+name: Delete branch on merge
+
+on:
+  pull_request:
+    types: [closed]
+
+permissions:
+  contents: write
+
+jobs:
+  delete-branch:
+    if: |
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete branch
+        env:
+          # Use REPO_ACCESS_TOKEN when set (e.g. when org restricts GITHUB_TOKEN); else default token.
+          GH_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN != '' && secrets.REPO_ACCESS_TOKEN || github.token }}
+        run: |
+          BRANCH="${{ github.event.pull_request.head.ref }}"
+          DEFAULT="${{ github.event.repository.default_branch }}"
+          if [ -z "$BRANCH" ] || [ "$BRANCH" = "$DEFAULT" ]; then
+            echo "Skipping delete for branch: $BRANCH"
+            exit 0
+          fi
+          echo "Deleting branch: $BRANCH"
+          # URL-encode ref: slashes (e.g. feature/foo) must be %2F in the path
+          BRANCH_ENC="${BRANCH//\//%2F}"
+          DELETE_OUTPUT=$(gh api \
+            --method DELETE \
+            "repos/${{ github.repository }}/git/refs/heads/${BRANCH_ENC}" 2>&1)
+          DELETE_STATUS=$?
+          if [ "$DELETE_STATUS" -ne 0 ]; then
+            if echo "$DELETE_OUTPUT" | grep -qi -e "Reference does not exist" -e "Not Found"; then
+              echo "Branch may already be deleted or does not exist."
+            else
+              echo "Failed to delete branch: $BRANCH"
+              echo "$DELETE_OUTPUT"
+              exit "$DELETE_STATUS"
+            fi
+          fi

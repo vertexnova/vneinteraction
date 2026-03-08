@@ -1,0 +1,12 @@
+[submodule "cmake/vnecmake"]
+	path = cmake/vnecmake
+	url = https://github.com/vertexnova/vnecmake.git
+[submodule "deps/external/googletest"]
+	path = deps/external/googletest
+	url = https://github.com/google/googletest.git
+[submodule "deps/internal/vnecommon"]
+	path = deps/internal/vnecommon
+	url = https://github.com/vertexnova/vnecommon.git
+[submodule "deps/internal/vnelogging"]
+	path = deps/internal/vnelogging
+	url = https://github.com/vertexnova/vnelogging.git
