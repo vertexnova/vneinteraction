@@ -15,8 +15,6 @@
 
 namespace vne::interaction {
 
-using namespace vne::math;
-
 namespace {
 // --- Epsilon and numeric ---
 constexpr float kEpsilon = 1e-6f;
@@ -79,48 +77,48 @@ void FlyManipulator::resetState() noexcept {
     looking_ = false;
 }
 
-void FlyManipulator::fitToAABB(const Vec3f& min_world, const Vec3f& max_world) noexcept {
+void FlyManipulator::fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept {
     if (!camera_) {
         return;
     }
-    const Vec3f center = (min_world + max_world) * 0.5f;
+    const vne::math::Vec3f center = (min_world + max_world) * 0.5f;
     float radius = (max_world - min_world).length() * 0.5f;
     if (radius < kEpsilon) {
         radius = kMinRadiusFallback;
     }
-    const Vec3f f = front();
+    const vne::math::Vec3f f = front();
     camera_->setPosition(center - f * (radius * kFitToAabbDistanceFactor));
     camera_->setTarget(center);
     camera_->updateMatrices();
 }
 
-Vec3f FlyManipulator::front() const noexcept {
+vne::math::Vec3f FlyManipulator::front() const noexcept {
     const float yaw_rad = vne::math::degToRad(yaw_deg_);
     const float pitch_rad = vne::math::degToRad(pitch_deg_);
-    const float cp = std::cos(pitch_rad);
-    Vec3f f(std::sin(yaw_rad) * cp, std::sin(pitch_rad), -std::cos(yaw_rad) * cp);
+    const float cp = vne::math::cos(pitch_rad);
+    vne::math::Vec3f f(vne::math::sin(yaw_rad) * cp, vne::math::sin(pitch_rad), -vne::math::cos(yaw_rad) * cp);
     const float len = f.lengthSquared();
-    return (len < kEpsilon) ? Vec3f(0.0f, 0.0f, -1.0f) : (f / len);
+    return (len < kEpsilon) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : (f / len);
 }
 
-Vec3f FlyManipulator::upAxis() const noexcept {
+vne::math::Vec3f FlyManipulator::upAxis() const noexcept {
     if (!camera_) {
-        return Vec3f(0.0f, 1.0f, 0.0f);
+        return vne::math::Vec3f(0.0f, 1.0f, 0.0f);
     }
-    Vec3f up = camera_->getUp();
-    return up.isZero(kEpsilon) ? Vec3f(0.0f, 1.0f, 0.0f) : up.normalized();
+    vne::math::Vec3f up = camera_->getUp();
+    return up.isZero(kEpsilon) ? vne::math::Vec3f(0.0f, 1.0f, 0.0f) : up.normalized();
 }
 
-Vec3f FlyManipulator::right(const Vec3f& front_vec) const noexcept {
-    Vec3f r = upAxis().cross(front_vec);
-    return r.isZero(kEpsilon) ? Vec3f(1.0f, 0.0f, 0.0f) : r.normalized();
+vne::math::Vec3f FlyManipulator::right(const vne::math::Vec3f& front_vec) const noexcept {
+    vne::math::Vec3f r = upAxis().cross(front_vec);
+    return r.isZero(kEpsilon) ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : r.normalized();
 }
 
 void FlyManipulator::syncAnglesFromCamera() noexcept {
     if (!camera_) {
         return;
     }
-    Vec3f f = camera_->getTarget() - camera_->getPosition();
+    vne::math::Vec3f f = camera_->getTarget() - camera_->getPosition();
     const float len = f.length();
     if (len < kEpsilon || f.isZero(kEpsilon)) {
         yaw_deg_ = 0.0f;
@@ -136,7 +134,7 @@ void FlyManipulator::applyAnglesToCamera() noexcept {
     if (!camera_) {
         return;
     }
-    const Vec3f eye = camera_->getPosition();
+    const vne::math::Vec3f eye = camera_->getPosition();
     camera_->setTarget(eye + front());
     camera_->updateMatrices();
 }
@@ -150,11 +148,11 @@ void FlyManipulator::update(double delta_time) noexcept {
         return;
     }
 
-    const Vec3f f = front();
-    const Vec3f r = right(f);
-    const Vec3f up = upAxis();
+    const vne::math::Vec3f f = front();
+    const vne::math::Vec3f r = right(f);
+    const vne::math::Vec3f up = upAxis();
 
-    Vec3f move(0.0f, 0.0f, 0.0f);
+    vne::math::Vec3f move(0.0f, 0.0f, 0.0f);
     if (w_) {
         move += f;
     }
@@ -220,7 +218,7 @@ void FlyManipulator::applyZoom(float zoom_step_or_factor) noexcept {
             scene_scale_ = vne::math::clamp(scene_scale_ * zoom_step_or_factor, kSceneScaleMin, kSceneScaleMax);
             return;
         case ZoomMethod::eDollyToCoi: {
-            const Vec3f f = front();
+            const vne::math::Vec3f f = front();
             camera_->setPosition(camera_->getPosition() + f * zoom_step_or_factor);
             camera_->setTarget(camera_->getTarget() + f * zoom_step_or_factor);
             camera_->updateMatrices();
@@ -276,7 +274,7 @@ void FlyManipulator::handleTouchPan(const TouchPan& pan, double) noexcept {
     }
     yaw_deg_ += pan.delta_x_px * mouse_sensitivity_ * kTouchPanSensitivityFactor;
     pitch_deg_ += -pan.delta_y_px * mouse_sensitivity_ * kTouchPanSensitivityFactor;
-    pitch_deg_ = std::clamp(pitch_deg_, kPitchMinDeg, kPitchMaxDeg);
+    pitch_deg_ = vne::math::clamp(pitch_deg_, kPitchMinDeg, kPitchMaxDeg);
     applyAnglesToCamera();
 }
 

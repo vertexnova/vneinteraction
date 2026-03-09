@@ -83,8 +83,12 @@ class VNE_INTERACTION_API FlyManipulator final : public ICameraManipulator {
     float slow_mult_ = 0.2f;
     float scene_scale_ = 1.0f;
     ZoomMethod zoom_method_ = ZoomMethod::eDollyToCoi;
-    bool w_ = false, a_ = false, s_ = false, d_ = false;
-    bool q_ = false, e_ = false;
+    bool w_ = false;
+    bool a_ = false;
+    bool s_ = false;
+    bool d_ = false;
+    bool q_ = false;
+    bool e_ = false;
     bool sprint_ = false;
     bool slow_ = false;
 };
