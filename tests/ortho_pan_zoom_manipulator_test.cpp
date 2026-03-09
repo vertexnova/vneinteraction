@@ -79,6 +79,11 @@ TEST_F(OrthoPanZoomManipulatorTest, SetPanDampingStoresValue) {
     EXPECT_FLOAT_EQ(manip_->getPanDamping(), 5.0f);
 }
 
+TEST_F(OrthoPanZoomManipulatorTest, SetPanDampingClampsToZero) {
+    manip_->setPanDamping(-4.0f);
+    EXPECT_FLOAT_EQ(manip_->getPanDamping(), 0.0f);
+}
+
 TEST_F(OrthoPanZoomManipulatorTest, SetZoomMethodSceneScale) {
     manip_->setZoomMethod(vne::interaction::ZoomMethod::eSceneScale);
     EXPECT_EQ(manip_->getZoomMethod(), vne::interaction::ZoomMethod::eSceneScale);
