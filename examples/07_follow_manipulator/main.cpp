@@ -11,6 +11,7 @@
  * ----------------------------------------------------------------------
  */
 
+#include "common/input_simulation.h"
 #include "common/logging_guard.h"
 #include "vertexnova/interaction/camera_manipulator_factory.h"
 #include "vertexnova/interaction/follow_manipulator.h"
@@ -22,6 +23,7 @@
 
 int main() {
     vne::interaction::examples::LoggingGuard logging_guard;
+    using namespace vne::interaction::examples;
 
     // --- Create via factory ---
     const vne::interaction::CameraManipulatorFactory factory;
@@ -68,13 +70,15 @@ int main() {
                  << "  worldUnitsPerPixel=" << manipulator->getWorldUnitsPerPixel();
 
     // --- Scroll to adjust zoom distance ---
-    manipulator->handleMouseScroll(0.0f, -1.0f, 640.0f, 360.0f, dt);
-    manipulator->handleMouseScroll(0.0f, -1.0f, 640.0f, 360.0f, dt);
+    simulateMouseScroll(*manipulator, -1.0f, 640.0f, 360.0f, 2, dt);
     VNE_LOG_INFO << "After 2x zoom in:  sceneScale=" << manipulator->getSceneScale();
 
     // --- fitToAABB ---
     manipulator->fitToAABB({-5.0f, -1.0f, -5.0f}, {5.0f, 1.0f, 5.0f});
     VNE_LOG_INFO << "After fitToAABB:  sceneScale=" << manipulator->getSceneScale();
+
+    manipulator->resetState();
+    VNE_LOG_INFO << "Reset complete";
 
     return 0;
 }

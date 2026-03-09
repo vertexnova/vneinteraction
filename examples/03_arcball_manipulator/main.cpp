@@ -10,6 +10,7 @@
  * ----------------------------------------------------------------------
  */
 
+#include "common/input_simulation.h"
 #include "common/logging_guard.h"
 #include "vertexnova/interaction/arcball_manipulator.h"
 #include "vertexnova/interaction/camera_manipulator_factory.h"
@@ -19,6 +20,7 @@
 
 int main() {
     vne::interaction::examples::LoggingGuard logging_guard;
+    using namespace vne::interaction::examples;
 
     // --- Create via factory ---
     const vne::interaction::CameraManipulatorFactory factory;
@@ -39,56 +41,31 @@ int main() {
     VNE_LOG_INFO << "  orbitDistance=" << arcball->getOrbitDistance()
                  << "  sceneScale=" << manipulator->getSceneScale();
 
-    // --- Simulate: arcball drag (left mouse) ---
     constexpr double dt = 1.0 / 60.0;
-    manipulator->handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eLeft),
-                                   /*pressed=*/true,
-                                   400.0f,
-                                   300.0f,
-                                   dt);
 
-    float mx = 400.0f;
-    float my = 300.0f;
-    for (int i = 0; i < 20; ++i) {
-        const float dx = 3.0f;
-        const float dy = 1.5f;
-        manipulator->handleMouseMove(mx + dx, my + dy, dx, dy, dt);
-        mx += dx;
-        my += dy;
-    }
-
-    manipulator->handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eLeft),
-                                   /*pressed=*/false,
-                                   mx,
-                                   my,
-                                   dt);
-
-    // --- Inertia decay ---
-    for (int i = 0; i < 30; ++i) {
-        manipulator->update(dt);
-    }
+    // --- Simulate: arcball drag (20 frames × dx=3, dy=1.5) ---
+    simulateMouseDrag(*manipulator,
+                      vne::interaction::MouseButton::eLeft,
+                      400.0f,
+                      300.0f,
+                      /*total_dx=*/60.0f,
+                      /*total_dy=*/30.0f,
+                      20,
+                      dt);
+    runFrames(*manipulator, 30, dt);
     VNE_LOG_INFO << "After arcball drag + inertia:";
     VNE_LOG_INFO << "  worldUnitsPerPixel=" << manipulator->getWorldUnitsPerPixel();
 
-    // --- Simulate: right-mouse pan ---
-    manipulator->handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eRight),
-                                   /*pressed=*/true,
-                                   640.0f,
-                                   360.0f,
-                                   dt);
-    for (int i = 0; i < 15; ++i) {
-        manipulator->handleMouseMove(640.0f + i * 4.0f, 360.0f, 4.0f, 0.0f, dt);
-    }
-    manipulator->handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eRight),
-                                   /*pressed=*/false,
-                                   640.0f + 15 * 4.0f,
-                                   360.0f,
-                                   dt);
-
-    // Decay pan inertia
-    for (int i = 0; i < 30; ++i) {
-        manipulator->update(dt);
-    }
+    // --- Simulate: right-mouse pan (15 frames × dx=4) ---
+    simulateMouseDrag(*manipulator,
+                      vne::interaction::MouseButton::eRight,
+                      640.0f,
+                      360.0f,
+                      /*total_dx=*/60.0f,
+                      /*total_dy=*/0.0f,
+                      15,
+                      dt);
+    runFrames(*manipulator, 30, dt);
     VNE_LOG_INFO << "After pan + inertia decay:";
     VNE_LOG_INFO << "  coi=" << arcball->getCenterOfInterestWorld().x() << ", "
                  << arcball->getCenterOfInterestWorld().y() << ", " << arcball->getCenterOfInterestWorld().z();

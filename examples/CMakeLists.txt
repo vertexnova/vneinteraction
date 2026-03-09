@@ -7,6 +7,27 @@ if(NOT TARGET vneinteraction)
     return()
 endif()
 
+#------------------------------------------------------------------------------
+# Helper macro: register one example executable with standard settings.
+# Usage (from an example subdirectory's CMakeLists.txt):
+#   vne_add_example(example_NN_name)
+#
+# - Links vne::interaction privately.
+# - Adds the examples/ root as a private include dir (for common/).
+# - Places the binary under ${CMAKE_BINARY_DIR}/bin/examples/.
+#
+# Uses macro (not function) so CMAKE_CURRENT_SOURCE_DIR resolves in the
+# calling subdirectory's scope, giving the correct path to examples/.
+#------------------------------------------------------------------------------
+macro(vne_add_example target_name)
+    add_executable(${target_name} main.cpp)
+    target_link_libraries(${target_name} PRIVATE vne::interaction)
+    target_include_directories(${target_name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
+    set_target_properties(${target_name} PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/examples"
+    )
+endmacro()
+
 # 01 - Library Info: version query and manipulator capability listing
 add_subdirectory(01_library_info)
 

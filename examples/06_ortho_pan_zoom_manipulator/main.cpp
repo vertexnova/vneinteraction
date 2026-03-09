@@ -11,6 +11,7 @@
  * ----------------------------------------------------------------------
  */
 
+#include "common/input_simulation.h"
 #include "common/logging_guard.h"
 #include "vertexnova/interaction/camera_manipulator_factory.h"
 #include "vertexnova/interaction/interaction_types.h"
@@ -20,6 +21,7 @@
 
 int main() {
     vne::interaction::examples::LoggingGuard logging_guard;
+    using namespace vne::interaction::examples;
 
     // --- Create via factory ---
     const vne::interaction::CameraManipulatorFactory factory;
@@ -40,43 +42,26 @@ int main() {
 
     constexpr double dt = 1.0 / 60.0;
 
-    // --- Simulate: middle-mouse pan ---
-    manipulator->handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eMiddle),
-                                   /*pressed=*/true,
-                                   640.0f,
-                                   360.0f,
-                                   dt);
-    float mx = 640.0f;
-    for (int i = 0; i < 30; ++i) {
-        const float dx = 4.0f;
-        manipulator->handleMouseMove(mx + dx, 360.0f, dx, 0.0f, dt);
-        mx += dx;
-    }
-    manipulator->handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eMiddle),
-                                   /*pressed=*/false,
-                                   mx,
-                                   360.0f,
-                                   dt);
-
-    // Decay pan inertia
-    for (int i = 0; i < 30; ++i) {
-        manipulator->update(dt);
-    }
-    VNE_LOG_INFO << "After middle-mouse pan + inertia decay";
+    // --- Simulate: middle-mouse pan (30 frames × dx=4) ---
+    simulateMouseDrag(*manipulator,
+                      vne::interaction::MouseButton::eMiddle,
+                      640.0f,
+                      360.0f,
+                      /*total_dx=*/120.0f,
+                      /*total_dy=*/0.0f,
+                      30,
+                      dt);
+    runFrames(*manipulator, 30, dt);
+    VNE_LOG_INFO << "After middle-mouse pan + inertia decay:";
     VNE_LOG_INFO << "  worldUnitsPerPixel=" << manipulator->getWorldUnitsPerPixel();
 
-    // --- Simulate: scroll zoom in (negative scroll_y = zoom in) ---
-    for (int i = 0; i < 5; ++i) {
-        manipulator->handleMouseScroll(0.0f, -1.0f, 640.0f, 360.0f, dt);
-    }
+    // --- Simulate: 5× scroll zoom in, then 3× zoom out ---
+    simulateMouseScroll(*manipulator, -1.0f, 640.0f, 360.0f, 5, dt);
     VNE_LOG_INFO << "After 5x scroll zoom in:";
     VNE_LOG_INFO << "  sceneScale=" << manipulator->getSceneScale()
                  << "  worldUnitsPerPixel=" << manipulator->getWorldUnitsPerPixel();
 
-    // --- Simulate: scroll zoom out ---
-    for (int i = 0; i < 3; ++i) {
-        manipulator->handleMouseScroll(0.0f, 1.0f, 640.0f, 360.0f, dt);
-    }
+    simulateMouseScroll(*manipulator, 1.0f, 640.0f, 360.0f, 3, dt);
     VNE_LOG_INFO << "After 3x scroll zoom out:";
     VNE_LOG_INFO << "  sceneScale=" << manipulator->getSceneScale();
 

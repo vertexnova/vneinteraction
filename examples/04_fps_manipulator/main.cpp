@@ -11,6 +11,8 @@
  * ----------------------------------------------------------------------
  */
 
+#include "common/input_simulation.h"
+#include "common/key_codes.h"
 #include "common/logging_guard.h"
 #include "vertexnova/interaction/camera_manipulator_factory.h"
 #include "vertexnova/interaction/fps_manipulator.h"
@@ -18,6 +20,7 @@
 
 int main() {
     vne::interaction::examples::LoggingGuard logging_guard;
+    using namespace vne::interaction::examples;
 
     // --- Create via factory ---
     const vne::interaction::CameraManipulatorFactory factory;
@@ -40,55 +43,27 @@ int main() {
     constexpr double dt = 1.0 / 60.0;
 
     // --- Simulate: hold W (forward) for 60 frames ---
-    constexpr int key_w = 87;
-    manipulator->handleKeyboard(key_w, /*pressed=*/true, dt);
-    for (int i = 0; i < 60; ++i) {
-        manipulator->update(dt);
-    }
-    manipulator->handleKeyboard(key_w, /*pressed=*/false, dt);
+    simulateKeyHold(*manipulator, key_w, 60, dt);
     VNE_LOG_INFO << "After 60 frames walking forward:";
     VNE_LOG_INFO << "  sceneScale=" << manipulator->getSceneScale();
 
-    // --- Simulate: hold Shift + W (sprint) for 30 frames ---
-    constexpr int key_shift = 340;
-    manipulator->handleKeyboard(key_shift, /*pressed=*/true, dt);
-    manipulator->handleKeyboard(key_w, /*pressed=*/true, dt);
-    for (int i = 0; i < 30; ++i) {
-        manipulator->update(dt);
-    }
-    manipulator->handleKeyboard(key_w, /*pressed=*/false, dt);
-    manipulator->handleKeyboard(key_shift, /*pressed=*/false, dt);
+    // --- Simulate: hold Shift+W (sprint) for 30 frames ---
+    simulateKeyHoldMulti(*manipulator, {key_shift, key_w}, 30, dt);
     VNE_LOG_INFO << "After 30 frames sprinting forward";
 
-    // --- Simulate: right-mouse look (activate look mode then drag) ---
-    manipulator->handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eRight),
-                                   /*pressed=*/true,
-                                   640.0f,
-                                   360.0f,
-                                   dt);
-    float mx = 640.0f;
-    for (int i = 0; i < 20; ++i) {
-        const float dx = 3.0f;
-        manipulator->handleMouseMove(mx + dx, 360.0f, dx, 0.0f, dt);
-        mx += dx;
-    }
-    manipulator->handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eRight),
-                                   /*pressed=*/false,
-                                   mx,
-                                   360.0f,
-                                   dt);
+    // --- Simulate: right-mouse look (20 frames × dx=3) ---
+    simulateMouseDrag(*manipulator,
+                      vne::interaction::MouseButton::eRight,
+                      640.0f,
+                      360.0f,
+                      /*total_dx=*/60.0f,
+                      /*total_dy=*/0.0f,
+                      20,
+                      dt);
     VNE_LOG_INFO << "After mouse-look yaw";
 
     // --- Simulate: strafe left (A) + move up (E) ---
-    constexpr int key_a = 65;
-    constexpr int key_e = 69;
-    manipulator->handleKeyboard(key_a, /*pressed=*/true, dt);
-    manipulator->handleKeyboard(key_e, /*pressed=*/true, dt);
-    for (int i = 0; i < 30; ++i) {
-        manipulator->update(dt);
-    }
-    manipulator->handleKeyboard(key_a, /*pressed=*/false, dt);
-    manipulator->handleKeyboard(key_e, /*pressed=*/false, dt);
+    simulateKeyHoldMulti(*manipulator, {key_a, key_e}, 30, dt);
     VNE_LOG_INFO << "After strafe-left + move-up";
 
     // --- fitToAABB then reset ---

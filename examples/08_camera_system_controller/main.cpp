@@ -16,23 +16,23 @@
  * ----------------------------------------------------------------------
  */
 
+#include "common/input_simulation.h"
+#include "common/key_codes.h"
 #include "common/logging_guard.h"
 #include "vertexnova/interaction/camera_manipulator_factory.h"
 #include "vertexnova/interaction/camera_system_controller.h"
 #include "vertexnova/interaction/interaction_types.h"
-#include "vertexnova/interaction/orbit_manipulator.h"
 
 int main() {
     vne::interaction::examples::LoggingGuard logging_guard;
+    using namespace vne::interaction::examples;
 
     const vne::interaction::CameraManipulatorFactory factory;
     vne::interaction::CameraSystemController controller;
 
     constexpr double dt = 1.0 / 60.0;
 
-    // ---------------------------------------------------------------
     // Phase 1: OrbitManipulator
-    // ---------------------------------------------------------------
     auto orbit_manip = factory.create(vne::interaction::CameraManipulatorType::eOrbit);
     controller.setManipulator(orbit_manip);
     controller.setViewportSize(1280.0f, 720.0f);
@@ -40,76 +40,53 @@ int main() {
     VNE_LOG_INFO << "Phase 1: OrbitManipulator active";
     VNE_LOG_INFO << "  sceneScale=" << controller.getManipulator()->getSceneScale();
 
-    // Press left mouse, drag, release
-    controller.handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eLeft),
-                                 /*pressed=*/true,
-                                 640.0f,
-                                 360.0f,
-                                 dt);
-    float mx = 640.0f;
-    for (int i = 0; i < 20; ++i) {
-        controller.handleMouseMove(mx + 3.0f, 360.0f, 3.0f, 0.0f, dt);
-        mx += 3.0f;
-    }
-    controller.handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eLeft),
-                                 /*pressed=*/false,
-                                 mx,
-                                 360.0f,
-                                 dt);
-    for (int i = 0; i < 20; ++i) {
-        controller.update(dt);
-    }
-    VNE_LOG_INFO << "  After orbit drag + inertia";
+    // Helpers dispatch through the underlying manipulator; controller forwards identically
+    simulateMouseDrag(*controller.getManipulator(),
+                      vne::interaction::MouseButton::eLeft,
+                      640.0f,
+                      360.0f,
+                      /*total_dx=*/60.0f,
+                      /*total_dy=*/0.0f,
+                      20,
+                      dt);
+    runFrames(*controller.getManipulator(), 20, dt);
+    VNE_LOG_INFO << "After orbit drag + inertia:";
     VNE_LOG_INFO << "  worldUnitsPerPixel=" << controller.getManipulator()->getWorldUnitsPerPixel();
 
-    // ---------------------------------------------------------------
     // Phase 2: Swap to FlyManipulator — same controller, new manipulator
-    // ---------------------------------------------------------------
     auto fly_manip = factory.create(vne::interaction::CameraManipulatorType::eFly);
     controller.setManipulator(fly_manip);
     controller.setViewportSize(1280.0f, 720.0f);
 
     VNE_LOG_INFO << "Phase 2: FlyManipulator swapped in";
 
-    constexpr int key_w = 87;
-    controller.handleKeyboard(key_w, /*pressed=*/true, dt);
-    for (int i = 0; i < 30; ++i) {
-        controller.update(dt);
-    }
-    controller.handleKeyboard(key_w, /*pressed=*/false, dt);
-    VNE_LOG_INFO << "  After 30 frames flying forward";
+    simulateKeyHold(*controller.getManipulator(), key_w, 30, dt);
+    VNE_LOG_INFO << "After 30 frames flying forward:";
     VNE_LOG_INFO << "  sceneScale=" << controller.getManipulator()->getSceneScale();
 
-    // ---------------------------------------------------------------
     // Phase 3: Swap to OrthoPanZoomManipulator
-    // ---------------------------------------------------------------
     auto ortho_manip = factory.create(vne::interaction::CameraManipulatorType::eOrthoPanZoom);
     controller.setManipulator(ortho_manip);
     controller.setViewportSize(1280.0f, 720.0f);
 
     VNE_LOG_INFO << "Phase 3: OrthoPanZoomManipulator swapped in";
 
-    // Scroll zoom
-    for (int i = 0; i < 4; ++i) {
-        controller.handleMouseScroll(0.0f, -1.0f, 640.0f, 360.0f, dt);
-    }
+    simulateMouseScroll(*controller.getManipulator(), -1.0f, 640.0f, 360.0f, 4, dt);
     controller.update(dt);
-    VNE_LOG_INFO << "  After 4x scroll zoom in";
+    VNE_LOG_INFO << "After 4x scroll zoom in:";
     VNE_LOG_INFO << "  sceneScale=" << controller.getManipulator()->getSceneScale()
                  << "  worldUnitsPerPixel=" << controller.getManipulator()->getWorldUnitsPerPixel();
 
-    // Touch-pan
+    // Touch-pan (no helper — demonstrates direct controller API)
     {
         vne::interaction::TouchPan pan{10.0f, 0.0f};
         for (int i = 0; i < 10; ++i) {
             controller.handleTouchPan(pan, dt);
         }
     }
-    VNE_LOG_INFO << "  After touch-pan";
+    VNE_LOG_INFO << "After touch-pan";
 
-    // ---------------------------------------------------------------
-    // Phase 4: Detach (null manipulator — controller is a no-op)
-    // ---------------------------------------------------------------
+    // Phase 4: Detach — controller becomes a safe no-op
     controller.setManipulator(nullptr);
     controller.handleMouseButton(0, true, 640.0f, 360.0f, dt);  // safe no-op
     controller.update(dt);
