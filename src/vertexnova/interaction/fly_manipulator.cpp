@@ -4,7 +4,6 @@
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/interaction/angle_utils.h"
 #include "vertexnova/interaction/fly_manipulator.h"
 #include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/perspective_camera.h"

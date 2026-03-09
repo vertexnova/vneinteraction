@@ -7,7 +7,6 @@
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/interaction/angle_utils.h"
 #include "vertexnova/interaction/orbit_manipulator.h"
 #include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/orthographic_camera.h"
