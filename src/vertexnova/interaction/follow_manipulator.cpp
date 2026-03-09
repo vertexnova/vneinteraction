@@ -14,6 +14,16 @@
 
 namespace vne::interaction {
 
+namespace {
+constexpr float kMinViewportSize = 1.0f;
+constexpr float kFovMinDeg = 5.0f;
+constexpr float kFovMaxDeg = 120.0f;
+constexpr float kSceneScaleMin = 1e-4f;
+constexpr float kSceneScaleMax = 1e4f;
+constexpr float kOffsetMinLength = 0.1f;
+constexpr float kOffsetMaxLength = 1e4f;
+}  // namespace
+
 vne::math::Vec3f FollowManipulator::getTargetWorld() const noexcept {
     return target_provider_ ? target_provider_() : target_world_;
 }
@@ -23,8 +33,8 @@ void FollowManipulator::setCamera(std::shared_ptr<vne::scene::ICamera> camera) n
 }
 
 void FollowManipulator::setViewportSize(float width_px, float height_px) noexcept {
-    viewport_width_ = std::max(1.0f, width_px);
-    viewport_height_ = std::max(1.0f, height_px);
+    viewport_width_ = std::max(kMinViewportSize, width_px);
+    viewport_height_ = std::max(kMinViewportSize, height_px);
 }
 
 void FollowManipulator::fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept {
@@ -65,12 +75,12 @@ void FollowManipulator::applyZoom(float zoom_factor) noexcept {
 
     switch (zoom_method_) {
         case ZoomMethod::eSceneScale:
-            scene_scale_ = vne::math::clamp(scene_scale_ * zoom_factor, 1e-4f, 1e4f);
+            scene_scale_ = vne::math::clamp(scene_scale_ * zoom_factor, kSceneScaleMin, kSceneScaleMax);
             return;
         case ZoomMethod::eDollyToCoi: {
             const vne::math::Vec3f new_offset = offset_world_ * zoom_factor;
             const float len = new_offset.length();
-            if (len > 0.1f && len < 1e4f) {
+            if (len > kOffsetMinLength && len < kOffsetMaxLength) {
                 offset_world_ = new_offset;
             }
             return;
@@ -78,12 +88,12 @@ void FollowManipulator::applyZoom(float zoom_factor) noexcept {
         case ZoomMethod::eChangeFov:
             if (auto persp = std::dynamic_pointer_cast<vne::scene::PerspectiveCamera>(camera_)) {
                 const float fov = persp->getFieldOfView();
-                persp->setFieldOfView(vne::math::clamp(fov * zoom_factor, 5.0f, 120.0f));
+                persp->setFieldOfView(vne::math::clamp(fov * zoom_factor, kFovMinDeg, kFovMaxDeg));
                 persp->updateMatrices();
             } else {
                 const vne::math::Vec3f new_offset = offset_world_ * zoom_factor;
                 const float len = new_offset.length();
-                if (len > 0.1f && len < 1e4f) {
+                if (len > kOffsetMinLength && len < kOffsetMaxLength) {
                     offset_world_ = new_offset;
                 }
             }

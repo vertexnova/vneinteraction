@@ -18,8 +18,27 @@ namespace vne::interaction {
 
 namespace {
 constexpr float kEpsilon = 1e-6f;
+constexpr float kMinViewportSize = 1.0f;
+constexpr float kMinRadiusFallback = 1.0f;
 constexpr float kFitToAabbDistanceFactor = 2.5f;
-}
+constexpr float kPitchMinDeg = -89.0f;
+constexpr float kPitchMaxDeg = 89.0f;
+constexpr float kFovMinDeg = 5.0f;
+constexpr float kFovMaxDeg = 120.0f;
+constexpr float kSceneScaleMin = 1e-4f;
+constexpr float kSceneScaleMax = 1e4f;
+constexpr float kTouchPanSensitivityFactor = 0.5f;
+constexpr int kKeyW = 87;
+constexpr int kKeyS = 83;
+constexpr int kKeyA = 65;
+constexpr int kKeyD = 68;
+constexpr int kKeyQ = 81;
+constexpr int kKeyE = 69;
+constexpr int kKeyLeftShift = 340;
+constexpr int kKeyRightShift = 344;
+constexpr int kKeyLeftCtrl = 341;
+constexpr int kKeyRightCtrl = 345;
+}  // namespace
 
 void FpsManipulator::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
     camera_ = std::move(camera);
@@ -33,8 +52,8 @@ void FpsManipulator::setWorldUp(const vne::math::Vec3f& up) noexcept {
 }
 
 void FpsManipulator::setViewportSize(float width_px, float height_px) noexcept {
-    viewport_width_ = std::max(1.0f, width_px);
-    viewport_height_ = std::max(1.0f, height_px);
+    viewport_width_ = std::max(kMinViewportSize, width_px);
+    viewport_height_ = std::max(kMinViewportSize, height_px);
 }
 
 void FpsManipulator::resetState() noexcept {
@@ -49,7 +68,7 @@ void FpsManipulator::fitToAABB(const vne::math::Vec3f& min_world, const vne::mat
     const vne::math::Vec3f center = (min_world + max_world) * 0.5f;
     float radius = (max_world - min_world).length() * 0.5f;
     if (radius < kEpsilon) {
-        radius = 1.0f;
+        radius = kMinRadiusFallback;
     }
     const vne::math::Vec3f f = front();
     camera_->setPosition(center - f * (radius * kFitToAabbDistanceFactor));
@@ -154,7 +173,7 @@ void FpsManipulator::handleMouseMove(float, float, float delta_x, float delta_y,
     }
     yaw_deg_ += delta_x * mouse_sensitivity_;
     pitch_deg_ += -delta_y * mouse_sensitivity_;
-    pitch_deg_ = vne::math::clamp(pitch_deg_, -89.0f, 89.0f);
+    pitch_deg_ = vne::math::clamp(pitch_deg_, kPitchMinDeg, kPitchMaxDeg);
     applyAnglesToCamera();
 }
 
@@ -174,7 +193,7 @@ void FpsManipulator::applyZoom(float zoom_step_or_factor) noexcept {
 
     switch (zoom_method_) {
         case ZoomMethod::eSceneScale:
-            scene_scale_ = vne::math::clamp(scene_scale_ * zoom_step_or_factor, 1e-4f, 1e4f);
+            scene_scale_ = vne::math::clamp(scene_scale_ * zoom_step_or_factor, kSceneScaleMin, kSceneScaleMax);
             return;
         case ZoomMethod::eDollyToCoi: {
             const vne::math::Vec3f f = front();
@@ -186,7 +205,7 @@ void FpsManipulator::applyZoom(float zoom_step_or_factor) noexcept {
         case ZoomMethod::eChangeFov:
             if (auto persp = std::dynamic_pointer_cast<vne::scene::PerspectiveCamera>(camera_)) {
                 const float fov = persp->getFieldOfView();
-                persp->setFieldOfView(vne::math::clamp(fov * zoom_step_or_factor, 5.0f, 120.0f));
+                persp->setFieldOfView(vne::math::clamp(fov * zoom_step_or_factor, kFovMinDeg, kFovMaxDeg));
                 persp->updateMatrices();
             }
             return;
@@ -209,21 +228,21 @@ void FpsManipulator::handleKeyboard(int key, bool pressed, double) noexcept {
     if (!enabled_) {
         return;
     }
-    if (key == 87) {
+    if (key == kKeyW) {
         w_ = pressed;
-    } else if (key == 83) {
+    } else if (key == kKeyS) {
         s_ = pressed;
-    } else if (key == 65) {
+    } else if (key == kKeyA) {
         a_ = pressed;
-    } else if (key == 68) {
+    } else if (key == kKeyD) {
         d_ = pressed;
-    } else if (key == 81) {
+    } else if (key == kKeyQ) {
         q_ = pressed;
-    } else if (key == 69) {
+    } else if (key == kKeyE) {
         e_ = pressed;
-    } else if (key == 340 || key == 344) {
+    } else if (key == kKeyLeftShift || key == kKeyRightShift) {
         sprint_ = pressed;
-    } else if (key == 341 || key == 345) {
+    } else if (key == kKeyLeftCtrl || key == kKeyRightCtrl) {
         slow_ = pressed;
     }
 }
@@ -232,9 +251,9 @@ void FpsManipulator::handleTouchPan(const TouchPan& pan, double) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }
-    yaw_deg_ += pan.delta_x_px * mouse_sensitivity_ * 0.5f;
-    pitch_deg_ += -pan.delta_y_px * mouse_sensitivity_ * 0.5f;
-    pitch_deg_ = vne::math::clamp(pitch_deg_, -89.0f, 89.0f);
+    yaw_deg_ += pan.delta_x_px * mouse_sensitivity_ * kTouchPanSensitivityFactor;
+    pitch_deg_ += -pan.delta_y_px * mouse_sensitivity_ * kTouchPanSensitivityFactor;
+    pitch_deg_ = vne::math::clamp(pitch_deg_, kPitchMinDeg, kPitchMaxDeg);
     applyAnglesToCamera();
 }
 

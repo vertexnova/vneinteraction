@@ -18,6 +18,26 @@ namespace vne::interaction {
 
 namespace {
 constexpr float kEpsilon = 1e-6f;
+constexpr float kMinViewportSize = 1.0f;
+constexpr float kMinOrbitDistance = 0.01f;
+constexpr float kMaxOrbitDistance = 1e6f;
+constexpr float kMinRadiusFallback = 1.0f;
+constexpr float kFrontZNearVertical = 0.999f;
+constexpr float kArcballSphereRadiusSq = 1.0f;
+constexpr float kInertiaRotSpeedMax = 10.0f;
+constexpr float kInertiaRotAngleThreshold = 1e-6f;
+constexpr float kInertiaRotSpeedThreshold = 1e-4f;
+constexpr float kInertiaPanSpeedThreshold = 1e-4f;
+constexpr float kFitToAabbMargin = 1.1f;
+constexpr float kMinOrthoExtent = 1e-3f;
+constexpr float kFovMinDeg = 5.0f;
+constexpr float kFovMaxDeg = 120.0f;
+constexpr float kSceneScaleMin = 1e-4f;
+constexpr float kSceneScaleMax = 1e4f;
+constexpr float kTouchPanViewportCenterFactor = 0.5f;
+constexpr int kKeyLeftShift = 340;
+constexpr int kKeyRightShift = 344;
+
 float safeSqrt(float x) noexcept {
     return std::sqrt(std::max(0.0f, x));
 }
@@ -38,8 +58,8 @@ void ArcballManipulator::setCamera(std::shared_ptr<vne::scene::ICamera> camera) 
 }
 
 void ArcballManipulator::setViewportSize(float width_px, float height_px) noexcept {
-    viewport_width_ = std::max(1.0f, width_px);
-    viewport_height_ = std::max(1.0f, height_px);
+    viewport_width_ = std::max(kMinViewportSize, width_px);
+    viewport_height_ = std::max(kMinViewportSize, height_px);
     if (auto persp = std::dynamic_pointer_cast<vne::scene::PerspectiveCamera>(camera_)) {
         persp->setViewport(viewport_width_, viewport_height_);
     }
@@ -66,7 +86,7 @@ vne::math::Vec3f ArcballManipulator::computeRight(const vne::math::Vec3f& front)
     vne::math::Vec3f r = world_up_.cross(front);
     float len = r.length();
     if (len < kEpsilon) {
-        const vne::math::Vec3f fallback_up = (std::abs(front.z()) < 0.999f) ? vne::math::Vec3f(0.0f, 0.0f, 1.0f) : vne::math::Vec3f(0.0f, 1.0f, 0.0f);
+        const vne::math::Vec3f fallback_up = (std::abs(front.z()) < kFrontZNearVertical) ? vne::math::Vec3f(0.0f, 0.0f, 1.0f) : vne::math::Vec3f(0.0f, 1.0f, 0.0f);
         r = fallback_up.cross(front);
         len = r.length();
     }
@@ -87,7 +107,7 @@ void ArcballManipulator::setWorldUp(const vne::math::Vec3f& world_up) noexcept {
 }
 
 void ArcballManipulator::setOrbitDistance(float distance) noexcept {
-    orbit_distance_ = vne::math::clamp(distance, 0.01f, 1e6f);
+    orbit_distance_ = vne::math::clamp(distance, kMinOrbitDistance, kMaxOrbitDistance);
     applyToCamera();
 }
 
@@ -106,7 +126,7 @@ void ArcballManipulator::setCenterOfInterest(const vne::math::Vec3f& coi, Center
         coi_world_ = camera_->getPosition() + r * coi.x() + u * coi.y() + front * coi.z();
     }
 
-    orbit_distance_ = std::max((camera_->getPosition() - coi_world_).length(), 0.01f);
+    orbit_distance_ = std::max((camera_->getPosition() - coi_world_).length(), kMinOrbitDistance);
     camera_->setTarget(coi_world_);
     camera_->updateMatrices();
 }
@@ -127,7 +147,7 @@ void ArcballManipulator::syncFromCamera() noexcept {
         return;
     }
     coi_world_ = camera_->getTarget();
-    orbit_distance_ = std::max((camera_->getPosition() - coi_world_).length(), 0.01f);
+    orbit_distance_ = std::max((camera_->getPosition() - coi_world_).length(), kMinOrbitDistance);
 }
 
 void ArcballManipulator::applyToCamera() noexcept {
@@ -152,8 +172,8 @@ vne::math::Vec3f ArcballManipulator::projectToArcball(float x_px, float y_px) co
     const float r2 = ax * ax + ay * ay;
     float az = 0.0f;
 
-    if (r2 <= 1.0f) {
-        az = safeSqrt(1.0f - r2);
+    if (r2 <= kArcballSphereRadiusSq) {
+        az = safeSqrt(kArcballSphereRadiusSq - r2);
     } else {
         const float inv_len = 1.0f / std::sqrt(r2);
         ax *= inv_len;
@@ -205,11 +225,11 @@ void ArcballManipulator::dragRotate(float x_px, float y_px, double delta_time) n
     camera_->setUp(q.rotate(up));
     camera_->setTarget(coi_world_);
     camera_->updateMatrices();
-    orbit_distance_ = std::max((camera_->getPosition() - coi_world_).length(), 0.01f);
+    orbit_distance_ = std::max((camera_->getPosition() - coi_world_).length(), kMinOrbitDistance);
 
-    if (delta_time > 0.0 && std::abs(angle) > 1e-6f) {
+    if (delta_time > 0.0 && std::abs(angle) > kInertiaRotAngleThreshold) {
         inertia_rot_axis_ = axis;
-        inertia_rot_speed_ = vne::math::clamp(angle / static_cast<float>(delta_time), -10.0f, 10.0f);
+        inertia_rot_speed_ = vne::math::clamp(angle / static_cast<float>(delta_time), -kInertiaRotSpeedMax, kInertiaRotSpeedMax);
     }
 }
 
@@ -266,7 +286,7 @@ void ArcballManipulator::applyInertia(double delta_time) noexcept {
     const float dt = static_cast<float>(delta_time);
     bool changed = false;
 
-    if (std::abs(inertia_rot_speed_) > 1e-4f) {
+    if (std::abs(inertia_rot_speed_) > kInertiaRotSpeedThreshold) {
         const vne::math::Quatf q = vne::math::Quatf::fromAxisAngle(inertia_rot_axis_, inertia_rot_speed_ * dt);
         const vne::math::Vec3f eye_offset = camera_->getPosition() - coi_world_;
         const vne::math::Vec3f up = camera_->getUp();
@@ -277,7 +297,7 @@ void ArcballManipulator::applyInertia(double delta_time) noexcept {
         changed = true;
     }
 
-    if (inertia_pan_velocity_.length() > 1e-4f) {
+    if (inertia_pan_velocity_.length() > kInertiaPanSpeedThreshold) {
         const vne::math::Vec3f delta = inertia_pan_velocity_ * dt;
         coi_world_ += delta;
         camera_->setPosition(camera_->getPosition() + delta);
@@ -287,7 +307,7 @@ void ArcballManipulator::applyInertia(double delta_time) noexcept {
     }
 
     if (changed) {
-        orbit_distance_ = std::max((camera_->getPosition() - coi_world_).length(), 0.01f);
+        orbit_distance_ = std::max((camera_->getPosition() - coi_world_).length(), kMinOrbitDistance);
         camera_->updateMatrices();
     }
 }
@@ -328,15 +348,15 @@ void ArcballManipulator::zoom(float zoom_factor, float mouse_x_px, float mouse_y
 
     switch (zoom_method_) {
         case ZoomMethod::eSceneScale:
-            scene_scale_ = vne::math::clamp(scene_scale_ * zoom_factor, 1e-4f, 1e4f);
+            scene_scale_ = vne::math::clamp(scene_scale_ * zoom_factor, kSceneScaleMin, kSceneScaleMax);
             return;
         case ZoomMethod::eChangeFov:
             if (auto persp = std::dynamic_pointer_cast<vne::scene::PerspectiveCamera>(camera_)) {
                 const float fov = persp->getFieldOfView();
                 persp->setFieldOfView(
                     vne::math::clamp(fov * ((zoom_factor < 1.0f) ? (1.0f / fov_zoom_speed_) : fov_zoom_speed_),
-                                     5.0f,
-                                     120.0f));
+                                     kFovMinDeg,
+                                     kFovMaxDeg));
                 persp->updateMatrices();
                 return;
             }
@@ -347,7 +367,7 @@ void ArcballManipulator::zoom(float zoom_factor, float mouse_x_px, float mouse_y
                 zoomOrthoToCursor(zoom_factor, mouse_x_px, mouse_y_px);
                 return;
             }
-            orbit_distance_ = vne::math::clamp(orbit_distance_ * zoom_factor, 0.01f, 1e6f);
+            orbit_distance_ = vne::math::clamp(orbit_distance_ * zoom_factor, kMinOrbitDistance, kMaxOrbitDistance);
             applyToCamera();
             return;
     }
@@ -405,7 +425,7 @@ void ArcballManipulator::handleMouseScroll(float, float scroll_y, float mouse_x,
 }
 
 void ArcballManipulator::handleKeyboard(int key, bool pressed, double) noexcept {
-    if (key == 340 || key == 344) {
+    if (key == kKeyLeftShift || key == kKeyRightShift) {
         shift_ = pressed;
     }
 }
@@ -415,7 +435,7 @@ void ArcballManipulator::handleTouchPan(const TouchPan& pan, double delta_time) 
         return;
     }
     if (!rotating_) {
-        beginRotate(viewport_width_ * 0.5f, viewport_height_ * 0.5f);
+        beginRotate(viewport_width_ * kTouchPanViewportCenterFactor, viewport_height_ * kTouchPanViewportCenterFactor);
     }
     dragRotate(last_x_ + pan.delta_x_px, last_y_ + pan.delta_y_px, delta_time);
 }
@@ -436,18 +456,18 @@ void ArcballManipulator::fitToAABB(const vne::math::Vec3f& min_world, const vne:
     const vne::math::Vec3f extents = max_world - min_world;
     float radius = extents.length() * 0.5f;
     if (radius < kEpsilon) {
-        radius = 1.0f;
+        radius = kMinRadiusFallback;
     }
 
     coi_world_ = center;
 
     if (auto persp = std::dynamic_pointer_cast<vne::scene::PerspectiveCamera>(camera_)) {
         const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
-        const float aspect = std::max(viewport_width_ / viewport_height_, 1e-3f);
+        const float aspect = std::max(viewport_width_ / viewport_height_, kMinOrthoExtent);
         const float fov_x_rad = 2.0f * vne::math::atan(vne::math::tan(fov_y_rad * 0.5f) * aspect);
         const float dist_y = radius / vne::math::tan(fov_y_rad * 0.5f);
         const float dist_x = radius / vne::math::tan(fov_x_rad * 0.5f);
-        orbit_distance_ = std::max(dist_x, dist_y) * 1.1f;
+        orbit_distance_ = std::max(dist_x, dist_y) * kFitToAabbMargin;
         applyToCamera();
     } else if (auto ortho = std::dynamic_pointer_cast<vne::scene::OrthographicCamera>(camera_)) {
         const vne::math::Vec3f front = computeFront();
@@ -470,8 +490,8 @@ void ArcballManipulator::fitToAABB(const vne::math::Vec3f& min_world, const vne:
             max_r = std::max(max_r, std::abs(d.dot(r)));
             max_u = std::max(max_u, std::abs(d.dot(u)));
         }
-        max_r = std::max(max_r * 1.1f, 1e-3f);
-        max_u = std::max(max_u * 1.1f, 1e-3f);
+        max_r = std::max(max_r * kFitToAabbMargin, kMinOrthoExtent);
+        max_u = std::max(max_u * kFitToAabbMargin, kMinOrthoExtent);
         const float aspect = viewport_width_ / viewport_height_;
         if (max_r / max_u < aspect) {
             max_r = max_u * aspect;

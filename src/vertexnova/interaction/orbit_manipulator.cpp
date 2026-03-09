@@ -22,7 +22,24 @@ namespace vne::interaction {
 
 namespace {
 constexpr float kEpsilon = 1e-6f;
-}
+constexpr float kMinViewportSize = 1.0f;
+constexpr float kMinOrbitDistance = 0.01f;
+constexpr float kMaxOrbitDistance = 1e6f;
+constexpr float kDefaultOrbitDistance = 5.0f;
+constexpr float kMinRadiusFallback = 1.0f;
+constexpr float kPitchMinDeg = -89.0f;
+constexpr float kPitchMaxDeg = 89.0f;
+constexpr float kFovMinDeg = 5.0f;
+constexpr float kFovMaxDeg = 120.0f;
+constexpr float kSceneScaleMin = 1e-4f;
+constexpr float kSceneScaleMax = 1e4f;
+constexpr float kFitToAabbMargin = 1.1f;
+constexpr float kMinOrthoExtent = 1e-3f;
+constexpr float kInertiaRotThreshold = 1e-3f;
+constexpr float kInertiaPanThreshold = 1e-4f;
+constexpr int kKeyLeftShift = 340;
+constexpr int kKeyRightShift = 344;
+}  // namespace
 
 OrbitManipulator::OrbitManipulator() noexcept
     : world_up_(0.0f, 1.0f, 0.0f)
@@ -41,8 +58,8 @@ void OrbitManipulator::setCamera(std::shared_ptr<vne::scene::ICamera> camera) no
 }
 
 void OrbitManipulator::setViewportSize(float width_px, float height_px) noexcept {
-    viewport_width_ = std::max(1.0f, width_px);
-    viewport_height_ = std::max(1.0f, height_px);
+    viewport_width_ = std::max(kMinViewportSize, width_px);
+    viewport_height_ = std::max(kMinViewportSize, height_px);
 }
 
 bool OrbitManipulator::isPerspective() const noexcept {
@@ -83,7 +100,7 @@ void OrbitManipulator::syncFromCamera() noexcept {
     vne::math::Vec3f front = coi_world_ - eye;
     orbit_distance_ = front.length();
     if (orbit_distance_ < kEpsilon) {
-        orbit_distance_ = 5.0f;
+        orbit_distance_ = kDefaultOrbitDistance;
         yaw_deg_ = 0.0f;
         pitch_deg_ = 0.0f;
         return;
@@ -121,7 +138,7 @@ void OrbitManipulator::setCenterOfInterest(const vne::math::Vec3f& coi, CenterOf
 }
 
 void OrbitManipulator::setOrbitDistance(float distance) noexcept {
-    orbit_distance_ = std::max(distance, 0.01f);
+    orbit_distance_ = std::max(distance, kMinOrbitDistance);
     applyToCamera();
 }
 
@@ -170,7 +187,7 @@ void OrbitManipulator::beginRotate(float x_px, float y_px) noexcept {
 void OrbitManipulator::dragRotate(float delta_x_px, float delta_y_px, double delta_time) noexcept {
     yaw_deg_ += delta_x_px * rotation_speed_;
     pitch_deg_ -= delta_y_px * rotation_speed_;
-    pitch_deg_ = vne::math::clamp(pitch_deg_, -89.0f, 89.0f);
+    pitch_deg_ = vne::math::clamp(pitch_deg_, kPitchMinDeg, kPitchMaxDeg);
     applyToCamera();
     if (delta_time > 0.0) {
         const float inv_dt = 1.0f / static_cast<float>(delta_time);
@@ -224,16 +241,16 @@ void OrbitManipulator::applyInertia(double delta_time) noexcept {
     }
     const float dt = static_cast<float>(delta_time);
     bool changed = false;
-    if (std::abs(inertia_rot_speed_x_) > 1e-3f || std::abs(inertia_rot_speed_y_) > 1e-3f) {
+    if (std::abs(inertia_rot_speed_x_) > kInertiaRotThreshold || std::abs(inertia_rot_speed_y_) > kInertiaRotThreshold) {
         yaw_deg_ += inertia_rot_speed_x_ * dt;
         pitch_deg_ += inertia_rot_speed_y_ * dt;
-        pitch_deg_ = vne::math::clamp(pitch_deg_, -89.0f, 89.0f);
+        pitch_deg_ = vne::math::clamp(pitch_deg_, kPitchMinDeg, kPitchMaxDeg);
         const float rot_decay = std::exp(-rot_damping_ * dt);
         inertia_rot_speed_x_ *= rot_decay;
         inertia_rot_speed_y_ *= rot_decay;
         changed = true;
     }
-    if (inertia_pan_velocity_.length() > 1e-4f) {
+    if (inertia_pan_velocity_.length() > kInertiaPanThreshold) {
         coi_world_ += inertia_pan_velocity_ * dt;
         inertia_pan_velocity_ *= std::exp(-pan_damping_ * dt);
         changed = true;
@@ -277,15 +294,15 @@ void OrbitManipulator::zoom(float zoom_factor, float mouse_x_px, float mouse_y_p
     }
     switch (zoom_method_) {
         case ZoomMethod::eSceneScale:
-            scene_scale_ = vne::math::clamp(scene_scale_ * zoom_factor, 1e-4f, 1e4f);
+            scene_scale_ = vne::math::clamp(scene_scale_ * zoom_factor, kSceneScaleMin, kSceneScaleMax);
             return;
         case ZoomMethod::eChangeFov:
             if (auto persp = std::dynamic_pointer_cast<vne::scene::PerspectiveCamera>(camera_)) {
                 const float fov = persp->getFieldOfView();
                 persp->setFieldOfView(
                     vne::math::clamp(fov * ((zoom_factor < 1.0f) ? (1.0f / fov_zoom_speed_) : fov_zoom_speed_),
-                                    5.0f,
-                                    120.0f));
+                                    kFovMinDeg,
+                                    kFovMaxDeg));
                 persp->updateMatrices();
                 return;
             }
@@ -295,7 +312,7 @@ void OrbitManipulator::zoom(float zoom_factor, float mouse_x_px, float mouse_y_p
                 zoomOrthoToCursor(zoom_factor, mouse_x_px, mouse_y_px);
                 return;
             }
-            orbit_distance_ = vne::math::clamp(orbit_distance_ * zoom_factor, 0.01f, 1e6f);
+            orbit_distance_ = vne::math::clamp(orbit_distance_ * zoom_factor, kMinOrbitDistance, kMaxOrbitDistance);
             applyToCamera();
             return;
     }
@@ -352,7 +369,7 @@ void OrbitManipulator::handleMouseScroll(float, float scroll_y, float mouse_x, f
 }
 
 void OrbitManipulator::handleKeyboard(int key, bool pressed, double) noexcept {
-    if (key == 340 || key == 344) {
+    if (key == kKeyLeftShift || key == kKeyRightShift) {
         shift_ = pressed;
     }
 }
@@ -388,16 +405,16 @@ void OrbitManipulator::fitToAABB(const vne::math::Vec3f& min_world, const vne::m
     const vne::math::Vec3f extents = max_world - min_world;
     float radius = extents.length() * 0.5f;
     if (radius < kEpsilon) {
-        radius = 1.0f;
+        radius = kMinRadiusFallback;
     }
     coi_world_ = center;
     if (auto persp = std::dynamic_pointer_cast<vne::scene::PerspectiveCamera>(camera_)) {
         const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
-        const float aspect = std::max(viewport_width_ / viewport_height_, 1e-3f);
+        const float aspect = std::max(viewport_width_ / viewport_height_, kMinOrthoExtent);
         const float fov_x_rad = 2.0f * vne::math::atan(vne::math::tan(fov_y_rad * 0.5f) * aspect);
         const float dist_y = radius / vne::math::tan(fov_y_rad * 0.5f);
         const float dist_x = radius / vne::math::tan(fov_x_rad * 0.5f);
-        orbit_distance_ = std::max(dist_x, dist_y) * 1.1f;
+        orbit_distance_ = std::max(dist_x, dist_y) * kFitToAabbMargin;
         applyToCamera();
     } else if (auto ortho = std::dynamic_pointer_cast<vne::scene::OrthographicCamera>(camera_)) {
         const vne::math::Vec3f front = computeFront();
@@ -420,8 +437,8 @@ void OrbitManipulator::fitToAABB(const vne::math::Vec3f& min_world, const vne::m
             max_r = std::max(max_r, std::abs(d.dot(right)));
             max_u = std::max(max_u, std::abs(d.dot(up)));
         }
-        max_r = std::max(max_r * 1.1f, 1e-3f);
-        max_u = std::max(max_u * 1.1f, 1e-3f);
+        max_r = std::max(max_r * kFitToAabbMargin, kMinOrthoExtent);
+        max_u = std::max(max_u * kFitToAabbMargin, kMinOrthoExtent);
         const float aspect = viewport_width_ / viewport_height_;
         if (max_r / max_u < aspect) {
             max_r = max_u * aspect;
