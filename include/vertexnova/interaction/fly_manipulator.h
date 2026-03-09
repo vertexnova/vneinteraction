@@ -68,6 +68,7 @@ class VNE_INTERACTION_API FlyManipulator final : public ICameraManipulator {
     [[nodiscard]] vne::math::Vec3f upAxis() const noexcept;
     void applyZoom(float zoom_step_or_factor) noexcept;
 
+    // --- State ---
     std::shared_ptr<vne::scene::ICamera> camera_;
     bool enabled_ = true;
     float viewport_width_ = 1280.0f;
