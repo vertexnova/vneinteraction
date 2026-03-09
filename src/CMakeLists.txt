@@ -54,6 +54,9 @@ endif()
 if(TARGET vne::math)
     target_link_libraries(vneinteraction PUBLIC vne::math)
 endif()
+if(TARGET vne::scene)
+    target_link_libraries(vneinteraction PUBLIC vne::scene)
+endif()
 
 target_compile_features(vneinteraction PUBLIC cxx_std_20)
 

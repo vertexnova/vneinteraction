@@ -8,8 +8,9 @@
  */
 
 #include "vertexnova/interaction/orbit_manipulator.h"
-
 #include "vertexnova/interaction/interaction_types.h"
+#include "vertexnova/scene/camera/camera_factory.h"
+#include "vertexnova/scene/camera/camera_types.h"
 #include "vertexnova/scene/camera/orthographic_camera.h"
 #include "vertexnova/scene/camera/perspective_camera.h"
 
@@ -25,7 +26,8 @@ class OrbitManipulatorTest : public testing::Test {
    protected:
     void SetUp() override {
         manip_ = std::make_unique<vne::interaction::OrbitManipulator>();
-        camera_ = std::make_shared<vne::scene::PerspectiveCamera>();
+        camera_ = vne::scene::CameraFactory::createPerspective(
+            vne::scene::PerspectiveCameraParameters(45.0f, 16.0f / 9.0f, 0.1f, 1000.0f));
         camera_->setViewport(1280.0f, 720.0f);
     }
 
@@ -247,7 +249,8 @@ TEST_F(OrbitManipulatorTest, SetOrbitDistanceStoresPositiveValue) {
 }
 
 TEST_F(OrbitManipulatorTest, WithOrthographicCameraFitToAABBDoesNotCrash) {
-    auto ortho_cam = std::make_shared<vne::scene::OrthographicCamera>();
+    auto ortho_cam = vne::scene::CameraFactory::createOrthographic(
+        vne::scene::OrthographicCameraParameters(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 1000.0f));
     manip_->setCamera(ortho_cam);
     manip_->setViewportSize(1280.0f, 720.0f);
     vne::math::Vec3f min_world{-1.0f, -1.0f, -1.0f};

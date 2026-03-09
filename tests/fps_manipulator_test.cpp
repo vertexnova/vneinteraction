@@ -8,8 +8,9 @@
  */
 
 #include "vertexnova/interaction/fps_manipulator.h"
-
 #include "vertexnova/interaction/interaction_types.h"
+#include "vertexnova/scene/camera/camera_factory.h"
+#include "vertexnova/scene/camera/camera_types.h"
 #include "vertexnova/scene/camera/perspective_camera.h"
 
 #include <vertexnova/math/core/core.h>
@@ -24,7 +25,8 @@ class FpsManipulatorTest : public testing::Test {
    protected:
     void SetUp() override {
         manip_ = std::make_unique<vne::interaction::FpsManipulator>();
-        camera_ = std::make_shared<vne::scene::PerspectiveCamera>();
+        camera_ = vne::scene::CameraFactory::createPerspective(
+            vne::scene::PerspectiveCameraParameters(45.0f, 16.0f / 9.0f, 0.1f, 1000.0f));
         camera_->setViewport(1280.0f, 720.0f);
     }
 

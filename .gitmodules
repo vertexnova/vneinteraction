@@ -13,3 +13,6 @@
 [submodule "deps/internal/vnemath"]
 	path = deps/internal/vnemath
 	url = https://github.com/vertexnova/vnemath.git
+[submodule "deps/internal/vnescene"]
+	path = deps/internal/vnescene
+	url = https://github.com/vertexnova/vnescene.git

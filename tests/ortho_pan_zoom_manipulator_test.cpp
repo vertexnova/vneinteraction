@@ -8,8 +8,9 @@
  */
 
 #include "vertexnova/interaction/ortho_pan_zoom_manipulator.h"
-
 #include "vertexnova/interaction/interaction_types.h"
+#include "vertexnova/scene/camera/camera_factory.h"
+#include "vertexnova/scene/camera/camera_types.h"
 #include "vertexnova/scene/camera/orthographic_camera.h"
 #include "vertexnova/scene/camera/perspective_camera.h"
 
@@ -25,7 +26,8 @@ class OrthoPanZoomManipulatorTest : public testing::Test {
    protected:
     void SetUp() override {
         manip_ = std::make_unique<vne::interaction::OrthoPanZoomManipulator>();
-        ortho_cam_ = std::make_shared<vne::scene::OrthographicCamera>();
+        ortho_cam_ = vne::scene::CameraFactory::createOrthographic(
+            vne::scene::OrthographicCameraParameters(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 1000.0f));
     }
 
     std::unique_ptr<vne::interaction::OrthoPanZoomManipulator> manip_;
@@ -158,7 +160,8 @@ TEST_F(OrthoPanZoomManipulatorTest, HandleTouchPanDoesNotCrash) {
 }
 
 TEST_F(OrthoPanZoomManipulatorTest, SetCameraWithPerspectiveDoesNotCrash) {
-    auto persp_cam = std::make_shared<vne::scene::PerspectiveCamera>();
+    auto persp_cam = vne::scene::CameraFactory::createPerspective(
+        vne::scene::PerspectiveCameraParameters(45.0f, 16.0f / 9.0f, 0.1f, 1000.0f));
     EXPECT_NO_FATAL_FAILURE(manip_->setCamera(persp_cam));
 }
 

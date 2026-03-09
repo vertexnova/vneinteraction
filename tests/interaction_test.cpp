@@ -8,10 +8,14 @@
  */
 
 #include <gtest/gtest.h>
-#include "vertexnova/interaction/version.h"
+
 #include "vertexnova/interaction/camera_manipulator_factory.h"
 #include "vertexnova/interaction/interaction_types.h"
+#include "vertexnova/interaction/version.h"
+#include "vertexnova/scene/camera/camera_factory.h"
+#include "vertexnova/scene/camera/camera_types.h"
 #include "vertexnova/scene/camera/perspective_camera.h"
+
 #include <vertexnova/math/core/core.h>
 
 namespace vne_interaction_test {
@@ -40,7 +44,8 @@ TEST(VneInteraction, ManipulatorCreation) {
 }
 
 TEST(VneInteraction, CameraAndOrbitManipulator) {
-    auto camera = std::make_shared<vne::scene::PerspectiveCamera>();
+    auto camera = vne::scene::CameraFactory::createPerspective(
+        vne::scene::PerspectiveCameraParameters(45.0f, 16.0f / 9.0f, 0.1f, 1000.0f));
     ASSERT_NE(camera, nullptr);
     camera->setViewport(1280.0f, 720.0f);
 
