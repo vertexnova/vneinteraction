@@ -4,7 +4,8 @@
 
 add_executable(example_01_hello_template main.cpp)
 
-target_link_libraries(example_01_hello_template PRIVATE vne::interaction vne::logging)
+# vne::logging comes transitively through vne::interaction (via vne::scene/vne::math)
+target_link_libraries(example_01_hello_template PRIVATE vne::interaction)
 
 target_include_directories(example_01_hello_template PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
 

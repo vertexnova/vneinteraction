@@ -45,17 +45,21 @@ target_link_libraries(vneinteraction
         vne::interaction::BuildSettings
 )
 
-if(TARGET vne::common)
-    target_link_libraries(vneinteraction PUBLIC vne::common)
-endif()
-if(TARGET vne::logging)
-    target_link_libraries(vneinteraction PUBLIC vne::logging)
-endif()
-if(TARGET vne::math)
-    target_link_libraries(vneinteraction PUBLIC vne::math)
-endif()
+# Link only to vne::scene; it brings vne::math, vne::common, vne::logging transitively.
+# Avoid direct links to avoid duplicate library warnings (ld: ignoring duplicate libraries).
 if(TARGET vne::scene)
     target_link_libraries(vneinteraction PUBLIC vne::scene)
+else()
+    # Fallback when vnescene is not used (e.g. minimal build)
+    if(TARGET vne::common)
+        target_link_libraries(vneinteraction PUBLIC vne::common)
+    endif()
+    if(TARGET vne::logging)
+        target_link_libraries(vneinteraction PUBLIC vne::logging)
+    endif()
+    if(TARGET vne::math)
+        target_link_libraries(vneinteraction PUBLIC vne::math)
+    endif()
 endif()
 
 target_compile_features(vneinteraction PUBLIC cxx_std_20)
