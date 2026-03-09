@@ -141,9 +141,9 @@ void OrbitManipulator::setViewDirection(ViewDirection dir) noexcept {
 }
 
 void OrbitManipulator::beginRotate(float x_px, float y_px) noexcept {
-    rotating_ = true;
-    last_x_ = x_px;
-    last_y_ = y_px;
+    interaction_.rotating = true;
+    interaction_.last_x_px = x_px;
+    interaction_.last_y_px = y_px;
     inertia_rot_speed_x_ = 0.0f;
     inertia_rot_speed_y_ = 0.0f;
 }
@@ -161,7 +161,7 @@ void OrbitManipulator::dragRotate(float delta_x_px, float delta_y_px, double del
 }
 
 void OrbitManipulator::endRotate(double) noexcept {
-    rotating_ = false;
+    interaction_.rotating = false;
 }
 
 void OrbitManipulator::applyInertia(double delta_time) noexcept {

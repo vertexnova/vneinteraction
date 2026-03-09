@@ -25,7 +25,6 @@ namespace vne::interaction {
  */
 class FreeCameraBase : public CameraManipulatorBase {
    protected:
-    bool looking_ = false;
     float yaw_deg_ = 0.0f;
     float pitch_deg_ = 0.0f;
     float move_speed_ = 3.0f;
@@ -33,14 +32,7 @@ class FreeCameraBase : public CameraManipulatorBase {
     float fov_zoom_speed_ = 1.05f;
     float sprint_mult_ = 4.0f;
     float slow_mult_ = 0.2f;
-    bool w_ = false;
-    bool a_ = false;
-    bool s_ = false;
-    bool d_ = false;
-    bool q_ = false;
-    bool e_ = false;
-    bool sprint_ = false;
-    bool slow_ = false;
+    FreeLookInputState input_state_;
 
     FreeCameraBase() = default;
     ~FreeCameraBase() override = default;
@@ -56,6 +48,7 @@ class FreeCameraBase : public CameraManipulatorBase {
    public:
     void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;
     void update(double delta_time) noexcept override;
+    void applyCommand(CameraActionType action, const CameraCommandPayload& payload, double delta_time) noexcept override;
     void handleMouseMove(float x, float y, float delta_x, float delta_y, double delta_time) noexcept override;
     void handleMouseButton(int button, bool pressed, float x, float y, double delta_time) noexcept override;
     void handleMouseScroll(

@@ -57,6 +57,15 @@ void FollowManipulator::update(double delta_time) noexcept {
     camera_->updateMatrices();
 }
 
+void FollowManipulator::applyCommand(CameraActionType action, const CameraCommandPayload& payload, double) noexcept {
+    if (!enabled_ || !camera_) {
+        return;
+    }
+    if (action == CameraActionType::ZoomAtCursor && payload.zoom_factor > 0.0f) {
+        applyZoom(payload.zoom_factor);
+    }
+}
+
 void FollowManipulator::handleMouseMove(float, float, float, float, double) noexcept {}
 void FollowManipulator::handleMouseButton(int, bool, float, float, double) noexcept {}
 void FollowManipulator::handleKeyboard(int, bool, double) noexcept {}

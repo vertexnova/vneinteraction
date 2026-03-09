@@ -31,10 +31,7 @@ class OrbitStyleBase : public CameraManipulatorBase {
     float orbit_distance_ = 5.0f;
     float fov_zoom_speed_ = 1.05f;
     ButtonMap button_map_;
-    bool rotating_ = false;
-    bool panning_ = false;
-    float last_x_ = 0.0f;
-    float last_y_ = 0.0f;
+    OrbitInteractionState interaction_;
     vne::math::Vec3f inertia_pan_velocity_;
     float rot_damping_ = 8.0f;
     float pan_damping_ = 10.0f;
@@ -68,6 +65,7 @@ class OrbitStyleBase : public CameraManipulatorBase {
 
    public:
     void update(double delta_time) noexcept override;
+    void applyCommand(CameraActionType action, const CameraCommandPayload& payload, double delta_time) noexcept override;
     void handleMouseMove(float x, float y, float delta_x, float delta_y, double delta_time) noexcept override;
     void handleMouseButton(int button, bool pressed, float x, float y, double delta_time) noexcept override;
     void handleMouseScroll(

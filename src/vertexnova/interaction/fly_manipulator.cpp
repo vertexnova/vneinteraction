@@ -41,15 +41,7 @@ vne::math::Vec3f FlyManipulator::upVector() const noexcept {
 }
 
 void FlyManipulator::resetState() noexcept {
-    w_ = false;
-    a_ = false;
-    s_ = false;
-    d_ = false;
-    q_ = false;
-    e_ = false;
-    sprint_ = false;
-    slow_ = false;
-    looking_ = false;
+    input_state_ = FreeLookInputState{};
 }
 
 void FlyManipulator::fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept {

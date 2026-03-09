@@ -10,6 +10,8 @@
 
 #include "vertexnova/interaction/export.h"
 
+#include <vertexnova/math/core/core.h>
+
 #include <cstdint>
 
 namespace vne::interaction {
@@ -70,6 +72,91 @@ struct VNE_INTERACTION_API TouchPinch final {
     float scale = 1.0f;
     float center_x_px = 0.0f;
     float center_y_px = 0.0f;
+};
+
+// -----------------------------------------------------------------------------
+// Camera action / command layer (intent between input and manipulator)
+// -----------------------------------------------------------------------------
+enum class CameraActionType : std::uint8_t {
+    BeginRotate,
+    RotateDelta,
+    EndRotate,
+    BeginPan,
+    PanDelta,
+    EndPan,
+    ZoomAtCursor,
+    LookDelta,
+    BeginLook,
+    EndLook,
+    MoveForward,
+    MoveBackward,
+    MoveLeft,
+    MoveRight,
+    MoveUp,
+    MoveDown,
+    SprintModifier,
+    SlowModifier,
+    OrbitPanModifier,  // shift: orbit uses for pan-alias, free uses SprintModifier
+    FitBounds,
+    ResetView,
+};
+
+/// Payload for actions that carry pointer/cursor or delta data.
+struct VNE_INTERACTION_API CameraCommandPayload {
+    float x_px = 0.0f;
+    float y_px = 0.0f;
+    float delta_x_px = 0.0f;
+    float delta_y_px = 0.0f;
+    float zoom_factor = 1.0f;
+    bool pressed = false;
+};
+
+// -----------------------------------------------------------------------------
+// Grouped input / interaction state (replaces scattered booleans)
+// -----------------------------------------------------------------------------
+struct VNE_INTERACTION_API FreeLookInputState {
+    bool move_forward = false;
+    bool move_backward = false;
+    bool move_left = false;
+    bool move_right = false;
+    bool move_up = false;
+    bool move_down = false;
+    bool sprint = false;
+    bool slow = false;
+    bool looking = false;
+};
+
+struct VNE_INTERACTION_API OrbitInteractionState {
+    bool rotating = false;
+    bool panning = false;
+    bool modifier_shift = false;
+    float last_x_px = 0.0f;
+    float last_y_px = 0.0f;
+};
+
+// -----------------------------------------------------------------------------
+// Internal camera state (manipulators operate on these, then apply to ICamera)
+// -----------------------------------------------------------------------------
+struct VNE_INTERACTION_API OrbitCameraState {
+    vne::math::Vec3f coi_world{0.0f, 0.0f, 0.0f};
+    float distance = 5.0f;
+    vne::math::Vec3f world_up{0.0f, 1.0f, 0.0f};
+    float yaw_deg = 0.0f;
+    float pitch_deg = 0.0f;
+};
+
+struct VNE_INTERACTION_API ArcballCameraState {
+    vne::math::Vec3f coi_world{0.0f, 0.0f, 0.0f};
+    float distance = 5.0f;
+    vne::math::Quatf rotation{0.0f, 0.0f, 0.0f, 1.0f};
+    vne::math::Vec3f world_up{0.0f, 1.0f, 0.0f};
+};
+
+struct VNE_INTERACTION_API FreeCameraState {
+    vne::math::Vec3f position{0.0f, 0.0f, 0.0f};
+    float yaw_deg = 0.0f;
+    float pitch_deg = 0.0f;
+    vne::math::Vec3f up_hint{0.0f, 1.0f, 0.0f};
 };
 
 }  // namespace vne::interaction

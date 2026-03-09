@@ -201,6 +201,34 @@ float OrthoPanZoomManipulator::getWorldUnitsPerPixel() const noexcept {
     return ortho ? (ortho->getHeight() / viewport_height_) : 0.0f;
 }
 
+void OrthoPanZoomManipulator::applyCommand(CameraActionType action, const CameraCommandPayload& payload,
+                                            double delta_time) noexcept {
+    if (!enabled_ || !camera_) {
+        return;
+    }
+    switch (action) {
+        case CameraActionType::BeginPan:
+            panning_ = true;
+            pan_velocity_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
+            break;
+        case CameraActionType::PanDelta:
+            if (panning_) {
+                pan(payload.delta_x_px, payload.delta_y_px, delta_time);
+            }
+            break;
+        case CameraActionType::EndPan:
+            panning_ = false;
+            break;
+        case CameraActionType::ZoomAtCursor:
+            if (payload.zoom_factor > 0.0f) {
+                applyZoom(payload.zoom_factor, payload.x_px, payload.y_px);
+            }
+            break;
+        default:
+            break;
+    }
+}
+
 void OrthoPanZoomManipulator::update(double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return;

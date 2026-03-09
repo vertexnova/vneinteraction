@@ -109,6 +109,63 @@ void FreeCameraBase::applyZoom(float zoom_step_or_factor) noexcept {
     }
 }
 
+void FreeCameraBase::applyCommand(CameraActionType action, const CameraCommandPayload& payload, double) noexcept {
+    if (!enabled_) {
+        return;
+    }
+    switch (action) {
+        case CameraActionType::BeginLook:
+            input_state_.looking = true;
+            break;
+        case CameraActionType::EndLook:
+            input_state_.looking = false;
+            break;
+        case CameraActionType::LookDelta:
+            if (camera_ && input_state_.looking) {
+                yaw_deg_ += payload.delta_x_px * mouse_sensitivity_;
+                pitch_deg_ += -payload.delta_y_px * mouse_sensitivity_;
+                pitch_deg_ = vne::math::clamp(pitch_deg_, kPitchMinDeg, kPitchMaxDeg);
+                applyAnglesToCamera();
+            }
+            break;
+        case CameraActionType::MoveForward:
+            input_state_.move_forward = payload.pressed;
+            break;
+        case CameraActionType::MoveBackward:
+            input_state_.move_backward = payload.pressed;
+            break;
+        case CameraActionType::MoveLeft:
+            input_state_.move_left = payload.pressed;
+            break;
+        case CameraActionType::MoveRight:
+            input_state_.move_right = payload.pressed;
+            break;
+        case CameraActionType::MoveUp:
+            input_state_.move_up = payload.pressed;
+            break;
+        case CameraActionType::MoveDown:
+            input_state_.move_down = payload.pressed;
+            break;
+        case CameraActionType::SprintModifier:
+            input_state_.sprint = payload.pressed;
+            break;
+        case CameraActionType::SlowModifier:
+            input_state_.slow = payload.pressed;
+            break;
+        case CameraActionType::ZoomAtCursor:
+            if (camera_ && payload.zoom_factor > 0.0f) {
+                if (zoom_method_ == ZoomMethod::eDollyToCoi) {
+                    applyZoom((payload.zoom_factor < 1.0f) ? move_speed_ * zoom_speed_ : -move_speed_ * zoom_speed_);
+                } else {
+                    applyZoom((payload.zoom_factor < 1.0f) ? (1.0f / fov_zoom_speed_) : fov_zoom_speed_);
+                }
+            }
+            break;
+        default:
+            break;
+    }
+}
+
 void FreeCameraBase::update(double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return;
@@ -121,31 +178,31 @@ void FreeCameraBase::update(double delta_time) noexcept {
     const vne::math::Vec3f r = right(f);
     const vne::math::Vec3f up = upVector();
     vne::math::Vec3f move(0.0f, 0.0f, 0.0f);
-    if (w_) {
+    if (input_state_.move_forward) {
         move += f;
     }
-    if (s_) {
+    if (input_state_.move_backward) {
         move -= f;
     }
-    if (d_) {
+    if (input_state_.move_right) {
         move += r;
     }
-    if (a_) {
+    if (input_state_.move_left) {
         move -= r;
     }
-    if (e_) {
+    if (input_state_.move_up) {
         move += up;
     }
-    if (q_) {
+    if (input_state_.move_down) {
         move -= up;
     }
     if (move.length() <= kEpsilon) {
         return;
     }
     float speed = move_speed_;
-    if (sprint_) {
+    if (input_state_.sprint) {
         speed *= sprint_mult_;
-    } else if (slow_) {
+    } else if (input_state_.slow) {
         speed *= slow_mult_;
     }
     move = move.normalized() * (speed * dt);
@@ -155,7 +212,7 @@ void FreeCameraBase::update(double delta_time) noexcept {
 }
 
 void FreeCameraBase::handleMouseMove(float, float, float delta_x, float delta_y, double) noexcept {
-    if (!enabled_ || !camera_ || !looking_) {
+    if (!enabled_ || !camera_ || !input_state_.looking) {
         return;
     }
     yaw_deg_ += delta_x * mouse_sensitivity_;
@@ -169,7 +226,7 @@ void FreeCameraBase::handleMouseButton(int button, bool pressed, float, float, d
         return;
     }
     if (button == static_cast<int>(MouseButton::eRight)) {
-        looking_ = pressed;
+        input_state_.looking = pressed;
     }
 }
 
@@ -189,21 +246,21 @@ void FreeCameraBase::handleKeyboard(int key, bool pressed, double) noexcept {
         return;
     }
     if (key == kKeyW) {
-        w_ = pressed;
+        input_state_.move_forward = pressed;
     } else if (key == kKeyS) {
-        s_ = pressed;
+        input_state_.move_backward = pressed;
     } else if (key == kKeyA) {
-        a_ = pressed;
+        input_state_.move_left = pressed;
     } else if (key == kKeyD) {
-        d_ = pressed;
+        input_state_.move_right = pressed;
     } else if (key == kKeyQ) {
-        q_ = pressed;
+        input_state_.move_down = pressed;
     } else if (key == kKeyE) {
-        e_ = pressed;
+        input_state_.move_up = pressed;
     } else if (key == kKeyLeftShift || key == kKeyRightShift) {
-        sprint_ = pressed;
+        input_state_.sprint = pressed;
     } else if (key == kKeyLeftCtrl || key == kKeyRightCtrl) {
-        slow_ = pressed;
+        input_state_.slow = pressed;
     }
 }
 

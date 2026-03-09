@@ -49,6 +49,9 @@ class VNE_INTERACTION_API ICameraManipulator {
     virtual void resetState() noexcept = 0;
     virtual void fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept = 0;
     [[nodiscard]] virtual float getWorldUnitsPerPixel() const noexcept = 0;
+
+    /// Semantic command layer: intent-based input (remappable, testable).
+    virtual void applyCommand(CameraActionType action, const CameraCommandPayload& payload, double delta_time) noexcept = 0;
 };
 
 }  // namespace vne::interaction

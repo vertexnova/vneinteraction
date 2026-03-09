@@ -62,9 +62,9 @@ vne::math::Vec3f OrbitStyleBase::computeUp(const vne::math::Vec3f& front,
 }
 
 void OrbitStyleBase::beginPan(float x_px, float y_px) noexcept {
-    panning_ = true;
-    last_x_ = x_px;
-    last_y_ = y_px;
+    interaction_.panning = true;
+    interaction_.last_x_px = x_px;
+    interaction_.last_y_px = y_px;
     inertia_pan_velocity_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
 }
 
@@ -95,7 +95,7 @@ void OrbitStyleBase::dragPan(float, float, float delta_x_px, float delta_y_px, d
 }
 
 void OrbitStyleBase::endPan(double) noexcept {
-    panning_ = false;
+    interaction_.panning = false;
 }
 
 void OrbitStyleBase::zoomOrthoToCursor(float zoom_factor, float mouse_x_px, float mouse_y_px) noexcept {
@@ -179,8 +179,51 @@ void OrbitStyleBase::update(double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }
-    if (!rotating_ && !panning_) {
+    if (!interaction_.rotating && !interaction_.panning) {
         applyInertia(delta_time);
+    }
+}
+
+void OrbitStyleBase::applyCommand(CameraActionType action, const CameraCommandPayload& payload,
+                                  double delta_time) noexcept {
+    if (!enabled_ || !camera_) {
+        return;
+    }
+    switch (action) {
+        case CameraActionType::BeginRotate:
+            beginRotate(payload.x_px, payload.y_px);
+            break;
+        case CameraActionType::RotateDelta:
+            if (interaction_.rotating) {
+                dragRotate(payload.delta_x_px, payload.delta_y_px, delta_time);
+            }
+            break;
+        case CameraActionType::EndRotate:
+            endRotate(delta_time);
+            break;
+        case CameraActionType::BeginPan:
+            beginPan(payload.x_px, payload.y_px);
+            break;
+        case CameraActionType::PanDelta:
+            if (interaction_.panning) {
+                dragPan(payload.x_px, payload.y_px, payload.delta_x_px, payload.delta_y_px, delta_time);
+                interaction_.last_x_px = payload.x_px;
+                interaction_.last_y_px = payload.y_px;
+            }
+            break;
+        case CameraActionType::EndPan:
+            endPan(delta_time);
+            break;
+        case CameraActionType::ZoomAtCursor:
+            if (payload.zoom_factor > 0.0f) {
+                zoom(payload.zoom_factor, payload.x_px, payload.y_px);
+            }
+            break;
+        case CameraActionType::OrbitPanModifier:
+            interaction_.modifier_shift = payload.pressed;
+            break;
+        default:
+            break;
     }
 }
 
@@ -188,13 +231,13 @@ void OrbitStyleBase::handleMouseMove(float x, float y, float delta_x, float delt
     if (!enabled_ || !camera_) {
         return;
     }
-    if (rotating_) {
+    if (interaction_.rotating) {
         dragRotate(delta_x, delta_y, delta_time);
-    } else if (panning_) {
+    } else if (interaction_.panning) {
         dragPan(x, y, delta_x, delta_y, delta_time);
     }
-    last_x_ = x;
-    last_y_ = y;
+    interaction_.last_x_px = x;
+    interaction_.last_y_px = y;
 }
 
 void OrbitStyleBase::handleMouseButton(int button, bool pressed, float x, float y, double delta_time) noexcept {
@@ -203,9 +246,9 @@ void OrbitStyleBase::handleMouseButton(int button, bool pressed, float x, float 
     }
     const bool pan_alias = (button == static_cast<int>(MouseButton::eMiddle));
     if (pressed) {
-        if (button == button_map_.rotate && !shift_) {
+        if (button == button_map_.rotate && !interaction_.modifier_shift) {
             beginRotate(x, y);
-        } else if (button == button_map_.pan || pan_alias || (button == button_map_.rotate && shift_)) {
+        } else if (button == button_map_.pan || pan_alias || (button == button_map_.rotate && interaction_.modifier_shift)) {
             beginPan(x, y);
         }
     } else {
@@ -227,7 +270,7 @@ void OrbitStyleBase::handleMouseScroll(float, float scroll_y, float mouse_x, flo
 
 void OrbitStyleBase::handleKeyboard(int key, bool pressed, double) noexcept {
     if (key == kKeyLeftShift || key == kKeyRightShift) {
-        shift_ = pressed;
+        interaction_.modifier_shift = pressed;
     }
 }
 
@@ -246,10 +289,10 @@ void OrbitStyleBase::handleTouchPinch(const TouchPinch& pinch, double) noexcept 
 }
 
 void OrbitStyleBase::resetState() noexcept {
-    rotating_ = false;
-    panning_ = false;
+    interaction_.rotating = false;
+    interaction_.panning = false;
+    interaction_.modifier_shift = false;
     inertia_pan_velocity_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
-    shift_ = false;
 }
 
 void OrbitStyleBase::fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept {

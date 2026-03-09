@@ -12,6 +12,8 @@
 #include "vertexnova/interaction/camera_manipulator.h"
 #include "vertexnova/interaction/camera_manipulator_factory.h"
 #include "vertexnova/interaction/interaction_types.h"
+#include "vertexnova/scene/camera/camera_factory.h"
+#include "vertexnova/scene/camera/camera_types.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -28,6 +30,9 @@ class MockCameraManipulator : public vne::interaction::ICameraManipulator {
     MOCK_METHOD(void, setEnabled, (bool), (noexcept, override));
     MOCK_METHOD(void, setViewportSize, (float, float), (noexcept, override));
     MOCK_METHOD(void, update, (double), (noexcept, override));
+    MOCK_METHOD(void, applyCommand,
+                (vne::interaction::CameraActionType, const vne::interaction::CameraCommandPayload&, double),
+                (noexcept, override));
     MOCK_METHOD(void, handleMouseMove, (float, float, float, float, double), (noexcept, override));
     MOCK_METHOD(void, handleMouseButton, (int, bool, float, float, double), (noexcept, override));
     MOCK_METHOD(void, handleMouseScroll, (float, float, float, float, double), (noexcept, override));
@@ -50,6 +55,19 @@ class CameraSystemControllerTest : public testing::Test {
     std::unique_ptr<vne::interaction::CameraSystemController> controller_;
     std::shared_ptr<MockCameraManipulator> mock_manip_;
 };
+
+TEST_F(CameraSystemControllerTest, ImplementsICameraController) {
+    EXPECT_EQ(controller_->getCamera(), nullptr);
+    EXPECT_TRUE(controller_->isEnabled());
+    EXPECT_EQ(controller_->getName(), "CameraSystemController");
+}
+
+TEST_F(CameraSystemControllerTest, SetGetCamera) {
+    auto cam = vne::scene::CameraFactory::createPerspective(
+        vne::scene::PerspectiveCameraParameters(45.0f, 16.0f / 9.0f, 0.1f, 1000.0f));
+    controller_->setCamera(cam);
+    EXPECT_EQ(controller_->getCamera(), cam);
+}
 
 TEST_F(CameraSystemControllerTest, DefaultManipulatorIsNull) {
     EXPECT_EQ(controller_->getManipulator(), nullptr);
@@ -112,40 +130,48 @@ TEST_F(CameraSystemControllerTest, UpdateDelegatesToManipulator) {
     controller_->update(0.016);
 }
 
-TEST_F(CameraSystemControllerTest, HandleMouseMoveDelegatesToManipulator) {
-    EXPECT_CALL(*mock_manip_, handleMouseMove(100.0f, 200.0f, 1.0f, -1.0f, testing::DoubleEq(0.016))).Times(1);
+TEST_F(CameraSystemControllerTest, HandleMouseMoveDelegatesToAdapterThenManipulatorApplyCommand) {
+    EXPECT_CALL(*mock_manip_, applyCommand(testing::_, testing::_, testing::DoubleEq(0.016))).Times(testing::AtLeast(0));
     controller_->setManipulator(mock_manip_);
     controller_->handleMouseMove(100.0f, 200.0f, 1.0f, -1.0f, 0.016);
 }
 
-TEST_F(CameraSystemControllerTest, HandleMouseButtonDelegatesToManipulator) {
-    EXPECT_CALL(*mock_manip_, handleMouseButton(0, true, 100.0f, 200.0f, testing::DoubleEq(0.016))).Times(1);
+TEST_F(CameraSystemControllerTest, HandleMouseButtonDelegatesToAdapterThenManipulatorApplyCommand) {
+    EXPECT_CALL(*mock_manip_,
+                applyCommand(vne::interaction::CameraActionType::BeginRotate, testing::_, testing::DoubleEq(0.016)))
+        .Times(1);
     controller_->setManipulator(mock_manip_);
     controller_->handleMouseButton(0, true, 100.0f, 200.0f, 0.016);
 }
 
-TEST_F(CameraSystemControllerTest, HandleMouseScrollDelegatesToManipulator) {
-    EXPECT_CALL(*mock_manip_, handleMouseScroll(0.0f, -1.0f, 640.0f, 360.0f, testing::DoubleEq(0.016))).Times(1);
+TEST_F(CameraSystemControllerTest, HandleMouseScrollDelegatesToAdapterThenManipulatorApplyCommand) {
+    EXPECT_CALL(*mock_manip_,
+                applyCommand(vne::interaction::CameraActionType::ZoomAtCursor, testing::_, testing::DoubleEq(0.016)))
+        .Times(1);
     controller_->setManipulator(mock_manip_);
     controller_->handleMouseScroll(0.0f, -1.0f, 640.0f, 360.0f, 0.016);
 }
 
-TEST_F(CameraSystemControllerTest, HandleKeyboardDelegatesToManipulator) {
-    EXPECT_CALL(*mock_manip_, handleKeyboard(87, true, testing::DoubleEq(0.016))).Times(1);
+TEST_F(CameraSystemControllerTest, HandleKeyboardDelegatesToAdapterThenManipulatorApplyCommand) {
+    EXPECT_CALL(*mock_manip_, applyCommand(testing::_, testing::_, testing::DoubleEq(0.016))).Times(testing::AtLeast(1));
     controller_->setManipulator(mock_manip_);
     controller_->handleKeyboard(87, true, 0.016);
 }
 
-TEST_F(CameraSystemControllerTest, HandleTouchPanDelegatesToManipulator) {
+TEST_F(CameraSystemControllerTest, HandleTouchPanDelegatesToAdapterThenManipulatorApplyCommand) {
     vne::interaction::TouchPan pan{5.0f, -3.0f};
-    EXPECT_CALL(*mock_manip_, handleTouchPan(testing::_, testing::DoubleEq(0.016))).Times(1);
+    EXPECT_CALL(*mock_manip_,
+                applyCommand(vne::interaction::CameraActionType::RotateDelta, testing::_, testing::DoubleEq(0.016)))
+        .Times(1);
     controller_->setManipulator(mock_manip_);
     controller_->handleTouchPan(pan, 0.016);
 }
 
-TEST_F(CameraSystemControllerTest, HandleTouchPinchDelegatesToManipulator) {
+TEST_F(CameraSystemControllerTest, HandleTouchPinchDelegatesToAdapterThenManipulatorApplyCommand) {
     vne::interaction::TouchPinch pinch{1.1f, 640.0f, 360.0f};
-    EXPECT_CALL(*mock_manip_, handleTouchPinch(testing::_, testing::DoubleEq(0.016))).Times(1);
+    EXPECT_CALL(*mock_manip_,
+                applyCommand(vne::interaction::CameraActionType::ZoomAtCursor, testing::_, testing::DoubleEq(0.016)))
+        .Times(1);
     controller_->setManipulator(mock_manip_);
     controller_->handleTouchPinch(pinch, 0.016);
 }

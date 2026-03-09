@@ -8,6 +8,7 @@
  * ----------------------------------------------------------------------
  */
 
+#include "vertexnova/interaction/camera_behavior.h"
 #include "vertexnova/interaction/export.h"
 #include "vertexnova/interaction/interaction_types.h"
 #include "vertexnova/interaction/detail/camera_manipulator_base.h"
@@ -19,7 +20,12 @@
 
 namespace vne::interaction {
 
-class VNE_INTERACTION_API FollowManipulator final : public CameraManipulatorBase {
+/**
+ * Follow/tracking camera behavior. Implements both ICameraManipulator (for
+ * factory and controller compatibility) and ICameraBehavior (conceptual family:
+ * autonomous/semi-autonomous camera following, not direct input manipulator).
+ */
+class VNE_INTERACTION_API FollowManipulator final : public CameraManipulatorBase, public ICameraBehavior {
    public:
     using TargetProvider = std::function<vne::math::Vec3f()>;
 
@@ -31,6 +37,7 @@ class VNE_INTERACTION_API FollowManipulator final : public CameraManipulatorBase
 
     void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;
     void update(double delta_time) noexcept override;
+    void applyCommand(CameraActionType action, const CameraCommandPayload& payload, double delta_time) noexcept override;
 
     void handleMouseMove(float x, float y, float delta_x, float delta_y, double delta_time) noexcept override;
     void handleMouseButton(int button, bool pressed, float x, float y, double delta_time) noexcept override;

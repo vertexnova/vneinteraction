@@ -9,6 +9,7 @@
 #==============================================================================
 
 set(SOURCE_FILES
+    vertexnova/interaction/camera_input_adapter.cpp
     vertexnova/interaction/camera_manipulator_base.cpp
     vertexnova/interaction/camera_manipulator_factory.cpp
     vertexnova/interaction/camera_system_controller.cpp

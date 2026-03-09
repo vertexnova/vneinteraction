@@ -11,9 +11,21 @@
 
 namespace vne::interaction {
 
-void CameraSystemController::setViewportSize(float width_px, float height_px) noexcept {
+void CameraSystemController::assignCameraToManipulator() noexcept {
+    if (manipulator_ && camera_) {
+        manipulator_->setCamera(camera_);
+    }
+}
+
+void CameraSystemController::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
+    camera_ = std::move(camera);
+    assignCameraToManipulator();
+}
+
+void CameraSystemController::setEnabled(bool enabled) noexcept {
+    enabled_ = enabled;
     if (manipulator_) {
-        manipulator_->setViewportSize(width_px, height_px);
+        manipulator_->setEnabled(enabled);
     }
 }
 
@@ -23,42 +35,51 @@ void CameraSystemController::update(double delta_time) noexcept {
     }
 }
 
-void CameraSystemController::handleMouseMove(
-    float x, float y, float delta_x, float delta_y, double delta_time) noexcept {
+void CameraSystemController::reset() noexcept {
     if (manipulator_) {
-        manipulator_->handleMouseMove(x, y, delta_x, delta_y, delta_time);
+        manipulator_->resetState();
     }
 }
 
-void CameraSystemController::handleMouseButton(int button, bool pressed, float x, float y, double delta_time) noexcept {
+void CameraSystemController::setManipulator(std::shared_ptr<ICameraManipulator> manipulator) noexcept {
+    manipulator_ = std::move(manipulator);
+    input_adapter_.setManipulator(manipulator_);
+    assignCameraToManipulator();
     if (manipulator_) {
-        manipulator_->handleMouseButton(button, pressed, x, y, delta_time);
+        manipulator_->setEnabled(enabled_);
     }
+}
+
+void CameraSystemController::setViewportSize(float width_px, float height_px) noexcept {
+    if (manipulator_) {
+        manipulator_->setViewportSize(width_px, height_px);
+    }
+}
+
+void CameraSystemController::handleMouseMove(
+    float x, float y, float delta_x, float delta_y, double delta_time) noexcept {
+    input_adapter_.feedMouseMove(x, y, delta_x, delta_y, delta_time);
+}
+
+void CameraSystemController::handleMouseButton(int button, bool pressed, float x, float y, double delta_time) noexcept {
+    input_adapter_.feedMouseButton(button, pressed, x, y, delta_time);
 }
 
 void CameraSystemController::handleMouseScroll(
     float scroll_x, float scroll_y, float mouse_x, float mouse_y, double delta_time) noexcept {
-    if (manipulator_) {
-        manipulator_->handleMouseScroll(scroll_x, scroll_y, mouse_x, mouse_y, delta_time);
-    }
+    input_adapter_.feedMouseScroll(scroll_x, scroll_y, mouse_x, mouse_y, delta_time);
 }
 
 void CameraSystemController::handleKeyboard(int key, bool pressed, double delta_time) noexcept {
-    if (manipulator_) {
-        manipulator_->handleKeyboard(key, pressed, delta_time);
-    }
+    input_adapter_.feedKeyboard(key, pressed, delta_time);
 }
 
 void CameraSystemController::handleTouchPan(const TouchPan& pan, double delta_time) noexcept {
-    if (manipulator_) {
-        manipulator_->handleTouchPan(pan, delta_time);
-    }
+    input_adapter_.feedTouchPan(pan, delta_time);
 }
 
 void CameraSystemController::handleTouchPinch(const TouchPinch& pinch, double delta_time) noexcept {
-    if (manipulator_) {
-        manipulator_->handleTouchPinch(pinch, delta_time);
-    }
+    input_adapter_.feedTouchPinch(pinch, delta_time);
 }
 
 }  // namespace vne::interaction

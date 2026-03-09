@@ -29,6 +29,7 @@ class VNE_INTERACTION_API ArcballManipulator final : public OrbitStyleBase {
 
     void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;
     void setViewportSize(float width_px, float height_px) noexcept override;
+    void applyCommand(CameraActionType action, const CameraCommandPayload& payload, double delta_time) noexcept override;
 
     void handleMouseScroll(
         float scroll_x, float scroll_y, float mouse_x, float mouse_y, double delta_time) noexcept override;

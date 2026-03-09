@@ -47,6 +47,7 @@ class CameraManipulatorBase : public ICameraManipulator {
     void setEnabled(bool enabled) noexcept override { enabled_ = enabled; }
     [[nodiscard]] float getSceneScale() const noexcept override { return scene_scale_; }
     void setViewportSize(float width_px, float height_px) noexcept override;
+    void applyCommand(CameraActionType, const CameraCommandPayload&, double) noexcept override {}
 };
 
 }  // namespace vne::interaction

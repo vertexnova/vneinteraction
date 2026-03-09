@@ -135,11 +135,52 @@ vne::math::Vec3f ArcballManipulator::projectToArcball(float x_px, float y_px) co
     return (r * ax + u * ay + front * az).normalized();
 }
 
+void ArcballManipulator::applyCommand(CameraActionType action, const CameraCommandPayload& payload,
+                                      double delta_time) noexcept {
+    if (!enabled_ || !camera_) {
+        return;
+    }
+    switch (action) {
+        case CameraActionType::BeginRotate:
+            beginRotate(payload.x_px, payload.y_px);
+            break;
+        case CameraActionType::RotateDelta:
+            if (interaction_.rotating) {
+                dragRotate(payload.x_px, payload.y_px, delta_time);
+            }
+            break;
+        case CameraActionType::EndRotate:
+            endRotate(delta_time);
+            break;
+        case CameraActionType::BeginPan:
+            beginPan(payload.x_px, payload.y_px);
+            break;
+        case CameraActionType::PanDelta:
+            if (interaction_.panning) {
+                dragPan(payload.x_px, payload.y_px, payload.delta_x_px, payload.delta_y_px, delta_time);
+                interaction_.last_x_px = payload.x_px;
+                interaction_.last_y_px = payload.y_px;
+            }
+            break;
+        case CameraActionType::EndPan:
+            endPan(delta_time);
+            break;
+        case CameraActionType::ZoomAtCursor:
+            if (payload.zoom_factor > 0.0f) {
+                zoom(payload.zoom_factor, payload.x_px, payload.y_px);
+            }
+            break;
+        default:
+            OrbitStyleBase::applyCommand(action, payload, delta_time);
+            break;
+    }
+}
+
 void ArcballManipulator::beginRotate(float x_px, float y_px) noexcept {
     if (!camera_) {
         return;
     }
-    rotating_ = true;
+    interaction_.rotating = true;
     arcball_start_world_ = projectToArcball(x_px, y_px);
     inertia_rot_speed_ = 0.0f;
 }
@@ -178,7 +219,7 @@ void ArcballManipulator::dragRotate(float x_px, float y_px, double delta_time) n
 }
 
 void ArcballManipulator::endRotate(double) noexcept {
-    rotating_ = false;
+    interaction_.rotating = false;
 }
 
 void ArcballManipulator::applyInertia(double delta_time) noexcept {
@@ -215,8 +256,8 @@ void ArcballManipulator::resetState() noexcept {
     OrbitStyleBase::resetState();
     inertia_rot_speed_ = 0.0f;
     inertia_rot_axis_ = vne::math::Vec3f(0.0f, 1.0f, 0.0f);
-    last_x_ = 0.0f;
-    last_y_ = 0.0f;
+    interaction_.last_x_px = 0.0f;
+    interaction_.last_y_px = 0.0f;
 }
 
 void ArcballManipulator::fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept {
@@ -238,10 +279,14 @@ void ArcballManipulator::handleTouchPan(const TouchPan& pan, double delta_time) 
     if (!enabled_ || !camera_) {
         return;
     }
-    if (!rotating_) {
+    if (!interaction_.rotating) {
         beginRotate(viewport_width_ * kTouchPanViewportCenterFactor, viewport_height_ * kTouchPanViewportCenterFactor);
     }
-    dragRotate(last_x_ + pan.delta_x_px, last_y_ + pan.delta_y_px, delta_time);
+    const float x = interaction_.last_x_px + pan.delta_x_px;
+    const float y = interaction_.last_y_px + pan.delta_y_px;
+    dragRotate(x, y, delta_time);
+    interaction_.last_x_px = x;
+    interaction_.last_y_px = y;
 }
 
 }  // namespace vne::interaction
