@@ -40,6 +40,9 @@ class CameraInputAdapter {
     void feedTouchPan(const TouchPan& pan, double delta_time) noexcept;
     void feedTouchPinch(const TouchPinch& pinch, double delta_time) noexcept;
 
+    void setBindings(const CameraInputBindings& bindings) noexcept { bindings_ = bindings; }
+    [[nodiscard]] const CameraInputBindings& getBindings() const noexcept { return bindings_; }
+
    private:
     enum class Action { None, Rotate, Pan, Look };
 
@@ -51,13 +54,7 @@ class CameraInputAdapter {
     float last_y_px_ = 0.0f;
     bool modifier_shift_ = false;
 
-    // Default bindings (e.g. GLFW-like)
-    int rotate_button_ = static_cast<int>(MouseButton::eLeft);
-    int pan_button_ = static_cast<int>(MouseButton::eRight);
-    int look_button_ = static_cast<int>(MouseButton::eRight);
-    int key_w_ = 87, key_s_ = 83, key_a_ = 65, key_d_ = 68, key_q_ = 81, key_e_ = 69;
-    int key_shift_left_ = 340, key_shift_right_ = 344;
-    int key_ctrl_left_ = 341, key_ctrl_right_ = 345;
+    CameraInputBindings bindings_;
 };
 
 }  // namespace vne::interaction

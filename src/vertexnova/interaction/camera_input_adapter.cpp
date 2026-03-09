@@ -47,9 +47,9 @@ void CameraInputAdapter::feedMouseButton(int button, bool pressed, float x, floa
     payload.y_px = y;
     payload.pressed = pressed;
 
-    const bool is_rotate_btn = (button == rotate_button_);
-    const bool is_pan_btn = (button == pan_button_ || button == static_cast<int>(MouseButton::eMiddle));
-    const bool is_look = (button == look_button_);
+    const bool is_rotate_btn = (button == bindings_.rotate_button);
+    const bool is_pan_btn = (button == bindings_.pan_button || button == bindings_.pan_button_middle);
+    const bool is_look = (button == bindings_.look_button);
     const bool orbit_pan_alias = is_rotate_btn && modifier_shift_;
 
     if (pressed) {
@@ -64,7 +64,7 @@ void CameraInputAdapter::feedMouseButton(int button, bool pressed, float x, floa
             send(CameraActionType::eBeginLook, payload, delta_time);
         }
     } else {
-        if (button == rotate_button_) {
+        if (button == bindings_.rotate_button) {
             if (current_action_ == Action::Rotate) {
                 send(CameraActionType::eEndRotate, payload, delta_time);
             } else if (current_action_ == Action::Pan) {
@@ -74,13 +74,13 @@ void CameraInputAdapter::feedMouseButton(int button, bool pressed, float x, floa
                 current_action_ = Action::None;
             }
         }
-        if (is_pan_btn && button != rotate_button_) {
+        if (is_pan_btn && button != bindings_.rotate_button) {
             if (current_action_ == Action::Pan) {
                 send(CameraActionType::eEndPan, payload, delta_time);
                 current_action_ = Action::None;
             }
         }
-        if (button == look_button_) {
+        if (button == bindings_.look_button) {
             if (current_action_ == Action::Look) {
                 send(CameraActionType::eEndLook, payload, delta_time);
             }
@@ -107,23 +107,23 @@ void CameraInputAdapter::feedKeyboard(int key, bool pressed, double delta_time) 
     }
     CameraCommandPayload payload;
     payload.pressed = pressed;
-    if (key == key_shift_left_ || key == key_shift_right_) {
+    if (key == bindings_.key_shift_left || key == bindings_.key_shift_right) {
         modifier_shift_ = pressed;
         send(CameraActionType::eOrbitPanModifier, payload, delta_time);
         send(CameraActionType::eSprintModifier, payload, delta_time);
-    } else if (key == key_ctrl_left_ || key == key_ctrl_right_) {
+    } else if (key == bindings_.key_ctrl_left || key == bindings_.key_ctrl_right) {
         send(CameraActionType::eSlowModifier, payload, delta_time);
-    } else if (key == key_w_) {
+    } else if (key == bindings_.key_move_forward) {
         send(CameraActionType::eMoveForward, payload, delta_time);
-    } else if (key == key_s_) {
+    } else if (key == bindings_.key_move_backward) {
         send(CameraActionType::eMoveBackward, payload, delta_time);
-    } else if (key == key_a_) {
+    } else if (key == bindings_.key_move_left) {
         send(CameraActionType::eMoveLeft, payload, delta_time);
-    } else if (key == key_d_) {
+    } else if (key == bindings_.key_move_right) {
         send(CameraActionType::eMoveRight, payload, delta_time);
-    } else if (key == key_e_) {
+    } else if (key == bindings_.key_move_up) {
         send(CameraActionType::eMoveUp, payload, delta_time);
-    } else if (key == key_q_) {
+    } else if (key == bindings_.key_move_down) {
         send(CameraActionType::eMoveDown, payload, delta_time);
     }
 }

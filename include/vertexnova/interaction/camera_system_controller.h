@@ -51,6 +51,9 @@ class VNE_INTERACTION_API CameraSystemController : public ICameraController {
     void handleTouchPan(const TouchPan& pan, double delta_time) noexcept;
     void handleTouchPinch(const TouchPinch& pinch, double delta_time) noexcept;
 
+    void setInputBindings(const CameraInputBindings& bindings) noexcept;
+    [[nodiscard]] CameraInputBindings getInputBindings() const noexcept;
+
    private:
     void assignCameraToManipulator() noexcept;
 

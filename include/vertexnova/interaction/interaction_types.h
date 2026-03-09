@@ -75,6 +75,31 @@ struct VNE_INTERACTION_API TouchPinch final {
 };
 
 // -----------------------------------------------------------------------------
+// Input bindings (customizable mouse buttons, keys, modifiers)
+// -----------------------------------------------------------------------------
+/// Configurable bindings for camera input when using CameraSystemController.
+/// Defaults match GLFW-like values (left=rotate, right=pan/look, WASD/QE, shift/ctrl).
+/// Set via CameraSystemController::setInputBindings() to support different setups.
+struct VNE_INTERACTION_API CameraInputBindings {
+    int rotate_button = static_cast<int>(MouseButton::eLeft);
+    int pan_button = static_cast<int>(MouseButton::eRight);
+    int pan_button_middle = static_cast<int>(MouseButton::eMiddle);  // additional pan alias
+    int look_button = static_cast<int>(MouseButton::eRight);
+
+    int key_move_forward = 87;   // W
+    int key_move_backward = 83;  // S
+    int key_move_left = 65;      // A
+    int key_move_right = 68;     // D
+    int key_move_up = 69;        // E
+    int key_move_down = 81;      // Q
+
+    int key_shift_left = 340;
+    int key_shift_right = 344;
+    int key_ctrl_left = 341;
+    int key_ctrl_right = 345;
+};
+
+// -----------------------------------------------------------------------------
 // Camera action / command layer (intent between input and manipulator)
 // -----------------------------------------------------------------------------
 enum class CameraActionType : std::uint8_t {

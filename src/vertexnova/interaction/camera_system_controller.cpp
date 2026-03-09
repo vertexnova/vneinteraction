@@ -82,4 +82,12 @@ void CameraSystemController::handleTouchPinch(const TouchPinch& pinch, double de
     input_adapter_.feedTouchPinch(pinch, delta_time);
 }
 
+void CameraSystemController::setInputBindings(const CameraInputBindings& bindings) noexcept {
+    input_adapter_.setBindings(bindings);
+}
+
+CameraInputBindings CameraSystemController::getInputBindings() const noexcept {
+    return input_adapter_.getBindings();
+}
+
 }  // namespace vne::interaction
