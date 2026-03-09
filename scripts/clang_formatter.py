@@ -47,12 +47,22 @@ def is_source_file(file_path: Path) -> bool:
     return file_path.suffix.lower() in extensions
 
 
+def get_clang_format_binary() -> str:
+    """Use clang-format-17 when available (matches CI); otherwise clang-format."""
+    for name in ('clang-format-17', 'clang-format'):
+        try:
+            subprocess.run([name, '--version'], capture_output=True, check=True)
+            return name
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            continue
+    return 'clang-format'  # fallback for error message
+
+
 def check_clang_format() -> bool:
     """Check if clang-format is available."""
+    binary = get_clang_format_binary()
     try:
-        subprocess.run(['clang-format', '--version'],
-                      capture_output=True,
-                      check=True)
+        subprocess.run([binary, '--version'], capture_output=True, check=True)
         return True
     except (subprocess.CalledProcessError, FileNotFoundError):
         return False
@@ -64,10 +74,11 @@ def run_clang_format(files: list, style_file: Path, dry_run: bool = False) -> bo
         print("No source files found to format.")
         return True
 
-    print(f"Found {len(files)} source files to format.")
+    binary = get_clang_format_binary()
+    print(f"Found {len(files)} source files to format (using {binary}).")
 
     base_cmd = [
-        'clang-format',
+        binary,
         '--style=file',
         '--fallback-style=Google',
     ]
@@ -209,12 +220,15 @@ Examples:
             print(f"  {file}")
         print()
 
-    # Check clang-format availability
+    # Check clang-format availability (prefer clang-format-17 to match CI)
+    binary = get_clang_format_binary()
     if not check_clang_format():
-        print("Error: clang-format not found. Please install clang-format.")
-        print("  Ubuntu/Debian: sudo apt install clang-format")
-        print("  macOS: brew install clang-format")
+        print("Error: clang-format not found. Please install clang-format (CI uses clang-format-17).")
+        print("  Ubuntu/Debian: sudo apt install clang-format-17")
+        print("  macOS: brew install clang-format@17  (or llvm)")
         sys.exit(1)
+    if binary != 'clang-format-17':
+        print(f"Note: Using '{binary}'. For CI-identical formatting, install clang-format-17.")
 
     # Run clang-format
     success = run_clang_format(source_files, style_file, args.dry_run)
