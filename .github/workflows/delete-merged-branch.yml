@@ -40,6 +40,10 @@ jobs:
             echo "Skipping delete for branch: $BRANCH"
             exit 0
           fi
+          if [[ "$BRANCH" == release-please--* ]]; then
+            echo "Skipping delete for release-please branch: $BRANCH"
+            exit 0
+          fi
           echo "Deleting branch: $BRANCH"
           # URL-encode ref: slashes (e.g. feature/foo) must be %2F in the path
           BRANCH_ENC="${BRANCH//\//%2F}"
@@ -50,6 +54,7 @@ jobs:
           if [ "$DELETE_STATUS" -ne 0 ]; then
             if echo "$DELETE_OUTPUT" | grep -qi -e "Reference does not exist" -e "Not Found"; then
               echo "Branch may already be deleted or does not exist."
+              exit 0
             else
               echo "Failed to delete branch: $BRANCH"
               echo "$DELETE_OUTPUT"

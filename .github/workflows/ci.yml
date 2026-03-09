@@ -127,12 +127,9 @@ jobs:
           | xargs -0 -r clang-format --dry-run --Werror \
               --style=file --fallback-style=Google
 
-  # Optional, informational only: do not add this job to branch protection / quality gate.
-  # continue-on-error: any failure is shown as warning, never fails the workflow.
   commit-lint:
-    name: "Pre-checks / commit messages (optional)"
+    name: "Pre-checks / commit messages"
     runs-on: ubuntu-latest
-    continue-on-error: true
     # Only validate on PRs. Push-to-main arrives as release-please merge
     # commits (chore(main): release X.Y.Z) which are always valid — and
     # validating every commit in a merge-commit ancestry is fragile.
@@ -146,7 +143,7 @@ jobs:
           submodules: false
           fetch-depth: 0   # full history needed to enumerate PR commits
 
-      - name: Validate Conventional Commits format (warnings only, never fails)
+      - name: Validate Conventional Commits format
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -162,11 +159,10 @@ jobs:
             fi
           done < <(git log --format="%s" "${BASE_SHA}..${HEAD_SHA}")
           if [[ $FAILED -eq 1 ]]; then
-            echo "::warning::One or more commits do not follow Conventional Commits format (optional check — does not fail CI)."
+            echo "::warning::One or more commits do not follow Conventional Commits format (this check does not block the gate)."
           else
             echo "All commits follow Conventional Commits format."
           fi
-          exit 0
 
   # Logical AND gate: build jobs declare `needs: [pre-checks-gate]` so
   # they only run after format-check has passed. Commit-lint runs in parallel
