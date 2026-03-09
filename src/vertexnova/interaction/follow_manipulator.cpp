@@ -14,9 +14,7 @@
 
 namespace vne::interaction {
 
-using namespace vne::math;
-
-Vec3f FollowManipulator::getTargetWorld() const noexcept {
+vne::math::Vec3f FollowManipulator::getTargetWorld() const noexcept {
     return target_provider_ ? target_provider_() : target_world_;
 }
 
@@ -29,7 +27,7 @@ void FollowManipulator::setViewportSize(float width_px, float height_px) noexcep
     viewport_height_ = std::max(1.0f, height_px);
 }
 
-void FollowManipulator::fitToAABB(const Vec3f& min_world, const Vec3f& max_world) noexcept {
+void FollowManipulator::fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept {
     target_world_ = (min_world + max_world) * 0.5f;
 }
 
@@ -43,15 +41,15 @@ void FollowManipulator::update(double delta_time) noexcept {
         return;
     }
 
-    const Vec3f target = getTargetWorld();
-    const Vec3f desired_eye = target + offset_world_;
-    const Vec3f eye = camera_->getPosition();
+    const vne::math::Vec3f target = getTargetWorld();
+    const vne::math::Vec3f desired_eye = target + offset_world_;
+    const vne::math::Vec3f eye = camera_->getPosition();
     const float alpha = 1.0f - std::exp(-damping_ * dt);
-    const Vec3f new_eye = eye + (desired_eye - eye) * alpha;
+    const vne::math::Vec3f new_eye = eye + (desired_eye - eye) * alpha;
 
     camera_->setPosition(new_eye);
     camera_->setTarget(target);
-    camera_->setUp(Vec3f(0.0f, 1.0f, 0.0f));
+    camera_->setUp(vne::math::Vec3f(0.0f, 1.0f, 0.0f));
     camera_->updateMatrices();
 }
 
@@ -67,10 +65,10 @@ void FollowManipulator::applyZoom(float zoom_factor) noexcept {
 
     switch (zoom_method_) {
         case ZoomMethod::eSceneScale:
-            scene_scale_ = std::clamp(scene_scale_ * zoom_factor, 1e-4f, 1e4f);
+            scene_scale_ = vne::math::clamp(scene_scale_ * zoom_factor, 1e-4f, 1e4f);
             return;
         case ZoomMethod::eDollyToCoi: {
-            const Vec3f new_offset = offset_world_ * zoom_factor;
+            const vne::math::Vec3f new_offset = offset_world_ * zoom_factor;
             const float len = new_offset.length();
             if (len > 0.1f && len < 1e4f) {
                 offset_world_ = new_offset;
@@ -80,10 +78,10 @@ void FollowManipulator::applyZoom(float zoom_factor) noexcept {
         case ZoomMethod::eChangeFov:
             if (auto persp = std::dynamic_pointer_cast<vne::scene::PerspectiveCamera>(camera_)) {
                 const float fov = persp->getFieldOfView();
-                persp->setFieldOfView(std::clamp(fov * zoom_factor, 5.0f, 120.0f));
+                persp->setFieldOfView(vne::math::clamp(fov * zoom_factor, 5.0f, 120.0f));
                 persp->updateMatrices();
             } else {
-                const Vec3f new_offset = offset_world_ * zoom_factor;
+                const vne::math::Vec3f new_offset = offset_world_ * zoom_factor;
                 const float len = new_offset.length();
                 if (len > 0.1f && len < 1e4f) {
                     offset_world_ = new_offset;

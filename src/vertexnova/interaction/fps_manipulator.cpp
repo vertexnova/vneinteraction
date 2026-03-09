@@ -9,16 +9,16 @@
 #include "vertexnova/scene/camera/perspective_camera.h"
 
 #include <vertexnova/math/core/core.h>
+#include <vertexnova/math/core/math_utils.h>
 
 #include <algorithm>
 #include <cmath>
 
 namespace vne::interaction {
 
-using namespace vne::math;
-
 namespace {
 constexpr float kEpsilon = 1e-6f;
+constexpr float kFitToAabbDistanceFactor = 2.5f;
 }
 
 void FpsManipulator::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
@@ -26,7 +26,7 @@ void FpsManipulator::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noex
     syncAnglesFromCamera();
 }
 
-void FpsManipulator::setWorldUp(const Vec3f& up) noexcept {
+void FpsManipulator::setWorldUp(const vne::math::Vec3f& up) noexcept {
     if (up.length() > kEpsilon) {
         world_up_ = up.normalized();
     }
@@ -42,42 +42,42 @@ void FpsManipulator::resetState() noexcept {
     sprint_ = slow_ = looking_ = false;
 }
 
-void FpsManipulator::fitToAABB(const Vec3f& min_world, const Vec3f& max_world) noexcept {
+void FpsManipulator::fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept {
     if (!camera_) {
         return;
     }
-    const Vec3f center = (min_world + max_world) * 0.5f;
+    const vne::math::Vec3f center = (min_world + max_world) * 0.5f;
     float radius = (max_world - min_world).length() * 0.5f;
     if (radius < kEpsilon) {
         radius = 1.0f;
     }
-    const Vec3f f = front();
-    camera_->setPosition(center - f * (radius * 2.5f));
+    const vne::math::Vec3f f = front();
+    camera_->setPosition(center - f * (radius * kFitToAabbDistanceFactor));
     camera_->setTarget(center);
     camera_->setUp(world_up_);
     camera_->updateMatrices();
 }
 
-Vec3f FpsManipulator::front() const noexcept {
-    const float yaw_rad = degToRad(yaw_deg_);
-    const float pitch_rad = degToRad(pitch_deg_);
-    const float cp = std::cos(pitch_rad);
-    Vec3f f(std::sin(yaw_rad) * cp, std::sin(pitch_rad), -std::cos(yaw_rad) * cp);
+vne::math::Vec3f FpsManipulator::front() const noexcept {
+    const float yaw_rad = vne::math::degToRad(yaw_deg_);
+    const float pitch_rad = vne::math::degToRad(pitch_deg_);
+    const float cp = vne::math::cos(pitch_rad);
+    vne::math::Vec3f f(vne::math::sin(yaw_rad) * cp, vne::math::sin(pitch_rad), -vne::math::cos(yaw_rad) * cp);
     const float len = f.length();
-    return (len < kEpsilon) ? Vec3f(0.0f, 0.0f, -1.0f) : (f / len);
+    return (len < kEpsilon) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : (f / len);
 }
 
-Vec3f FpsManipulator::right(const Vec3f& front_vec) const noexcept {
-    Vec3f r = world_up_.cross(front_vec);
+vne::math::Vec3f FpsManipulator::right(const vne::math::Vec3f& front_vec) const noexcept {
+    vne::math::Vec3f r = world_up_.cross(front_vec);
     const float len = r.length();
-    return (len < kEpsilon) ? Vec3f(1.0f, 0.0f, 0.0f) : (r / len);
+    return (len < kEpsilon) ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : (r / len);
 }
 
 void FpsManipulator::syncAnglesFromCamera() noexcept {
     if (!camera_) {
         return;
     }
-    Vec3f f = camera_->getTarget() - camera_->getPosition();
+    vne::math::Vec3f f = camera_->getTarget() - camera_->getPosition();
     const float len = f.length();
     if (len < kEpsilon) {
         yaw_deg_ = 0.0f;
@@ -85,15 +85,15 @@ void FpsManipulator::syncAnglesFromCamera() noexcept {
         return;
     }
     f /= len;
-    pitch_deg_ = radToDeg(std::asin(std::clamp(f.y(), -1.0f, 1.0f)));
-    yaw_deg_ = radToDeg(std::atan2(f.x(), -f.z()));
+    pitch_deg_ = vne::math::radToDeg(vne::math::asin(vne::math::clamp(f.y(), -1.0f, 1.0f)));
+    yaw_deg_ = vne::math::radToDeg(vne::math::atan2(f.x(), -f.z()));
 }
 
 void FpsManipulator::applyAnglesToCamera() noexcept {
     if (!camera_) {
         return;
     }
-    const Vec3f eye = camera_->getPosition();
+    const vne::math::Vec3f eye = camera_->getPosition();
     camera_->setTarget(eye + front());
     camera_->setUp(world_up_);
     camera_->updateMatrices();
@@ -108,32 +108,39 @@ void FpsManipulator::update(double delta_time) noexcept {
         return;
     }
 
-    const Vec3f f = front();
-    const Vec3f r = right(f);
+    const vne::math::Vec3f f = front();
+    const vne::math::Vec3f r = right(f);
 
-    Vec3f move(0.0f, 0.0f, 0.0f);
-    if (w_)
+    vne::math::Vec3f move(0.0f, 0.0f, 0.0f);
+    if (w_) {
         move += f;
-    if (s_)
+    }
+    if (s_) {
         move -= f;
-    if (d_)
+    }
+    if (d_) {
         move += r;
-    if (a_)
+    }
+    if (a_) {
         move -= r;
-    if (e_)
+    }
+    if (e_) {
         move += world_up_;
-    if (q_)
+    }
+    if (q_) {
         move -= world_up_;
+    }
 
     if (move.length() <= kEpsilon) {
         return;
     }
 
     float speed = move_speed_;
-    if (sprint_)
+    if (sprint_) {
         speed *= sprint_mult_;
-    else if (slow_)
+    } else if (slow_) {
         speed *= slow_mult_;
+    }
 
     move = move.normalized() * (speed * dt);
     camera_->setPosition(camera_->getPosition() + move);
@@ -147,7 +154,7 @@ void FpsManipulator::handleMouseMove(float, float, float delta_x, float delta_y,
     }
     yaw_deg_ += delta_x * mouse_sensitivity_;
     pitch_deg_ += -delta_y * mouse_sensitivity_;
-    pitch_deg_ = std::clamp(pitch_deg_, -89.0f, 89.0f);
+    pitch_deg_ = vne::math::clamp(pitch_deg_, -89.0f, 89.0f);
     applyAnglesToCamera();
 }
 
@@ -167,10 +174,10 @@ void FpsManipulator::applyZoom(float zoom_step_or_factor) noexcept {
 
     switch (zoom_method_) {
         case ZoomMethod::eSceneScale:
-            scene_scale_ = std::clamp(scene_scale_ * zoom_step_or_factor, 1e-4f, 1e4f);
+            scene_scale_ = vne::math::clamp(scene_scale_ * zoom_step_or_factor, 1e-4f, 1e4f);
             return;
         case ZoomMethod::eDollyToCoi: {
-            const Vec3f f = front();
+            const vne::math::Vec3f f = front();
             camera_->setPosition(camera_->getPosition() + f * zoom_step_or_factor);
             camera_->setTarget(camera_->getTarget() + f * zoom_step_or_factor);
             camera_->updateMatrices();
@@ -179,7 +186,7 @@ void FpsManipulator::applyZoom(float zoom_step_or_factor) noexcept {
         case ZoomMethod::eChangeFov:
             if (auto persp = std::dynamic_pointer_cast<vne::scene::PerspectiveCamera>(camera_)) {
                 const float fov = persp->getFieldOfView();
-                persp->setFieldOfView(std::clamp(fov * zoom_step_or_factor, 5.0f, 120.0f));
+                persp->setFieldOfView(vne::math::clamp(fov * zoom_step_or_factor, 5.0f, 120.0f));
                 persp->updateMatrices();
             }
             return;
@@ -202,22 +209,23 @@ void FpsManipulator::handleKeyboard(int key, bool pressed, double) noexcept {
     if (!enabled_) {
         return;
     }
-    if (key == 87)
+    if (key == 87) {
         w_ = pressed;
-    else if (key == 83)
+    } else if (key == 83) {
         s_ = pressed;
-    else if (key == 65)
+    } else if (key == 65) {
         a_ = pressed;
-    else if (key == 68)
+    } else if (key == 68) {
         d_ = pressed;
-    else if (key == 81)
+    } else if (key == 81) {
         q_ = pressed;
-    else if (key == 69)
+    } else if (key == 69) {
         e_ = pressed;
-    else if (key == 340 || key == 344)
+    } else if (key == 340 || key == 344) {
         sprint_ = pressed;
-    else if (key == 341 || key == 345)
+    } else if (key == 341 || key == 345) {
         slow_ = pressed;
+    }
 }
 
 void FpsManipulator::handleTouchPan(const TouchPan& pan, double) noexcept {
@@ -226,7 +234,7 @@ void FpsManipulator::handleTouchPan(const TouchPan& pan, double) noexcept {
     }
     yaw_deg_ += pan.delta_x_px * mouse_sensitivity_ * 0.5f;
     pitch_deg_ += -pan.delta_y_px * mouse_sensitivity_ * 0.5f;
-    pitch_deg_ = std::clamp(pitch_deg_, -89.0f, 89.0f);
+    pitch_deg_ = vne::math::clamp(pitch_deg_, -89.0f, 89.0f);
     applyAnglesToCamera();
 }
 
