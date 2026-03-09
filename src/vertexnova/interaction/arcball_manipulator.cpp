@@ -239,8 +239,7 @@ void ArcballManipulator::handleTouchPan(const TouchPan& pan, double delta_time) 
         return;
     }
     if (!rotating_) {
-        beginRotate(viewport_width_ * kTouchPanViewportCenterFactor,
-                   viewport_height_ * kTouchPanViewportCenterFactor);
+        beginRotate(viewport_width_ * kTouchPanViewportCenterFactor, viewport_height_ * kTouchPanViewportCenterFactor);
     }
     dragRotate(last_x_ + pan.delta_x_px, last_y_ + pan.delta_y_px, delta_time);
 }

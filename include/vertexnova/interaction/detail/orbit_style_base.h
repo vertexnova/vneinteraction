@@ -54,7 +54,7 @@ class OrbitStyleBase : public CameraManipulatorBase {
 
     [[nodiscard]] vne::math::Vec3f computeRight(const vne::math::Vec3f& front) const noexcept;
     [[nodiscard]] vne::math::Vec3f computeUp(const vne::math::Vec3f& front,
-                                            const vne::math::Vec3f& right) const noexcept;
+                                             const vne::math::Vec3f& right) const noexcept;
     void beginPan(float x_px, float y_px) noexcept;
     void dragPan(float x_px, float y_px, float delta_x_px, float delta_y_px, double delta_time) noexcept;
     void endPan(double delta_time) noexcept;

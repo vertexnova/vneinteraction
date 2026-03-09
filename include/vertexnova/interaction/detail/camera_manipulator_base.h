@@ -19,7 +19,7 @@ namespace vne::scene {
 class ICamera;
 class PerspectiveCamera;
 class OrthographicCamera;
-}
+}  // namespace vne::scene
 
 namespace vne::interaction {
 

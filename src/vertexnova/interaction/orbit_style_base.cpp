@@ -45,9 +45,9 @@ vne::math::Vec3f OrbitStyleBase::computeRight(const vne::math::Vec3f& front) con
     vne::math::Vec3f r = world_up_.cross(front);
     float len = r.length();
     if (len < kEpsilon) {
-        const vne::math::Vec3f fallback_up =
-            (std::abs(front.z()) < kFrontZNearVertical) ? vne::math::Vec3f(0.0f, 0.0f, 1.0f)
-                                                       : vne::math::Vec3f(0.0f, 1.0f, 0.0f);
+        const vne::math::Vec3f fallback_up = (std::abs(front.z()) < kFrontZNearVertical)
+                                                 ? vne::math::Vec3f(0.0f, 0.0f, 1.0f)
+                                                 : vne::math::Vec3f(0.0f, 1.0f, 0.0f);
         r = fallback_up.cross(front);
         len = r.length();
     }
@@ -55,7 +55,7 @@ vne::math::Vec3f OrbitStyleBase::computeRight(const vne::math::Vec3f& front) con
 }
 
 vne::math::Vec3f OrbitStyleBase::computeUp(const vne::math::Vec3f& front,
-                                            const vne::math::Vec3f& right) const noexcept {
+                                           const vne::math::Vec3f& right) const noexcept {
     vne::math::Vec3f up = front.cross(right);
     const float len = up.length();
     return (len < kEpsilon) ? world_up_ : (up / len);
