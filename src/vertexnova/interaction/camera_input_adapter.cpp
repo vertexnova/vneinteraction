@@ -28,11 +28,11 @@ void CameraInputAdapter::feedMouseMove(float x, float y, float delta_x, float de
     payload.delta_x_px = delta_x;
     payload.delta_y_px = delta_y;
     if (current_action_ == Action::Rotate) {
-        send(CameraActionType::RotateDelta, payload, delta_time);
+        send(CameraActionType::eRotateDelta, payload, delta_time);
     } else if (current_action_ == Action::Pan) {
-        send(CameraActionType::PanDelta, payload, delta_time);
+        send(CameraActionType::ePanDelta, payload, delta_time);
     } else if (current_action_ == Action::Look) {
-        send(CameraActionType::LookDelta, payload, delta_time);
+        send(CameraActionType::eLookDelta, payload, delta_time);
     }
 }
 
@@ -55,20 +55,20 @@ void CameraInputAdapter::feedMouseButton(int button, bool pressed, float x, floa
     if (pressed) {
         if (is_rotate_btn && !orbit_pan_alias) {
             current_action_ = Action::Rotate;
-            send(CameraActionType::BeginRotate, payload, delta_time);
+            send(CameraActionType::eBeginRotate, payload, delta_time);
         } else if (is_pan_btn || orbit_pan_alias) {
             current_action_ = Action::Pan;
-            send(CameraActionType::BeginPan, payload, delta_time);
+            send(CameraActionType::eBeginPan, payload, delta_time);
         } else if (is_look) {
             current_action_ = Action::Look;
-            send(CameraActionType::BeginLook, payload, delta_time);
+            send(CameraActionType::eBeginLook, payload, delta_time);
         }
     } else {
         if (button == rotate_button_) {
             if (current_action_ == Action::Rotate) {
-                send(CameraActionType::EndRotate, payload, delta_time);
+                send(CameraActionType::eEndRotate, payload, delta_time);
             } else if (current_action_ == Action::Pan) {
-                send(CameraActionType::EndPan, payload, delta_time);
+                send(CameraActionType::eEndPan, payload, delta_time);
             }
             if (current_action_ == Action::Rotate || current_action_ == Action::Pan) {
                 current_action_ = Action::None;
@@ -76,13 +76,13 @@ void CameraInputAdapter::feedMouseButton(int button, bool pressed, float x, floa
         }
         if (is_pan_btn && button != rotate_button_) {
             if (current_action_ == Action::Pan) {
-                send(CameraActionType::EndPan, payload, delta_time);
+                send(CameraActionType::eEndPan, payload, delta_time);
                 current_action_ = Action::None;
             }
         }
         if (button == look_button_) {
             if (current_action_ == Action::Look) {
-                send(CameraActionType::EndLook, payload, delta_time);
+                send(CameraActionType::eEndLook, payload, delta_time);
             }
             current_action_ = Action::None;
         }
@@ -98,7 +98,7 @@ void CameraInputAdapter::feedMouseScroll(
     payload.x_px = mouse_x;
     payload.y_px = mouse_y;
     payload.zoom_factor = (scroll_y > 0.0f) ? (1.0f / 1.1f) : 1.1f;
-    send(CameraActionType::ZoomAtCursor, payload, delta_time);
+    send(CameraActionType::eZoomAtCursor, payload, delta_time);
 }
 
 void CameraInputAdapter::feedKeyboard(int key, bool pressed, double delta_time) noexcept {
@@ -109,22 +109,22 @@ void CameraInputAdapter::feedKeyboard(int key, bool pressed, double delta_time) 
     payload.pressed = pressed;
     if (key == key_shift_left_ || key == key_shift_right_) {
         modifier_shift_ = pressed;
-        send(CameraActionType::OrbitPanModifier, payload, delta_time);
-        send(CameraActionType::SprintModifier, payload, delta_time);
+        send(CameraActionType::eOrbitPanModifier, payload, delta_time);
+        send(CameraActionType::eSprintModifier, payload, delta_time);
     } else if (key == key_ctrl_left_ || key == key_ctrl_right_) {
-        send(CameraActionType::SlowModifier, payload, delta_time);
+        send(CameraActionType::eSlowModifier, payload, delta_time);
     } else if (key == key_w_) {
-        send(CameraActionType::MoveForward, payload, delta_time);
+        send(CameraActionType::eMoveForward, payload, delta_time);
     } else if (key == key_s_) {
-        send(CameraActionType::MoveBackward, payload, delta_time);
+        send(CameraActionType::eMoveBackward, payload, delta_time);
     } else if (key == key_a_) {
-        send(CameraActionType::MoveLeft, payload, delta_time);
+        send(CameraActionType::eMoveLeft, payload, delta_time);
     } else if (key == key_d_) {
-        send(CameraActionType::MoveRight, payload, delta_time);
+        send(CameraActionType::eMoveRight, payload, delta_time);
     } else if (key == key_e_) {
-        send(CameraActionType::MoveUp, payload, delta_time);
+        send(CameraActionType::eMoveUp, payload, delta_time);
     } else if (key == key_q_) {
-        send(CameraActionType::MoveDown, payload, delta_time);
+        send(CameraActionType::eMoveDown, payload, delta_time);
     }
 }
 
@@ -139,7 +139,7 @@ void CameraInputAdapter::feedTouchPan(const TouchPan& pan, double delta_time) no
     payload.y_px = last_y_px_;
     payload.delta_x_px = pan.delta_x_px;
     payload.delta_y_px = pan.delta_y_px;
-    send(CameraActionType::RotateDelta, payload, delta_time);
+    send(CameraActionType::eRotateDelta, payload, delta_time);
 }
 
 void CameraInputAdapter::feedTouchPinch(const TouchPinch& pinch, double delta_time) noexcept {
@@ -150,7 +150,7 @@ void CameraInputAdapter::feedTouchPinch(const TouchPinch& pinch, double delta_ti
     payload.x_px = pinch.center_x_px;
     payload.y_px = pinch.center_y_px;
     payload.zoom_factor = 1.0f / pinch.scale;
-    send(CameraActionType::ZoomAtCursor, payload, delta_time);
+    send(CameraActionType::eZoomAtCursor, payload, delta_time);
 }
 
 }  // namespace vne::interaction

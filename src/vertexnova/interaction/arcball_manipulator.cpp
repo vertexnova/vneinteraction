@@ -142,31 +142,31 @@ void ArcballManipulator::applyCommand(CameraActionType action,
         return;
     }
     switch (action) {
-        case CameraActionType::BeginRotate:
+        case CameraActionType::eBeginRotate:
             beginRotate(payload.x_px, payload.y_px);
             break;
-        case CameraActionType::RotateDelta:
+        case CameraActionType::eRotateDelta:
             if (interaction_.rotating) {
                 dragRotate(payload.x_px, payload.y_px, delta_time);
             }
             break;
-        case CameraActionType::EndRotate:
+        case CameraActionType::eEndRotate:
             endRotate(delta_time);
             break;
-        case CameraActionType::BeginPan:
+        case CameraActionType::eBeginPan:
             beginPan(payload.x_px, payload.y_px);
             break;
-        case CameraActionType::PanDelta:
+        case CameraActionType::ePanDelta:
             if (interaction_.panning) {
                 dragPan(payload.x_px, payload.y_px, payload.delta_x_px, payload.delta_y_px, delta_time);
                 interaction_.last_x_px = payload.x_px;
                 interaction_.last_y_px = payload.y_px;
             }
             break;
-        case CameraActionType::EndPan:
+        case CameraActionType::eEndPan:
             endPan(delta_time);
             break;
-        case CameraActionType::ZoomAtCursor:
+        case CameraActionType::eZoomAtCursor:
             if (payload.zoom_factor > 0.0f) {
                 zoom(payload.zoom_factor, payload.x_px, payload.y_px);
             }

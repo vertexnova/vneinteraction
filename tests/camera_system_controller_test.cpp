@@ -140,7 +140,7 @@ TEST_F(CameraSystemControllerTest, HandleMouseMoveDelegatesToAdapterThenManipula
 
 TEST_F(CameraSystemControllerTest, HandleMouseButtonDelegatesToAdapterThenManipulatorApplyCommand) {
     EXPECT_CALL(*mock_manip_,
-                applyCommand(vne::interaction::CameraActionType::BeginRotate, testing::_, testing::DoubleEq(0.016)))
+                applyCommand(vne::interaction::CameraActionType::eBeginRotate, testing::_, testing::DoubleEq(0.016)))
         .Times(1);
     controller_->setManipulator(mock_manip_);
     controller_->handleMouseButton(0, true, 100.0f, 200.0f, 0.016);
@@ -148,7 +148,7 @@ TEST_F(CameraSystemControllerTest, HandleMouseButtonDelegatesToAdapterThenManipu
 
 TEST_F(CameraSystemControllerTest, HandleMouseScrollDelegatesToAdapterThenManipulatorApplyCommand) {
     EXPECT_CALL(*mock_manip_,
-                applyCommand(vne::interaction::CameraActionType::ZoomAtCursor, testing::_, testing::DoubleEq(0.016)))
+                applyCommand(vne::interaction::CameraActionType::eZoomAtCursor, testing::_, testing::DoubleEq(0.016)))
         .Times(1);
     controller_->setManipulator(mock_manip_);
     controller_->handleMouseScroll(0.0f, -1.0f, 640.0f, 360.0f, 0.016);
@@ -164,7 +164,7 @@ TEST_F(CameraSystemControllerTest, HandleKeyboardDelegatesToAdapterThenManipulat
 TEST_F(CameraSystemControllerTest, HandleTouchPanDelegatesToAdapterThenManipulatorApplyCommand) {
     vne::interaction::TouchPan pan{5.0f, -3.0f};
     EXPECT_CALL(*mock_manip_,
-                applyCommand(vne::interaction::CameraActionType::RotateDelta, testing::_, testing::DoubleEq(0.016)))
+                applyCommand(vne::interaction::CameraActionType::eRotateDelta, testing::_, testing::DoubleEq(0.016)))
         .Times(1);
     controller_->setManipulator(mock_manip_);
     controller_->handleTouchPan(pan, 0.016);
@@ -173,7 +173,7 @@ TEST_F(CameraSystemControllerTest, HandleTouchPanDelegatesToAdapterThenManipulat
 TEST_F(CameraSystemControllerTest, HandleTouchPinchDelegatesToAdapterThenManipulatorApplyCommand) {
     vne::interaction::TouchPinch pinch{1.1f, 640.0f, 360.0f};
     EXPECT_CALL(*mock_manip_,
-                applyCommand(vne::interaction::CameraActionType::ZoomAtCursor, testing::_, testing::DoubleEq(0.016)))
+                applyCommand(vne::interaction::CameraActionType::eZoomAtCursor, testing::_, testing::DoubleEq(0.016)))
         .Times(1);
     controller_->setManipulator(mock_manip_);
     controller_->handleTouchPinch(pinch, 0.016);

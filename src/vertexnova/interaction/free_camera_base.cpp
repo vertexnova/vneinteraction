@@ -114,13 +114,13 @@ void FreeCameraBase::applyCommand(CameraActionType action, const CameraCommandPa
         return;
     }
     switch (action) {
-        case CameraActionType::BeginLook:
+        case CameraActionType::eBeginLook:
             input_state_.looking = true;
             break;
-        case CameraActionType::EndLook:
+        case CameraActionType::eEndLook:
             input_state_.looking = false;
             break;
-        case CameraActionType::LookDelta:
+        case CameraActionType::eLookDelta:
             if (camera_ && input_state_.looking) {
                 yaw_deg_ += payload.delta_x_px * mouse_sensitivity_;
                 pitch_deg_ += -payload.delta_y_px * mouse_sensitivity_;
@@ -128,31 +128,31 @@ void FreeCameraBase::applyCommand(CameraActionType action, const CameraCommandPa
                 applyAnglesToCamera();
             }
             break;
-        case CameraActionType::MoveForward:
+        case CameraActionType::eMoveForward:
             input_state_.move_forward = payload.pressed;
             break;
-        case CameraActionType::MoveBackward:
+        case CameraActionType::eMoveBackward:
             input_state_.move_backward = payload.pressed;
             break;
-        case CameraActionType::MoveLeft:
+        case CameraActionType::eMoveLeft:
             input_state_.move_left = payload.pressed;
             break;
-        case CameraActionType::MoveRight:
+        case CameraActionType::eMoveRight:
             input_state_.move_right = payload.pressed;
             break;
-        case CameraActionType::MoveUp:
+        case CameraActionType::eMoveUp:
             input_state_.move_up = payload.pressed;
             break;
-        case CameraActionType::MoveDown:
+        case CameraActionType::eMoveDown:
             input_state_.move_down = payload.pressed;
             break;
-        case CameraActionType::SprintModifier:
+        case CameraActionType::eSprintModifier:
             input_state_.sprint = payload.pressed;
             break;
-        case CameraActionType::SlowModifier:
+        case CameraActionType::eSlowModifier:
             input_state_.slow = payload.pressed;
             break;
-        case CameraActionType::ZoomAtCursor:
+        case CameraActionType::eZoomAtCursor:
             if (camera_ && payload.zoom_factor > 0.0f) {
                 if (zoom_method_ == ZoomMethod::eDollyToCoi) {
                     applyZoom((payload.zoom_factor < 1.0f) ? move_speed_ * zoom_speed_ : -move_speed_ * zoom_speed_);

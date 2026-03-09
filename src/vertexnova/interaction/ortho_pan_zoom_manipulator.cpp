@@ -208,19 +208,19 @@ void OrthoPanZoomManipulator::applyCommand(CameraActionType action,
         return;
     }
     switch (action) {
-        case CameraActionType::BeginPan:
+        case CameraActionType::eBeginPan:
             panning_ = true;
             pan_velocity_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
             break;
-        case CameraActionType::PanDelta:
+        case CameraActionType::ePanDelta:
             if (panning_) {
                 pan(payload.delta_x_px, payload.delta_y_px, delta_time);
             }
             break;
-        case CameraActionType::EndPan:
+        case CameraActionType::eEndPan:
             panning_ = false;
             break;
-        case CameraActionType::ZoomAtCursor:
+        case CameraActionType::eZoomAtCursor:
             if (payload.zoom_factor > 0.0f) {
                 applyZoom(payload.zoom_factor, payload.x_px, payload.y_px);
             }

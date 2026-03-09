@@ -78,27 +78,27 @@ struct VNE_INTERACTION_API TouchPinch final {
 // Camera action / command layer (intent between input and manipulator)
 // -----------------------------------------------------------------------------
 enum class CameraActionType : std::uint8_t {
-    BeginRotate,
-    RotateDelta,
-    EndRotate,
-    BeginPan,
-    PanDelta,
-    EndPan,
-    ZoomAtCursor,
-    LookDelta,
-    BeginLook,
-    EndLook,
-    MoveForward,
-    MoveBackward,
-    MoveLeft,
-    MoveRight,
-    MoveUp,
-    MoveDown,
-    SprintModifier,
-    SlowModifier,
-    OrbitPanModifier,  // shift: orbit uses for pan-alias, free uses SprintModifier
-    FitBounds,
-    ResetView,
+    eBeginRotate = 0,
+    eRotateDelta = 1,
+    eEndRotate = 2,
+    eBeginPan = 3,
+    ePanDelta = 4,
+    eEndPan = 5,
+    eZoomAtCursor = 6,
+    eLookDelta = 7,
+    eBeginLook = 8,
+    eEndLook = 9,
+    eMoveForward = 10,
+    eMoveBackward = 11,
+    eMoveLeft = 12,
+    eMoveRight = 13,
+    eMoveUp = 14,
+    eMoveDown = 15,
+    eSprintModifier = 16,
+    eSlowModifier = 17,
+    eOrbitPanModifier = 18,  // shift: orbit uses for pan-alias, free uses SprintModifier
+    eFitBounds = 19,
+    eResetView = 20,
 };
 
 /// Payload for actions that carry pointer/cursor or delta data.

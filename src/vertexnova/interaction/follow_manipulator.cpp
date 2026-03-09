@@ -61,7 +61,7 @@ void FollowManipulator::applyCommand(CameraActionType action, const CameraComman
     if (!enabled_ || !camera_) {
         return;
     }
-    if (action == CameraActionType::ZoomAtCursor && payload.zoom_factor > 0.0f) {
+    if (action == CameraActionType::eZoomAtCursor && payload.zoom_factor > 0.0f) {
         applyZoom(payload.zoom_factor);
     }
 }
