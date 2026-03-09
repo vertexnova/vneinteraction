@@ -30,7 +30,8 @@ class MockCameraManipulator : public vne::interaction::ICameraManipulator {
     MOCK_METHOD(void, setEnabled, (bool), (noexcept, override));
     MOCK_METHOD(void, setViewportSize, (float, float), (noexcept, override));
     MOCK_METHOD(void, update, (double), (noexcept, override));
-    MOCK_METHOD(void, applyCommand,
+    MOCK_METHOD(void,
+                applyCommand,
                 (vne::interaction::CameraActionType, const vne::interaction::CameraCommandPayload&, double),
                 (noexcept, override));
     MOCK_METHOD(void, handleMouseMove, (float, float, float, float, double), (noexcept, override));
@@ -131,7 +132,8 @@ TEST_F(CameraSystemControllerTest, UpdateDelegatesToManipulator) {
 }
 
 TEST_F(CameraSystemControllerTest, HandleMouseMoveDelegatesToAdapterThenManipulatorApplyCommand) {
-    EXPECT_CALL(*mock_manip_, applyCommand(testing::_, testing::_, testing::DoubleEq(0.016))).Times(testing::AtLeast(0));
+    EXPECT_CALL(*mock_manip_, applyCommand(testing::_, testing::_, testing::DoubleEq(0.016)))
+        .Times(testing::AtLeast(0));
     controller_->setManipulator(mock_manip_);
     controller_->handleMouseMove(100.0f, 200.0f, 1.0f, -1.0f, 0.016);
 }
@@ -153,7 +155,8 @@ TEST_F(CameraSystemControllerTest, HandleMouseScrollDelegatesToAdapterThenManipu
 }
 
 TEST_F(CameraSystemControllerTest, HandleKeyboardDelegatesToAdapterThenManipulatorApplyCommand) {
-    EXPECT_CALL(*mock_manip_, applyCommand(testing::_, testing::_, testing::DoubleEq(0.016))).Times(testing::AtLeast(1));
+    EXPECT_CALL(*mock_manip_, applyCommand(testing::_, testing::_, testing::DoubleEq(0.016)))
+        .Times(testing::AtLeast(1));
     controller_->setManipulator(mock_manip_);
     controller_->handleKeyboard(87, true, 0.016);
 }

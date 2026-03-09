@@ -48,7 +48,9 @@ class FreeCameraBase : public CameraManipulatorBase {
    public:
     void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;
     void update(double delta_time) noexcept override;
-    void applyCommand(CameraActionType action, const CameraCommandPayload& payload, double delta_time) noexcept override;
+    void applyCommand(CameraActionType action,
+                      const CameraCommandPayload& payload,
+                      double delta_time) noexcept override;
     void handleMouseMove(float x, float y, float delta_x, float delta_y, double delta_time) noexcept override;
     void handleMouseButton(int button, bool pressed, float x, float y, double delta_time) noexcept override;
     void handleMouseScroll(

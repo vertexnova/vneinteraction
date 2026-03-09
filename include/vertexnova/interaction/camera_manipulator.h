@@ -51,7 +51,9 @@ class VNE_INTERACTION_API ICameraManipulator {
     [[nodiscard]] virtual float getWorldUnitsPerPixel() const noexcept = 0;
 
     /// Semantic command layer: intent-based input (remappable, testable).
-    virtual void applyCommand(CameraActionType action, const CameraCommandPayload& payload, double delta_time) noexcept = 0;
+    virtual void applyCommand(CameraActionType action,
+                              const CameraCommandPayload& payload,
+                              double delta_time) noexcept = 0;
 };
 
 }  // namespace vne::interaction

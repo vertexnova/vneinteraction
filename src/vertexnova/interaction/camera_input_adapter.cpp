@@ -8,7 +8,8 @@
 
 namespace vne::interaction {
 
-void CameraInputAdapter::send(CameraActionType action, const CameraCommandPayload& payload,
+void CameraInputAdapter::send(CameraActionType action,
+                              const CameraCommandPayload& payload,
                               double delta_time) noexcept {
     if (manipulator_) {
         manipulator_->applyCommand(action, payload, delta_time);
@@ -88,8 +89,8 @@ void CameraInputAdapter::feedMouseButton(int button, bool pressed, float x, floa
     }
 }
 
-void CameraInputAdapter::feedMouseScroll(float /* scroll_x */, float scroll_y, float mouse_x, float mouse_y,
-                                        double delta_time) noexcept {
+void CameraInputAdapter::feedMouseScroll(
+    float /* scroll_x */, float scroll_y, float mouse_x, float mouse_y, double delta_time) noexcept {
     if (!manipulator_ || scroll_y == 0.0f) {
         return;
     }

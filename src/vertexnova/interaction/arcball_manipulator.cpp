@@ -135,7 +135,8 @@ vne::math::Vec3f ArcballManipulator::projectToArcball(float x_px, float y_px) co
     return (r * ax + u * ay + front * az).normalized();
 }
 
-void ArcballManipulator::applyCommand(CameraActionType action, const CameraCommandPayload& payload,
+void ArcballManipulator::applyCommand(CameraActionType action,
+                                      const CameraCommandPayload& payload,
                                       double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return;

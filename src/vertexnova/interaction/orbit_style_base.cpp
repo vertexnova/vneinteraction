@@ -184,7 +184,8 @@ void OrbitStyleBase::update(double delta_time) noexcept {
     }
 }
 
-void OrbitStyleBase::applyCommand(CameraActionType action, const CameraCommandPayload& payload,
+void OrbitStyleBase::applyCommand(CameraActionType action,
+                                  const CameraCommandPayload& payload,
                                   double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return;
@@ -248,7 +249,8 @@ void OrbitStyleBase::handleMouseButton(int button, bool pressed, float x, float 
     if (pressed) {
         if (button == button_map_.rotate && !interaction_.modifier_shift) {
             beginRotate(x, y);
-        } else if (button == button_map_.pan || pan_alias || (button == button_map_.rotate && interaction_.modifier_shift)) {
+        } else if (button == button_map_.pan || pan_alias
+                   || (button == button_map_.rotate && interaction_.modifier_shift)) {
             beginPan(x, y);
         }
     } else {

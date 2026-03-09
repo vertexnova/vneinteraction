@@ -56,9 +56,7 @@ int main() {
     // --- Dynamic provider: target moves in a circle on the XZ plane ---
     float time = 0.0f;
     follow->setTargetProvider(
-        [&time]() -> vne::math::Vec3f {
-          return {std::cos(time) * 5.0f, 0.0f, std::sin(time) * 5.0f};
-        });
+        [&time]() -> vne::math::Vec3f { return {std::cos(time) * 5.0f, 0.0f, std::sin(time) * 5.0f}; });
 
     VNE_LOG_INFO << "Dynamic target: circular motion, simulating 120 frames";
     for (int i = 0; i < 120; ++i) {

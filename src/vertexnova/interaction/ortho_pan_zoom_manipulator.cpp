@@ -201,8 +201,9 @@ float OrthoPanZoomManipulator::getWorldUnitsPerPixel() const noexcept {
     return ortho ? (ortho->getHeight() / viewport_height_) : 0.0f;
 }
 
-void OrthoPanZoomManipulator::applyCommand(CameraActionType action, const CameraCommandPayload& payload,
-                                            double delta_time) noexcept {
+void OrthoPanZoomManipulator::applyCommand(CameraActionType action,
+                                           const CameraCommandPayload& payload,
+                                           double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }
