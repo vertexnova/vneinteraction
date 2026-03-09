@@ -6,11 +6,11 @@
 # Created:   February 2026
 #
 # Description: CI pipeline — staged, gated, with concurrency cancellation.
-# Stage 1 — Pre-checks  : clang-format (fail-fast gate), commit-lint (warning only)
+# Stage 1 — Pre-checks  : clang-format (fail-fast gate). Commit-lint is optional (warnings only, not in gate).
 # Stage 2+3 — Build+Test: Linux GCC/Clang/ASan, macOS, Windows (parallel)
 # Stage 4 — Analysis    : clang-tidy (reuses Clang build cache)
 # Stage 5 — CI Gate     : single required status check for branch protection
-# Branch protection: require only "CI Gate" — not individual job names.
+# Branch protection: require only "CI Gate" — do not require "Pre-checks / commit messages".
 #
 # Autodoc:   yes
 # ----------------------------------------------------------------------
@@ -127,9 +127,12 @@ jobs:
           | xargs -0 -r clang-format --dry-run --Werror \
               --style=file --fallback-style=Google
 
+  # Optional, informational only: do not add this job to branch protection / quality gate.
+  # continue-on-error: any failure is shown as warning, never fails the workflow.
   commit-lint:
-    name: "Pre-checks / commit messages"
+    name: "Pre-checks / commit messages (optional)"
     runs-on: ubuntu-latest
+    continue-on-error: true
     # Only validate on PRs. Push-to-main arrives as release-please merge
     # commits (chore(main): release X.Y.Z) which are always valid — and
     # validating every commit in a merge-commit ancestry is fragile.
@@ -143,7 +146,7 @@ jobs:
           submodules: false
           fetch-depth: 0   # full history needed to enumerate PR commits
 
-      - name: Validate Conventional Commits format
+      - name: Validate Conventional Commits format (warnings only, never fails)
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -159,10 +162,11 @@ jobs:
             fi
           done < <(git log --format="%s" "${BASE_SHA}..${HEAD_SHA}")
           if [[ $FAILED -eq 1 ]]; then
-            echo "::warning::One or more commits do not follow Conventional Commits format (this check does not block the gate)."
+            echo "::warning::One or more commits do not follow Conventional Commits format (optional check — does not fail CI)."
           else
             echo "All commits follow Conventional Commits format."
           fi
+          exit 0
 
   # Logical AND gate: build jobs declare `needs: [pre-checks-gate]` so
   # they only run after format-check has passed. Commit-lint runs in parallel
