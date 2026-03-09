@@ -86,14 +86,17 @@ vne::math::Vec3f ArcballManipulator::computeRight(const vne::math::Vec3f& front)
     vne::math::Vec3f r = world_up_.cross(front);
     float len = r.length();
     if (len < kEpsilon) {
-        const vne::math::Vec3f fallback_up = (std::abs(front.z()) < kFrontZNearVertical) ? vne::math::Vec3f(0.0f, 0.0f, 1.0f) : vne::math::Vec3f(0.0f, 1.0f, 0.0f);
+        const vne::math::Vec3f fallback_up = (std::abs(front.z()) < kFrontZNearVertical)
+                                                 ? vne::math::Vec3f(0.0f, 0.0f, 1.0f)
+                                                 : vne::math::Vec3f(0.0f, 1.0f, 0.0f);
         r = fallback_up.cross(front);
         len = r.length();
     }
     return (len < kEpsilon) ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : (r / len);
 }
 
-vne::math::Vec3f ArcballManipulator::computeUp(const vne::math::Vec3f& front, const vne::math::Vec3f& right) const noexcept {
+vne::math::Vec3f ArcballManipulator::computeUp(const vne::math::Vec3f& front,
+                                               const vne::math::Vec3f& right) const noexcept {
     vne::math::Vec3f up = front.cross(right);
     const float len = up.length();
     return (len < kEpsilon) ? world_up_ : (up / len);
@@ -229,7 +232,8 @@ void ArcballManipulator::dragRotate(float x_px, float y_px, double delta_time) n
 
     if (delta_time > 0.0 && std::abs(angle) > kInertiaRotAngleThreshold) {
         inertia_rot_axis_ = axis;
-        inertia_rot_speed_ = vne::math::clamp(angle / static_cast<float>(delta_time), -kInertiaRotSpeedMax, kInertiaRotSpeedMax);
+        inertia_rot_speed_ =
+            vne::math::clamp(angle / static_cast<float>(delta_time), -kInertiaRotSpeedMax, kInertiaRotSpeedMax);
     }
 }
 
@@ -508,7 +512,8 @@ float ArcballManipulator::getWorldUnitsPerPixel() const noexcept {
         return ortho->getHeight() / viewport_height_;
     }
     if (auto persp = std::dynamic_pointer_cast<vne::scene::PerspectiveCamera>(camera_)) {
-        return 2.0f * orbit_distance_ * vne::math::tan(vne::math::degToRad(persp->getFieldOfView()) * 0.5f) / viewport_height_;
+        return 2.0f * orbit_distance_ * vne::math::tan(vne::math::degToRad(persp->getFieldOfView()) * 0.5f)
+               / viewport_height_;
     }
     return 0.0f;
 }

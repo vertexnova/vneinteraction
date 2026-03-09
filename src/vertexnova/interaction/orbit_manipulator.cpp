@@ -85,7 +85,8 @@ vne::math::Vec3f OrbitManipulator::computeRight(const vne::math::Vec3f& front) c
     return (len < kEpsilon) ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : (right / len);
 }
 
-vne::math::Vec3f OrbitManipulator::computeUp(const vne::math::Vec3f& front, const vne::math::Vec3f& right) const noexcept {
+vne::math::Vec3f OrbitManipulator::computeUp(const vne::math::Vec3f& front,
+                                             const vne::math::Vec3f& right) const noexcept {
     vne::math::Vec3f up = front.cross(right);
     const float len = up.length();
     return (len < kEpsilon) ? world_up_ : (up / len);
@@ -241,7 +242,8 @@ void OrbitManipulator::applyInertia(double delta_time) noexcept {
     }
     const float dt = static_cast<float>(delta_time);
     bool changed = false;
-    if (std::abs(inertia_rot_speed_x_) > kInertiaRotThreshold || std::abs(inertia_rot_speed_y_) > kInertiaRotThreshold) {
+    if (std::abs(inertia_rot_speed_x_) > kInertiaRotThreshold
+        || std::abs(inertia_rot_speed_y_) > kInertiaRotThreshold) {
         yaw_deg_ += inertia_rot_speed_x_ * dt;
         pitch_deg_ += inertia_rot_speed_y_ * dt;
         pitch_deg_ = vne::math::clamp(pitch_deg_, kPitchMinDeg, kPitchMaxDeg);
@@ -301,8 +303,8 @@ void OrbitManipulator::zoom(float zoom_factor, float mouse_x_px, float mouse_y_p
                 const float fov = persp->getFieldOfView();
                 persp->setFieldOfView(
                     vne::math::clamp(fov * ((zoom_factor < 1.0f) ? (1.0f / fov_zoom_speed_) : fov_zoom_speed_),
-                                    kFovMinDeg,
-                                    kFovMaxDeg));
+                                     kFovMinDeg,
+                                     kFovMaxDeg));
                 persp->updateMatrices();
                 return;
             }
