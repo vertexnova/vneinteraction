@@ -34,8 +34,7 @@ int main() {
     fps->setZoomSpeed(0.5f);
 
     VNE_LOG_INFO << "FpsManipulator created";
-    VNE_LOG_INFO << "  moveSpeed=" << fps->getMoveSpeed()
-                 << "  sensitivity=" << fps->getMouseSensitivity()
+    VNE_LOG_INFO << "  moveSpeed=" << fps->getMoveSpeed() << "  sensitivity=" << fps->getMouseSensitivity()
                  << "  sprintMult=" << fps->getSprintMultiplier();
 
     constexpr double dt = 1.0 / 60.0;
@@ -62,18 +61,22 @@ int main() {
     VNE_LOG_INFO << "After 30 frames sprinting forward";
 
     // --- Simulate: right-mouse look (activate look mode then drag) ---
-    manipulator->handleMouseButton(
-        static_cast<int>(vne::interaction::MouseButton::eRight), /*pressed=*/true,
-        640.0f, 360.0f, dt);
+    manipulator->handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eRight),
+                                   /*pressed=*/true,
+                                   640.0f,
+                                   360.0f,
+                                   dt);
     float mx = 640.0f;
     for (int i = 0; i < 20; ++i) {
         const float dx = 3.0f;
         manipulator->handleMouseMove(mx + dx, 360.0f, dx, 0.0f, dt);
         mx += dx;
     }
-    manipulator->handleMouseButton(
-        static_cast<int>(vne::interaction::MouseButton::eRight), /*pressed=*/false,
-        mx, 360.0f, dt);
+    manipulator->handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eRight),
+                                   /*pressed=*/false,
+                                   mx,
+                                   360.0f,
+                                   dt);
     VNE_LOG_INFO << "After mouse-look yaw";
 
     // --- Simulate: strafe left (A) + move up (E) ---

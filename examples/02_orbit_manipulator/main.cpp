@@ -39,15 +39,16 @@ int main() {
     orbit->setZoomMethod(vne::interaction::ZoomMethod::eDollyToCoi);
 
     VNE_LOG_INFO << "OrbitManipulator created";
-    VNE_LOG_INFO << "  orbitDistance=" << orbit->getOrbitDistance()
-                 << "  sceneScale=" << manipulator->getSceneScale()
+    VNE_LOG_INFO << "  orbitDistance=" << orbit->getOrbitDistance() << "  sceneScale=" << manipulator->getSceneScale()
                  << "  worldUnitsPerPixel=" << manipulator->getWorldUnitsPerPixel();
 
     // --- Simulate: press left mouse button to begin orbit ---
     constexpr double dt = 1.0 / 60.0;
-    manipulator->handleMouseButton(
-        static_cast<int>(vne::interaction::MouseButton::eLeft), /*pressed=*/true,
-        640.0f, 360.0f, dt);
+    manipulator->handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eLeft),
+                                   /*pressed=*/true,
+                                   640.0f,
+                                   360.0f,
+                                   dt);
 
     // --- Simulate: drag horizontally (orbit left/right) ---
     float mouse_x = 640.0f;
@@ -59,9 +60,11 @@ int main() {
     }
 
     // --- Release mouse (triggers inertia) ---
-    manipulator->handleMouseButton(
-        static_cast<int>(vne::interaction::MouseButton::eLeft), /*pressed=*/false,
-        mouse_x, mouse_y, dt);
+    manipulator->handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eLeft),
+                                   /*pressed=*/false,
+                                   mouse_x,
+                                   mouse_y,
+                                   dt);
 
     // --- Let inertia decay over 30 frames ---
     for (int i = 0; i < 30; ++i) {
@@ -80,11 +83,10 @@ int main() {
 
     // --- Fit to a unit AABB ---
     const vne::math::Vec3f aabb_min{-1.0f, -1.0f, -1.0f};
-    const vne::math::Vec3f aabb_max{ 1.0f,  1.0f,  1.0f};
+    const vne::math::Vec3f aabb_max{1.0f, 1.0f, 1.0f};
     manipulator->fitToAABB(aabb_min, aabb_max);
     VNE_LOG_INFO << "After fitToAABB([-1,-1,-1] to [1,1,1]):";
-    VNE_LOG_INFO << "  orbitDistance=" << orbit->getOrbitDistance()
-                 << "  sceneScale=" << manipulator->getSceneScale();
+    VNE_LOG_INFO << "  orbitDistance=" << orbit->getOrbitDistance() << "  sceneScale=" << manipulator->getSceneScale();
 
     // --- Reset ---
     manipulator->resetState();

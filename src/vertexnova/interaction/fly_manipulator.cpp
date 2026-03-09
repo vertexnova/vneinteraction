@@ -53,7 +53,7 @@ constexpr int kKeyRightCtrl = 345;
 // --- Touch ---
 /// Scale factor for touch pan vs mouse (degrees per pixel)
 constexpr float kTouchPanSensitivityFactor = 0.5f;
-}
+}  // namespace
 
 void FlyManipulator::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
     camera_ = std::move(camera);

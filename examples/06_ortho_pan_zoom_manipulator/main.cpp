@@ -35,25 +35,28 @@ int main() {
     VNE_LOG_INFO << "OrthoPanZoomManipulator created";
     VNE_LOG_INFO << "  supportsPerspective=" << (manipulator->supportsPerspective() ? "yes" : "no")
                  << "  supportsOrthographic=" << (manipulator->supportsOrthographic() ? "yes" : "no");
-    VNE_LOG_INFO << "  zoomSpeed=" << ortho->getZoomSpeed()
-                 << "  panDamping=" << ortho->getPanDamping()
+    VNE_LOG_INFO << "  zoomSpeed=" << ortho->getZoomSpeed() << "  panDamping=" << ortho->getPanDamping()
                  << "  sceneScale=" << manipulator->getSceneScale();
 
     constexpr double dt = 1.0 / 60.0;
 
     // --- Simulate: middle-mouse pan ---
-    manipulator->handleMouseButton(
-        static_cast<int>(vne::interaction::MouseButton::eMiddle), /*pressed=*/true,
-        640.0f, 360.0f, dt);
+    manipulator->handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eMiddle),
+                                   /*pressed=*/true,
+                                   640.0f,
+                                   360.0f,
+                                   dt);
     float mx = 640.0f;
     for (int i = 0; i < 30; ++i) {
         const float dx = 4.0f;
         manipulator->handleMouseMove(mx + dx, 360.0f, dx, 0.0f, dt);
         mx += dx;
     }
-    manipulator->handleMouseButton(
-        static_cast<int>(vne::interaction::MouseButton::eMiddle), /*pressed=*/false,
-        mx, 360.0f, dt);
+    manipulator->handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eMiddle),
+                                   /*pressed=*/false,
+                                   mx,
+                                   360.0f,
+                                   dt);
 
     // Decay pan inertia
     for (int i = 0; i < 30; ++i) {
@@ -80,9 +83,9 @@ int main() {
     // --- Simulate: touch-pinch zoom in (scale < 1 = zoom in) ---
     {
         vne::interaction::TouchPinch pinch;
-        pinch.scale        = 0.85f;
-        pinch.center_x_px  = 640.0f;
-        pinch.center_y_px  = 360.0f;
+        pinch.scale = 0.85f;
+        pinch.center_x_px = 640.0f;
+        pinch.center_y_px = 360.0f;
         for (int i = 0; i < 5; ++i) {
             manipulator->handleTouchPinch(pinch, dt);
         }

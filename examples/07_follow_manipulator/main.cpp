@@ -36,9 +36,8 @@ int main() {
     follow->setZoomSpeed(1.1f);
 
     VNE_LOG_INFO << "FollowManipulator created";
-    VNE_LOG_INFO << "  offsetWorld=(" << follow->getOffsetWorld().x()
-                 << ", " << follow->getOffsetWorld().y()
-                 << ", " << follow->getOffsetWorld().z() << ")"
+    VNE_LOG_INFO << "  offsetWorld=(" << follow->getOffsetWorld().x() << ", " << follow->getOffsetWorld().y() << ", "
+                 << follow->getOffsetWorld().z() << ")"
                  << "  damping=" << follow->getDamping();
 
     constexpr double dt = 1.0 / 60.0;
@@ -49,15 +48,13 @@ int main() {
         manipulator->update(dt);
     }
     VNE_LOG_INFO << "Static target (0,0,0), 10 frames:";
-    VNE_LOG_INFO << "  targetWorld=(" << follow->getTargetWorld().x()
-                 << ", " << follow->getTargetWorld().y()
-                 << ", " << follow->getTargetWorld().z() << ")";
+    VNE_LOG_INFO << "  targetWorld=(" << follow->getTargetWorld().x() << ", " << follow->getTargetWorld().y() << ", "
+                 << follow->getTargetWorld().z() << ")";
 
     // --- Dynamic provider: target moves in a circle on the XZ plane ---
     float time = 0.0f;
-    follow->setTargetProvider([&time]() -> vne::math::Vec3f {
-        return {std::cos(time) * 5.0f, 0.0f, std::sin(time) * 5.0f};
-    });
+    follow->setTargetProvider(
+        [&time]() -> vne::math::Vec3f { return {std::cos(time) * 5.0f, 0.0f, std::sin(time) * 5.0f}; });
 
     VNE_LOG_INFO << "Dynamic target: circular motion, simulating 120 frames";
     for (int i = 0; i < 120; ++i) {

@@ -41,23 +41,26 @@ int main() {
     VNE_LOG_INFO << "  sceneScale=" << controller.getManipulator()->getSceneScale();
 
     // Press left mouse, drag, release
-    controller.handleMouseButton(
-        static_cast<int>(vne::interaction::MouseButton::eLeft), /*pressed=*/true,
-        640.0f, 360.0f, dt);
+    controller.handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eLeft),
+                                 /*pressed=*/true,
+                                 640.0f,
+                                 360.0f,
+                                 dt);
     float mx = 640.0f;
     for (int i = 0; i < 20; ++i) {
         controller.handleMouseMove(mx + 3.0f, 360.0f, 3.0f, 0.0f, dt);
         mx += 3.0f;
     }
-    controller.handleMouseButton(
-        static_cast<int>(vne::interaction::MouseButton::eLeft), /*pressed=*/false,
-        mx, 360.0f, dt);
+    controller.handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eLeft),
+                                 /*pressed=*/false,
+                                 mx,
+                                 360.0f,
+                                 dt);
     for (int i = 0; i < 20; ++i) {
         controller.update(dt);
     }
     VNE_LOG_INFO << "  After orbit drag + inertia";
-    VNE_LOG_INFO << "  worldUnitsPerPixel="
-                 << controller.getManipulator()->getWorldUnitsPerPixel();
+    VNE_LOG_INFO << "  worldUnitsPerPixel=" << controller.getManipulator()->getWorldUnitsPerPixel();
 
     // ---------------------------------------------------------------
     // Phase 2: Swap to FlyManipulator — same controller, new manipulator
@@ -93,8 +96,7 @@ int main() {
     controller.update(dt);
     VNE_LOG_INFO << "  After 4x scroll zoom in";
     VNE_LOG_INFO << "  sceneScale=" << controller.getManipulator()->getSceneScale()
-                 << "  worldUnitsPerPixel="
-                 << controller.getManipulator()->getWorldUnitsPerPixel();
+                 << "  worldUnitsPerPixel=" << controller.getManipulator()->getWorldUnitsPerPixel();
 
     // Touch-pan
     {

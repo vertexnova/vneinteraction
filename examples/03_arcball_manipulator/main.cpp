@@ -41,9 +41,11 @@ int main() {
 
     // --- Simulate: arcball drag (left mouse) ---
     constexpr double dt = 1.0 / 60.0;
-    manipulator->handleMouseButton(
-        static_cast<int>(vne::interaction::MouseButton::eLeft), /*pressed=*/true,
-        400.0f, 300.0f, dt);
+    manipulator->handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eLeft),
+                                   /*pressed=*/true,
+                                   400.0f,
+                                   300.0f,
+                                   dt);
 
     float mx = 400.0f;
     float my = 300.0f;
@@ -55,9 +57,11 @@ int main() {
         my += dy;
     }
 
-    manipulator->handleMouseButton(
-        static_cast<int>(vne::interaction::MouseButton::eLeft), /*pressed=*/false,
-        mx, my, dt);
+    manipulator->handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eLeft),
+                                   /*pressed=*/false,
+                                   mx,
+                                   my,
+                                   dt);
 
     // --- Inertia decay ---
     for (int i = 0; i < 30; ++i) {
@@ -67,24 +71,27 @@ int main() {
     VNE_LOG_INFO << "  worldUnitsPerPixel=" << manipulator->getWorldUnitsPerPixel();
 
     // --- Simulate: right-mouse pan ---
-    manipulator->handleMouseButton(
-        static_cast<int>(vne::interaction::MouseButton::eRight), /*pressed=*/true,
-        640.0f, 360.0f, dt);
+    manipulator->handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eRight),
+                                   /*pressed=*/true,
+                                   640.0f,
+                                   360.0f,
+                                   dt);
     for (int i = 0; i < 15; ++i) {
         manipulator->handleMouseMove(640.0f + i * 4.0f, 360.0f, 4.0f, 0.0f, dt);
     }
-    manipulator->handleMouseButton(
-        static_cast<int>(vne::interaction::MouseButton::eRight), /*pressed=*/false,
-        640.0f + 15 * 4.0f, 360.0f, dt);
+    manipulator->handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eRight),
+                                   /*pressed=*/false,
+                                   640.0f + 15 * 4.0f,
+                                   360.0f,
+                                   dt);
 
     // Decay pan inertia
     for (int i = 0; i < 30; ++i) {
         manipulator->update(dt);
     }
     VNE_LOG_INFO << "After pan + inertia decay:";
-    VNE_LOG_INFO << "  coi=" << arcball->getCenterOfInterestWorld().x()
-                 << ", " << arcball->getCenterOfInterestWorld().y()
-                 << ", " << arcball->getCenterOfInterestWorld().z();
+    VNE_LOG_INFO << "  coi=" << arcball->getCenterOfInterestWorld().x() << ", "
+                 << arcball->getCenterOfInterestWorld().y() << ", " << arcball->getCenterOfInterestWorld().z();
 
     // --- fitToAABB ---
     manipulator->fitToAABB({-2.0f, -2.0f, -2.0f}, {2.0f, 2.0f, 2.0f});

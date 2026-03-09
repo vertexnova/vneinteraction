@@ -26,15 +26,15 @@ int main() {
 
     struct TypeInfo {
         vne::interaction::CameraManipulatorType type;
-        std::string_view                         name;
+        std::string_view name;
     };
     static constexpr std::array types{
-        TypeInfo{vne::interaction::CameraManipulatorType::eOrbit,        "Orbit"},
-        TypeInfo{vne::interaction::CameraManipulatorType::eArcball,      "Arcball"},
-        TypeInfo{vne::interaction::CameraManipulatorType::eFps,          "FPS"},
-        TypeInfo{vne::interaction::CameraManipulatorType::eFly,          "Fly"},
+        TypeInfo{vne::interaction::CameraManipulatorType::eOrbit, "Orbit"},
+        TypeInfo{vne::interaction::CameraManipulatorType::eArcball, "Arcball"},
+        TypeInfo{vne::interaction::CameraManipulatorType::eFps, "FPS"},
+        TypeInfo{vne::interaction::CameraManipulatorType::eFly, "Fly"},
         TypeInfo{vne::interaction::CameraManipulatorType::eOrthoPanZoom, "OrthoPanZoom"},
-        TypeInfo{vne::interaction::CameraManipulatorType::eFollow,       "Follow"},
+        TypeInfo{vne::interaction::CameraManipulatorType::eFollow, "Follow"},
     };
 
     VNE_LOG_INFO << "Available manipulators:";
