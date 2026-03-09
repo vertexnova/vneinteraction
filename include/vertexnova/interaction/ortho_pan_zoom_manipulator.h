@@ -8,19 +8,22 @@
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/interaction/camera_manipulator.h"
 #include "vertexnova/interaction/export.h"
 #include "vertexnova/interaction/interaction_types.h"
-#include "vertexnova/scene/camera/orthographic_camera.h"
+#include "vertexnova/interaction/detail/camera_manipulator_base.h"
 
 #include <vertexnova/math/core/core.h>
 
 #include <algorithm>
 #include <memory>
 
+namespace vne::scene {
+class OrthographicCamera;
+}
+
 namespace vne::interaction {
 
-class VNE_INTERACTION_API OrthoPanZoomManipulator final : public ICameraManipulator {
+class VNE_INTERACTION_API OrthoPanZoomManipulator final : public CameraManipulatorBase {
    public:
     OrthoPanZoomManipulator() noexcept = default;
     ~OrthoPanZoomManipulator() noexcept override = default;
@@ -29,7 +32,6 @@ class VNE_INTERACTION_API OrthoPanZoomManipulator final : public ICameraManipula
     [[nodiscard]] bool supportsOrthographic() const noexcept override { return true; }
 
     void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;
-    void setEnabled(bool enabled) noexcept override { enabled_ = enabled; }
     void setViewportSize(float width_px, float height_px) noexcept override;
     void update(double delta_time) noexcept override;
 
@@ -47,10 +49,10 @@ class VNE_INTERACTION_API OrthoPanZoomManipulator final : public ICameraManipula
     [[nodiscard]] float getZoomSpeed() const noexcept { return zoom_speed_; }
     void setPanDamping(float damping) noexcept { pan_damping_ = std::max(0.0f, damping); }
     [[nodiscard]] float getPanDamping() const noexcept { return pan_damping_; }
-    [[nodiscard]] float getSceneScale() const noexcept override { return scene_scale_; }
 
     void resetState() noexcept override;
     void fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept override;
+    [[nodiscard]] float getSceneScale() const noexcept override { return scene_scale_; }
     [[nodiscard]] float getWorldUnitsPerPixel() const noexcept override;
 
    private:
@@ -60,16 +62,9 @@ class VNE_INTERACTION_API OrthoPanZoomManipulator final : public ICameraManipula
     void applyInertia(double delta_time) noexcept;
     void applyZoom(float zoom_factor, float mouse_x_px, float mouse_y_px) noexcept;
 
-    std::shared_ptr<vne::scene::ICamera> camera_;
-    bool enabled_ = true;
-    float viewport_width_ = 1280.0f;
-    float viewport_height_ = 720.0f;
     bool panning_ = false;
     vne::math::Vec3f pan_velocity_{0.0f, 0.0f, 0.0f};
     float pan_damping_ = 10.0f;
-    float zoom_speed_ = 1.1f;
-    float scene_scale_ = 1.0f;
-    ZoomMethod zoom_method_ = ZoomMethod::eDollyToCoi;
 };
 
 }  // namespace vne::interaction

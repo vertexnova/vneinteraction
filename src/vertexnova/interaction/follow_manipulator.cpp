@@ -15,7 +15,6 @@
 namespace vne::interaction {
 
 namespace {
-constexpr float kMinViewportSize = 1.0f;
 constexpr float kFovMinDeg = 5.0f;
 constexpr float kFovMaxDeg = 120.0f;
 constexpr float kSceneScaleMin = 1e-4f;
@@ -30,11 +29,6 @@ vne::math::Vec3f FollowManipulator::getTargetWorld() const noexcept {
 
 void FollowManipulator::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
     camera_ = std::move(camera);
-}
-
-void FollowManipulator::setViewportSize(float width_px, float height_px) noexcept {
-    viewport_width_ = std::max(kMinViewportSize, width_px);
-    viewport_height_ = std::max(kMinViewportSize, height_px);
 }
 
 void FollowManipulator::fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept {
@@ -86,7 +80,7 @@ void FollowManipulator::applyZoom(float zoom_factor) noexcept {
             return;
         }
         case ZoomMethod::eChangeFov:
-            if (auto persp = std::dynamic_pointer_cast<vne::scene::PerspectiveCamera>(camera_)) {
+            if (auto persp = perspCamera()) {
                 const float fov = persp->getFieldOfView();
                 persp->setFieldOfView(vne::math::clamp(fov * zoom_factor, kFovMinDeg, kFovMaxDeg));
                 persp->updateMatrices();

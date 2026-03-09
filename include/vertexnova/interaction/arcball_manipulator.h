@@ -8,9 +8,9 @@
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/interaction/camera_manipulator.h"
 #include "vertexnova/interaction/export.h"
 #include "vertexnova/interaction/interaction_types.h"
+#include "vertexnova/interaction/detail/orbit_style_base.h"
 
 #include <vertexnova/math/core/core.h>
 
@@ -19,7 +19,7 @@
 
 namespace vne::interaction {
 
-class VNE_INTERACTION_API ArcballManipulator final : public ICameraManipulator {
+class VNE_INTERACTION_API ArcballManipulator final : public OrbitStyleBase {
    public:
     ArcballManipulator() noexcept;
     ~ArcballManipulator() noexcept override = default;
@@ -28,19 +28,12 @@ class VNE_INTERACTION_API ArcballManipulator final : public ICameraManipulator {
     [[nodiscard]] bool supportsOrthographic() const noexcept override { return true; }
 
     void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;
-    void setEnabled(bool enabled) noexcept override { enabled_ = enabled; }
     void setViewportSize(float width_px, float height_px) noexcept override;
-    void update(double delta_time) noexcept override;
 
-    void handleMouseMove(float x, float y, float delta_x, float delta_y, double delta_time) noexcept override;
-    void handleMouseButton(int button, bool pressed, float x, float y, double delta_time) noexcept override;
     void handleMouseScroll(
         float scroll_x, float scroll_y, float mouse_x, float mouse_y, double delta_time) noexcept override;
-    void handleKeyboard(int key, bool pressed, double delta_time) noexcept override;
     void handleTouchPan(const TouchPan& pan, double delta_time) noexcept override;
-    void handleTouchPinch(const TouchPinch& pinch, double delta_time) noexcept override;
 
-    [[nodiscard]] float getSceneScale() const noexcept override { return scene_scale_; }
     void resetState() noexcept override;
     void fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept override;
     [[nodiscard]] float getWorldUnitsPerPixel() const noexcept override;
@@ -64,59 +57,22 @@ class VNE_INTERACTION_API ArcballManipulator final : public ICameraManipulator {
     [[nodiscard]] float getRotationDamping() const noexcept { return rot_damping_; }
     void setPanDamping(float damping) noexcept { pan_damping_ = std::max(0.0f, damping); }
     [[nodiscard]] float getPanDamping() const noexcept { return pan_damping_; }
-
-    struct ButtonMap {
-        int rotate = static_cast<int>(MouseButton::eLeft);
-        int pan = static_cast<int>(MouseButton::eRight);
-    };
     void setButtonMap(const ButtonMap& map) noexcept { button_map_ = map; }
     [[nodiscard]] const ButtonMap& getButtonMap() const noexcept { return button_map_; }
 
    private:
-    [[nodiscard]] bool isPerspective() const noexcept;
-    [[nodiscard]] bool isOrthographic() const noexcept;
-    void syncFromCamera() noexcept;
-    void applyToCamera() noexcept;
-    [[nodiscard]] vne::math::Vec3f computeFront() const noexcept;
-    [[nodiscard]] vne::math::Vec3f computeRight(const vne::math::Vec3f& front) const noexcept;
-    [[nodiscard]] vne::math::Vec3f computeUp(const vne::math::Vec3f& front,
-                                             const vne::math::Vec3f& right) const noexcept;
+    [[nodiscard]] vne::math::Vec3f computeFront() const noexcept override;
     [[nodiscard]] vne::math::Vec3f projectToArcball(float x_px, float y_px) const noexcept;
-    void beginRotate(float x_px, float y_px) noexcept;
-    void dragRotate(float x_px, float y_px, double delta_time) noexcept;
-    void endRotate(double delta_time) noexcept;
-    void beginPan(float x_px, float y_px) noexcept;
-    void dragPan(float x_px, float y_px, float delta_x_px, float delta_y_px, double delta_time) noexcept;
-    void endPan(double delta_time) noexcept;
-    void applyInertia(double delta_time) noexcept;
-    void zoom(float zoom_factor, float mouse_x_px, float mouse_y_px) noexcept;
-    void zoomOrthoToCursor(float zoom_factor, float mouse_x_px, float mouse_y_px) noexcept;
+    void syncFromCamera() noexcept override;
+    void applyToCamera() noexcept override;
+    void beginRotate(float x_px, float y_px) noexcept override;
+    void dragRotate(float x_px, float y_px, double delta_time) noexcept override;
+    void endRotate(double delta_time) noexcept override;
+    void applyInertia(double delta_time) noexcept override;
 
-    std::shared_ptr<vne::scene::ICamera> camera_;
-    bool enabled_ = true;
-    float viewport_width_ = 1280.0f;
-    float viewport_height_ = 720.0f;
-    vne::math::Vec3f world_up_;
-    vne::math::Vec3f coi_world_;
-    float orbit_distance_ = 5.0f;
-    float scene_scale_ = 1.0f;
-    ZoomMethod zoom_method_ = ZoomMethod::eDollyToCoi;
-    ButtonMap button_map_;
-    bool rotating_ = false;
-    bool panning_ = false;
-    float last_x_ = 0.0f;
-    float last_y_ = 0.0f;
     vne::math::Vec3f arcball_start_world_;
     float inertia_rot_speed_ = 0.0f;
     vne::math::Vec3f inertia_rot_axis_;
-    vne::math::Vec3f inertia_pan_velocity_;
-    float rot_damping_ = 8.0f;
-    float pan_damping_ = 10.0f;
-    float rotation_speed_ = 1.0f;
-    float pan_speed_ = 1.0f;
-    float zoom_speed_ = 1.1f;
-    float fov_zoom_speed_ = 1.05f;
-    bool shift_ = false;
 };
 
 }  // namespace vne::interaction

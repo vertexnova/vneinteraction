@@ -8,9 +8,9 @@
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/interaction/camera_manipulator.h"
 #include "vertexnova/interaction/export.h"
 #include "vertexnova/interaction/interaction_types.h"
+#include "vertexnova/interaction/detail/camera_manipulator_base.h"
 
 #include <vertexnova/math/core/core.h>
 
@@ -19,7 +19,7 @@
 
 namespace vne::interaction {
 
-class VNE_INTERACTION_API FollowManipulator final : public ICameraManipulator {
+class VNE_INTERACTION_API FollowManipulator final : public CameraManipulatorBase {
    public:
     using TargetProvider = std::function<vne::math::Vec3f()>;
 
@@ -30,8 +30,6 @@ class VNE_INTERACTION_API FollowManipulator final : public ICameraManipulator {
     [[nodiscard]] bool supportsOrthographic() const noexcept override { return true; }
 
     void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;
-    void setEnabled(bool enabled) noexcept override { enabled_ = enabled; }
-    void setViewportSize(float width_px, float height_px) noexcept override;
     void update(double delta_time) noexcept override;
 
     void handleMouseMove(float x, float y, float delta_x, float delta_y, double delta_time) noexcept override;
@@ -44,7 +42,6 @@ class VNE_INTERACTION_API FollowManipulator final : public ICameraManipulator {
 
     void resetState() noexcept override {}
     void fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept override;
-    [[nodiscard]] float getSceneScale() const noexcept override { return scene_scale_; }
     [[nodiscard]] float getWorldUnitsPerPixel() const noexcept override;
 
     void setTargetWorld(const vne::math::Vec3f& target) noexcept { target_world_ = target; }
@@ -63,17 +60,10 @@ class VNE_INTERACTION_API FollowManipulator final : public ICameraManipulator {
    private:
     void applyZoom(float zoom_factor) noexcept;
 
-    std::shared_ptr<vne::scene::ICamera> camera_;
-    bool enabled_ = true;
-    float viewport_width_ = 1280.0f;
-    float viewport_height_ = 720.0f;
     vne::math::Vec3f target_world_{0.0f, 0.0f, 0.0f};
     vne::math::Vec3f offset_world_{0.0f, 0.0f, 5.0f};
     TargetProvider target_provider_;
     float damping_ = 8.0f;
-    float zoom_speed_ = 1.1f;
-    float scene_scale_ = 1.0f;
-    ZoomMethod zoom_method_ = ZoomMethod::eDollyToCoi;
 };
 
 }  // namespace vne::interaction

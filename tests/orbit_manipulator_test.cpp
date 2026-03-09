@@ -166,10 +166,10 @@ TEST_F(OrbitManipulatorTest, SetPanDampingClampsToZero) {
 }
 
 TEST_F(OrbitManipulatorTest, SetButtonMapStoresValues) {
-    vne::interaction::OrbitManipulator::ButtonMap map;
-    map.rotate = static_cast<int>(vne::interaction::MouseButton::eMiddle);
-    map.pan = static_cast<int>(vne::interaction::MouseButton::eLeft);
-    manip_->setButtonMap(map);
+    vne::interaction::ButtonMap button_map;
+    button_map.rotate = static_cast<int>(vne::interaction::MouseButton::eMiddle);
+    button_map.pan = static_cast<int>(vne::interaction::MouseButton::eLeft);
+    manip_->setButtonMap(button_map);
     const auto& stored = manip_->getButtonMap();
     EXPECT_EQ(stored.rotate, static_cast<int>(vne::interaction::MouseButton::eMiddle));
     EXPECT_EQ(stored.pan, static_cast<int>(vne::interaction::MouseButton::eLeft));

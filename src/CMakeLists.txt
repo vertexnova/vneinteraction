@@ -9,8 +9,11 @@
 #==============================================================================
 
 set(SOURCE_FILES
+    vertexnova/interaction/camera_manipulator_base.cpp
     vertexnova/interaction/camera_manipulator_factory.cpp
     vertexnova/interaction/camera_system_controller.cpp
+    vertexnova/interaction/orbit_style_base.cpp
+    vertexnova/interaction/free_camera_base.cpp
     vertexnova/interaction/orbit_manipulator.cpp
     vertexnova/interaction/arcball_manipulator.cpp
     vertexnova/interaction/fps_manipulator.cpp

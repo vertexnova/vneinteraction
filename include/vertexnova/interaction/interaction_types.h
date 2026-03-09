@@ -55,6 +55,12 @@ enum class MouseButton : int {
     eMiddle = 2,
 };
 
+/// Button indices for rotate/pan (e.g. left/right mouse). Used by orbit-style manipulators.
+struct VNE_INTERACTION_API ButtonMap {
+    int rotate = static_cast<int>(MouseButton::eLeft);
+    int pan = static_cast<int>(MouseButton::eRight);
+};
+
 struct VNE_INTERACTION_API TouchPan final {
     float delta_x_px = 0.0f;
     float delta_y_px = 0.0f;

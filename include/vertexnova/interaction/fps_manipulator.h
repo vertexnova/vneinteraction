@@ -8,9 +8,9 @@
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/interaction/camera_manipulator.h"
 #include "vertexnova/interaction/export.h"
 #include "vertexnova/interaction/interaction_types.h"
+#include "vertexnova/interaction/detail/free_camera_base.h"
 
 #include <vertexnova/math/core/core.h>
 
@@ -19,30 +19,18 @@
 
 namespace vne::interaction {
 
-class VNE_INTERACTION_API FpsManipulator final : public ICameraManipulator {
+class VNE_INTERACTION_API FpsManipulator final : public FreeCameraBase {
    public:
-    FpsManipulator() noexcept = default;
+    FpsManipulator() noexcept;
     ~FpsManipulator() noexcept override = default;
 
     [[nodiscard]] bool supportsPerspective() const noexcept override { return true; }
     [[nodiscard]] bool supportsOrthographic() const noexcept override { return true; }
 
-    void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;
-    void setEnabled(bool enabled) noexcept override { enabled_ = enabled; }
     void setViewportSize(float width_px, float height_px) noexcept override;
-    void update(double delta_time) noexcept override;
-
-    void handleMouseMove(float x, float y, float delta_x, float delta_y, double delta_time) noexcept override;
-    void handleMouseButton(int button, bool pressed, float x, float y, double delta_time) noexcept override;
-    void handleMouseScroll(
-        float scroll_x, float scroll_y, float mouse_x, float mouse_y, double delta_time) noexcept override;
-    void handleKeyboard(int key, bool pressed, double delta_time) noexcept override;
-    void handleTouchPan(const TouchPan& pan, double delta_time) noexcept override;
-    void handleTouchPinch(const TouchPinch& pinch, double delta_time) noexcept override;
 
     void resetState() noexcept override;
     void fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept override;
-    [[nodiscard]] float getSceneScale() const noexcept override { return scene_scale_; }
     [[nodiscard]] float getWorldUnitsPerPixel() const noexcept override;
 
     void setZoomMethod(ZoomMethod method) noexcept { zoom_method_ = method; }
@@ -62,32 +50,9 @@ class VNE_INTERACTION_API FpsManipulator final : public ICameraManipulator {
     [[nodiscard]] float getSlowMultiplier() const noexcept { return slow_mult_; }
 
    private:
-    void syncAnglesFromCamera() noexcept;
-    void applyAnglesToCamera() noexcept;
-    [[nodiscard]] vne::math::Vec3f front() const noexcept;
-    [[nodiscard]] vne::math::Vec3f right(const vne::math::Vec3f& front) const noexcept;
-    void applyZoom(float zoom_step_or_factor) noexcept;
+    [[nodiscard]] vne::math::Vec3f upVector() const noexcept override;
 
-    std::shared_ptr<vne::scene::ICamera> camera_;
-    bool enabled_ = true;
-    float viewport_width_ = 1280.0f;
-    float viewport_height_ = 720.0f;
-    bool looking_ = false;
-    float yaw_deg_ = 0.0f;
-    float pitch_deg_ = 0.0f;
-    float move_speed_ = 3.0f;
-    float mouse_sensitivity_ = 0.15f;
-    float zoom_speed_ = 0.5f;
-    float fov_zoom_speed_ = 1.05f;
-    float sprint_mult_ = 4.0f;
-    float slow_mult_ = 0.2f;
-    float scene_scale_ = 1.0f;
-    ZoomMethod zoom_method_ = ZoomMethod::eDollyToCoi;
     vne::math::Vec3f world_up_{0.0f, 1.0f, 0.0f};
-    bool w_ = false, a_ = false, s_ = false, d_ = false;
-    bool q_ = false, e_ = false;
-    bool sprint_ = false;
-    bool slow_ = false;
 };
 
 }  // namespace vne::interaction

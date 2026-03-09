@@ -14,7 +14,6 @@ namespace vne::interaction {
 
 namespace {
 constexpr float kEpsilon = 1e-6f;
-constexpr float kMinViewportSize = 1.0f;
 constexpr float kZoomFactorMin = 0.01f;
 constexpr float kZoomFactorMax = 100.0f;
 constexpr float kSceneScaleMin = 1e-4f;
@@ -31,12 +30,11 @@ void OrthoPanZoomManipulator::setCamera(std::shared_ptr<vne::scene::ICamera> cam
 }
 
 void OrthoPanZoomManipulator::setViewportSize(float width_px, float height_px) noexcept {
-    viewport_width_ = std::max(kMinViewportSize, width_px);
-    viewport_height_ = std::max(kMinViewportSize, height_px);
+    CameraManipulatorBase::setViewportSize(width_px, height_px);
 }
 
 std::shared_ptr<vne::scene::OrthographicCamera> OrthoPanZoomManipulator::getOrtho() const noexcept {
-    return std::dynamic_pointer_cast<vne::scene::OrthographicCamera>(camera_);
+    return orthoCamera();
 }
 
 void OrthoPanZoomManipulator::pan(float delta_x_px, float delta_y_px, double delta_time) noexcept {
