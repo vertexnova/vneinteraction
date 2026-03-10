@@ -200,6 +200,7 @@ jobs:
       cpp_compiler:       g++
       platform:           linux-gcc
       build_type:         Release
+      lib_type:           shared
       enable_coverage:    true
       warnings_as_errors: true
     secrets:
