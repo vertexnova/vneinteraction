@@ -93,7 +93,7 @@ jobs:
         env:
           BUILD_TYPE:      ${{ inputs.build_type }}
           ENABLE_COVERAGE: ${{ inputs.enable_coverage }}
-          LIB_TYPE:        ${{ inputs.lib_type }}
+          LIB_TYPE:        ${{ inputs.lib_type == '' && 'shared' || inputs.lib_type }}
         run: |
           echo "EFFECTIVE_BUILD_TYPE=$BUILD_TYPE" >> "$GITHUB_ENV"
           if [[ "$ENABLE_COVERAGE" == "true" ]]; then
@@ -101,15 +101,12 @@ jobs:
           else
             echo "CACHE_BUILD_TYPE=$BUILD_TYPE" >> "$GITHUB_ENV"
           fi
-          # Validate / normalize library type: allow only empty, "shared", or "static".
+          # Normalize library type: empty or omitted => shared; only "static" or "shared" allowed.
           EFFECTIVE_LIB_TYPE="shared"
-          if [[ -z "$LIB_TYPE" ]]; then
-            # Empty input => default to shared (matches CMake default).
-            :
-          elif [[ "$LIB_TYPE" == "shared" || "$LIB_TYPE" == "static" ]]; then
-            EFFECTIVE_LIB_TYPE="$LIB_TYPE"
-          else
-            echo "Error: invalid lib_type '$LIB_TYPE'. Expected '', 'shared', or 'static'." >&2
+          if [[ "$LIB_TYPE" == "static" ]]; then
+            EFFECTIVE_LIB_TYPE="static"
+          elif [[ -n "$LIB_TYPE" && "$LIB_TYPE" != "shared" ]]; then
+            echo "::error::Invalid lib_type '${LIB_TYPE}'. Expected '', 'shared', or 'static'."
             exit 1
           fi
           echo "CACHE_LIB_TYPE=$EFFECTIVE_LIB_TYPE" >> "$GITHUB_ENV"
@@ -158,6 +155,7 @@ jobs:
           COVERAGE_FLAG=""
           if [[ "$ENABLE_COVERAGE" == "true" ]]; then
             COVERAGE_FLAG="-DENABLE_COVERAGE=ON"
+            echo "Coverage enabled: passing $COVERAGE_FLAG (build will produce .gcno/.gcda)"
           fi
 
           COMPILER_FLAGS=""
