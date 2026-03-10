@@ -78,4 +78,9 @@ target_link_libraries(vneinteraction_tests
         vne::interaction
 )
 
+# MSVC: suppress C4251/C4275 when tests include dll-exported headers (vneinteraction + vnescene).
+if(MSVC)
+    target_compile_options(vneinteraction_tests PRIVATE /wd4251 /wd4275)
+endif()
+
 add_test(NAME vneinteraction_tests COMMAND vneinteraction_tests)
