@@ -163,25 +163,38 @@ struct VNE_INTERACTION_API OrbitInteractionState {
 // Internal camera state (manipulators operate on these, then apply to ICamera)
 // -----------------------------------------------------------------------------
 struct VNE_INTERACTION_API OrbitCameraState {
-    vne::math::Vec3f coi_world{0.0f, 0.0f, 0.0f};
+    vne::math::Vec3f coi_world;
     float distance = 5.0f;
-    vne::math::Vec3f world_up{0.0f, 1.0f, 0.0f};
+    vne::math::Vec3f world_up;
     float yaw_deg = 0.0f;
     float pitch_deg = 0.0f;
+
+    OrbitCameraState() noexcept
+        : coi_world(0.0f, 0.0f, 0.0f),
+          world_up(0.0f, 1.0f, 0.0f) {}
 };
 
 struct VNE_INTERACTION_API ArcballCameraState {
-    vne::math::Vec3f coi_world{0.0f, 0.0f, 0.0f};
+    vne::math::Vec3f coi_world;
     float distance = 5.0f;
-    vne::math::Quatf rotation{0.0f, 0.0f, 0.0f, 1.0f};
-    vne::math::Vec3f world_up{0.0f, 1.0f, 0.0f};
+    vne::math::Quatf rotation;
+    vne::math::Vec3f world_up;
+
+    ArcballCameraState() noexcept
+        : coi_world(0.0f, 0.0f, 0.0f),
+          rotation(0.0f, 0.0f, 0.0f, 1.0f),
+          world_up(0.0f, 1.0f, 0.0f) {}
 };
 
 struct VNE_INTERACTION_API FreeCameraState {
-    vne::math::Vec3f position{0.0f, 0.0f, 0.0f};
+    vne::math::Vec3f position;
     float yaw_deg = 0.0f;
     float pitch_deg = 0.0f;
-    vne::math::Vec3f up_hint{0.0f, 1.0f, 0.0f};
+    vne::math::Vec3f up_hint;
+
+    FreeCameraState() noexcept
+        : position(0.0f, 0.0f, 0.0f),
+          up_hint(0.0f, 1.0f, 0.0f) {}
 };
 
 }  // namespace vne::interaction
