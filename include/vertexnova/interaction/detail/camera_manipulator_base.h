@@ -24,10 +24,11 @@ class OrthographicCamera;
 namespace vne::interaction {
 
 /**
- * Non-exported base for all camera manipulators. Holds common state and
+ * Base for all camera manipulators. Holds common state and
  * provides default implementations for setEnabled, getSceneScale, setViewportSize.
+ * Exported so virtuals are visible across the DLL boundary (e.g. when linking tests).
  */
-class CameraManipulatorBase : public ICameraManipulator {
+class VNE_INTERACTION_API CameraManipulatorBase : public ICameraManipulator {
    protected:
     std::shared_ptr<vne::scene::ICamera> camera_;
     bool enabled_ = true;

@@ -19,11 +19,12 @@
 namespace vne::interaction {
 
 /**
- * Non-exported base for free-look manipulators (FPS, Fly).
+ * Base for free-look manipulators (FPS, Fly).
  * Shared WASD movement, look, zoom, and input handling.
  * Subclasses implement upVector() (FPS: world_up_, Fly: camera up).
+ * Exported so virtuals are visible across the DLL boundary (e.g. when linking tests).
  */
-class FreeCameraBase : public CameraManipulatorBase {
+class VNE_INTERACTION_API FreeCameraBase : public CameraManipulatorBase {
    protected:
     float yaw_deg_ = 0.0f;
     float pitch_deg_ = 0.0f;

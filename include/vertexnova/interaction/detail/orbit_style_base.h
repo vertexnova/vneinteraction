@@ -19,12 +19,13 @@
 namespace vne::interaction {
 
 /**
- * Non-exported base for orbit-style manipulators (Orbit, Arcball).
+ * Base for orbit-style manipulators (Orbit, Arcball).
  * Shared pan/zoom, fitToAABB, getWorldUnitsPerPixel, input dispatch.
  * Subclasses implement computeFront(), syncFromCamera(), applyToCamera(),
  * beginRotate(), dragRotate(), endRotate(), and override applyInertia() for rotation.
+ * Exported so virtuals are visible across the DLL boundary (e.g. when linking tests).
  */
-class OrbitStyleBase : public CameraManipulatorBase {
+class VNE_INTERACTION_API OrbitStyleBase : public CameraManipulatorBase {
    protected:
     vne::math::Vec3f world_up_;
     vne::math::Vec3f coi_world_;
