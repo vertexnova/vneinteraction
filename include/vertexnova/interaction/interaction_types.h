@@ -165,7 +165,7 @@ struct VNE_INTERACTION_API OrbitInteractionState {
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable : 4251)   // dll-interface for member type from another lib
-#pragma warning(disable : 26495) // uninitialized member (ctor initializes all)
+#pragma warning(disable : 26495)  // uninitialized member (ctor initializes all)
 #endif
 
 struct VNE_INTERACTION_API OrbitCameraState {
