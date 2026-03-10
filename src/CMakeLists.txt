@@ -81,6 +81,12 @@ if(_lib_type STREQUAL "SHARED")
         PRIVATE VNE_INTERACTION_BUILDING_DLL
         INTERFACE VNE_INTERACTION_DLL
     )
+    # MSVC: C4251 (member type needs dll-interface), C4275 (base needs dll-interface).
+    # Expected when exporting classes that hold vne::math types, std::string, std::shared_ptr, or
+    # use detail/base classes; suppressing so /WX does not fail the build.
+    if(MSVC)
+        target_compile_options(vneinteraction PRIVATE /wd4251 /wd4275)
+    endif()
 endif()
 
 add_library(vne::interaction ALIAS vneinteraction)
