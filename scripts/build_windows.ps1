@@ -1,5 +1,5 @@
 #==============================================================================
-# VneTemplate Windows Build Script (PowerShell)
+# VneInteraction Windows Build Script (PowerShell)
 #==============================================================================
 # Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License")
@@ -41,7 +41,7 @@ if (-not $Generator) {
 
 # Build dir: build/<LibType>/<BuildType>/build-windows-msvc (matches bash script layout)
 $BuildDir = Join-Path $ProjectRoot "build\$LibType\$BuildType\build-windows-msvc"
-$ConfigureCmd = "cmake -B `"$BuildDir`" -S `"$ProjectRoot`" -DCMAKE_BUILD_TYPE=$BuildType -DVNE_TEMPLATE_LIB_TYPE=$LibType -DVNE_TEMPLATE_TESTS=ON $Generator"
+$ConfigureCmd = "cmake -B `"$BuildDir`" -S `"$ProjectRoot`" -DCMAKE_BUILD_TYPE=$BuildType -DVNE_INTERACTION_LIB_TYPE=$LibType -DVNE_INTERACTION_TESTS=ON $Generator"
 $BuildCmd = "cmake --build `"$BuildDir`" --config $BuildType --parallel $Jobs"
 $TestCmd = "ctest --test-dir `"$BuildDir`" --output-on-failure -C $BuildType"
 

@@ -1,10 +1,10 @@
 #==============================================================================
-# Doxyfile Configuration for VneTemplate
+# Doxyfile Configuration for VneInteraction
 #==============================================================================
 
 PROJECT_NAME           = "@CMAKE_PROJECT_NAME@"
 PROJECT_NUMBER         = @PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@
-PROJECT_BRIEF          = "Minimal VertexNova C++ template"
+PROJECT_BRIEF          = "Camera manipulators and interaction for VertexNova"
 PROJECT_LOGO           =
 
 INPUT                  = @PROJECT_SOURCE_DIR@/include \

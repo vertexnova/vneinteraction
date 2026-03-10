@@ -1,17 +1,17 @@
 # Dependencies
 
-This directory holds external and internal dependencies for VneTemplate.
+This directory holds external and internal dependencies for VneInteraction.
 
 ## Layout
 
 - **external/** – Third-party dependencies (e.g. Google Test).
-- **internal/** – VertexNova internal libraries (vnecommon, vnelogging).
+- **internal/** – VertexNova internal libraries (vnecommon, vnelogging, vnemath, vnescene).
 
 CMake modules (vnecmake) live in **cmake/vnecmake** at the project root; see main [README](../README.md).
 
 ## Getting dependencies
 
-VneTemplate’s `.gitmodules` already defines all four submodules:
+VneInteraction’s `.gitmodules` defines these submodules:
 
 | Submodule | Path | URL |
 |-----------|------|-----|
@@ -19,6 +19,8 @@ VneTemplate’s `.gitmodules` already defines all four submodules:
 | googletest | `deps/external/googletest` | https://github.com/google/googletest.git |
 | vnecommon | `deps/internal/vnecommon` | https://github.com/vertexnova/vnecommon.git |
 | vnelogging | `deps/internal/vnelogging` | https://github.com/vertexnova/vnelogging.git |
+| vnemath | `deps/internal/vnemath` | https://github.com/vertexnova/vnemath.git |
+| vnescene | `deps/internal/vnescene` | https://github.com/vertexnova/vnescene.git |
 
 After cloning, initialize and update them from the project root:
 
@@ -55,14 +57,16 @@ Tests use Google Test from `deps/external/googletest`. Either:
 2. **FetchContent fallback**  
    If `deps/external/googletest` is not present, the CMake configuration for tests will use FetchContent to download googletest (v1.17.0) at configure time.
 
-### Internal: vnecommon and vnelogging
+### Internal: vnecommon, vnelogging, vnemath, vnescene
 
-The library optionally links to VertexNova internal dependencies when present:
+The library links to VertexNova internal dependencies when present:
 
 - **deps/internal/vnecommon** – Common utilities.
 - **deps/internal/vnelogging** – Logging (e.g. spdlog-based).
+- **deps/internal/vnemath** – Math (vectors, quaternions, matrices); required by vnescene.
+- **deps/internal/vnescene** – Cameras and scene (ICamera, PerspectiveCamera, etc.); required.
 
-**In this repo (VneTemplate):** `.gitmodules` already lists these paths. Just run from the project root:
+**In this repo (VneInteraction):** `.gitmodules` already lists these paths. Just run from the project root:
 
 ```bash
 git submodule update --init --recursive

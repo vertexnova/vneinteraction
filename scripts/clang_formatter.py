@@ -1,20 +1,19 @@
 #!/usr/bin/env python3
 """
-VneLogging Clang Formatter
-
-A generic script to format C/C++ source files using clang-format with
-VneLogging-specific formatting rules.
+Clang formatter for C/C++. Recursively finds C/C++ in given folders (same scope as CI).
 
 Usage:
-    python scripts/clang_formatter.py <folder_path> [options]
-    python scripts/clang_formatter.py --file <file_path> [options]
+    python scripts/clang_formatter.py <folder> [options]   # recursive under folder
+    python scripts/clang_formatter.py all [options]        # recursive under src, include, examples, tests
+    python scripts/clang_formatter.py --file <path> [options]
+
+  --dry-run  Check only (fail if any file needs formatting; matches CI).
+  Omit --dry-run to fix files in place.
 
 Examples:
-    python scripts/clang_formatter.py src/vnelogging
-    python scripts/clang_formatter.py src/vnelogging --dry-run
-    python scripts/clang_formatter.py src/vnelogging --verbose
-    python scripts/clang_formatter.py --file src/vertexnova/logging/logging.cpp
-    python scripts/clang_formatter.py --file include/vertexnova/logging/logging.h
+    python scripts/clang_formatter.py all --dry-run
+    python scripts/clang_formatter.py examples              # all subfolders under examples/
+    python scripts/clang_formatter.py --file examples/07_follow_manipulator/main.cpp
 """
 
 import argparse
@@ -25,22 +24,19 @@ from pathlib import Path
 
 
 def find_source_files(folder_path: Path) -> list:
-    """Find all C/C++ source files in the specified folder."""
+    """Find all C/C++ source files recursively under the given folder."""
     source_files = []
+    root_path = Path(folder_path).resolve()
 
-    # Supported file extensions
     extensions = ('.h', '.cpp', '.mm', '.m', '.hpp', '.c')
-
-    # Directories to exclude
     exclude_dirs = {'build', '.git', 'node_modules', 'CMakeFiles', '__pycache__'}
 
-    for root, dirs, files in os.walk(folder_path):
-        # Remove excluded directories from dirs list to prevent walking into them
+    for root, dirs, files in os.walk(root_path, topdown=True):
+        # Recurse into all subdirs except excluded
         dirs[:] = [d for d in dirs if d not in exclude_dirs]
-
-        for file in files:
-            if file.endswith(extensions):
-                source_files.append(os.path.join(root, file))
+        for f in files:
+            if f.endswith(extensions):
+                source_files.append(str(Path(root) / f))
 
     return source_files
 
@@ -51,12 +47,22 @@ def is_source_file(file_path: Path) -> bool:
     return file_path.suffix.lower() in extensions
 
 
+def get_clang_format_binary() -> str:
+    """Use clang-format-17 when available (matches CI); otherwise clang-format."""
+    for name in ('clang-format-17', 'clang-format'):
+        try:
+            subprocess.run([name, '--version'], capture_output=True, check=True)
+            return name
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            continue
+    return 'clang-format'  # fallback for error message
+
+
 def check_clang_format() -> bool:
     """Check if clang-format is available."""
+    binary = get_clang_format_binary()
     try:
-        subprocess.run(['clang-format', '--version'],
-                      capture_output=True,
-                      check=True)
+        subprocess.run([binary, '--version'], capture_output=True, check=True)
         return True
     except (subprocess.CalledProcessError, FileNotFoundError):
         return False
@@ -68,27 +74,41 @@ def run_clang_format(files: list, style_file: Path, dry_run: bool = False) -> bo
         print("No source files found to format.")
         return True
 
-    print(f"Found {len(files)} source files to format.")
+    binary = get_clang_format_binary()
+    print(f"Found {len(files)} source files to format (using {binary}).")
 
-    if dry_run:
-        print("DRY RUN - No files will be modified.")
-        return True
-
-    # Run clang-format on all files
-    cmd = [
-        'clang-format',
-        '-i',  # In-place formatting
-        '--style=file',  # Use .clang-format file
-        '--fallback-style=Google'  # Fallback style
+    base_cmd = [
+        binary,
+        '--style=file',
+        '--fallback-style=Google',
     ]
 
+    if dry_run:
+        # Same as CI: fail if any file would be reformatted (--dry-run --Werror)
+        print("DRY RUN - Checking for format violations (matches CI).")
+        result = subprocess.run(
+            base_cmd + ['--dry-run', '--Werror'] + files,
+            capture_output=True,
+            text=True,
+        )
+        if result.returncode != 0:
+            if result.stderr:
+                print(result.stderr, file=sys.stderr)
+            print("One or more files need formatting. Run without --dry-run to fix.")
+            return False
+        print("All files are formatted correctly.")
+        return True
+
+    # In-place formatting
     for file_path in files:
         print(f"Formatting: {file_path}")
         try:
-            result = subprocess.run(cmd + [file_path],
-                                  capture_output=True,
-                                  text=True,
-                                  check=True)
+            subprocess.run(
+                base_cmd + ['-i', file_path],
+                capture_output=True,
+                text=True,
+                check=True,
+            )
             print(f"  ✓ Formatted successfully")
         except subprocess.CalledProcessError as e:
             print(f"  ✗ Error formatting {file_path}: {e}")
@@ -109,12 +129,9 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python scripts/clang_formatter.py src/vnelogging
-  python scripts/clang_formatter.py src/vnelogging --dry-run
-  python scripts/clang_formatter.py src/vnelogging --verbose
-  python scripts/clang_formatter.py tests
-  python scripts/clang_formatter.py --file src/vertexnova/logging/logging.cpp
-  python scripts/clang_formatter.py --file include/vertexnova/logging/logging.h
+  python scripts/clang_formatter.py all --dry-run
+  python scripts/clang_formatter.py examples
+  python scripts/clang_formatter.py --file examples/07_follow_manipulator/main.cpp
         """
     )
 
@@ -123,7 +140,7 @@ Examples:
     group.add_argument(
         'folder',
         nargs='?',
-        help='Folder path to format (e.g., src/vnelogging)'
+        help='Folder to format (e.g. src, examples), or "all" for CI dirs (src, include, examples, tests)'
     )
     group.add_argument(
         '--file',
@@ -178,18 +195,24 @@ Examples:
         source_files = [str(target_file)]
 
     else:
-        # Format folder
-        target_folder = project_root / args.folder
-
-        if not target_folder.exists():
-            print(f"Error: Target folder not found at {target_folder}")
-            sys.exit(1)
-
-        print(f"Target folder: {target_folder}")
+        # Format folder (or "all" = recursive over CI dirs: src, include, examples, tests)
+        if (args.folder or "").lower() in ("all", "ci"):
+            ci_dirs = ("src", "include", "examples", "tests")
+            source_files = []
+            for d in ci_dirs:
+                p = project_root / d
+                if p.is_dir():
+                    source_files.extend(find_source_files(p))  # recursive under each dir
+            source_files = sorted(set(source_files))
+            print(f"Target: CI dirs (recursive) src, include, examples, tests — {len(source_files)} files")
+        else:
+            target_folder = (project_root / args.folder).resolve()
+            if not target_folder.is_dir():
+                print(f"Error: Target folder not found at {target_folder}")
+                sys.exit(1)
+            print(f"Target folder (recursive): {target_folder}")
+            source_files = find_source_files(target_folder)
         print()
-
-        # Find source files
-        source_files = find_source_files(target_folder)
 
     if args.verbose:
         print("Source files found:")
@@ -197,12 +220,15 @@ Examples:
             print(f"  {file}")
         print()
 
-    # Check clang-format availability
+    # Check clang-format availability (prefer clang-format-17 to match CI)
+    binary = get_clang_format_binary()
     if not check_clang_format():
-        print("Error: clang-format not found. Please install clang-format.")
-        print("  Ubuntu/Debian: sudo apt install clang-format")
-        print("  macOS: brew install clang-format")
+        print("Error: clang-format not found. Please install clang-format (CI uses clang-format-17).")
+        print("  Ubuntu/Debian: sudo apt install clang-format-17")
+        print("  macOS: brew install clang-format@17  (or llvm)")
         sys.exit(1)
+    if binary != 'clang-format-17':
+        print(f"Note: Using '{binary}'. For CI-identical formatting, install clang-format-17.")
 
     # Run clang-format
     success = run_clang_format(source_files, style_file, args.dry_run)

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #==============================================================================
-# VneTemplate Linux Build Script
+# VneInteraction Linux Build Script
 #==============================================================================
 # Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License")
@@ -11,7 +11,7 @@
 #
 # Autodoc:   yes
 #
-# This script builds VneTemplate for Linux platforms
+# This script builds VneInteraction for Linux platforms
 #==============================================================================
 
 set -e  # Exit on any error
@@ -79,7 +79,7 @@ usage() {
 
 # Function to run interactive mode
 interactive_mode() {
-  echo "=== VneTemplate Interactive Build Configuration ==="
+  echo "=== VneInteraction Interactive Build Configuration ==="
   echo ""
   echo "Detected Platform: $PLATFORM"
   echo ""
@@ -230,9 +230,9 @@ build_cmake_command() {
   local base_cmd=""
 
   if [ "$COMPILER" = "gcc" ]; then
-    base_cmd="cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DVNE_TEMPLATE_LIB_TYPE=$LIB_TYPE -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DVNE_TEMPLATE_TESTS=ON"
+    base_cmd="cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DVNE_INTERACTION_LIB_TYPE=$LIB_TYPE -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DVNE_INTERACTION_TESTS=ON"
   elif [ "$COMPILER" = "clang" ]; then
-    base_cmd="cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DVNE_TEMPLATE_LIB_TYPE=$LIB_TYPE -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DVNE_TEMPLATE_TESTS=ON"
+    base_cmd="cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DVNE_INTERACTION_LIB_TYPE=$LIB_TYPE -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DVNE_INTERACTION_TESTS=ON"
   fi
 
   echo "$base_cmd $PROJECT_ROOT"

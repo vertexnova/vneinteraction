@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #==============================================================================
-# VneTemplate Windows Build Script
+# VneInteraction Windows Build Script
 #==============================================================================
 # Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
 # Licensed under the Apache License, Version 2.0 (the "License")
@@ -11,7 +11,7 @@
 #
 # Autodoc:   yes
 #
-# This script builds VneTemplate for Windows with Visual Studio integration
+# This script builds VneInteraction for Windows with Visual Studio integration
 #==============================================================================
 
 set -e
@@ -83,7 +83,7 @@ PROJECT_ROOT=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 BUILD_DIR="$PROJECT_ROOT/build/${LIB_TYPE}/${BUILD_TYPE}/build-windows-$COMPILER-${COMPILER_VERSION}"
 
 build_cmake_command() {
-  cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -DVNE_TEMPLATE_LIB_TYPE="$LIB_TYPE" -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DVNE_TEMPLATE_TESTS=ON "$PROJECT_ROOT"
+  cmake -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE="$BUILD_TYPE" -DVNE_INTERACTION_LIB_TYPE="$LIB_TYPE" -DCMAKE_C_COMPILER=cl -DCMAKE_CXX_COMPILER=cl -DVNE_INTERACTION_TESTS=ON "$PROJECT_ROOT"
 }
 
 BUILD_COMMAND="cmake --build . --config $BUILD_TYPE --parallel $JOBS"

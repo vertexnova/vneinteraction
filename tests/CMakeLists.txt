@@ -8,7 +8,7 @@
 # Autodoc:   yes
 #==============================================================================
 
-if(NOT TARGET vnetemplate)
+if(NOT TARGET vneinteraction)
     return()
 endif()
 
@@ -48,25 +48,39 @@ endif()
 # Test sources
 #==============================================================================
 set(TEST_SOURCES
-    template_test.cpp
+    interaction_test.cpp
+    version_test.cpp
+    camera_manipulator_factory_test.cpp
+    camera_system_controller_test.cpp
+    orbit_manipulator_test.cpp
+    arcball_manipulator_test.cpp
+    fps_manipulator_test.cpp
+    fly_manipulator_test.cpp
+    ortho_pan_zoom_manipulator_test.cpp
+    follow_manipulator_test.cpp
 )
 
 #==============================================================================
 # Build test executable
 #==============================================================================
-add_executable(vnetemplate_tests ${TEST_SOURCES})
+add_executable(vneinteraction_tests ${TEST_SOURCES})
 
-target_include_directories(vnetemplate_tests
+target_include_directories(vneinteraction_tests
     PRIVATE
         ${GTEST_INCLUDE_DIRS}
         ${VNE_INCLUDE_DIR}
         ${VNE_SRC_DIR}
 )
 
-target_link_libraries(vnetemplate_tests
+target_link_libraries(vneinteraction_tests
     PRIVATE
         ${GTEST_LIBRARIES}
-        vne::template
+        vne::interaction
 )
 
-add_test(NAME vnetemplate_tests COMMAND vnetemplate_tests)
+# MSVC: suppress C4251/C4275 when tests include dll-exported headers (vneinteraction + vnescene).
+if(MSVC)
+    target_compile_options(vneinteraction_tests PRIVATE /wd4251 /wd4275)
+endif()
+
+add_test(NAME vneinteraction_tests COMMAND vneinteraction_tests)

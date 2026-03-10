@@ -67,8 +67,8 @@ jobs:
         run: |
           cmake -B build/shared -S . \
             -DCMAKE_BUILD_TYPE=Release \
-            -DVNE_TEMPLATE_CI=ON \
-            -DVNE_TEMPLATE_LIB_TYPE=shared \
+            -DVNE_INTERACTION_CI=ON \
+            -DVNE_INTERACTION_LIB_TYPE=shared \
             -DWARNINGS_AS_ERRORS=OFF
           cmake --build build/shared --config Release --parallel
 

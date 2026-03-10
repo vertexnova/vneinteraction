@@ -1,4 +1,4 @@
-# VneTemplate Scripts
+# VneInteraction Scripts
 
 Build scripts for macOS, Linux, and Windows.
 

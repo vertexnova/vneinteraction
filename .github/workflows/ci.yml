@@ -6,11 +6,11 @@
 # Created:   February 2026
 #
 # Description: CI pipeline — staged, gated, with concurrency cancellation.
-# Stage 1 — Pre-checks  : clang-format (fail-fast gate), commit-lint (warning only)
+# Stage 1 — Pre-checks  : clang-format (fail-fast gate). Commit-lint is optional (warnings only, not in gate).
 # Stage 2+3 — Build+Test: Linux GCC/Clang/ASan, macOS, Windows (parallel)
 # Stage 4 — Analysis    : clang-tidy (reuses Clang build cache)
 # Stage 5 — CI Gate     : single required status check for branch protection
-# Branch protection: require only "CI Gate" — not individual job names.
+# Branch protection: require only "CI Gate" — do not require "Pre-checks / commit messages".
 #
 # Autodoc:   yes
 # ----------------------------------------------------------------------
@@ -200,6 +200,7 @@ jobs:
       cpp_compiler:       g++
       platform:           linux-gcc
       build_type:         Release
+      lib_type:           shared
       enable_coverage:    true
       warnings_as_errors: true
     secrets:
@@ -289,9 +290,9 @@ jobs:
           cmake -B build/shared -S . \
             -DCMAKE_TOOLCHAIN_FILE="$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake" \
             -DCMAKE_BUILD_TYPE=Release \
-            -DVNE_TEMPLATE_CI=ON \
-            -DVNE_TEMPLATE_LIB_TYPE=shared \
-            -DVNE_TEMPLATE_TESTS=OFF   # wasm cannot link -lpthread or run natively; build-only check
+            -DVNE_INTERACTION_CI=ON \
+            -DVNE_INTERACTION_LIB_TYPE=shared \
+            -DVNE_INTERACTION_TESTS=OFF   # wasm cannot link -lpthread or run natively; build-only check
 
       - name: Build
         run: cmake --build build/shared --parallel
@@ -311,16 +312,23 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Set up Xcode (SDK and developer dir for iOS)
+        run: |
+          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+          xcodebuild -version
+          xcodebuild -showsdks | grep -E "iphoneos|iphonesimulator" || true
+
       - name: Configure CMake (iOS)
         run: |
+          # Optional: pass -DCMAKE_XCODE_ATTRIBUTE_DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }} for real signing
           cmake -B build/static -S . \
             -G Xcode \
             -DCMAKE_SYSTEM_NAME=iOS \
             -DCMAKE_OSX_ARCHITECTURES=arm64 \
             -DCMAKE_BUILD_TYPE=Release \
-            -DVNE_TEMPLATE_CI=ON \
-            -DVNE_TEMPLATE_LIB_TYPE=static \
-            -DVNE_TEMPLATE_TESTS=OFF   # Xcode requires bundle ID for test targets; build-only check
+            -DVNE_INTERACTION_CI=ON \
+            -DVNE_INTERACTION_LIB_TYPE=static \
+            -DVNE_INTERACTION_TESTS=OFF   # Xcode requires bundle ID for test targets; build-only check
 
       - name: Build
         run: cmake --build build/static --config Release --parallel
@@ -347,9 +355,9 @@ jobs:
             -DANDROID_ABI=arm64-v8a \
             -DANDROID_PLATFORM=android-24 \
             -DCMAKE_BUILD_TYPE=Release \
-            -DVNE_TEMPLATE_CI=ON \
-            -DVNE_TEMPLATE_LIB_TYPE=shared \
-            -DVNE_TEMPLATE_TESTS=OFF   # Android binaries cannot run on the host runner; build-only check
+            -DVNE_INTERACTION_CI=ON \
+            -DVNE_INTERACTION_LIB_TYPE=shared \
+            -DVNE_INTERACTION_TESTS=OFF   # Android binaries cannot run on the host runner; build-only check
 
       - name: Build
         run: cmake --build build/shared --parallel
@@ -416,8 +424,8 @@ jobs:
               -DCMAKE_BUILD_TYPE=Release \
               -DCMAKE_C_COMPILER=clang \
               -DCMAKE_CXX_COMPILER=clang++ \
-              -DVNE_TEMPLATE_CI=ON \
-              -DVNE_TEMPLATE_LIB_TYPE=shared \
+              -DVNE_INTERACTION_CI=ON \
+              -DVNE_INTERACTION_LIB_TYPE=shared \
               -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
             cmake --build build/shared --config Release --parallel
           fi

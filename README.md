@@ -1,149 +1,198 @@
 <p align="center">
-  <img src="icons/vertexnova_logo_medallion_with_text.svg" alt="VertexNova Template" width="320"/>
+  <img src="icons/vertexnova_logo_medallion_with_text.svg" alt="VertexNova Interaction" width="320"/>
 </p>
 
 <p align="center">
-  <strong>Minimal C++ project template for the VertexNova ecosystem</strong>
+  <strong>Camera interaction library (manipulators and controller) for the VertexNova ecosystem</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/vertexnova/vnetemplate/actions/workflows/ci.yml">
-    <img src="https://github.com/vertexnova/vnetemplate/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"/>
+  <a href="https://github.com/vertexnova/vneinteraction/actions/workflows/ci.yml">
+    <img src="https://github.com/vertexnova/vneinteraction/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI"/>
   </a>
   <img src="https://img.shields.io/badge/C%2B%2B-20-blue.svg" alt="C++ Standard"/>
-  <a href="https://codecov.io/gh/vertexnova/vnetemplate">
-    <img src="https://codecov.io/gh/vertexnova/vnetemplate/branch/main/graph/badge.svg" alt="Coverage"/>
+  <a href="https://codecov.io/gh/vertexnova/vneinteraction">
+    <img src="https://codecov.io/gh/vertexnova/vneinteraction/branch/main/graph/badge.svg" alt="Coverage"/>
   </a>
   <img src="https://img.shields.io/badge/license-Apache%202.0-green.svg" alt="License"/>
 </p>
 
 ---
 
-# VneTemplate
+## About
 
-Minimal VertexNova-standard C++ template: CMake, deps (external + internal), tests, examples, and documentation. Use it as a starting point for new libraries or apps in the [VertexNova](https://github.com/vertexnova) stack.
+VneInteraction provides camera manipulators and a thin input-forwarding controller for the [VertexNova](https://github.com/vertexnova) stack. It does not implement rendering, windowing, or an event system — it consumes raw input (mouse, keyboard, touch) that your application feeds in, and drives cameras from [vnescene](https://github.com/vertexnova/vnescene).
 
-## Directory layout
+VneInteraction is a C++20 library offering:
 
-| Path | Description |
-|------|-------------|
-| `cmake/vnecmake/` | CMake modules submodule (ProjectSetup, ProjectWarnings, VneUseDep) |
-| `configs/` | Configured headers (e.g. `config.h.in`) |
-| `deps/external/` | Third-party deps (e.g. googletest) |
-| `deps/internal/` | VertexNova internal libs (vnecommon, vnelogging) |
-| `include/` | Public API headers (`vertexnova/template/`) |
-| `src/` | Implementation |
-| `tests/` | Unit tests (Google Test) |
-| `docs/` | Doxygen input (`doxyfile.in`) and extra docs |
-| `scripts/` | Helper scripts (build, format, generate-docs) |
+- **Manipulators**: Orbit, arcball, FPS, fly, ortho pan/zoom, and follow — each implements `ICameraManipulator` and works with `vne::scene::ICamera` (perspective or orthographic).
+- **Factory**: `CameraManipulatorFactory` creates manipulators by type.
+- **Controller**: `CameraSystemController` holds the active manipulator and forwards `handleMouseMove`, `handleMouseButton`, `handleMouseScroll`, `handleKeyboard`, `handleTouchPan`, and `handleTouchPinch` from your app.
+- **Input-agnostic**: You get input from GLFW, SDL, [vneevents](https://github.com/vertexnova/vneevents), or any source and call the controller’s handle methods; no event-library dependency.
 
-## Prerequisites
+It depends on **vnescene** (and transitively **vnemath**) for cameras and math. Tests use Google Test; examples optionally use **vnelogging**.
 
-- **CMake** 3.19 or newer  
-- **C++20** compiler (e.g. GCC 10+, Clang 10+, MSVC 2019+)  
-- **Doxygen** (optional, for `scripts/generate-docs.sh` and `-DENABLE_DOXYGEN=ON`)
+## Features
 
-## Dependencies
+- **Manipulators**: `OrbitManipulator`, `ArcballManipulator`, `FpsManipulator`, `FlyManipulator`, `OrthoPanZoomManipulator`, `FollowManipulator` — viewport, zoom method (dolly / scene scale / FOV), pan, rotation, fit-to-AABB.
+- **Factory**: `CameraManipulatorFactory::create(CameraManipulatorType)`.
+- **Controller**: `CameraSystemController` — set manipulator, set viewport size, update, and forward mouse/keyboard/touch.
+- **Types**: `MouseButton`, `TouchPan`, `TouchPinch`, `ZoomMethod`, `CenterOfInterestSpace`, etc. in `interaction_types.h`.
+- **Cross-platform**: Linux, macOS, Windows (and optionally iOS, Android, Web via vnemath).
 
-- **External:** Tests use [Google Test](https://github.com/google/googletest). Either add `deps/external/googletest` as a submodule (recommended tag: `v1.17.0`) or let CMake use FetchContent when the directory is missing.  
-- **Internal:** **vnecmake** (required) is the CMake modules submodule at `cmake/vnecmake`. Optional libraries `vnecommon` and `vnelogging` go under `deps/internal/`. See [deps/README.md](deps/README.md). If they are missing, the template still builds but does not link to `vne::common` or `vne::logging`.
+## Installation
 
-From the project root:
+### Option 1: Git Submodule (Recommended)
 
 ```bash
-git submodule update --init --recursive
+git submodule add https://github.com/vertexnova/vneinteraction.git deps/vneinteraction
+# Ensure vnescene and vnemath (and optionally vnelogging) are available as dependencies.
 ```
 
-(Add submodules first if your repo uses them; see `deps/README.md`.)
+In your `CMakeLists.txt`:
 
-## Build
+```cmake
+add_subdirectory(deps/vneinteraction)
+target_link_libraries(your_target PRIVATE vne::interaction)
+```
 
-Builds use **`build/static`** or **`build/shared`** (one library type per directory). From the project root:
+### Option 2: FetchContent
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(
+    vneinteraction
+    GIT_REPOSITORY https://github.com/vertexnova/vneinteraction.git
+    GIT_TAG main
+)
+set(VNE_INTERACTION_EXAMPLES OFF)
+FetchContent_MakeAvailable(vneinteraction)
+target_link_libraries(your_target PRIVATE vne::interaction)
+```
+
+### Option 3: System Install
 
 ```bash
-# Shared library (default)
-cmake -B build/shared -DCMAKE_BUILD_TYPE=Debug -DVNE_TEMPLATE_TESTS=ON
-cmake --build build/shared
-
-# Static library
-cmake -B build/static -DCMAKE_BUILD_TYPE=Debug -DVNE_TEMPLATE_LIB_TYPE=static -DVNE_TEMPLATE_TESTS=ON
-cmake --build build/static
+git clone --recursive https://github.com/vertexnova/vneinteraction.git
+cd vneinteraction
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local
+cmake --build build
+sudo cmake --install build
 ```
 
-Or use the platform scripts (they use `build/<lib_type>/...`):
+In your `CMakeLists.txt` (ensure [vnescene](https://github.com/vertexnova/vnescene) and [vnemath](https://github.com/vertexnova/vnemath) are installed first):
+
+```cmake
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_PREFIX_PATH}/lib/cmake/VneInteraction")
+find_package(VneInteraction REQUIRED)
+target_link_libraries(your_target PRIVATE vne::interaction)
+```
+
+Configure with `-DCMAKE_PREFIX_PATH=/usr/local` (or your install prefix) so the Find module is discovered.
+
+## Building
 
 ```bash
-# macOS (default: shared)
-./scripts/build_macos.sh -t Debug -a configure_and_build
-./scripts/build_macos.sh -l static -t Release -a configure_and_build   # static in build/static/...
-
-# Linux
-./scripts/build_linux.sh -t Debug -a configure_and_build
-./scripts/build_linux.sh -l static -c clang -a test
-
-# Windows
-.\scripts\build_windows.ps1 -BuildType Debug -Action configure_and_build
-.\scripts\build_windows.ps1 -LibType static -BuildType Release -Action configure_and_build   # static in build/static/...
+git clone --recursive https://github.com/vertexnova/vneinteraction.git
+cd vneinteraction
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
 ```
 
-Options: `-t` / `-BuildType` build type, `-a` / `-Action` action, `-l` / `-LibType` lib type (`static` | `shared`, default `shared`), `-clean` / `-Clean`, `-j N` / `-Jobs N`. macOS script also supports `-xcode` for Xcode project.
-
-## Test
+For local development (examples + tests enabled):
 
 ```bash
-ctest -C Debug --test-dir build/shared
-# or for static: ctest -C Debug --test-dir build/static
+cmake -B build -DVNE_INTERACTION_DEV=ON
+cmake --build build
 ```
 
-Or:
+### CMake Options
 
-```bash
-./scripts/build_macos.sh -a test
+| Option | Default | Description |
+|--------|---------|-------------|
+| `VNE_INTERACTION_TESTS` | `ON` | Build the test suite |
+| `VNE_INTERACTION_EXAMPLES` | `OFF` | Build example applications |
+| `VNE_INTERACTION_DEV` | `ON` (top-level) | Dev preset: tests and examples ON |
+| `VNE_INTERACTION_CI` | `OFF` | CI preset: tests ON, examples OFF |
+| `VNE_INTERACTION_LIB_TYPE` | `shared` | Library type: `static` or `shared` |
+| `ENABLE_DOXYGEN` | `OFF` | Build API documentation (Doxygen) |
+| `ENABLE_COVERAGE` | `OFF` | Enable code coverage reporting |
+
+## Quick Start
+
+```cpp
+#include <vertexnova/interaction/interaction.h>
+#include <vertexnova/interaction/version.h>
+#include <vertexnova/scene/camera/camera.h>
+#include <memory>
+
+int main() {
+    using namespace vne::interaction;
+    using namespace vne::scene;
+
+    const char* ver = get_version();  // e.g. "1.0.0"
+
+    auto camera = CameraFactory::createPerspective(
+        PerspectiveCameraParameters(60.0f, 16.0f / 9.0f, 0.1f, 1000.0f));
+    camera->setPosition(vne::math::Vec3f(0.0f, 2.0f, 5.0f));
+
+    auto factory = std::make_shared<CameraManipulatorFactory>();
+    auto orbit = factory->create(CameraManipulatorType::eOrbit);
+    orbit->setCamera(camera);
+    orbit->setViewportSize(1280.0f, 720.0f);
+
+    CameraSystemController controller;
+    controller.setManipulator(orbit);
+    controller.setViewportSize(1280.0f, 720.0f);
+
+    // Each frame: get input from your window/event system, then:
+    // controller.handleMouseMove(x, y, delta_x, delta_y, dt);
+    // controller.handleMouseButton(button, pressed, x, y, dt);
+    // controller.handleMouseScroll(scroll_x, scroll_y, mouse_x, mouse_y, dt);
+    // controller.handleKeyboard(key, pressed, dt);
+    controller.update(1.0 / 60.0);
+
+    return 0;
+}
 ```
+
+See [examples/01_hello_template](examples/01_hello_template) for a minimal example with version and factory usage.
+
+## Examples
+
+| Example | Description |
+|---------|-------------|
+| [01_hello_template](examples/01_hello_template) | Minimal usage: version, factory, orbit manipulator, viewport |
+
+Build with `-DVNE_INTERACTION_EXAMPLES=ON` or use the dev preset (`-DVNE_INTERACTION_DEV=ON`). Run from `build/bin/examples/`.
 
 ## Documentation
 
-- **Template overview and diagrams:** [docs/vertexnova/template/template.md](docs/vertexnova/template/template.md) — context and API diagrams (Draw.io sources in `docs/vertexnova/template/diagrams/`).
-- **API docs:** Configure with Doxygen enabled and build the doc target:
+- [API Documentation](docs/README.md) — Generate with Doxygen (`-DENABLE_DOXYGEN=ON`, then `cmake --build build --target vneinteraction_doc_doxygen`).
+- [Architecture & design](docs/vertexnova/interaction/interaction.md) — Module overview, components, and usage.
 
-  ```bash
-  cmake -B build/shared -DENABLE_DOXYGEN=ON
-  cmake --build build/shared --target vnetemplate_doc_doxygen
-  ```
+## Platform Support
 
-  Output: `build/shared/docs/html/index.html`.
+| Platform | Status | Notes |
+|----------|--------|-------|
+| Linux | Supported | GCC 10+, Clang 10+ |
+| macOS | Supported | Xcode 12+, Apple Clang |
+| Windows | Supported | MSVC 2019+, MinGW |
+| iOS / visionOS | Supported | Via vnemath/vnescene toolchain |
+| Android / Web | Supported | Via vnemath/vnescene |
 
-- **Script:** From project root:
+## Requirements
 
-  ```bash
-  ./scripts/generate-docs.sh
-  ```
-
-  Use `--api-only` to only generate API docs, or `--validate` to only check links and coverage. See `./scripts/generate-docs.sh --help`.
-
-## Format and tidy
-
-- **clang-format:** Config in [.clang-format](.clang-format). Format in place or check only (CI):
-  ```bash
-  ./scripts/format.sh          # format sources
-  ./scripts/format.sh -check   # check only (used in CI)
-  ```
-- **clang-tidy:** Config in [.clang-tidy](.clang-tidy). Generate `compile_commands.json` (e.g. `cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -B build/shared`), then run `clang-tidy -p build/shared`.
-
-## CI
-
-GitHub Actions runs on push and pull requests to `main`: format check, clang-tidy, and build/test on Linux (GCC, Clang), macOS, and Windows. See [.github/workflows/ci.yml](.github/workflows/ci.yml).
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for build, test, and style. We follow the [Contributor Covenant](CODE_OF_CONDUCT.md) Code of Conduct.
-
-## Releases
-
-Releases are manual. The **VERSION** file at the repo root is the source of truth; CMake reads it at configure time and exposes it as `get_version()`.
-
-To cut a release: update **VERSION**, add a dated entry to **CHANGELOG.md**, commit, create and push a tag (e.g. `git tag v1.0.0 && git push origin v1.0.0`), then create a GitHub Release from that tag and paste the CHANGELOG section.
+- C++20
+- CMake 3.19+
+- [vnescene](https://github.com/vertexnova/vnescene) (required; brings vnemath)
+- vnelogging (optional; for examples)
+- Google Test (for tests; submodule or FetchContent)
 
 ## License
 
-See [LICENSE](LICENSE).
+Apache License 2.0 — see [LICENSE](LICENSE) for details.
+
+---
+
+Part of the [VertexNova](https://github.com/vertexnova) project.

@@ -1,6 +1,6 @@
-# VneTemplate Examples
+# VneInteraction Examples
 
-This directory contains examples demonstrating the VneTemplate API.
+This directory contains examples demonstrating the VneInteraction API.
 
 ## Building Examples
 

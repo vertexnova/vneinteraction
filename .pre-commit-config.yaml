@@ -1,4 +1,4 @@
-# Pre-commit hooks for VneTemplate
+# Pre-commit hooks for VneInteraction
 # Install: pip install pre-commit && pre-commit install
 # Run manually: pre-commit run --all-files
 
@@ -7,7 +7,7 @@ repos:
     hooks:
       - id: clang-format
         name: clang-format (project style)
-        entry: bash -c "cd $(git rev-parse --show-toplevel) && ./scripts/format.sh"
+        entry: bash -c "cd $(git rev-parse --show-toplevel) && python3 scripts/clang_formatter.py all"
         language: system
         types: [c++, c]
         pass_filenames: false

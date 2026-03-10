@@ -9,54 +9,87 @@
 #==============================================================================
 
 set(SOURCE_FILES
-    vertexnova/template/template.cpp
+    vertexnova/interaction/camera_input_adapter.cpp
+    vertexnova/interaction/camera_manipulator_base.cpp
+    vertexnova/interaction/camera_manipulator_factory.cpp
+    vertexnova/interaction/camera_system_controller.cpp
+    vertexnova/interaction/orbit_style_base.cpp
+    vertexnova/interaction/free_camera_base.cpp
+    vertexnova/interaction/orbit_manipulator.cpp
+    vertexnova/interaction/arcball_manipulator.cpp
+    vertexnova/interaction/fps_manipulator.cpp
+    vertexnova/interaction/fly_manipulator.cpp
+    vertexnova/interaction/ortho_pan_zoom_manipulator.cpp
+    vertexnova/interaction/follow_manipulator.cpp
+    vertexnova/interaction/version.cpp
 )
 
 set(HEADER_FILES
-    ${VNE_INCLUDE_DIR}/vertexnova/template/template.h
 )
 
-# One library per build: static or shared, always named vnetemplate (alias vne::template).
-if(VNE_TEMPLATE_LIB_TYPE STREQUAL "shared")
+# One library per build: static or shared, always named vneinteraction (alias vne::interaction).
+if(VNE_INTERACTION_LIB_TYPE STREQUAL "shared")
     set(_lib_type SHARED)
 else()
     set(_lib_type STATIC)
 endif()
 
-add_library(vnetemplate ${_lib_type} ${SOURCE_FILES} ${HEADER_FILES})
+add_library(vneinteraction ${_lib_type} ${SOURCE_FILES} ${HEADER_FILES})
 
-target_include_directories(vnetemplate
+target_include_directories(vneinteraction
     PUBLIC
         $<BUILD_INTERFACE:${VNE_INCLUDE_DIR}>
         $<BUILD_INTERFACE:${VNE_SRC_DIR}>
         $<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries(vnetemplate
+target_link_libraries(vneinteraction
     PUBLIC
-        vne::template::Warnings
-        vne::template::BuildSettings
+        vne::interaction::Warnings
+        vne::interaction::BuildSettings
 )
 
-if(TARGET vne::common)
-    target_link_libraries(vnetemplate PUBLIC vne::common)
-endif()
-if(TARGET vne::logging)
-    target_link_libraries(vnetemplate PUBLIC vne::logging)
+# Link only to vne::scene; it brings vne::math, vne::common, vne::logging transitively.
+# Avoid direct links to avoid duplicate library warnings (ld: ignoring duplicate libraries).
+if(TARGET vne::scene)
+    target_link_libraries(vneinteraction PUBLIC vne::scene)
+else()
+    # Fallback when vnescene is not used (e.g. minimal build)
+    if(TARGET vne::common)
+        target_link_libraries(vneinteraction PUBLIC vne::common)
+    endif()
+    if(TARGET vne::logging)
+        target_link_libraries(vneinteraction PUBLIC vne::logging)
+    endif()
+    if(TARGET vne::math)
+        target_link_libraries(vneinteraction PUBLIC vne::math)
+    endif()
 endif()
 
-target_compile_features(vnetemplate PUBLIC cxx_std_20)
+target_compile_features(vneinteraction PUBLIC cxx_std_20)
+
+# iOS (and visionOS): link Foundation so the linker resolves symbols (vnelogging and deps may use it).
+# Explicit -framework form ensures Xcode/iOS SDK finds the framework.
+if(IOS OR CMAKE_SYSTEM_NAME STREQUAL "iOS" OR CMAKE_SYSTEM_NAME STREQUAL "visionOS")
+    target_link_libraries(vneinteraction PUBLIC "-framework Foundation")
+endif()
 
 # Set export/import defines for shared builds. The header uses them only on Windows
-# (VNE_TEMPLATE_API becomes __declspec(dllexport)/dllimport); on other platforms they are no-ops.
+# (VNE_INTERACTION_API becomes __declspec(dllexport)/dllimport); on other platforms they are no-ops.
 if(_lib_type STREQUAL "SHARED")
-    target_compile_definitions(vnetemplate
-        PRIVATE VNE_TEMPLATE_BUILDING_DLL
-        INTERFACE VNE_TEMPLATE_DLL
+    target_compile_definitions(vneinteraction
+        PRIVATE VNE_INTERACTION_BUILDING_DLL
+        INTERFACE VNE_INTERACTION_DLL
     )
+    # MSVC: C4251 (member type needs dll-interface), C4275 (base needs dll-interface).
+    # Expected when exporting classes that hold vne::math types, std::string, std::shared_ptr, or
+    # use detail/base classes; suppressing so /WX does not fail the build.
+    if(MSVC)
+        target_compile_options(vneinteraction PRIVATE /wd4251 /wd4275)
+    endif()
 endif()
 
-add_library(vne::template ALIAS vnetemplate)
+add_library(vne::interaction ALIAS vneinteraction)
 
 source_group("Sources" FILES ${SOURCE_FILES})
 source_group(TREE ${VNE_INCLUDE_DIR} PREFIX "Headers" FILES ${HEADER_FILES})

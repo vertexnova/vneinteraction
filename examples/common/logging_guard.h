@@ -3,16 +3,16 @@
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
- * Common logging configuration for VneTemplate examples
+ * Common logging configuration for VneInteraction examples
  * ----------------------------------------------------------------------
  */
 
 #include <vertexnova/logging/logging.h>
 
 // Create a logger category for examples
-CREATE_VNE_LOGGER_CATEGORY("vnetemplate.examples")
+CREATE_VNE_LOGGER_CATEGORY("vneinteraction.examples")
 
-namespace vne::template_ns::examples {
+namespace vne::interaction::examples {
 
 /**
  * @class LoggingGuard
@@ -49,4 +49,4 @@ class LoggingGuard {
     LoggingGuard& operator=(const LoggingGuard&) = delete;
 };
 
-}  // namespace vne::template_ns::examples
+}  // namespace vne::interaction::examples

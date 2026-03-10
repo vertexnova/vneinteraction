@@ -93,24 +93,21 @@ jobs:
         env:
           BUILD_TYPE:      ${{ inputs.build_type }}
           ENABLE_COVERAGE: ${{ inputs.enable_coverage }}
-          LIB_TYPE:        ${{ inputs.lib_type }}
+          LIB_TYPE:        ${{ inputs.lib_type == '' && 'shared' || inputs.lib_type }}
         run: |
           echo "EFFECTIVE_BUILD_TYPE=$BUILD_TYPE" >> "$GITHUB_ENV"
           if [[ "$ENABLE_COVERAGE" == "true" ]]; then
-            echo "CACHE_BUILD_TYPE=${BUILD_TYPE}-coverage" >> "$GITHUB_ENV"
+              echo "CACHE_BUILD_TYPE=${BUILD_TYPE}-coverage" >> "$GITHUB_ENV"
           else
-            echo "CACHE_BUILD_TYPE=$BUILD_TYPE" >> "$GITHUB_ENV"
+              echo "CACHE_BUILD_TYPE=$BUILD_TYPE" >> "$GITHUB_ENV"
           fi
-          # Validate / normalize library type: allow only empty, "shared", or "static".
+          # Normalize library type: empty or omitted => shared; only "static" or "shared" allowed.
           EFFECTIVE_LIB_TYPE="shared"
-          if [[ -z "$LIB_TYPE" ]]; then
-            # Empty input => default to shared (matches CMake default).
-            :
-          elif [[ "$LIB_TYPE" == "shared" || "$LIB_TYPE" == "static" ]]; then
-            EFFECTIVE_LIB_TYPE="$LIB_TYPE"
-          else
-            echo "Error: invalid lib_type '$LIB_TYPE'. Expected '', 'shared', or 'static'." >&2
-            exit 1
+          if [[ "$LIB_TYPE" == "static" ]]; then
+              EFFECTIVE_LIB_TYPE="static"
+          elif [[ -n "$LIB_TYPE" && "$LIB_TYPE" != "shared" ]]; then
+              echo "::error::Invalid lib_type '${LIB_TYPE}'. Expected '', 'shared', or 'static'."
+              exit 1
           fi
           echo "CACHE_LIB_TYPE=$EFFECTIVE_LIB_TYPE" >> "$GITHUB_ENV"
           echo "BUILD_DIR=build/$EFFECTIVE_LIB_TYPE" >> "$GITHUB_ENV"
@@ -157,26 +154,27 @@ jobs:
         run: |
           COVERAGE_FLAG=""
           if [[ "$ENABLE_COVERAGE" == "true" ]]; then
-            COVERAGE_FLAG="-DENABLE_COVERAGE=ON"
+              COVERAGE_FLAG="-DENABLE_COVERAGE=ON"
+              echo "Coverage enabled: passing $COVERAGE_FLAG (build will produce .gcno/.gcda)"
           fi
 
           COMPILER_FLAGS=""
           if [[ -n "$C_COMPILER" ]]; then
-            COMPILER_FLAGS="-DCMAKE_C_COMPILER=$C_COMPILER -DCMAKE_CXX_COMPILER=$CPP_COMPILER"
+              COMPILER_FLAGS="-DCMAKE_C_COMPILER=$C_COMPILER -DCMAKE_CXX_COMPILER=$CPP_COMPILER"
           fi
 
           # Use validated CACHE_LIB_TYPE from previous step (empty/shared/static only).
           LIB_TYPE_FLAGS=""
           if [[ "$CACHE_LIB_TYPE" == "static" ]]; then
-            LIB_TYPE_FLAGS="-DVNE_TEMPLATE_LIB_TYPE=static"
+              LIB_TYPE_FLAGS="-DVNE_INTERACTION_LIB_TYPE=static"
           else
-            LIB_TYPE_FLAGS="-DVNE_TEMPLATE_LIB_TYPE=shared"
+              LIB_TYPE_FLAGS="-DVNE_INTERACTION_LIB_TYPE=shared"
           fi
 
           # shellcheck disable=SC2086  # intentional word-splitting for flag vars
           cmake -B "$BUILD_DIR" -S . \
             -DCMAKE_BUILD_TYPE="$EFFECTIVE_BUILD_TYPE" \
-            -DVNE_TEMPLATE_CI=ON \
+            -DVNE_INTERACTION_CI=ON \
             -DWARNINGS_AS_ERRORS="$WAE" \
             -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
             ${COVERAGE_FLAG} \
@@ -193,12 +191,12 @@ jobs:
         shell: bash
         run: |
           echo "--- .gcno files (produced at compile time) ---"
-          find "$BUILD_DIR" -name "*.gcno" | head -20
+          find "$BUILD_DIR" -name "*.gcno" | head -20 || true
           GCNO_COUNT=$(find "$BUILD_DIR" -name "*.gcno" | wc -l)
           echo "Total .gcno files: $GCNO_COUNT"
           if [[ "$GCNO_COUNT" -eq 0 ]]; then
-            echo "::error::No .gcno files found — binary was not compiled with --coverage. Check ENABLE_COVERAGE and build type."
-            exit 1
+              echo "::error::No .gcno files found — binary was not compiled with --coverage. Check ENABLE_COVERAGE and build type."
+              exit 1
           fi
 
       # ------------------------------------------------------------------
@@ -219,12 +217,12 @@ jobs:
         shell: bash
         run: |
           echo "--- .gcda files (produced at test runtime) ---"
-          find "$BUILD_DIR" -name "*.gcda" | head -20
+          find "$BUILD_DIR" -name "*.gcda" | head -20 || true
           GCDA_COUNT=$(find "$BUILD_DIR" -name "*.gcda" | wc -l)
           echo "Total .gcda files: $GCDA_COUNT"
           if [[ "$GCDA_COUNT" -eq 0 ]]; then
-            echo "::error::No .gcda files found after running tests — tests may not have executed or binary not linked with --coverage."
-            exit 1
+              echo "::error::No .gcda files found after running tests — tests may not have executed or binary not linked with --coverage."
+              exit 1
           fi
 
       - name: Publish test results
@@ -249,15 +247,15 @@ jobs:
         run: |
           echo "## Test Results: ${{ inputs.platform }} (${{ env.EFFECTIVE_BUILD_TYPE }}, ${{ env.CACHE_LIB_TYPE }})" >> "$GITHUB_STEP_SUMMARY"
           if [ -f "$BUILD_DIR/test-results.xml" ]; then
-            TOTAL=$(grep -o 'tests="[0-9]*"' "$BUILD_DIR/test-results.xml" | head -1 | grep -o '[0-9]*' || echo "?")
-            FAIL=$(grep -o 'failures="[0-9]*"' "$BUILD_DIR/test-results.xml" | head -1 | grep -o '[0-9]*' || echo "?")
-            if [[ "$TOTAL" != "?" && "$FAIL" != "?" ]]; then
-              echo "Passed: $((TOTAL - FAIL)) / $TOTAL" >> "$GITHUB_STEP_SUMMARY"
-            else
-              echo "Could not parse test-results.xml" >> "$GITHUB_STEP_SUMMARY"
-            fi
+              TOTAL=$(grep -o 'tests="[0-9]*"' "$BUILD_DIR/test-results.xml" | head -1 | grep -o '[0-9]*' || echo "?")
+              FAIL=$(grep -o 'failures="[0-9]*"' "$BUILD_DIR/test-results.xml" | head -1 | grep -o '[0-9]*' || echo "?")
+              if [[ "$TOTAL" != "?" && "$FAIL" != "?" ]]; then
+                  echo "Passed: $((TOTAL - FAIL)) / $TOTAL" >> "$GITHUB_STEP_SUMMARY"
+              else
+                  echo "Could not parse test-results.xml" >> "$GITHUB_STEP_SUMMARY"
+              fi
           else
-            echo "No test-results.xml found" >> "$GITHUB_STEP_SUMMARY"
+              echo "No test-results.xml found" >> "$GITHUB_STEP_SUMMARY"
           fi
 
       # ------------------------------------------------------------------
