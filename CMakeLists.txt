@@ -198,16 +198,17 @@ _vneinteraction_configure_vnescene_dep()
 # "Signing for vnescene requires a development team". Prefer DEVELOPMENT_TEAM when provided;
 # otherwise disable code signing for the library target.
 if(CMAKE_GENERATOR STREQUAL "Xcode" AND (IOS OR CMAKE_SYSTEM_NAME STREQUAL "iOS"))
-  if(TARGET vnescene)
-    if(DEFINED CMAKE_XCODE_ATTRIBUTE_DEVELOPMENT_TEAM AND CMAKE_XCODE_ATTRIBUTE_DEVELOPMENT_TEAM)
-      set_target_properties(vnescene PROPERTIES
-        XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "${CMAKE_XCODE_ATTRIBUTE_DEVELOPMENT_TEAM}")
-    else()
-      set_target_properties(vnescene PROPERTIES
-        XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY "-"
-        XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED "NO")
+    if(TARGET vnescene)
+        if(DEFINED CMAKE_XCODE_ATTRIBUTE_DEVELOPMENT_TEAM AND CMAKE_XCODE_ATTRIBUTE_DEVELOPMENT_TEAM)
+            set_target_properties(vnescene PROPERTIES
+                XCODE_ATTRIBUTE_DEVELOPMENT_TEAM "${CMAKE_XCODE_ATTRIBUTE_DEVELOPMENT_TEAM}")
+        else()
+            set_target_properties(vnescene PROPERTIES
+                XCODE_ATTRIBUTE_CODE_SIGN_IDENTITY ""
+                XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED "NO"
+                XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED "NO")
+        endif()
     endif()
-  endif()
 endif()
 
 # Include dirs and config
