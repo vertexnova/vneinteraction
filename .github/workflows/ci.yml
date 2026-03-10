@@ -312,6 +312,12 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Set up Xcode (SDK and developer dir for iOS)
+        run: |
+          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+          xcodebuild -version
+          xcodebuild -showsdks | grep -E "iphoneos|iphonesimulator" || true
+
       - name: Configure CMake (iOS)
         run: |
           # Optional: pass -DCMAKE_XCODE_ATTRIBUTE_DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }} for real signing

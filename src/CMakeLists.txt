@@ -68,6 +68,12 @@ endif()
 
 target_compile_features(vneinteraction PUBLIC cxx_std_20)
 
+# iOS (and visionOS): link Foundation so the linker resolves symbols (vnelogging and deps may use it).
+# Explicit -framework form ensures Xcode/iOS SDK finds the framework.
+if(IOS OR CMAKE_SYSTEM_NAME STREQUAL "iOS" OR CMAKE_SYSTEM_NAME STREQUAL "visionOS")
+    target_link_libraries(vneinteraction PUBLIC "-framework Foundation")
+endif()
+
 # Set export/import defines for shared builds. The header uses them only on Windows
 # (VNE_INTERACTION_API becomes __declspec(dllexport)/dllimport); on other platforms they are no-ops.
 if(_lib_type STREQUAL "SHARED")
