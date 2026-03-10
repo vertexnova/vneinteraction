@@ -313,6 +313,7 @@ jobs:
 
       - name: Configure CMake (iOS)
         run: |
+          # Optional: pass -DCMAKE_XCODE_ATTRIBUTE_DEVELOPMENT_TEAM=${{ secrets.APPLE_TEAM_ID }} for real signing
           cmake -B build/static -S . \
             -G Xcode \
             -DCMAKE_SYSTEM_NAME=iOS \
