@@ -191,7 +191,7 @@ jobs:
         shell: bash
         run: |
           echo "--- .gcno files (produced at compile time) ---"
-          find "$BUILD_DIR" -name "*.gcno" | head -20
+          find "$BUILD_DIR" -name "*.gcno" | head -20 || true
           GCNO_COUNT=$(find "$BUILD_DIR" -name "*.gcno" | wc -l)
           echo "Total .gcno files: $GCNO_COUNT"
           if [[ "$GCNO_COUNT" -eq 0 ]]; then
@@ -217,7 +217,7 @@ jobs:
         shell: bash
         run: |
           echo "--- .gcda files (produced at test runtime) ---"
-          find "$BUILD_DIR" -name "*.gcda" | head -20
+          find "$BUILD_DIR" -name "*.gcda" | head -20 || true
           GCDA_COUNT=$(find "$BUILD_DIR" -name "*.gcda" | wc -l)
           echo "Total .gcda files: $GCDA_COUNT"
           if [[ "$GCDA_COUNT" -eq 0 ]]; then

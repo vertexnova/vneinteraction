@@ -162,6 +162,12 @@ struct VNE_INTERACTION_API OrbitInteractionState {
 // -----------------------------------------------------------------------------
 // Internal camera state (manipulators operate on these, then apply to ICamera)
 // -----------------------------------------------------------------------------
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable : 4251)   // dll-interface for member type from another lib
+#pragma warning(disable : 26495) // uninitialized member (ctor initializes all)
+#endif
+
 struct VNE_INTERACTION_API OrbitCameraState {
     vne::math::Vec3f coi_world;
     float distance = 5.0f;
@@ -196,5 +202,9 @@ struct VNE_INTERACTION_API FreeCameraState {
         : position(0.0f, 0.0f, 0.0f)
         , up_hint(0.0f, 1.0f, 0.0f) {}
 };
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 }  // namespace vne::interaction
