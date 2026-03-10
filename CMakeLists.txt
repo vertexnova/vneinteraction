@@ -271,8 +271,9 @@ endif()
 # Coverage Support (gcov/lcov for CI; .gcda files generated when tests run)
 #==============================================================================
 if(ENABLE_COVERAGE)
+    message(STATUS "Code coverage enabled (gcov/lcov); compile and link flags will add --coverage")
     include(FindCoverage OPTIONAL)
-    # Ensure coverage flags are applied (GCC/Clang) so .gcda files are emitted
+    # Ensure coverage flags are applied (GCC/Clang) so .gcno/.gcda are emitted
     if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} --coverage")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
