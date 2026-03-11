@@ -57,74 +57,203 @@ class VNE_INTERACTION_API ArcballManipulator final : public OrbitStyleBase {
     /** Rule of Five: default move assignment operator (movable). */
     ArcballManipulator& operator=(ArcballManipulator&&) noexcept = default;
 
-    /** Check if this manipulator supports perspective projection. */
+    /**
+     * @brief Check if this manipulator supports perspective projection.
+     * @return true (arcball supports perspective)
+     */
     [[nodiscard]] bool supportsPerspective() const noexcept override { return true; }
-    /** Check if this manipulator supports orthographic projection. */
+
+    /**
+     * @brief Check if this manipulator supports orthographic projection.
+     * @return true (arcball supports orthographic)
+     */
     [[nodiscard]] bool supportsOrthographic() const noexcept override { return true; }
 
-    /** Set the camera to manipulate. */
+    /**
+     * @brief Set the camera to manipulate.
+     * @param camera Shared pointer to the camera (may be nullptr)
+     */
     void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;
-    /** Set the viewport dimensions for screen-to-world mapping. */
+
+    /**
+     * @brief Set the viewport dimensions for screen-to-world mapping.
+     * @param width_px Viewport width in pixels
+     * @param height_px Viewport height in pixels
+     */
     void setViewportSize(float width_px, float height_px) noexcept override;
-    /** Apply a semantic camera command. */
+
+    /**
+     * @brief Apply a semantic camera command.
+     * @param action Action type (rotate, pan, zoom, etc.)
+     * @param payload Payload with parameters for the action
+     * @param delta_time Time since last update in seconds
+     */
     void applyCommand(CameraActionType action,
                       const CameraCommandPayload& payload,
                       double delta_time) noexcept override;
 
-    /** Handle mouse movement input. */
+    /**
+     * @brief Handle mouse movement input.
+     * @param x Current cursor X in viewport pixels
+     * @param y Current cursor Y in viewport pixels
+     * @param delta_x Horizontal delta in pixels
+     * @param delta_y Vertical delta in pixels
+     * @param delta_time Time since last input in seconds
+     */
     void handleMouseMove(float x, float y, float delta_x, float delta_y, double delta_time) noexcept override;
-    /** Handle mouse scroll wheel input for zoom. */
+
+    /**
+     * @brief Handle mouse scroll wheel input for zoom.
+     * @param scroll_x Horizontal scroll delta
+     * @param scroll_y Vertical scroll delta
+     * @param mouse_x Cursor X in viewport pixels
+     * @param mouse_y Cursor Y in viewport pixels
+     * @param delta_time Time since last input in seconds
+     */
     void handleMouseScroll(
         float scroll_x, float scroll_y, float mouse_x, float mouse_y, double delta_time) noexcept override;
-    /** Handle touch pan gesture. */
+
+    /**
+     * @brief Handle touch pan gesture.
+     * @param pan Pan gesture with delta_x_px and delta_y_px
+     * @param delta_time Time since last input in seconds
+     */
     void handleTouchPan(const TouchPan& pan, double delta_time) noexcept override;
 
     /** Reset manipulator state and animation. */
     void resetState() noexcept override;
-    /** Adjust camera to frame the given bounding box. */
+
+    /**
+     * @brief Adjust camera to frame the given bounding box.
+     * @param min_world Minimum corner of AABB in world space
+     * @param max_world Maximum corner of AABB in world space
+     */
     void fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept override;
-    /** Get world units per pixel for screen-to-world conversions. */
+
+    /**
+     * @brief Get world units per pixel for screen-to-world conversions.
+     * @return World-space distance per pixel at center of view
+     */
     [[nodiscard]] float getWorldUnitsPerPixel() const noexcept override;
 
-    /** Set the world-space up vector (default: +Y). */
+    /**
+     * @brief Set the world-space up vector (default: +Y).
+     * @param world_up Unit-length up vector
+     */
     void setWorldUp(const vne::math::Vec3f& world_up) noexcept;
-    /** Set the zoom interaction method. */
+
+    /**
+     * @brief Set the zoom interaction method.
+     * @param method Zoom method (dolly, scene scale, or FOV)
+     */
     void setZoomMethod(ZoomMethod method) noexcept { zoom_method_ = method; }
-    /** Get the current zoom method. */
+
+    /**
+     * @brief Get the current zoom method.
+     * @return Current zoom method
+     */
     [[nodiscard]] ZoomMethod getZoomMethod() const noexcept { return zoom_method_; }
-    /** Set the center of interest (pivot point) in world or camera space. */
+
+    /**
+     * @brief Set the center of interest (pivot point) in world or camera space.
+     * @param coi Center of interest position
+     * @param space Whether coi is in world or camera space
+     */
     void setCenterOfInterest(const vne::math::Vec3f& coi, CenterOfInterestSpace space) noexcept;
-    /** Get the center of interest in world space. */
+
+    /**
+     * @brief Get the center of interest in world space.
+     * @return Center of interest position in world coordinates
+     */
     [[nodiscard]] vne::math::Vec3f getCenterOfInterestWorld() const noexcept { return coi_world_; }
-    /** Get the distance from camera to center of interest. */
+
+    /**
+     * @brief Get the distance from camera to center of interest.
+     * @return Orbit distance in world units
+     */
     [[nodiscard]] float getOrbitDistance() const noexcept { return orbit_distance_; }
-    /** Set the distance from camera to center of interest. */
+
+    /**
+     * @brief Set the distance from camera to center of interest.
+     * @param distance Orbit distance in world units (clamped to > 0)
+     */
     void setOrbitDistance(float distance) noexcept;
-    /** Set the rotation speed multiplier (default: 1.0). */
+    /**
+     * @brief Set the rotation speed multiplier (default: 1.0).
+     * @param speed Speed multiplier (clamped to >= 0)
+     */
     void setRotationSpeed(float speed) noexcept { rotation_speed_ = std::max(0.0f, speed); }
-    /** Get the rotation speed multiplier. */
+
+    /**
+     * @brief Get the rotation speed multiplier.
+     * @return Current rotation speed
+     */
     [[nodiscard]] float getRotationSpeed() const noexcept { return rotation_speed_; }
-    /** Set the pan speed multiplier (default: 1.0). */
+
+    /**
+     * @brief Set the pan speed multiplier (default: 1.0).
+     * @param speed Speed multiplier (clamped to >= 0)
+     */
     void setPanSpeed(float speed) noexcept { pan_speed_ = std::max(0.0f, speed); }
-    /** Get the pan speed multiplier. */
+
+    /**
+     * @brief Get the pan speed multiplier.
+     * @return Current pan speed
+     */
     [[nodiscard]] float getPanSpeed() const noexcept { return pan_speed_; }
-    /** Set the zoom speed for scroll/pinch zoom (default: 1.5). */
+
+    /**
+     * @brief Set the zoom speed for scroll/pinch zoom (default: 1.5).
+     * @param speed Zoom speed (clamped to >= 0.01)
+     */
     void setZoomSpeed(float speed) noexcept { zoom_speed_ = std::max(0.01f, speed); }
-    /** Set the FOV zoom speed for scroll/pinch (perspective only, default: 1.5). */
+
+    /**
+     * @brief Set the FOV zoom speed for scroll/pinch (perspective only, default: 1.5).
+     * @param speed FOV zoom speed (clamped to >= 0.01)
+     */
     void setFovZoomSpeed(float speed) noexcept { fov_zoom_speed_ = std::max(0.01f, speed); }
-    /** Get the FOV zoom speed. */
+
+    /**
+     * @brief Get the FOV zoom speed.
+     * @return Current FOV zoom speed
+     */
     [[nodiscard]] float getFovZoomSpeed() const noexcept { return fov_zoom_speed_; }
-    /** Set the rotation damping factor for inertia (default: 4.0). */
+
+    /**
+     * @brief Set the rotation damping factor for inertia (default: 4.0).
+     * @param damping Damping factor (clamped to >= 0)
+     */
     void setRotationDamping(float damping) noexcept { rot_damping_ = std::max(0.0f, damping); }
-    /** Get the rotation damping factor. */
+
+    /**
+     * @brief Get the rotation damping factor.
+     * @return Current rotation damping
+     */
     [[nodiscard]] float getRotationDamping() const noexcept { return rot_damping_; }
-    /** Set the pan damping factor for momentum panning (default: 0.0). */
+
+    /**
+     * @brief Set the pan damping factor for momentum panning (default: 0.0).
+     * @param damping Damping factor (clamped to >= 0)
+     */
     void setPanDamping(float damping) noexcept { pan_damping_ = std::max(0.0f, damping); }
-    /** Get the pan damping factor. */
+
+    /**
+     * @brief Get the pan damping factor.
+     * @return Current pan damping
+     */
     [[nodiscard]] float getPanDamping() const noexcept { return pan_damping_; }
-    /** Set the mouse button mapping for rotate/pan actions. */
+
+    /**
+     * @brief Set the mouse button mapping for rotate/pan actions.
+     * @param map Button map with rotate and pan button indices
+     */
     void setButtonMap(const ButtonMap& map) noexcept { button_map_ = map; }
-    /** Get the current mouse button mapping. */
+
+    /**
+     * @brief Get the current mouse button mapping.
+     * @return Reference to the current button map
+     */
     [[nodiscard]] const ButtonMap& getButtonMap() const noexcept { return button_map_; }
 
    private:

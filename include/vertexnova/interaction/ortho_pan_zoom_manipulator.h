@@ -64,54 +64,150 @@ class VNE_INTERACTION_API OrthoPanZoomManipulator final : public CameraManipulat
     /** Rule of Five: default move assignment operator (movable). */
     OrthoPanZoomManipulator& operator=(OrthoPanZoomManipulator&&) noexcept = default;
 
-    /** Check if this manipulator supports perspective projection (always false for ortho). */
+    /**
+     * @brief Check if this manipulator supports perspective projection.
+     * @return false (ortho pan-zoom is orthographic only)
+     */
     [[nodiscard]] bool supportsPerspective() const noexcept override { return false; }
-    /** Check if this manipulator supports orthographic projection (always true). */
+
+    /**
+     * @brief Check if this manipulator supports orthographic projection.
+     * @return true (ortho pan-zoom supports orthographic)
+     */
     [[nodiscard]] bool supportsOrthographic() const noexcept override { return true; }
 
-    /** Set the orthographic camera to manipulate. */
+    /**
+     * @brief Set the orthographic camera to manipulate.
+     * @param camera Shared pointer to the orthographic camera (may be nullptr)
+     */
     void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;
-    /** Set the viewport dimensions in pixels. */
+
+    /**
+     * @brief Set the viewport dimensions in pixels.
+     * @param width_px Viewport width in pixels
+     * @param height_px Viewport height in pixels
+     */
     void setViewportSize(float width_px, float height_px) noexcept override;
-    /** Update the camera based on accumulated pan inertia. */
+
+    /**
+     * @brief Update the camera based on accumulated pan inertia.
+     * @param delta_time Time since last update in seconds
+     */
     void update(double delta_time) noexcept override;
-    /** Apply a semantic camera command to this manipulator. */
+
+    /**
+     * @brief Apply a semantic camera command to this manipulator.
+     * @param action Action type (pan, zoom, fit, reset, etc.)
+     * @param payload Payload with parameters for the action
+     * @param delta_time Time since last update in seconds
+     */
     void applyCommand(CameraActionType action,
                       const CameraCommandPayload& payload,
                       double delta_time) noexcept override;
 
-    /** Handle mouse movement input for panning. */
+    /**
+     * @brief Handle mouse movement input for panning.
+     * @param x Current cursor X in viewport pixels
+     * @param y Current cursor Y in viewport pixels
+     * @param delta_x Horizontal delta in pixels
+     * @param delta_y Vertical delta in pixels
+     * @param delta_time Time since last input in seconds
+     */
     void handleMouseMove(float x, float y, float delta_x, float delta_y, double delta_time) noexcept override;
-    /** Handle mouse button press/release for pan start/end. */
+
+    /**
+     * @brief Handle mouse button press/release for pan start/end.
+     * @param button Mouse button index
+     * @param pressed true if pressed, false if released
+     * @param x Cursor X in viewport pixels
+     * @param y Cursor Y in viewport pixels
+     * @param delta_time Time since last input in seconds
+     */
     void handleMouseButton(int button, bool pressed, float x, float y, double delta_time) noexcept override;
-    /** Handle mouse scroll wheel input for zoom. */
+
+    /**
+     * @brief Handle mouse scroll wheel input for zoom.
+     * @param scroll_x Horizontal scroll delta
+     * @param scroll_y Vertical scroll delta
+     * @param mouse_x Cursor X in viewport pixels
+     * @param mouse_y Cursor Y in viewport pixels
+     * @param delta_time Time since last input in seconds
+     */
     void handleMouseScroll(
         float scroll_x, float scroll_y, float mouse_x, float mouse_y, double delta_time) noexcept override;
-    /** Handle keyboard input (forwarded from controller). */
+
+    /**
+     * @brief Handle keyboard input (forwarded from controller).
+     * @param key Key code
+     * @param pressed true if pressed, false if released
+     * @param delta_time Time since last input in seconds
+     */
     void handleKeyboard(int key, bool pressed, double delta_time) noexcept override;
-    /** Handle touch pan gesture. */
+
+    /**
+     * @brief Handle touch pan gesture.
+     * @param pan Pan gesture with delta_x_px and delta_y_px
+     * @param delta_time Time since last input in seconds
+     */
     void handleTouchPan(const TouchPan& pan, double delta_time) noexcept override;
-    /** Handle touch pinch (zoom) gesture. */
+
+    /**
+     * @brief Handle touch pinch (zoom) gesture.
+     * @param pinch Pinch gesture with scale and center position
+     * @param delta_time Time since last input in seconds
+     */
     void handleTouchPinch(const TouchPinch& pinch, double delta_time) noexcept override;
 
-    /** Set the zoom method (for orthographic, typically scene scale). */
+    /**
+     * @brief Set the zoom method (for orthographic, typically scene scale).
+     * @param method Zoom method
+     */
     void setZoomMethod(ZoomMethod method) noexcept { zoom_method_ = method; }
-    /** Get the current zoom method. */
+
+    /**
+     * @brief Get the current zoom method.
+     * @return Current zoom method
+     */
     [[nodiscard]] ZoomMethod getZoomMethod() const noexcept { return zoom_method_; }
-    /** Set the zoom speed for scroll/pinch events (default: 1.2). */
+
+    /**
+     * @brief Set the zoom speed for scroll/pinch events (default: 1.2).
+     * @param speed Zoom speed (clamped to >= 0.01)
+     */
     void setZoomSpeed(float speed) noexcept { zoom_speed_ = std::max(0.01f, speed); }
-    /** Set the panning damping factor for inertia (default: 10.0). */
+
+    /**
+     * @brief Set the panning damping factor for inertia (default: 10.0).
+     * @param damping Damping factor (clamped to >= 0)
+     */
     void setPanDamping(float damping) noexcept { pan_damping_ = std::max(0.0f, damping); }
-    /** Get the panning damping factor. */
+
+    /**
+     * @brief Get the panning damping factor.
+     * @return Current pan damping
+     */
     [[nodiscard]] float getPanDamping() const noexcept { return pan_damping_; }
 
     /** Reset manipulator state and damping. */
     void resetState() noexcept override;
-    /** Adjust camera to frame the given bounding box. */
+
+    /**
+     * @brief Adjust camera to frame the given bounding box.
+     * @param min_world Minimum corner of AABB in world space
+     * @param max_world Maximum corner of AABB in world space
+     */
     void fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept override;
-    /** Get the current scene scale value for CSS/scaling operations. */
+
+    /**
+     * @brief Get the current scene scale value for CSS/scaling operations.
+     * @return Scene scale factor
+     */
     [[nodiscard]] float getSceneScale() const noexcept override { return scene_scale_; }
-    /** Get world units per pixel for screen-to-world conversions. */
+
+    /**
+     * @brief Get world units per pixel for screen-to-world conversions.
+     * @return World-space distance per pixel at center of view
+     */
     [[nodiscard]] float getWorldUnitsPerPixel() const noexcept override;
 
    private:

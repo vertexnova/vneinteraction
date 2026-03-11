@@ -42,7 +42,11 @@ class VNE_INTERACTION_API CameraManipulatorFactory {
     /** Rule of Five: default move assignment operator (movable). */
     CameraManipulatorFactory& operator=(CameraManipulatorFactory&&) noexcept = default;
 
-    /** Create a manipulator for the given type. Never returns nullptr for valid enum values. */
+    /**
+     * @brief Create a manipulator for the given type.
+     * @param type The manipulator type (orbit, arcball, FPS, fly, ortho, follow)
+     * @return Shared pointer to the new manipulator; never nullptr for valid enum values
+     */
     [[nodiscard]] std::shared_ptr<ICameraManipulator> create(CameraManipulatorType type) const;
 };
 

@@ -57,48 +57,123 @@ class VNE_INTERACTION_API FpsManipulator final : public FreeCameraBase {
     /** Rule of Five: default move assignment operator (movable). */
     FpsManipulator& operator=(FpsManipulator&&) noexcept = default;
 
-    /** Check if this manipulator supports perspective projection. */
+    /**
+     * @brief Check if this manipulator supports perspective projection.
+     * @return true (FPS supports perspective)
+     */
     [[nodiscard]] bool supportsPerspective() const noexcept override { return true; }
-    /** Check if this manipulator supports orthographic projection. */
+
+    /**
+     * @brief Check if this manipulator supports orthographic projection.
+     * @return true (FPS supports orthographic)
+     */
     [[nodiscard]] bool supportsOrthographic() const noexcept override { return true; }
 
-    /** Set the viewport dimensions for mouse sensitivity calculation. */
+    /**
+     * @brief Set the viewport dimensions for mouse sensitivity calculation.
+     * @param width_px Viewport width in pixels
+     * @param height_px Viewport height in pixels
+     */
     void setViewportSize(float width_px, float height_px) noexcept override;
 
     /** Reset manipulator state and animation. */
     void resetState() noexcept override;
-    /** Adjust camera to frame the given bounding box. */
+
+    /**
+     * @brief Adjust camera to frame the given bounding box.
+     * @param min_world Minimum corner of AABB in world space
+     * @param max_world Maximum corner of AABB in world space
+     */
     void fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept override;
-    /** Get world units per pixel for screen-to-world conversions. */
+
+    /**
+     * @brief Get world units per pixel for screen-to-world conversions.
+     * @return World-space distance per pixel at center of view
+     */
     [[nodiscard]] float getWorldUnitsPerPixel() const noexcept override;
 
-    /** Set the zoom interaction method. */
+    /**
+     * @brief Set the zoom interaction method.
+     * @param method Zoom method (dolly, scene scale, or FOV)
+     */
     void setZoomMethod(ZoomMethod method) noexcept { zoom_method_ = method; }
-    /** Get the current zoom method. */
+
+    /**
+     * @brief Get the current zoom method.
+     * @return Current zoom method
+     */
     [[nodiscard]] ZoomMethod getZoomMethod() const noexcept { return zoom_method_; }
-    /** Set the world-space up vector (default: +Y). */
+
+    /**
+     * @brief Set the world-space up vector (default: +Y).
+     * @param up Unit-length up vector
+     */
     void setWorldUp(const vne::math::Vec3f& up) noexcept;
-    /** Set the camera movement speed in units per second (default: 5.0). */
+
+    /**
+     * @brief Set the camera movement speed in units per second (default: 5.0).
+     * @param units_per_sec Movement speed (clamped to >= 0)
+     */
     void setMoveSpeed(float units_per_sec) noexcept { move_speed_ = std::max(0.0f, units_per_sec); }
-    /** Get the movement speed. */
+
+    /**
+     * @brief Get the movement speed.
+     * @return Current movement speed in units per second
+     */
     [[nodiscard]] float getMoveSpeed() const noexcept { return move_speed_; }
-    /** Set the mouse look sensitivity in degrees per pixel (default: 0.1). */
+
+    /**
+     * @brief Set the mouse look sensitivity in degrees per pixel (default: 0.1).
+     * @param deg_per_pixel Sensitivity (clamped to >= 0)
+     */
     void setMouseSensitivity(float deg_per_pixel) noexcept { mouse_sensitivity_ = std::max(0.0f, deg_per_pixel); }
-    /** Get the mouse sensitivity. */
+
+    /**
+     * @brief Get the mouse sensitivity.
+     * @return Current mouse sensitivity in degrees per pixel
+     */
     [[nodiscard]] float getMouseSensitivity() const noexcept { return mouse_sensitivity_; }
-    /** Set the zoom speed for dolly movement or scene scaling (default: 5.0). */
+
+    /**
+     * @brief Set the zoom speed for dolly movement or scene scaling (default: 5.0).
+     * @param units_or_factor Zoom speed (clamped to >= 0.01)
+     */
     void setZoomSpeed(float units_or_factor) noexcept { zoom_speed_ = std::max(0.01f, units_or_factor); }
-    /** Set the FOV zoom speed for scroll/pinch (perspective only, default: 1.5). */
+
+    /**
+     * @brief Set the FOV zoom speed for scroll/pinch (perspective only, default: 1.5).
+     * @param factor FOV zoom speed (clamped to >= 0.01)
+     */
     void setFovZoomSpeed(float factor) noexcept { fov_zoom_speed_ = std::max(0.01f, factor); }
-    /** Get the FOV zoom speed. */
+
+    /**
+     * @brief Get the FOV zoom speed.
+     * @return Current FOV zoom speed
+     */
     [[nodiscard]] float getFovZoomSpeed() const noexcept { return fov_zoom_speed_; }
-    /** Set the sprint speed multiplier (default: 2.0). */
+
+    /**
+     * @brief Set the sprint speed multiplier (default: 2.0).
+     * @param mult Multiplier (clamped to >= 1.0)
+     */
     void setSprintMultiplier(float mult) noexcept { sprint_mult_ = std::max(1.0f, mult); }
-    /** Get the sprint speed multiplier. */
+
+    /**
+     * @brief Get the sprint speed multiplier.
+     * @return Current sprint multiplier
+     */
     [[nodiscard]] float getSprintMultiplier() const noexcept { return sprint_mult_; }
-    /** Set the slow/crouch speed multiplier (default: 0.5, clamped to [0, 1]). */
+
+    /**
+     * @brief Set the slow/crouch speed multiplier (default: 0.5, clamped to [0, 1]).
+     * @param mult Multiplier (clamped to [0, 1])
+     */
     void setSlowMultiplier(float mult) noexcept { slow_mult_ = std::clamp(mult, 0.0f, 1.0f); }
-    /** Get the slow speed multiplier. */
+
+    /**
+     * @brief Get the slow speed multiplier.
+     * @return Current slow multiplier
+     */
     [[nodiscard]] float getSlowMultiplier() const noexcept { return slow_mult_; }
 
    private:

@@ -19,7 +19,8 @@
 namespace vne::interaction {
 
 /**
- * Base for orbit-style manipulators (Orbit, Arcball).
+ * @brief Base for orbit-style manipulators (Orbit, Arcball).
+ *
  * Shared pan/zoom, fitToAABB, getWorldUnitsPerPixel, input dispatch.
  * Subclasses implement computeFront(), syncFromCamera(), applyToCamera(),
  * beginRotate(), dragRotate(), endRotate(), and override applyInertia() for rotation.
@@ -74,22 +75,101 @@ class VNE_INTERACTION_API OrbitStyleBase : public CameraManipulatorBase {
     [[nodiscard]] bool isOrthographic() const noexcept;
 
    public:
+    /**
+     * @brief Update camera and inertia state.
+     * @param delta_time Time since last update in seconds
+     */
     void update(double delta_time) noexcept override;
+
+    /**
+     * @brief Apply a semantic camera command.
+     * @param action Action type (rotate, pan, zoom, fit, reset, etc.)
+     * @param payload Payload with parameters for the action
+     * @param delta_time Time since last update in seconds
+     */
     void applyCommand(CameraActionType action,
                       const CameraCommandPayload& payload,
                       double delta_time) noexcept override;
+
+    /**
+     * @brief Handle mouse movement input.
+     * @param x Current cursor X in viewport pixels
+     * @param y Current cursor Y in viewport pixels
+     * @param delta_x Horizontal delta in pixels
+     * @param delta_y Vertical delta in pixels
+     * @param delta_time Time since last input in seconds
+     */
     void handleMouseMove(float x, float y, float delta_x, float delta_y, double delta_time) noexcept override;
+
+    /**
+     * @brief Handle mouse button press/release.
+     * @param button Mouse button index
+     * @param pressed true if pressed, false if released
+     * @param x Cursor X in viewport pixels
+     * @param y Cursor Y in viewport pixels
+     * @param delta_time Time since last input in seconds
+     */
     void handleMouseButton(int button, bool pressed, float x, float y, double delta_time) noexcept override;
+
+    /**
+     * @brief Handle mouse scroll wheel input for zoom.
+     * @param scroll_x Horizontal scroll delta
+     * @param scroll_y Vertical scroll delta
+     * @param mouse_x Cursor X in viewport pixels
+     * @param mouse_y Cursor Y in viewport pixels
+     * @param delta_time Time since last input in seconds
+     */
     void handleMouseScroll(
         float scroll_x, float scroll_y, float mouse_x, float mouse_y, double delta_time) noexcept override;
+
+    /**
+     * @brief Handle keyboard input.
+     * @param key Key code
+     * @param pressed true if pressed, false if released
+     * @param delta_time Time since last input in seconds
+     */
     void handleKeyboard(int key, bool pressed, double delta_time) noexcept override;
+
+    /**
+     * @brief Handle touch pan gesture.
+     * @param pan Pan gesture with delta_x_px and delta_y_px
+     * @param delta_time Time since last input in seconds
+     */
     void handleTouchPan(const TouchPan& pan, double delta_time) noexcept override;
+
+    /**
+     * @brief Handle touch pinch (zoom) gesture.
+     * @param pinch Pinch gesture with scale and center position
+     * @param delta_time Time since last input in seconds
+     */
     void handleTouchPinch(const TouchPinch& pinch, double delta_time) noexcept override;
+
+    /** Reset manipulator state and inertia. */
     void resetState() noexcept override;
+
+    /**
+     * @brief Adjust camera to frame the given bounding box.
+     * @param min_world Minimum corner of AABB in world space
+     * @param max_world Maximum corner of AABB in world space
+     */
     void fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept override;
+
+    /**
+     * @brief Get world units per pixel for screen-to-world conversions.
+     * @return World-space distance per pixel at center of view
+     */
     [[nodiscard]] float getWorldUnitsPerPixel() const noexcept override;
 
+    /**
+     * @brief Set the rotation pivot mode (COI vs view center).
+     * @param mode Pivot mode
+     */
     void setPivotMode(RotationPivotMode mode) noexcept { pivot_mode_ = mode; }
+
+    /**
+     * @brief Get the current rotation pivot mode.
+     * @return Current pivot mode
+     */
     [[nodiscard]] RotationPivotMode getPivotMode() const noexcept { return pivot_mode_; }
 };
 

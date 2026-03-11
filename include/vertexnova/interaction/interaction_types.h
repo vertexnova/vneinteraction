@@ -9,6 +9,11 @@
  * ----------------------------------------------------------------------
  */
 
+/**
+ * @file interaction_types.h
+ * @brief Types, enums, and structs for camera interaction (manipulators, gestures, bindings).
+ */
+
 #include "vertexnova/interaction/export.h"
 
 #include <vertexnova/math/core/core.h>
@@ -66,7 +71,11 @@ enum class UpAxis : std::uint8_t {
     eZ = 1,  //!< Z axis is world up (common in scientific/CAD)
 };
 
-/** Convert an UpAxis enum to a normalized world-space up vector. */
+/**
+ * @brief Convert an UpAxis enum to a normalized world-space up vector.
+ * @param axis The up axis (eY or eZ)
+ * @return Normalized vector (0,1,0) for eY or (0,0,1) for eZ
+ */
 [[nodiscard]] inline vne::math::Vec3f toWorldUp(UpAxis axis) noexcept {
     return (axis == UpAxis::eZ) ? vne::math::Vec3f(0.0f, 0.0f, 1.0f) : vne::math::Vec3f(0.0f, 1.0f, 0.0f);
 }

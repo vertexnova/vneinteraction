@@ -65,48 +65,140 @@ class VNE_INTERACTION_API CameraSystemController : public ICameraController {
     /** Rule of Five: default move assignment operator (movable). */
     CameraSystemController& operator=(CameraSystemController&&) noexcept = default;
 
-    /** Set the active camera to control. */
+    /**
+     * @brief Set the active camera to control.
+     * @param camera Shared pointer to the camera (may be nullptr)
+     */
     void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;
-    /** Enable or disable this controller. */
+
+    /**
+     * @brief Enable or disable this controller.
+     * @param enabled true to enable, false to disable
+     */
     void setEnabled(bool enabled) noexcept override;
-    /** Check if this controller is enabled. */
+
+    /**
+     * @brief Check if this controller is enabled.
+     * @return true if enabled
+     */
     [[nodiscard]] bool isEnabled() const noexcept override { return enabled_; }
-    /** Update the camera based on accumulated state (damping, inertia, etc.). */
+
+    /**
+     * @brief Update the camera based on accumulated state (damping, inertia, etc.).
+     * @param delta_time Time since last update in seconds
+     */
     void update(double delta_time) noexcept override;
-    /** Reset manipulator state and damping. */
+
+    /**
+     * @brief Reset manipulator state and damping.
+     */
     void reset() noexcept override;
-    /** Get the currently controlled camera. */
+
+    /**
+     * @brief Get the currently controlled camera.
+     * @return Shared pointer to the active camera, or nullptr
+     */
     [[nodiscard]] std::shared_ptr<vne::scene::ICamera> getCamera() const noexcept override { return camera_; }
-    /** Get the display name of this controller. */
+
+    /**
+     * @brief Get the display name of this controller.
+     * @return Display name string
+     */
     [[nodiscard]] const std::string& getName() const noexcept override { return name_; }
-    /** Set the display name of this controller. */
+
+    /**
+     * @brief Set the display name of this controller.
+     * @param name New display name
+     */
     void setName(const std::string& name) noexcept override { name_ = name; }
 
-    /** Set the camera manipulator (orbit, FPS, fly, etc.). */
+    /**
+     * @brief Set the camera manipulator (orbit, FPS, fly, etc.).
+     * @param manipulator Shared pointer to the manipulator (may be nullptr)
+     */
     void setManipulator(std::shared_ptr<ICameraManipulator> manipulator) noexcept;
+
+    /**
+     * @brief Get the current camera manipulator.
+     * @return Shared pointer to the active manipulator, or nullptr
+     */
     [[nodiscard]] std::shared_ptr<ICameraManipulator> getManipulator() const noexcept { return manipulator_; }
 
-    /** Set the viewport dimensions in pixels. */
+    /**
+     * @brief Set the viewport dimensions in pixels.
+     * @param width_px Viewport width in pixels
+     * @param height_px Viewport height in pixels
+     */
     void setViewportSize(float width_px, float height_px) noexcept;
-    /** Handle mouse movement input. */
+
+    /**
+     * @brief Handle mouse movement input.
+     * @param x Current cursor X position in viewport pixels
+     * @param y Current cursor Y position in viewport pixels
+     * @param delta_x Horizontal movement delta in pixels
+     * @param delta_y Vertical movement delta in pixels
+     * @param delta_time Time since last input in seconds
+     */
     void handleMouseMove(float x, float y, float delta_x, float delta_y, double delta_time) noexcept;
-    /** Handle mouse button press/release. */
+
+    /**
+     * @brief Handle mouse button press/release.
+     * @param button Mouse button index (0=left, 1=right, 2=middle)
+     * @param pressed true if pressed, false if released
+     * @param x Cursor X position in viewport pixels
+     * @param y Cursor Y position in viewport pixels
+     * @param delta_time Time since last input in seconds
+     */
     void handleMouseButton(int button, bool pressed, float x, float y, double delta_time) noexcept;
-    /** Handle mouse scroll wheel input. */
+
+    /**
+     * @brief Handle mouse scroll wheel input.
+     * @param scroll_x Horizontal scroll delta
+     * @param scroll_y Vertical scroll delta
+     * @param mouse_x Cursor X position in viewport pixels
+     * @param mouse_y Cursor Y position in viewport pixels
+     * @param delta_time Time since last input in seconds
+     */
     void handleMouseScroll(float scroll_x, float scroll_y, float mouse_x, float mouse_y, double delta_time) noexcept;
-    /** Handle keyboard input (key press/release). */
+
+    /**
+     * @brief Handle keyboard input (key press/release).
+     * @param key Key code (e.g. GLFW key code)
+     * @param pressed true if pressed, false if released
+     * @param delta_time Time since last input in seconds
+     */
     void handleKeyboard(int key, bool pressed, double delta_time) noexcept;
-    /** Handle touch pan gesture. */
+
+    /**
+     * @brief Handle touch pan gesture.
+     * @param pan Pan gesture data with delta_x_px and delta_y_px
+     * @param delta_time Time since last input in seconds
+     */
     void handleTouchPan(const TouchPan& pan, double delta_time) noexcept;
-    /** Handle touch pinch (zoom) gesture. */
+
+    /**
+     * @brief Handle touch pinch (zoom) gesture.
+     * @param pinch Pinch gesture data with scale and center position
+     * @param delta_time Time since last input in seconds
+     */
     void handleTouchPinch(const TouchPinch& pinch, double delta_time) noexcept;
 
-    /** Configure input key/button bindings for this controller. */
+    /**
+     * @brief Configure input key/button bindings for this controller.
+     * @param bindings New bindings configuration
+     */
     void setInputBindings(const CameraInputBindings& bindings) noexcept;
+
+    /**
+     * @brief Get the current input bindings.
+     * @return Copy of the current bindings
+     */
     [[nodiscard]] CameraInputBindings getInputBindings() const noexcept;
 
    private:
-    /** Assign the active camera to the current manipulator. */
+    /**
+     * @brief Assign the active camera to the current manipulator.
+     */
     void assignCameraToManipulator() noexcept;
 
     std::shared_ptr<vne::scene::ICamera> camera_;            //!< Shared pointer to the active camera

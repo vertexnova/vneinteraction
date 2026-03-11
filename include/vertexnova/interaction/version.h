@@ -8,11 +8,19 @@
  * ----------------------------------------------------------------------
  */
 
+/**
+ * @file version.h
+ * @brief Library version query API.
+ */
+
 #include "vertexnova/interaction/export.h"
 
 namespace vne::interaction {
 
-/** @brief Returns the project version string (e.g. "1.0.0"). */
+/**
+ * @brief Returns the project version string.
+ * @return Version string (e.g. "1.0.0")
+ */
 VNE_INTERACTION_API const char* get_version();
 
 }  // namespace vne::interaction
