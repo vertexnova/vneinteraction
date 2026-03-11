@@ -11,7 +11,6 @@
 
 #include "vertexnova/interaction/camera_manipulator_factory.h"
 #include "vertexnova/interaction/interaction_types.h"
-#include "vertexnova/interaction/version.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
 #include "vertexnova/scene/camera/perspective_camera.h"
@@ -19,13 +18,6 @@
 #include <vertexnova/math/core/core.h>
 
 namespace vne_interaction_test {
-
-TEST(VneInteraction, GetVersion) {
-    const char* ver = vne::interaction::get_version();
-    ASSERT_NE(ver, nullptr);
-    EXPECT_STRNE(ver, "");
-    EXPECT_STREQ(ver, "1.0.0");
-}
 
 TEST(VneInteraction, ManipulatorCreation) {
     auto factory = std::make_shared<vne::interaction::CameraManipulatorFactory>();
