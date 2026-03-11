@@ -93,28 +93,36 @@ void ArcballManipulator::syncFromCamera() noexcept {
     coi_world_ = camera_->getTarget();
     orbit_distance_ = std::max((camera_->getPosition() - coi_world_).length(), kMinOrbitDistance);
 
-    // Derive persistent orientation_ from camera's current eye direction.
-    // Rest direction is +Z from COI (camera sits along +Z axis in orientation frame).
-    const vne::math::Vec3f rest(0.0f, 0.0f, 1.0f);
-    vne::math::Vec3f eye_dir = (camera_->getPosition() - coi_world_);
-    const float eye_len = eye_dir.length();
-    eye_dir = (eye_len < kEpsilon) ? rest : (eye_dir / eye_len);
+    // Build orientation_ from the full camera basis (front + up), preserving any existing roll.
+    // orientation_ maps the rest frame (+Z = eye-from-COI, +Y = up) to the current camera frame.
+    vne::math::Vec3f back = (camera_->getPosition() - coi_world_);
+    const float back_len = back.length();
+    back = (back_len < kEpsilon) ? vne::math::Vec3f(0.0f, 0.0f, 1.0f) : (back / back_len);
 
-    const float d = rest.dot(eye_dir);
-    if (d >= 1.0f - kEpsilon) {
-        orientation_ = vne::math::Quatf{};  // identity
-    } else if (d <= -1.0f + kEpsilon) {
-        // 180-degree rotation — use world_up_ as axis
-        orientation_ = vne::math::Quatf::fromAxisAngle(world_up_, vne::math::kPi);
+    vne::math::Vec3f up = camera_->getUp();
+    const float up_len = up.length();
+    up = (up_len < kEpsilon) ? world_up_ : (up / up_len);
+
+    // Re-orthogonalize: right = up × back (then recompute up = back × right)
+    vne::math::Vec3f right = up.cross(back);
+    const float right_len = right.length();
+    if (right_len < kEpsilon) {
+        // Degenerate: up parallel to back, fall back to world_up_-derived frame
+        right = world_up_.cross(back);
+        const float r2 = right.length();
+        right = (r2 < kEpsilon) ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : (right / r2);
     } else {
-        vne::math::Vec3f axis = rest.cross(eye_dir);
-        const float axis_len = axis.length();
-        if (axis_len < kEpsilon) {
-            orientation_ = vne::math::Quatf{};
-        } else {
-            orientation_ = vne::math::Quatf::fromAxisAngle(axis / axis_len, vne::math::acos(d)).normalized();
-        }
+        right /= right_len;
     }
+    up = back.cross(right);  // guaranteed orthogonal to back and right
+
+    // Build rotation matrix from basis columns: col0=right(+X), col1=up(+Y), col2=back(+Z)
+    // glm::quat_cast expects a matrix whose columns are the basis vectors of the target frame.
+    const vne::math::Mat4f rot(vne::math::Vec4f(right.x(), right.y(), right.z(), 0.0f),
+                               vne::math::Vec4f(up.x(), up.y(), up.z(), 0.0f),
+                               vne::math::Vec4f(back.x(), back.y(), back.z(), 0.0f),
+                               vne::math::Vec4f(0.0f, 0.0f, 0.0f, 1.0f));
+    orientation_ = vne::math::Quatf(rot).normalized();
     normalize_counter_ = 0;
 }
 
@@ -295,9 +303,18 @@ void ArcballManipulator::applyInertia(double delta_time) noexcept {
 
     if (inertia_pan_velocity_.length() > kInertiaPanSpeedThreshold) {
         const vne::math::Vec3f delta = inertia_pan_velocity_ * dt;
-        coi_world_ += delta;
         inertia_pan_velocity_ *= std::exp(-pan_damping_ * dt);
-        changed = true;
+        if (pivot_mode_ == RotationPivotMode::eFixedWorld) {
+            // Fixed pivot: translate eye+target together, leave coi_world_ pinned
+            camera_->setPosition(camera_->getPosition() + delta);
+            camera_->setTarget(camera_->getTarget() + delta);
+            camera_->updateMatrices();
+            orbit_distance_ = std::max((camera_->getPosition() - coi_world_).length(), kMinOrbitDistance);
+            changed = false;  // applyToCamera() would overwrite eye position from orientation_
+        } else {
+            coi_world_ += delta;
+            changed = true;
+        }
     }
 
     if (changed) {

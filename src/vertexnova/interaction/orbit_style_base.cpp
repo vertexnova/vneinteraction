@@ -257,7 +257,7 @@ void OrbitStyleBase::update(double delta_time) noexcept {
             onPivotChanged();
         }
     }
-    if (!interaction_.rotating && !interaction_.panning) {
+    if (!animating_fit_ && !interaction_.rotating && !interaction_.panning) {
         applyInertia(delta_time);
     }
 }
@@ -385,8 +385,12 @@ void OrbitStyleBase::fitToAABB(const vne::math::Vec3f& min_world, const vne::mat
     if (radius < kEpsilon) {
         radius = kMinRadiusFallback;
     }
-    // Store target COI; current values will approach these smoothly in update()
+    // Compute targets. Apply them immediately so getters are correct on the same frame,
+    // then animate toward them smoothly in update(). The camera is placed at the target
+    // state right away; update() will drive any remaining delta on subsequent frames
+    // (zero delta if called right after fitToAABB, harmless).
     target_coi_world_ = center;
+    coi_world_ = center;
     if (auto persp = perspCamera()) {
         const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
         const float aspect = std::max(viewport_width_ / viewport_height_, kMinOrthoExtent);
@@ -394,6 +398,9 @@ void OrbitStyleBase::fitToAABB(const vne::math::Vec3f& min_world, const vne::mat
         const float dist_y = radius / vne::math::tan(fov_y_rad * 0.5f);
         const float dist_x = radius / vne::math::tan(fov_x_rad * 0.5f);
         target_orbit_distance_ = std::max(dist_x, dist_y) * kFitToAabbMargin;
+        orbit_distance_ = target_orbit_distance_;
+        applyToCamera();
+        onPivotChanged();
         animating_fit_ = true;
     } else if (auto ortho = orthoCamera()) {
         const vne::math::Vec3f front = computeFront();
