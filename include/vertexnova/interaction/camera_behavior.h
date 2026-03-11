@@ -36,7 +36,10 @@ class VNE_INTERACTION_API ICameraBehavior {
     virtual ~ICameraBehavior() noexcept = default;
 
     virtual void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept = 0;
+    virtual void setEnabled(bool enabled) noexcept = 0;
+    [[nodiscard]] virtual bool isEnabled() const noexcept = 0;
     virtual void update(double delta_time) noexcept = 0;
+    virtual void resetState() noexcept = 0;
 };
 
 }  // namespace vne::interaction

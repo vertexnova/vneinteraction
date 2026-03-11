@@ -49,7 +49,6 @@ class VNE_INTERACTION_API OrthoPanZoomManipulator final : public CameraManipulat
     void setZoomMethod(ZoomMethod method) noexcept { zoom_method_ = method; }
     [[nodiscard]] ZoomMethod getZoomMethod() const noexcept { return zoom_method_; }
     void setZoomSpeed(float speed) noexcept { zoom_speed_ = std::max(0.01f, speed); }
-    [[nodiscard]] float getZoomSpeed() const noexcept { return zoom_speed_; }
     void setPanDamping(float damping) noexcept { pan_damping_ = std::max(0.0f, damping); }
     [[nodiscard]] float getPanDamping() const noexcept { return pan_damping_; }
 

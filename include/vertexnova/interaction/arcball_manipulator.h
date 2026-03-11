@@ -54,7 +54,6 @@ class VNE_INTERACTION_API ArcballManipulator final : public OrbitStyleBase {
     void setPanSpeed(float speed) noexcept { pan_speed_ = std::max(0.0f, speed); }
     [[nodiscard]] float getPanSpeed() const noexcept { return pan_speed_; }
     void setZoomSpeed(float speed) noexcept { zoom_speed_ = std::max(0.01f, speed); }
-    [[nodiscard]] float getZoomSpeed() const noexcept { return zoom_speed_; }
     void setFovZoomSpeed(float speed) noexcept { fov_zoom_speed_ = std::max(0.01f, speed); }
     [[nodiscard]] float getFovZoomSpeed() const noexcept { return fov_zoom_speed_; }
     void setRotationDamping(float damping) noexcept { rot_damping_ = std::max(0.0f, damping); }

@@ -18,6 +18,10 @@ namespace vne::interaction {
 
 /**
  * @brief Factory that creates camera manipulators by type.
+ *
+ * create() returns a non-null shared_ptr for every value defined in CameraManipulatorType.
+ * Passing an out-of-range integer cast to CameraManipulatorType is undefined behaviour
+ * and will trigger an assertion in debug builds.
  * @threadsafe Not thread-safe.
  */
 class VNE_INTERACTION_API CameraManipulatorFactory {
@@ -25,6 +29,7 @@ class VNE_INTERACTION_API CameraManipulatorFactory {
     CameraManipulatorFactory() = default;
     ~CameraManipulatorFactory() = default;
 
+    /// Create a manipulator for the given type. Never returns nullptr for valid enum values.
     [[nodiscard]] std::shared_ptr<ICameraManipulator> create(CameraManipulatorType type) const;
 };
 

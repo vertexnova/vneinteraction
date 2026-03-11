@@ -35,6 +35,10 @@ class VNE_INTERACTION_API FollowManipulator final : public CameraManipulatorBase
     [[nodiscard]] bool supportsPerspective() const noexcept override { return true; }
     [[nodiscard]] bool supportsOrthographic() const noexcept override { return true; }
 
+    // Satisfy ICameraBehavior pure virtuals — forward to CameraManipulatorBase implementations.
+    void setEnabled(bool enabled) noexcept override { CameraManipulatorBase::setEnabled(enabled); }
+    [[nodiscard]] bool isEnabled() const noexcept override { return CameraManipulatorBase::isEnabled(); }
+
     void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;
     void update(double delta_time) noexcept override;
     void applyCommand(CameraActionType action,
@@ -64,7 +68,6 @@ class VNE_INTERACTION_API FollowManipulator final : public CameraManipulatorBase
     void setZoomMethod(ZoomMethod method) noexcept { zoom_method_ = method; }
     [[nodiscard]] ZoomMethod getZoomMethod() const noexcept { return zoom_method_; }
     void setZoomSpeed(float speed) noexcept { zoom_speed_ = std::max(0.01f, speed); }
-    [[nodiscard]] float getZoomSpeed() const noexcept { return zoom_speed_; }
 
    private:
     void applyZoom(float zoom_factor) noexcept;

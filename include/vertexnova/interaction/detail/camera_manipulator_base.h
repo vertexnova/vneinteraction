@@ -46,7 +46,9 @@ class VNE_INTERACTION_API CameraManipulatorBase : public ICameraManipulator {
 
    public:
     void setEnabled(bool enabled) noexcept override { enabled_ = enabled; }
+    [[nodiscard]] bool isEnabled() const noexcept override { return enabled_; }
     [[nodiscard]] float getSceneScale() const noexcept override { return scene_scale_; }
+    [[nodiscard]] float getZoomSpeed() const noexcept override { return zoom_speed_; }
     void setViewportSize(float width_px, float height_px) noexcept override;
     void applyCommand(CameraActionType, const CameraCommandPayload&, double) noexcept override {}
 };

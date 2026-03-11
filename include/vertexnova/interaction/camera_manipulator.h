@@ -34,6 +34,7 @@ class VNE_INTERACTION_API ICameraManipulator {
 
     virtual void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept = 0;
     virtual void setEnabled(bool enabled) noexcept = 0;
+    [[nodiscard]] virtual bool isEnabled() const noexcept = 0;
     virtual void setViewportSize(float width_px, float height_px) noexcept = 0;
     virtual void update(double delta_time) noexcept = 0;
 
@@ -46,6 +47,9 @@ class VNE_INTERACTION_API ICameraManipulator {
     virtual void handleTouchPinch(const TouchPinch& pinch, double delta_time) noexcept = 0;
 
     [[nodiscard]] virtual float getSceneScale() const noexcept = 0;
+    /// Returns the zoom speed used for scroll / pinch events (> 1.0). Used by CameraInputAdapter
+    /// to build the zoom_factor payload so the adapter path matches the direct handleMouseScroll path.
+    [[nodiscard]] virtual float getZoomSpeed() const noexcept = 0;
     virtual void resetState() noexcept = 0;
     virtual void fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept = 0;
     [[nodiscard]] virtual float getWorldUnitsPerPixel() const noexcept = 0;

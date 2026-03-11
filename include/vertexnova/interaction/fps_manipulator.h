@@ -41,7 +41,6 @@ class VNE_INTERACTION_API FpsManipulator final : public FreeCameraBase {
     void setMouseSensitivity(float deg_per_pixel) noexcept { mouse_sensitivity_ = std::max(0.0f, deg_per_pixel); }
     [[nodiscard]] float getMouseSensitivity() const noexcept { return mouse_sensitivity_; }
     void setZoomSpeed(float units_or_factor) noexcept { zoom_speed_ = std::max(0.01f, units_or_factor); }
-    [[nodiscard]] float getZoomSpeed() const noexcept { return zoom_speed_; }
     void setFovZoomSpeed(float factor) noexcept { fov_zoom_speed_ = std::max(0.01f, factor); }
     [[nodiscard]] float getFovZoomSpeed() const noexcept { return fov_zoom_speed_; }
     void setSprintMultiplier(float mult) noexcept { sprint_mult_ = std::max(1.0f, mult); }

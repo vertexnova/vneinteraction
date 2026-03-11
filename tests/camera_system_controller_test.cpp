@@ -28,6 +28,7 @@ class MockCameraManipulator : public vne::interaction::ICameraManipulator {
     MOCK_METHOD(bool, supportsOrthographic, (), (const, noexcept, override));
     MOCK_METHOD(void, setCamera, (std::shared_ptr<vne::scene::ICamera>), (noexcept, override));
     MOCK_METHOD(void, setEnabled, (bool), (noexcept, override));
+    MOCK_METHOD(bool, isEnabled, (), (const, noexcept, override));
     MOCK_METHOD(void, setViewportSize, (float, float), (noexcept, override));
     MOCK_METHOD(void, update, (double), (noexcept, override));
     MOCK_METHOD(void,
@@ -41,6 +42,7 @@ class MockCameraManipulator : public vne::interaction::ICameraManipulator {
     MOCK_METHOD(void, handleTouchPan, (const vne::interaction::TouchPan&, double), (noexcept, override));
     MOCK_METHOD(void, handleTouchPinch, (const vne::interaction::TouchPinch&, double), (noexcept, override));
     MOCK_METHOD(float, getSceneScale, (), (const, noexcept, override));
+    MOCK_METHOD(float, getZoomSpeed, (), (const, noexcept, override));
     MOCK_METHOD(void, resetState, (), (noexcept, override));
     MOCK_METHOD(void, fitToAABB, (const vne::math::Vec3f&, const vne::math::Vec3f&), (noexcept, override));
     MOCK_METHOD(float, getWorldUnitsPerPixel, (), (const, noexcept, override));

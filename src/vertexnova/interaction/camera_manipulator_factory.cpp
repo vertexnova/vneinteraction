@@ -15,6 +15,8 @@
 #include "vertexnova/interaction/orbit_manipulator.h"
 #include "vertexnova/interaction/ortho_pan_zoom_manipulator.h"
 
+#include <cassert>
+
 namespace vne::interaction {
 
 std::shared_ptr<ICameraManipulator> CameraManipulatorFactory::create(CameraManipulatorType type) const {
@@ -32,6 +34,7 @@ std::shared_ptr<ICameraManipulator> CameraManipulatorFactory::create(CameraManip
         case CameraManipulatorType::eFollow:
             return std::make_shared<FollowManipulator>();
     }
+    assert(false && "CameraManipulatorFactory::create: unhandled CameraManipulatorType");
     return nullptr;
 }
 

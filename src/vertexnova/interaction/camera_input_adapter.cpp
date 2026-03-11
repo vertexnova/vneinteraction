@@ -94,10 +94,11 @@ void CameraInputAdapter::feedMouseScroll(
     if (!manipulator_ || scroll_y == 0.0f) {
         return;
     }
+    const float zoom_speed = manipulator_->getZoomSpeed();
     CameraCommandPayload payload;
     payload.x_px = mouse_x;
     payload.y_px = mouse_y;
-    payload.zoom_factor = (scroll_y > 0.0f) ? (1.0f / 1.1f) : 1.1f;
+    payload.zoom_factor = (scroll_y > 0.0f) ? (1.0f / zoom_speed) : zoom_speed;
     send(CameraActionType::eZoomAtCursor, payload, delta_time);
 }
 
