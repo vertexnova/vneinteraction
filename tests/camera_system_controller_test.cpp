@@ -62,7 +62,7 @@ class CameraSystemControllerTest : public testing::Test {
 TEST_F(CameraSystemControllerTest, ImplementsICameraController) {
     EXPECT_EQ(controller_->getCamera(), nullptr);
     EXPECT_TRUE(controller_->isEnabled());
-    EXPECT_EQ(controller_->getName(), "CameraSystemController");
+    EXPECT_EQ(controller_->getName(), "VertexNovaCameraSystemController");
 }
 
 TEST_F(CameraSystemControllerTest, SetGetCamera) {
