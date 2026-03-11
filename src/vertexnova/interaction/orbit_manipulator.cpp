@@ -28,6 +28,27 @@ constexpr float kPitchMinDeg = -89.0f;
 constexpr float kPitchMaxDeg = 89.0f;
 constexpr float kInertiaRotThreshold = 1e-3f;
 constexpr double kMinDeltaTimeForInertia = 0.001;  // 1ms: ignore tiny-dt inertia samples
+
+/// Build a reference forward and right vector from an arbitrary world-up.
+/// For Y-up: forward = -Z, right = +X.  For Z-up: forward = +Y, right = +X.
+void buildReferenceFrame(const vne::math::Vec3f& world_up,
+                         vne::math::Vec3f& ref_fwd,
+                         vne::math::Vec3f& ref_right) noexcept {
+    // Choose a candidate forward that is not parallel to world_up
+    vne::math::Vec3f candidate =
+        (std::abs(world_up.y()) > 0.9f) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : vne::math::Vec3f(0.0f, -1.0f, 0.0f);
+    // Gram-Schmidt: make candidate perpendicular to world_up
+    ref_fwd = (candidate - world_up * candidate.dot(world_up));
+    const float fwd_len = ref_fwd.length();
+    ref_fwd = (fwd_len < kEpsilon) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : (ref_fwd / fwd_len);
+    ref_right = world_up.cross(ref_fwd);
+    const float right_len = ref_right.length();
+    if (right_len > kEpsilon) {
+        ref_right /= right_len;
+    } else {
+        ref_right = vne::math::Vec3f(1.0f, 0.0f, 0.0f);
+    }
+}
 }  // namespace
 
 OrbitManipulator::OrbitManipulator() noexcept {
@@ -48,12 +69,17 @@ void OrbitManipulator::setCamera(std::shared_ptr<vne::scene::ICamera> camera) no
 }
 
 vne::math::Vec3f OrbitManipulator::computeFront() const noexcept {
+    vne::math::Vec3f ref_fwd, ref_right;
+    buildReferenceFrame(world_up_, ref_fwd, ref_right);
+
     const float yaw_rad = vne::math::degToRad(yaw_deg_);
     const float pitch_rad = vne::math::degToRad(pitch_deg_);
     const float cp = vne::math::cos(pitch_rad);
-    vne::math::Vec3f front(vne::math::sin(yaw_rad) * cp, vne::math::sin(pitch_rad), -vne::math::cos(yaw_rad) * cp);
+    // Rotate ref_fwd by yaw around world_up_, then tilt by pitch toward world_up_
+    vne::math::Vec3f front = (ref_fwd * vne::math::cos(yaw_rad) + ref_right * vne::math::sin(yaw_rad)) * cp
+                             + world_up_ * vne::math::sin(pitch_rad);
     const float len = front.length();
-    return (len < kEpsilon) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : (front / len);
+    return (len < kEpsilon) ? ref_fwd : (front / len);
 }
 
 void OrbitManipulator::syncFromCamera() noexcept {
@@ -71,8 +97,22 @@ void OrbitManipulator::syncFromCamera() noexcept {
         return;
     }
     front /= orbit_distance_;
-    pitch_deg_ = vne::math::radToDeg(vne::math::asin(vne::math::clamp(front.y(), -1.0f, 1.0f)));
-    yaw_deg_ = vne::math::radToDeg(vne::math::atan2(front.x(), -front.z()));
+
+    // Extract pitch: component along world_up_
+    const float up_comp = vne::math::clamp(front.dot(world_up_), -1.0f, 1.0f);
+    pitch_deg_ = vne::math::radToDeg(vne::math::asin(up_comp));
+
+    // Extract yaw: project front onto the horizontal plane, measure against reference frame
+    const vne::math::Vec3f horiz = front - world_up_ * up_comp;
+    const float horiz_len = horiz.length();
+    if (horiz_len < kEpsilon) {
+        yaw_deg_ = 0.0f;
+        return;
+    }
+    const vne::math::Vec3f horiz_n = horiz / horiz_len;
+    vne::math::Vec3f ref_fwd, ref_right;
+    buildReferenceFrame(world_up_, ref_fwd, ref_right);
+    yaw_deg_ = vne::math::radToDeg(vne::math::atan2(horiz_n.dot(ref_right), horiz_n.dot(ref_fwd)));
 }
 
 void OrbitManipulator::applyToCamera() noexcept {

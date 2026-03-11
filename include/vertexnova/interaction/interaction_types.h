@@ -60,6 +60,11 @@ enum class UpAxis : std::uint8_t {
     eZ = 1,
 };
 
+/// Convert an UpAxis enum to a normalized world-space up vector.
+[[nodiscard]] inline vne::math::Vec3f toWorldUp(UpAxis axis) noexcept {
+    return (axis == UpAxis::eZ) ? vne::math::Vec3f(0.0f, 0.0f, 1.0f) : vne::math::Vec3f(0.0f, 1.0f, 0.0f);
+}
+
 enum class MouseButton : int {
     eLeft = 0,
     eRight = 1,

@@ -60,7 +60,11 @@ void FpsManipulator::fitToAABB(const vne::math::Vec3f& min_world, const vne::mat
 }
 
 float FpsManipulator::getWorldUnitsPerPixel() const noexcept {
-    return 0.0f;
+    if (auto persp = perspCamera()) {
+        const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
+        return 2.0f * vne::math::tan(fov_y_rad * 0.5f) / viewport_height_;
+    }
+    return 1.0f;
 }
 
 }  // namespace vne::interaction

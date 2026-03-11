@@ -6,16 +6,17 @@
 
 #include "vertexnova/interaction/follow_manipulator.h"
 #include "vertexnova/scene/camera/camera.h"
+#include "vertexnova/scene/camera/orthographic_camera.h"
 #include "vertexnova/scene/camera/perspective_camera.h"
 
 #include <vertexnova/math/core/core.h>
+#include <vertexnova/math/core/math_utils.h>
 #include <algorithm>
 #include <cmath>
 
 namespace vne::interaction {
 
 namespace {
-constexpr float kEpsilon = 1e-6f;
 constexpr float kFovMinDeg = 5.0f;
 constexpr float kFovMaxDeg = 120.0f;
 constexpr float kSceneScaleMin = 1e-4f;
@@ -129,7 +130,15 @@ void FollowManipulator::handleTouchPinch(const TouchPinch& pinch, double) noexce
 }
 
 float FollowManipulator::getWorldUnitsPerPixel() const noexcept {
-    return 0.0f;
+    if (auto ortho = orthoCamera()) {
+        return ortho->getHeight() / viewport_height_;
+    }
+    if (auto persp = perspCamera()) {
+        const float dist = offset_world_.length();
+        const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
+        return 2.0f * dist * vne::math::tan(fov_y_rad * 0.5f) / viewport_height_;
+    }
+    return 1.0f;
 }
 
 }  // namespace vne::interaction
