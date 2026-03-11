@@ -25,6 +25,25 @@ set(SOURCE_FILES
 )
 
 set(HEADER_FILES
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/export.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/version.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/interaction_types.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_manipulator.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_behavior.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_controller.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_manipulator_factory.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_system_controller.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/orbit_manipulator.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/arcball_manipulator.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/fps_manipulator.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/fly_manipulator.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/ortho_pan_zoom_manipulator.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/follow_manipulator.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/interaction.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/detail/camera_manipulator_base.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/detail/camera_input_adapter.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/detail/orbit_style_base.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/detail/free_camera_base.h
 )
 
 # One library per build: static or shared, always named vneinteraction (alias vne::interaction).
