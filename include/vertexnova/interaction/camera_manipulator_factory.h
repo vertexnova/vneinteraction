@@ -5,6 +5,7 @@
  *
  * Author:    Ajeet Singh Yadav
  * Created:   March 2026
+ * Autodoc:   yes
  * ----------------------------------------------------------------------
  */
 
@@ -26,10 +27,22 @@ namespace vne::interaction {
  */
 class VNE_INTERACTION_API CameraManipulatorFactory {
    public:
+    /** Construct default factory. */
     CameraManipulatorFactory() = default;
+    /** Destroy factory. */
     ~CameraManipulatorFactory() = default;
 
-    /// Create a manipulator for the given type. Never returns nullptr for valid enum values.
+    /** Rule of Five: delete copy constructor (non-copyable). */
+    CameraManipulatorFactory(const CameraManipulatorFactory&) = delete;
+    /** Rule of Five: delete copy assignment operator (non-copyable). */
+    CameraManipulatorFactory& operator=(const CameraManipulatorFactory&) = delete;
+
+    /** Rule of Five: default move constructor (movable). */
+    CameraManipulatorFactory(CameraManipulatorFactory&&) noexcept = default;
+    /** Rule of Five: default move assignment operator (movable). */
+    CameraManipulatorFactory& operator=(CameraManipulatorFactory&&) noexcept = default;
+
+    /** Create a manipulator for the given type. Never returns nullptr for valid enum values. */
     [[nodiscard]] std::shared_ptr<ICameraManipulator> create(CameraManipulatorType type) const;
 };
 
