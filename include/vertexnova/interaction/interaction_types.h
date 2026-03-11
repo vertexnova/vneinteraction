@@ -131,8 +131,7 @@ enum class CameraActionType : std::uint8_t {
     eSprintModifier = 16,
     eSlowModifier = 17,
     eOrbitPanModifier = 18,  // shift: orbit uses for pan-alias, free uses SprintModifier
-    eFitBounds = 19,
-    eResetView = 20,
+    eResetView = 19,
 };
 
 /// Payload for actions that carry pointer/cursor or delta data.
@@ -143,9 +142,6 @@ struct VNE_INTERACTION_API CameraCommandPayload {
     float delta_y_px = 0.0f;
     float zoom_factor = 1.0f;
     bool pressed = false;
-    /// For eFitBounds: world-space AABB. Valid when (aabb_max - aabb_min).length() > 0.
-    vne::math::Vec3f aabb_min{0.0f, 0.0f, 0.0f};
-    vne::math::Vec3f aabb_max{0.0f, 0.0f, 0.0f};
 };
 
 // -----------------------------------------------------------------------------

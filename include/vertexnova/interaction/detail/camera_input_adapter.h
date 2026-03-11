@@ -30,6 +30,7 @@ class CameraInputAdapter {
     void setManipulator(std::shared_ptr<ICameraManipulator> manipulator) noexcept {
         manipulator_ = std::move(manipulator);
         current_action_ = Action::None;
+        touch_pan_active_ = false;
     }
     [[nodiscard]] std::shared_ptr<ICameraManipulator> getManipulator() const noexcept { return manipulator_; }
 
@@ -53,6 +54,7 @@ class CameraInputAdapter {
     float last_x_px_ = 0.0f;
     float last_y_px_ = 0.0f;
     bool modifier_shift_ = false;
+    bool touch_pan_active_ = false;
 
     CameraInputBindings bindings_;
 };

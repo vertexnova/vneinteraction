@@ -68,13 +68,6 @@ void FollowManipulator::applyCommand(CameraActionType action, const CameraComman
                 applyZoom(payload.zoom_factor);
             }
             break;
-        case CameraActionType::eFitBounds: {
-            const vne::math::Vec3f extents = payload.aabb_max - payload.aabb_min;
-            if (extents.length() > kEpsilon) {
-                fitToAABB(payload.aabb_min, payload.aabb_max);
-            }
-            break;
-        }
         case CameraActionType::eResetView:
             resetState();
             break;
