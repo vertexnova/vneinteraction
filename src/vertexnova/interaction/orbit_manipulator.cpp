@@ -150,14 +150,14 @@ void OrbitManipulator::beginRotate(float x_px, float y_px) noexcept {
 }
 
 void OrbitManipulator::dragRotate(float delta_x_px, float delta_y_px, double delta_time) noexcept {
-    yaw_deg_ += delta_x_px * rotation_speed_;
-    pitch_deg_ -= delta_y_px * rotation_speed_;
+    yaw_deg_ -= delta_x_px * rotation_speed_;
+    pitch_deg_ += delta_y_px * rotation_speed_;
     pitch_deg_ = vne::math::clamp(pitch_deg_, kPitchMinDeg, kPitchMaxDeg);
     applyToCamera();
     if (delta_time >= kMinDeltaTimeForInertia) {
         const float inv_dt = 1.0f / static_cast<float>(delta_time);
-        inertia_rot_speed_x_ = delta_x_px * rotation_speed_ * inv_dt;
-        inertia_rot_speed_y_ = -delta_y_px * rotation_speed_ * inv_dt;
+        inertia_rot_speed_x_ = -delta_x_px * rotation_speed_ * inv_dt;
+        inertia_rot_speed_y_ = delta_y_px * rotation_speed_ * inv_dt;
     }
 }
 

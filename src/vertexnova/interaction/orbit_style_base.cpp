@@ -81,15 +81,16 @@ void OrbitStyleBase::dragPan(float, float, float delta_x_px, float delta_y_px, d
     const vne::math::Vec3f r = computeRight(front);
     const vne::math::Vec3f u = computeUp(front, r);
     vne::math::Vec3f delta_world(0.0f, 0.0f, 0.0f);
+    // Cursor left → scene moves left (drag-the-world convention)
     if (isPerspective()) {
         const float wpp = getWorldUnitsPerPixel();
-        delta_world = r * (-delta_x_px * wpp * pan_speed_) + u * (delta_y_px * wpp * pan_speed_);
+        delta_world = r * (delta_x_px * wpp * pan_speed_) + u * (-delta_y_px * wpp * pan_speed_);
     } else {
         auto ortho = orthoCamera();
         if (ortho) {
             const float wppx = ortho->getWidth() / viewport_width_;
             const float wppy = ortho->getHeight() / viewport_height_;
-            delta_world = r * (-delta_x_px * wppx * pan_speed_) + u * (delta_y_px * wppy * pan_speed_);
+            delta_world = r * (delta_x_px * wppx * pan_speed_) + u * (-delta_y_px * wppy * pan_speed_);
         }
     }
 

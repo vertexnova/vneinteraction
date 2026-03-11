@@ -254,8 +254,9 @@ void ArcballManipulator::dragRotate(float x_px, float y_px, double delta_time) n
     const vne::math::Vec3f front = computeFront();
     const vne::math::Vec3f r = computeRight(front);
     const vne::math::Vec3f u = computeUp(front, r);
-    const vne::math::Vec3f prev_world = (r * prev_cam.x() + u * prev_cam.y() + front * prev_cam.z()).normalized();
-    const vne::math::Vec3f curr_world = (r * curr_cam.x() + u * curr_cam.y() + front * curr_cam.z()).normalized();
+    // Swap prev/curr so scene follows cursor (drag-the-world convention)
+    const vne::math::Vec3f prev_world = (r * curr_cam.x() + u * curr_cam.y() + front * curr_cam.z()).normalized();
+    const vne::math::Vec3f curr_world = (r * prev_cam.x() + u * prev_cam.y() + front * prev_cam.z()).normalized();
 
     // Update screen-space start for next frame
     arcball_start_x_ = x_px;

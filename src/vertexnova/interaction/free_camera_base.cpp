@@ -122,8 +122,8 @@ void FreeCameraBase::applyCommand(CameraActionType action, const CameraCommandPa
             break;
         case CameraActionType::eLookDelta:
             if (camera_ && input_state_.looking) {
-                yaw_deg_ += payload.delta_x_px * mouse_sensitivity_;
-                pitch_deg_ += -payload.delta_y_px * mouse_sensitivity_;
+                yaw_deg_ -= payload.delta_x_px * mouse_sensitivity_;
+                pitch_deg_ += payload.delta_y_px * mouse_sensitivity_;
                 pitch_deg_ = vne::math::clamp(pitch_deg_, kPitchMinDeg, kPitchMaxDeg);
                 applyAnglesToCamera();
             }
@@ -225,8 +225,8 @@ void FreeCameraBase::handleMouseMove(float, float, float delta_x, float delta_y,
     if (!enabled_ || !camera_ || !input_state_.looking) {
         return;
     }
-    yaw_deg_ += delta_x * mouse_sensitivity_;
-    pitch_deg_ += -delta_y * mouse_sensitivity_;
+    yaw_deg_ -= delta_x * mouse_sensitivity_;
+    pitch_deg_ += delta_y * mouse_sensitivity_;
     pitch_deg_ = vne::math::clamp(pitch_deg_, kPitchMinDeg, kPitchMaxDeg);
     applyAnglesToCamera();
 }
@@ -278,8 +278,8 @@ void FreeCameraBase::handleTouchPan(const TouchPan& pan, double) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }
-    yaw_deg_ += pan.delta_x_px * mouse_sensitivity_ * kTouchPanSensitivityFactor;
-    pitch_deg_ += -pan.delta_y_px * mouse_sensitivity_ * kTouchPanSensitivityFactor;
+    yaw_deg_ -= pan.delta_x_px * mouse_sensitivity_ * kTouchPanSensitivityFactor;
+    pitch_deg_ += pan.delta_y_px * mouse_sensitivity_ * kTouchPanSensitivityFactor;
     pitch_deg_ = vne::math::clamp(pitch_deg_, kPitchMinDeg, kPitchMaxDeg);
     applyAnglesToCamera();
 }

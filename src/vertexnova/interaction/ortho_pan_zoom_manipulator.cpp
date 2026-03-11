@@ -56,7 +56,8 @@ void OrthoPanZoomManipulator::pan(float delta_x_px, float delta_y_px, double del
 
     const float wppx = ortho->getWidth() / viewport_width_;
     const float wppy = ortho->getHeight() / viewport_height_;
-    const vne::math::Vec3f delta_world = r * (-delta_x_px * wppx) + up * (delta_y_px * wppy);
+    // Cursor left → scene moves left (drag-the-world convention)
+    const vne::math::Vec3f delta_world = r * (delta_x_px * wppx) + up * (-delta_y_px * wppy);
 
     ortho->setPosition(eye + delta_world);
     ortho->setTarget(target + delta_world);
