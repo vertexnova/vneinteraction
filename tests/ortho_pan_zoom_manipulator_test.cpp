@@ -170,4 +170,50 @@ TEST_F(OrthoPanZoomManipulatorTest, SetCameraWithPerspectiveDoesNotCrash) {
     EXPECT_NO_FATAL_FAILURE(manip_->setCamera(persp_cam));
 }
 
+// --- fitToAABB / eResetView ---
+
+TEST_F(OrthoPanZoomManipulatorTest, FitToAABBFramesCamera) {
+    manip_->setCamera(ortho_cam_);
+    manip_->setViewportSize(1280.0f, 720.0f);
+
+    EXPECT_NO_FATAL_FAILURE(
+        manip_->fitToAABB(vne::math::Vec3f{-3.0f, -3.0f, -3.0f}, vne::math::Vec3f{3.0f, 3.0f, 3.0f}));
+
+    // Ortho bounds must have been updated — width/height > zero
+    EXPECT_GT(ortho_cam_->getWidth(), 0.0f);
+    EXPECT_GT(ortho_cam_->getHeight(), 0.0f);
+    // Camera target must be at AABB center
+    const vne::math::Vec3f center{0.0f, 0.0f, 0.0f};
+    EXPECT_NEAR(ortho_cam_->getTarget().x(), center.x(), 1e-3f);
+    EXPECT_NEAR(ortho_cam_->getTarget().y(), center.y(), 1e-3f);
+    EXPECT_NEAR(ortho_cam_->getTarget().z(), center.z(), 1e-3f);
+}
+
+TEST_F(OrthoPanZoomManipulatorTest, FitToAABBZeroExtentsDoesNotCrash) {
+    manip_->setCamera(ortho_cam_);
+    manip_->setViewportSize(1280.0f, 720.0f);
+
+    EXPECT_NO_FATAL_FAILURE(manip_->fitToAABB(vne::math::Vec3f{2.0f, 2.0f, 2.0f}, vne::math::Vec3f{2.0f, 2.0f, 2.0f}));
+}
+
+TEST_F(OrthoPanZoomManipulatorTest, ApplyCommandResetViewClearsInertiaAndInteraction) {
+    manip_->setCamera(ortho_cam_);
+    manip_->setViewportSize(1280.0f, 720.0f);
+
+    // Accumulate pan inertia
+    manip_->handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eMiddle), true, 640.0f, 360.0f, 0.016);
+    manip_->handleMouseMove(645.0f, 365.0f, 5.0f, 5.0f, 0.016);
+    manip_->handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eMiddle), false, 645.0f, 365.0f, 0.016);
+
+    vne::interaction::CameraCommandPayload payload{};
+    EXPECT_NO_FATAL_FAILURE(manip_->applyCommand(vne::interaction::CameraActionType::eResetView, payload, 0.016));
+
+    // After reset, update() must not move the camera (inertia cleared)
+    const vne::math::Vec3f pos_before = ortho_cam_->getPosition();
+    manip_->update(0.016);
+    manip_->update(0.016);
+    const vne::math::Vec3f pos_after = ortho_cam_->getPosition();
+    EXPECT_NEAR((pos_after - pos_before).length(), 0.0f, 1e-4f);
+}
+
 }  // namespace vne_interaction_test

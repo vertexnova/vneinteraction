@@ -24,9 +24,11 @@ class OrthographicCamera;
 namespace vne::interaction {
 
 /**
- * Base for all camera manipulators. Holds common state and
- * provides default implementations for setEnabled, getSceneScale, setViewportSize.
- * Exported so virtuals are visible across the DLL boundary (e.g. when linking tests).
+ * @brief Base for all camera manipulators.
+ *
+ * Holds common state and provides default implementations for setEnabled,
+ * getSceneScale, setViewportSize. Exported so virtuals are visible across
+ * the DLL boundary (e.g. when linking tests).
  */
 class VNE_INTERACTION_API CameraManipulatorBase : public ICameraManipulator {
    protected:
@@ -45,8 +47,35 @@ class VNE_INTERACTION_API CameraManipulatorBase : public ICameraManipulator {
     [[nodiscard]] std::shared_ptr<vne::scene::OrthographicCamera> orthoCamera() const noexcept;
 
    public:
+    /**
+     * @brief Enable or disable this manipulator.
+     * @param enabled true to enable, false to disable
+     */
     void setEnabled(bool enabled) noexcept override { enabled_ = enabled; }
+
+    /**
+     * @brief Check if this manipulator is enabled.
+     * @return true if enabled
+     */
+    [[nodiscard]] bool isEnabled() const noexcept override { return enabled_; }
+
+    /**
+     * @brief Get the current scene scale value.
+     * @return Scene scale factor
+     */
     [[nodiscard]] float getSceneScale() const noexcept override { return scene_scale_; }
+
+    /**
+     * @brief Get the zoom speed for scroll/pinch events.
+     * @return Zoom speed factor
+     */
+    [[nodiscard]] float getZoomSpeed() const noexcept override { return zoom_speed_; }
+
+    /**
+     * @brief Set the viewport dimensions in pixels.
+     * @param width_px Viewport width in pixels
+     * @param height_px Viewport height in pixels
+     */
     void setViewportSize(float width_px, float height_px) noexcept override;
     void applyCommand(CameraActionType, const CameraCommandPayload&, double) noexcept override {}
 };

@@ -215,6 +215,9 @@ void ArcballManipulator::applyCommand(CameraActionType action,
                 zoom(payload.zoom_factor, payload.x_px, payload.y_px);
             }
             break;
+        case CameraActionType::eResetView:
+            resetState();
+            break;
         default:
             OrbitStyleBase::applyCommand(action, payload, delta_time);
             break;
@@ -244,8 +247,9 @@ void ArcballManipulator::dragRotate(float x_px, float y_px, double delta_time) n
     const vne::math::Vec3f front = computeFront();
     const vne::math::Vec3f r = computeRight(front);
     const vne::math::Vec3f u = computeUp(front, r);
-    const vne::math::Vec3f prev_world = (r * prev_cam.x() + u * prev_cam.y() + front * prev_cam.z()).normalized();
-    const vne::math::Vec3f curr_world = (r * curr_cam.x() + u * curr_cam.y() + front * curr_cam.z()).normalized();
+    // Swap prev/curr so scene follows cursor (drag-the-world convention)
+    const vne::math::Vec3f prev_world = (r * curr_cam.x() + u * curr_cam.y() + front * curr_cam.z()).normalized();
+    const vne::math::Vec3f curr_world = (r * prev_cam.x() + u * prev_cam.y() + front * prev_cam.z()).normalized();
 
     // Update screen-space start for next frame
     arcball_start_x_ = x_px;
@@ -347,6 +351,20 @@ float ArcballManipulator::getWorldUnitsPerPixel() const noexcept {
     return OrbitStyleBase::getWorldUnitsPerPixel();
 }
 
+void ArcballManipulator::handleMouseMove(float x, float y, float delta_x, float delta_y, double delta_time) noexcept {
+    if (!enabled_ || !camera_) {
+        return;
+    }
+    if (interaction_.rotating) {
+        // Arcball needs absolute screen positions for projectToArcball; base passes deltas
+        dragRotate(x, y, delta_time);
+    } else if (interaction_.panning) {
+        dragPan(x, y, delta_x, delta_y, delta_time);
+    }
+    interaction_.last_x_px = x;
+    interaction_.last_y_px = y;
+}
+
 void ArcballManipulator::handleMouseScroll(float, float scroll_y, float mouse_x, float mouse_y, double) noexcept {
     if (!enabled_ || !camera_ || scroll_y == 0.0f) {
         return;
@@ -359,7 +377,11 @@ void ArcballManipulator::handleTouchPan(const TouchPan& pan, double delta_time) 
         return;
     }
     if (!interaction_.rotating) {
-        beginRotate(viewport_width_ * kTouchPanViewportCenterFactor, viewport_height_ * kTouchPanViewportCenterFactor);
+        const float center_x = viewport_width_ * kTouchPanViewportCenterFactor;
+        const float center_y = viewport_height_ * kTouchPanViewportCenterFactor;
+        beginRotate(center_x, center_y);
+        interaction_.last_x_px = center_x;
+        interaction_.last_y_px = center_y;
     }
     const float x = interaction_.last_x_px + pan.delta_x_px;
     const float y = interaction_.last_y_px + pan.delta_y_px;

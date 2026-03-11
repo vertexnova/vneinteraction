@@ -1,11 +1,17 @@
 #pragma once
 /* ---------------------------------------------------------------------
- * Copyright (c) 2025 Ajeet Singh Yadav. All rights reserved.
+ * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
  * Author:    Ajeet Singh Yadav
  * Created:   March 2026
+ * Autodoc:   yes
  * ----------------------------------------------------------------------
+ */
+
+/**
+ * @file interaction_types.h
+ * @brief Types, enums, and structs for camera interaction (manipulators, gestures, bindings).
  */
 
 #include "vertexnova/interaction/export.h"
@@ -16,71 +22,88 @@
 
 namespace vne::interaction {
 
+/** Camera manipulator type enum for selecting interaction model. */
 enum class CameraManipulatorType : std::uint8_t {
-    eOrbit = 0,
-    eArcball = 1,
-    eFps = 2,
-    eFly = 3,
-    eOrthoPanZoom = 4,
-    eFollow = 5,
+    eOrbit = 0,         //!< Orbit-style rotation around center of interest
+    eArcball = 1,       //!< Arcball-style quaternion-based smooth rotation
+    eFps = 2,           //!< FPS-style movement with world-up constraint
+    eFly = 3,           //!< Fly-style 6-DOF unconstrained movement
+    eOrthoPanZoom = 4,  //!< Orthographic pan and zoom (no rotation)
+    eFollow = 5,        //!< Follow-style autonomous behavior tracking
 };
 
+/** Space for center-of-interest specification. */
 enum class CenterOfInterestSpace : std::uint8_t {
-    eWorldSpace = 0,
-    eCameraSpace = 1,
+    eWorldSpace = 0,   //!< Pivot point in absolute world coordinates
+    eCameraSpace = 1,  //!< Pivot point in camera-relative coordinates
 };
 
+/** Preset view direction for camera framing. */
 enum class ViewDirection : std::uint8_t {
-    eFront = 0,
-    eBack = 1,
-    eLeft = 2,
-    eRight = 3,
-    eTop = 4,
-    eBottom = 5,
-    eIso = 6,
+    eFront = 0,   //!< Looking along +Z axis
+    eBack = 1,    //!< Looking along -Z axis
+    eLeft = 2,    //!< Looking along -X axis
+    eRight = 3,   //!< Looking along +X axis
+    eTop = 4,     //!< Looking down along -Y axis
+    eBottom = 5,  //!< Looking up along +Y axis
+    eIso = 6,     //!< Isometric view at 45-45 degrees
 };
 
+/** Zoom behavior method selection. */
 enum class ZoomMethod : std::uint8_t {
-    eDollyToCoi = 0,
-    eSceneScale = 1,
-    eChangeFov = 2,
+    eDollyToCoi = 0,  //!< Move camera along view direction toward center of interest
+    eSceneScale = 1,  //!< Scale entire scene relative to camera
+    eChangeFov = 2,   //!< Adjust field of view (perspective cameras only)
 };
 
-/// Controls which point in world space the camera rotates around (the center of interest / pivot point).
+/** Controls which point in world space the camera rotates around (the center of interest / pivot point). */
 enum class RotationPivotMode : std::uint8_t {
-    eCoi = 0,  ///< Rotate around the current center of interest in world space (default; panning moves this pivot)
-    eViewCenter = 1,  ///< On pan end, the center of interest updates to the camera's view center (current camera
-                      ///< target); subsequent rotations pivot around the point you panned to
-    eFixedWorld = 2,  ///< The world-space pivot is fixed; panning translates eye and target together without
-                      ///< changing the center of interest; rotation always orbits around this fixed pivot
+    eCoi = 0,  //!< Rotate around the current center of interest in world space (default; panning moves this pivot)
+    eViewCenter = 1,  //!< On pan end, the center of interest updates to the camera's view center (current camera
+                      //!< target); subsequent rotations pivot around the point you panned to
+    eFixedWorld = 2,  //!< The world-space pivot is fixed; panning translates eye and target together without changing
+                      //!< the center of interest; rotation always orbits around this fixed pivot
 };
 
+/** World up axis selection. */
 enum class UpAxis : std::uint8_t {
-    eY = 0,
-    eZ = 1,
+    eY = 0,  //!< Y axis is world up (standard in graphics)
+    eZ = 1,  //!< Z axis is world up (common in scientific/CAD)
 };
 
+/**
+ * @brief Convert an UpAxis enum to a normalized world-space up vector.
+ * @param axis The up axis (eY or eZ)
+ * @return Normalized vector (0,1,0) for eY or (0,0,1) for eZ
+ */
+[[nodiscard]] inline vne::math::Vec3f toWorldUp(UpAxis axis) noexcept {
+    return (axis == UpAxis::eZ) ? vne::math::Vec3f(0.0f, 0.0f, 1.0f) : vne::math::Vec3f(0.0f, 1.0f, 0.0f);
+}
+
+/** Mouse button enumeration. */
 enum class MouseButton : int {
-    eLeft = 0,
-    eRight = 1,
-    eMiddle = 2,
+    eLeft = 0,    //!< Left mouse button
+    eRight = 1,   //!< Right mouse button
+    eMiddle = 2,  //!< Middle/wheel mouse button
 };
 
-/// Button indices for rotate/pan (e.g. left/right mouse). Used by orbit-style manipulators.
+/** Button indices for rotate/pan (e.g. left/right mouse). Used by orbit-style manipulators. */
 struct VNE_INTERACTION_API ButtonMap {
-    int rotate = static_cast<int>(MouseButton::eLeft);
-    int pan = static_cast<int>(MouseButton::eRight);
+    int rotate = static_cast<int>(MouseButton::eLeft);  //!< Button for rotation (default: left mouse)
+    int pan = static_cast<int>(MouseButton::eRight);    //!< Button for panning (default: right mouse)
 };
 
+/** Touch pan gesture data with screen pixel deltas. */
 struct VNE_INTERACTION_API TouchPan final {
-    float delta_x_px = 0.0f;
-    float delta_y_px = 0.0f;
+    float delta_x_px = 0.0f;  //!< Horizontal pan delta in screen pixels
+    float delta_y_px = 0.0f;  //!< Vertical pan delta in screen pixels
 };
 
+/** Touch pinch (zoom) gesture data with scale and center position. */
 struct VNE_INTERACTION_API TouchPinch final {
-    float scale = 1.0f;
-    float center_x_px = 0.0f;
-    float center_y_px = 0.0f;
+    float scale = 1.0f;        //!< Zoom scale factor (>1 zooms in, <1 zooms out)
+    float center_x_px = 0.0f;  //!< Pinch center X position in screen pixels
+    float center_y_px = 0.0f;  //!< Pinch center Y position in screen pixels
 };
 
 // -----------------------------------------------------------------------------
@@ -131,18 +154,17 @@ enum class CameraActionType : std::uint8_t {
     eSprintModifier = 16,
     eSlowModifier = 17,
     eOrbitPanModifier = 18,  // shift: orbit uses for pan-alias, free uses SprintModifier
-    eFitBounds = 19,
-    eResetView = 20,
+    eResetView = 19,
 };
 
-/// Payload for actions that carry pointer/cursor or delta data.
+/** Payload for actions that carry pointer/cursor or delta data. */
 struct VNE_INTERACTION_API CameraCommandPayload {
-    float x_px = 0.0f;
-    float y_px = 0.0f;
-    float delta_x_px = 0.0f;
-    float delta_y_px = 0.0f;
-    float zoom_factor = 1.0f;
-    bool pressed = false;
+    float x_px = 0.0f;         //!< Absolute X position in screen pixels
+    float y_px = 0.0f;         //!< Absolute Y position in screen pixels
+    float delta_x_px = 0.0f;   //!< Relative X delta in screen pixels
+    float delta_y_px = 0.0f;   //!< Relative Y delta in screen pixels
+    float zoom_factor = 1.0f;  //!< Zoom scaling factor
+    bool pressed = false;      //!< Button pressed state
 };
 
 // -----------------------------------------------------------------------------

@@ -94,10 +94,11 @@ void CameraInputAdapter::feedMouseScroll(
     if (!manipulator_ || scroll_y == 0.0f) {
         return;
     }
+    const float zoom_speed = manipulator_->getZoomSpeed();
     CameraCommandPayload payload;
     payload.x_px = mouse_x;
     payload.y_px = mouse_y;
-    payload.zoom_factor = (scroll_y > 0.0f) ? (1.0f / 1.1f) : 1.1f;
+    payload.zoom_factor = (scroll_y > 0.0f) ? (1.0f / zoom_speed) : zoom_speed;
     send(CameraActionType::eZoomAtCursor, payload, delta_time);
 }
 
@@ -139,7 +140,30 @@ void CameraInputAdapter::feedTouchPan(const TouchPan& pan, double delta_time) no
     payload.y_px = last_y_px_;
     payload.delta_x_px = pan.delta_x_px;
     payload.delta_y_px = pan.delta_y_px;
-    send(CameraActionType::eRotateDelta, payload, delta_time);
+    // Ortho-only manipulators pan on touch; orbit-style manipulators rotate
+    const bool is_ortho_pan = manipulator_->supportsOrthographic() && !manipulator_->supportsPerspective();
+    if (is_ortho_pan) {
+        const bool has_delta = (pan.delta_x_px != 0.0f) || (pan.delta_y_px != 0.0f);
+        if (has_delta) {
+            if (!touch_pan_active_) {
+                CameraCommandPayload begin_payload;
+                begin_payload.x_px = last_x_px_;
+                begin_payload.y_px = last_y_px_;
+                send(CameraActionType::eBeginPan, begin_payload, delta_time);
+                touch_pan_active_ = true;
+            }
+            send(CameraActionType::ePanDelta, payload, delta_time);
+        } else if (touch_pan_active_) {
+            send(CameraActionType::eEndPan, payload, delta_time);
+            touch_pan_active_ = false;
+        }
+    } else {
+        if (touch_pan_active_) {
+            send(CameraActionType::eEndPan, payload, delta_time);
+            touch_pan_active_ = false;
+        }
+        send(CameraActionType::eRotateDelta, payload, delta_time);
+    }
 }
 
 void CameraInputAdapter::feedTouchPinch(const TouchPinch& pinch, double delta_time) noexcept {

@@ -34,6 +34,22 @@ constexpr int kKeyLeftShift = 340;
 constexpr int kKeyRightShift = 344;
 constexpr int kKeyLeftCtrl = 341;
 constexpr int kKeyRightCtrl = 345;
+
+/// Build a reference forward and right vector from an arbitrary up axis.
+void buildReferenceFrame(const vne::math::Vec3f& up, vne::math::Vec3f& ref_fwd, vne::math::Vec3f& ref_right) noexcept {
+    vne::math::Vec3f candidate =
+        (std::abs(up.y()) > 0.9f) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : vne::math::Vec3f(0.0f, -1.0f, 0.0f);
+    ref_fwd = (candidate - up * candidate.dot(up));
+    const float fwd_len = ref_fwd.length();
+    ref_fwd = (fwd_len < kEpsilon) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : (ref_fwd / fwd_len);
+    ref_right = up.cross(ref_fwd);
+    const float right_len = ref_right.length();
+    if (right_len > kEpsilon) {
+        ref_right /= right_len;
+    } else {
+        ref_right = vne::math::Vec3f(1.0f, 0.0f, 0.0f);
+    }
+}
 }  // namespace
 
 void FreeCameraBase::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
@@ -42,12 +58,17 @@ void FreeCameraBase::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noex
 }
 
 vne::math::Vec3f FreeCameraBase::front() const noexcept {
+    const vne::math::Vec3f up = upVector();
+    vne::math::Vec3f ref_fwd, ref_right;
+    buildReferenceFrame(up, ref_fwd, ref_right);
+
     const float yaw_rad = vne::math::degToRad(yaw_deg_);
     const float pitch_rad = vne::math::degToRad(pitch_deg_);
     const float cp = vne::math::cos(pitch_rad);
-    vne::math::Vec3f f(vne::math::sin(yaw_rad) * cp, vne::math::sin(pitch_rad), -vne::math::cos(yaw_rad) * cp);
+    vne::math::Vec3f f =
+        (ref_fwd * vne::math::cos(yaw_rad) + ref_right * vne::math::sin(yaw_rad)) * cp + up * vne::math::sin(pitch_rad);
     const float len = f.length();
-    return (len < kEpsilon) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : (f / len);
+    return (len < kEpsilon) ? ref_fwd : (f / len);
 }
 
 vne::math::Vec3f FreeCameraBase::right(const vne::math::Vec3f& front_vec) const noexcept {
@@ -68,8 +89,23 @@ void FreeCameraBase::syncAnglesFromCamera() noexcept {
         return;
     }
     f /= len;
-    pitch_deg_ = vne::math::radToDeg(vne::math::asin(vne::math::clamp(f.y(), -1.0f, 1.0f)));
-    yaw_deg_ = vne::math::radToDeg(vne::math::atan2(f.x(), -f.z()));
+
+    const vne::math::Vec3f up = upVector();
+    // Pitch: component along the up axis
+    const float up_comp = vne::math::clamp(f.dot(up), -1.0f, 1.0f);
+    pitch_deg_ = vne::math::radToDeg(vne::math::asin(up_comp));
+
+    // Yaw: project onto the horizontal plane, measure against reference frame
+    const vne::math::Vec3f horiz = f - up * up_comp;
+    const float horiz_len = horiz.length();
+    if (horiz_len < kEpsilon) {
+        yaw_deg_ = 0.0f;
+        return;
+    }
+    const vne::math::Vec3f horiz_n = horiz / horiz_len;
+    vne::math::Vec3f ref_fwd, ref_right;
+    buildReferenceFrame(up, ref_fwd, ref_right);
+    yaw_deg_ = vne::math::radToDeg(vne::math::atan2(horiz_n.dot(ref_right), horiz_n.dot(ref_fwd)));
 }
 
 void FreeCameraBase::applyAnglesToCamera() noexcept {
@@ -122,8 +158,8 @@ void FreeCameraBase::applyCommand(CameraActionType action, const CameraCommandPa
             break;
         case CameraActionType::eLookDelta:
             if (camera_ && input_state_.looking) {
-                yaw_deg_ += payload.delta_x_px * mouse_sensitivity_;
-                pitch_deg_ += -payload.delta_y_px * mouse_sensitivity_;
+                yaw_deg_ -= payload.delta_x_px * mouse_sensitivity_;
+                pitch_deg_ += payload.delta_y_px * mouse_sensitivity_;
                 pitch_deg_ = vne::math::clamp(pitch_deg_, kPitchMinDeg, kPitchMaxDeg);
                 applyAnglesToCamera();
             }
@@ -160,6 +196,9 @@ void FreeCameraBase::applyCommand(CameraActionType action, const CameraCommandPa
                     applyZoom((payload.zoom_factor < 1.0f) ? (1.0f / fov_zoom_speed_) : fov_zoom_speed_);
                 }
             }
+            break;
+        case CameraActionType::eResetView:
+            resetState();
             break;
         default:
             break;
@@ -215,8 +254,8 @@ void FreeCameraBase::handleMouseMove(float, float, float delta_x, float delta_y,
     if (!enabled_ || !camera_ || !input_state_.looking) {
         return;
     }
-    yaw_deg_ += delta_x * mouse_sensitivity_;
-    pitch_deg_ += -delta_y * mouse_sensitivity_;
+    yaw_deg_ -= delta_x * mouse_sensitivity_;
+    pitch_deg_ += delta_y * mouse_sensitivity_;
     pitch_deg_ = vne::math::clamp(pitch_deg_, kPitchMinDeg, kPitchMaxDeg);
     applyAnglesToCamera();
 }
@@ -268,8 +307,8 @@ void FreeCameraBase::handleTouchPan(const TouchPan& pan, double) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }
-    yaw_deg_ += pan.delta_x_px * mouse_sensitivity_ * kTouchPanSensitivityFactor;
-    pitch_deg_ += -pan.delta_y_px * mouse_sensitivity_ * kTouchPanSensitivityFactor;
+    yaw_deg_ -= pan.delta_x_px * mouse_sensitivity_ * kTouchPanSensitivityFactor;
+    pitch_deg_ += pan.delta_y_px * mouse_sensitivity_ * kTouchPanSensitivityFactor;
     pitch_deg_ = vne::math::clamp(pitch_deg_, kPitchMinDeg, kPitchMaxDeg);
     applyAnglesToCamera();
 }

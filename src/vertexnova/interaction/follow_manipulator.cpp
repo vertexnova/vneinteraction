@@ -6,9 +6,11 @@
 
 #include "vertexnova/interaction/follow_manipulator.h"
 #include "vertexnova/scene/camera/camera.h"
+#include "vertexnova/scene/camera/orthographic_camera.h"
 #include "vertexnova/scene/camera/perspective_camera.h"
 
 #include <vertexnova/math/core/core.h>
+#include <vertexnova/math/core/math_utils.h>
 #include <algorithm>
 #include <cmath>
 
@@ -61,8 +63,17 @@ void FollowManipulator::applyCommand(CameraActionType action, const CameraComman
     if (!enabled_ || !camera_) {
         return;
     }
-    if (action == CameraActionType::eZoomAtCursor && payload.zoom_factor > 0.0f) {
-        applyZoom(payload.zoom_factor);
+    switch (action) {
+        case CameraActionType::eZoomAtCursor:
+            if (payload.zoom_factor > 0.0f) {
+                applyZoom(payload.zoom_factor);
+            }
+            break;
+        case CameraActionType::eResetView:
+            resetState();
+            break;
+        default:
+            break;
     }
 }
 
@@ -112,14 +123,22 @@ void FollowManipulator::handleMouseScroll(float, float scroll_y, float, float, d
 }
 
 void FollowManipulator::handleTouchPinch(const TouchPinch& pinch, double) noexcept {
-    if (!enabled_ || pinch.scale <= 0.0f) {
+    if (!enabled_ || !camera_ || pinch.scale <= 0.0f) {
         return;
     }
     applyZoom(1.0f / pinch.scale);
 }
 
 float FollowManipulator::getWorldUnitsPerPixel() const noexcept {
-    return 0.0f;
+    if (auto ortho = orthoCamera()) {
+        return ortho->getHeight() / viewport_height_;
+    }
+    if (auto persp = perspCamera()) {
+        const float dist = offset_world_.length();
+        const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
+        return 2.0f * dist * vne::math::tan(fov_y_rad * 0.5f) / viewport_height_;
+    }
+    return 1.0f;
 }
 
 }  // namespace vne::interaction

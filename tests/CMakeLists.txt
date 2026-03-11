@@ -57,6 +57,7 @@ set(TEST_SOURCES
     fly_manipulator_test.cpp
     ortho_pan_zoom_manipulator_test.cpp
     follow_manipulator_test.cpp
+    api_robustness_test.cpp
 )
 
 #==============================================================================

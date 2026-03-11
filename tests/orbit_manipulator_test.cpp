@@ -258,4 +258,48 @@ TEST_F(OrbitManipulatorTest, WithOrthographicCameraFitToAABBDoesNotCrash) {
     EXPECT_NO_FATAL_FAILURE(manip_->fitToAABB(min_world, max_world));
 }
 
+// --- fitToAABB / eResetView ---
+
+TEST_F(OrbitManipulatorTest, FitToAABBFramesCamera) {
+    manip_->setCamera(camera_);
+    manip_->setViewportSize(1280.0f, 720.0f);
+
+    const float initial_dist = manip_->getOrbitDistance();
+
+    manip_->fitToAABB(vne::math::Vec3f{-5.0f, -5.0f, -5.0f}, vne::math::Vec3f{5.0f, 5.0f, 5.0f});
+
+    // Orbit distance must increase to frame a larger scene than the default
+    EXPECT_GT(manip_->getOrbitDistance(), initial_dist);
+    // Camera position must be non-zero (camera was actually moved)
+    EXPECT_GT(camera_->getPosition().length(), 0.0f);
+}
+
+TEST_F(OrbitManipulatorTest, FitToAABBZeroExtentsDoesNotCrash) {
+    manip_->setCamera(camera_);
+    manip_->setViewportSize(1280.0f, 720.0f);
+
+    EXPECT_NO_FATAL_FAILURE(manip_->fitToAABB(vne::math::Vec3f{1.0f, 1.0f, 1.0f}, vne::math::Vec3f{1.0f, 1.0f, 1.0f}));
+}
+
+TEST_F(OrbitManipulatorTest, ApplyCommandResetViewClearsInertiaAndInteraction) {
+    manip_->setCamera(camera_);
+    manip_->setViewportSize(1280.0f, 720.0f);
+
+    // Start a pan to accumulate inertia velocity, then end it
+    manip_->handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eMiddle), true, 640.0f, 360.0f, 0.016);
+    manip_->handleMouseMove(645.0f, 365.0f, 5.0f, 5.0f, 0.016);
+    manip_->handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eMiddle), false, 645.0f, 365.0f, 0.016);
+
+    // eResetView must not crash and must stop any further camera movement
+    vne::interaction::CameraCommandPayload payload{};
+    EXPECT_NO_FATAL_FAILURE(manip_->applyCommand(vne::interaction::CameraActionType::eResetView, payload, 0.016));
+
+    // After reset, successive update() calls must not move the camera
+    const vne::math::Vec3f pos_before = camera_->getPosition();
+    manip_->update(0.016);
+    manip_->update(0.016);
+    const vne::math::Vec3f pos_after = camera_->getPosition();
+    EXPECT_NEAR((pos_after - pos_before).length(), 0.0f, 1e-4f);
+}
+
 }  // namespace vne_interaction_test

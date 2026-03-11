@@ -8,6 +8,15 @@
  * ----------------------------------------------------------------------
  */
 
+/**
+ * @file interaction.h
+ * @brief Umbrella header for the VertexNova interaction library.
+ *
+ * Includes all public headers for camera manipulators, controllers, behaviors,
+ * and input handling.
+ */
+
+#include "vertexnova/interaction/camera_behavior.h"
 #include "vertexnova/interaction/camera_manipulator.h"
 #include "vertexnova/interaction/camera_manipulator_factory.h"
 #include "vertexnova/interaction/camera_system_controller.h"

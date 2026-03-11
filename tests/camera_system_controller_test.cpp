@@ -28,6 +28,7 @@ class MockCameraManipulator : public vne::interaction::ICameraManipulator {
     MOCK_METHOD(bool, supportsOrthographic, (), (const, noexcept, override));
     MOCK_METHOD(void, setCamera, (std::shared_ptr<vne::scene::ICamera>), (noexcept, override));
     MOCK_METHOD(void, setEnabled, (bool), (noexcept, override));
+    MOCK_METHOD(bool, isEnabled, (), (const, noexcept, override));
     MOCK_METHOD(void, setViewportSize, (float, float), (noexcept, override));
     MOCK_METHOD(void, update, (double), (noexcept, override));
     MOCK_METHOD(void,
@@ -41,6 +42,7 @@ class MockCameraManipulator : public vne::interaction::ICameraManipulator {
     MOCK_METHOD(void, handleTouchPan, (const vne::interaction::TouchPan&, double), (noexcept, override));
     MOCK_METHOD(void, handleTouchPinch, (const vne::interaction::TouchPinch&, double), (noexcept, override));
     MOCK_METHOD(float, getSceneScale, (), (const, noexcept, override));
+    MOCK_METHOD(float, getZoomSpeed, (), (const, noexcept, override));
     MOCK_METHOD(void, resetState, (), (noexcept, override));
     MOCK_METHOD(void, fitToAABB, (const vne::math::Vec3f&, const vne::math::Vec3f&), (noexcept, override));
     MOCK_METHOD(float, getWorldUnitsPerPixel, (), (const, noexcept, override));
@@ -60,7 +62,7 @@ class CameraSystemControllerTest : public testing::Test {
 TEST_F(CameraSystemControllerTest, ImplementsICameraController) {
     EXPECT_EQ(controller_->getCamera(), nullptr);
     EXPECT_TRUE(controller_->isEnabled());
-    EXPECT_EQ(controller_->getName(), "CameraSystemController");
+    EXPECT_EQ(controller_->getName(), "VertexNovaCameraSystemController");
 }
 
 TEST_F(CameraSystemControllerTest, SetGetCamera) {
@@ -161,13 +163,78 @@ TEST_F(CameraSystemControllerTest, HandleKeyboardDelegatesToAdapterThenManipulat
     controller_->handleKeyboard(87, true, 0.016);
 }
 
-TEST_F(CameraSystemControllerTest, HandleTouchPanDelegatesToAdapterThenManipulatorApplyCommand) {
+TEST_F(CameraSystemControllerTest, HandleTouchPanOrbitManipulatorSendsRotateDelta) {
+    // Perspective/orbit manipulators: touch pan → eRotateDelta
+    ON_CALL(*mock_manip_, supportsPerspective()).WillByDefault(testing::Return(true));
+    ON_CALL(*mock_manip_, supportsOrthographic()).WillByDefault(testing::Return(false));
+
     vne::interaction::TouchPan pan{5.0f, -3.0f};
     EXPECT_CALL(*mock_manip_,
                 applyCommand(vne::interaction::CameraActionType::eRotateDelta, testing::_, testing::DoubleEq(0.016)))
         .Times(1);
     controller_->setManipulator(mock_manip_);
     controller_->handleTouchPan(pan, 0.016);
+}
+
+TEST_F(CameraSystemControllerTest, HandleTouchPanOrthoOnlyManipulatorSendsBeginPanAndPanDelta) {
+    // Ortho-only manipulators (e.g. OrthoPanZoomManipulator): touch pan → eBeginPan + ePanDelta
+    ON_CALL(*mock_manip_, supportsOrthographic()).WillByDefault(testing::Return(true));
+    ON_CALL(*mock_manip_, supportsPerspective()).WillByDefault(testing::Return(false));
+
+    controller_->setManipulator(mock_manip_);
+
+    // First non-zero delta: must receive eBeginPan then ePanDelta
+    {
+        testing::InSequence seq;
+        EXPECT_CALL(*mock_manip_,
+                    applyCommand(vne::interaction::CameraActionType::eBeginPan, testing::_, testing::DoubleEq(0.016)))
+            .Times(1);
+        EXPECT_CALL(*mock_manip_,
+                    applyCommand(vne::interaction::CameraActionType::ePanDelta, testing::_, testing::DoubleEq(0.016)))
+            .Times(1);
+    }
+    vne::interaction::TouchPan pan{5.0f, -3.0f};
+    controller_->handleTouchPan(pan, 0.016);
+}
+
+TEST_F(CameraSystemControllerTest, HandleTouchPanOrthoOnlyContinuedPanSendsOnlyPanDelta) {
+    // After the gesture is active (touch_pan_active_=true), subsequent deltas send only ePanDelta
+    ON_CALL(*mock_manip_, supportsOrthographic()).WillByDefault(testing::Return(true));
+    ON_CALL(*mock_manip_, supportsPerspective()).WillByDefault(testing::Return(false));
+
+    controller_->setManipulator(mock_manip_);
+
+    // First call starts the gesture
+    EXPECT_CALL(*mock_manip_, applyCommand(vne::interaction::CameraActionType::eBeginPan, testing::_, testing::_))
+        .Times(1);
+    EXPECT_CALL(*mock_manip_, applyCommand(vne::interaction::CameraActionType::ePanDelta, testing::_, testing::_))
+        .Times(2);  // once on first call, once on second
+
+    vne::interaction::TouchPan pan{5.0f, -3.0f};
+    controller_->handleTouchPan(pan, 0.016);
+    controller_->handleTouchPan(pan, 0.016);  // gesture already active — no second eBeginPan
+}
+
+TEST_F(CameraSystemControllerTest, HandleTouchPanOrthoOnlyZeroDeltaEndsGesture) {
+    // A zero-delta event after an active gesture sends eEndPan
+    ON_CALL(*mock_manip_, supportsOrthographic()).WillByDefault(testing::Return(true));
+    ON_CALL(*mock_manip_, supportsPerspective()).WillByDefault(testing::Return(false));
+
+    controller_->setManipulator(mock_manip_);
+
+    // Start gesture
+    EXPECT_CALL(*mock_manip_, applyCommand(vne::interaction::CameraActionType::eBeginPan, testing::_, testing::_))
+        .Times(1);
+    EXPECT_CALL(*mock_manip_, applyCommand(vne::interaction::CameraActionType::ePanDelta, testing::_, testing::_))
+        .Times(1);
+    EXPECT_CALL(*mock_manip_, applyCommand(vne::interaction::CameraActionType::eEndPan, testing::_, testing::_))
+        .Times(1);
+
+    vne::interaction::TouchPan pan{5.0f, -3.0f};
+    controller_->handleTouchPan(pan, 0.016);
+
+    vne::interaction::TouchPan zero_pan{0.0f, 0.0f};
+    controller_->handleTouchPan(zero_pan, 0.016);
 }
 
 TEST_F(CameraSystemControllerTest, HandleTouchPinchDelegatesToAdapterThenManipulatorApplyCommand) {
