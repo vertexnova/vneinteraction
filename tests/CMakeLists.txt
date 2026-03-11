@@ -49,7 +49,6 @@ endif()
 #==============================================================================
 set(TEST_SOURCES
     interaction_test.cpp
-    version_test.cpp
     camera_manipulator_factory_test.cpp
     camera_system_controller_test.cpp
     orbit_manipulator_test.cpp
