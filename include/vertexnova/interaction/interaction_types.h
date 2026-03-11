@@ -46,6 +46,15 @@ enum class ZoomMethod : std::uint8_t {
     eChangeFov = 2,
 };
 
+/// Controls which point in world space the camera rotates around (the center of interest / pivot point).
+enum class RotationPivotMode : std::uint8_t {
+    eCoi = 0,  ///< Rotate around the current center of interest in world space (default; panning moves this pivot)
+    eViewCenter = 1,  ///< On pan end, the center of interest updates to the camera's view center (current camera
+                      ///< target); subsequent rotations pivot around the point you panned to
+    eFixedWorld = 2,  ///< The world-space pivot is fixed; panning translates eye and target together without
+                      ///< changing the center of interest; rotation always orbits around this fixed pivot
+};
+
 enum class UpAxis : std::uint8_t {
     eY = 0,
     eZ = 1,

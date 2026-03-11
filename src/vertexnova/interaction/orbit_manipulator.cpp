@@ -27,6 +27,7 @@ constexpr float kDefaultOrbitDistance = 5.0f;
 constexpr float kPitchMinDeg = -89.0f;
 constexpr float kPitchMaxDeg = 89.0f;
 constexpr float kInertiaRotThreshold = 1e-3f;
+constexpr double kMinDeltaTimeForInertia = 0.001;  // 1ms: ignore tiny-dt inertia samples
 }  // namespace
 
 OrbitManipulator::OrbitManipulator() noexcept {
@@ -153,7 +154,7 @@ void OrbitManipulator::dragRotate(float delta_x_px, float delta_y_px, double del
     pitch_deg_ -= delta_y_px * rotation_speed_;
     pitch_deg_ = vne::math::clamp(pitch_deg_, kPitchMinDeg, kPitchMaxDeg);
     applyToCamera();
-    if (delta_time > 0.0) {
+    if (delta_time >= kMinDeltaTimeForInertia) {
         const float inv_dt = 1.0f / static_cast<float>(delta_time);
         inertia_rot_speed_x_ = delta_x_px * rotation_speed_ * inv_dt;
         inertia_rot_speed_y_ = -delta_y_px * rotation_speed_ * inv_dt;

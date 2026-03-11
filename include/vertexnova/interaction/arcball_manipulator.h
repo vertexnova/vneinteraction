@@ -65,6 +65,7 @@ class VNE_INTERACTION_API ArcballManipulator final : public OrbitStyleBase {
 
    private:
     [[nodiscard]] vne::math::Vec3f computeFront() const noexcept override;
+    // Projects screen pixel to a unit vector in camera-space (pure screen-space, no world vectors).
     [[nodiscard]] vne::math::Vec3f projectToArcball(float x_px, float y_px) const noexcept;
     void syncFromCamera() noexcept override;
     void applyToCamera() noexcept override;
@@ -72,8 +73,16 @@ class VNE_INTERACTION_API ArcballManipulator final : public OrbitStyleBase {
     void dragRotate(float x_px, float y_px, double delta_time) noexcept override;
     void endRotate(double delta_time) noexcept override;
     void applyInertia(double delta_time) noexcept override;
+    void onPivotChanged() noexcept override;
 
-    vne::math::Vec3f arcball_start_world_;
+    // Screen-space drag start (replaces world-space arcball_start_world_ which caused drift)
+    float arcball_start_x_ = 0.0f;
+    float arcball_start_y_ = 0.0f;
+
+    // Persistent accumulated rotation quaternion — canonical rotation state, prevents float drift
+    vne::math::Quatf orientation_;
+    uint32_t normalize_counter_ = 0;
+
     float inertia_rot_speed_ = 0.0f;
     vne::math::Vec3f inertia_rot_axis_;
 };
