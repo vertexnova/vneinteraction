@@ -39,6 +39,12 @@ class VNE_INTERACTION_API OrbitStyleBase : public CameraManipulatorBase {
     float rotation_speed_ = 0.2f;
     float pan_speed_ = 1.0f;
     bool shift_ = false;
+    RotationPivotMode pivot_mode_ = RotationPivotMode::eCoi;
+
+    // Smooth fitToAABB animation targets
+    float target_orbit_distance_ = 5.0f;
+    vne::math::Vec3f target_coi_world_;
+    bool animating_fit_ = false;
 
     OrbitStyleBase() = default;
     ~OrbitStyleBase() override = default;
@@ -49,6 +55,9 @@ class VNE_INTERACTION_API OrbitStyleBase : public CameraManipulatorBase {
     virtual void beginRotate(float x_px, float y_px) noexcept = 0;
     virtual void dragRotate(float delta_x_px, float delta_y_px, double delta_time) noexcept = 0;
     virtual void endRotate(double delta_time) noexcept = 0;
+    /// Called when coi_world_ changes due to pivot mode logic (eViewCenter pan end,
+    /// fitToAABB animation convergence). Subclasses resync their rotation state.
+    virtual void onPivotChanged() noexcept {}
 
     [[nodiscard]] vne::math::Vec3f computeRight(const vne::math::Vec3f& front) const noexcept;
     [[nodiscard]] vne::math::Vec3f computeUp(const vne::math::Vec3f& front,
@@ -79,6 +88,9 @@ class VNE_INTERACTION_API OrbitStyleBase : public CameraManipulatorBase {
     void resetState() noexcept override;
     void fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept override;
     [[nodiscard]] float getWorldUnitsPerPixel() const noexcept override;
+
+    void setPivotMode(RotationPivotMode mode) noexcept { pivot_mode_ = mode; }
+    [[nodiscard]] RotationPivotMode getPivotMode() const noexcept { return pivot_mode_; }
 };
 
 }  // namespace vne::interaction
