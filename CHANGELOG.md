@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1](https://github.com/vertexnova/vneinteraction/compare/v1.1.0...v1.1.1) (2026-03-11)
+
+
+### Bug Fixes
+
+* Fixing pan issues ([#4](https://github.com/vertexnova/vneinteraction/issues/4)) ([2237b5e](https://github.com/vertexnova/vneinteraction/commit/2237b5e1a5c6a6418a566725f6b11b42e64deb0a))
+
 ## [1.1.0](https://github.com/vertexnova/vneinteraction/compare/v1.0.0...v1.1.0) (2026-03-10)
 
 
