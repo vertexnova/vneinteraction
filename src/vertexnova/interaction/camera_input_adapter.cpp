@@ -139,7 +139,12 @@ void CameraInputAdapter::feedTouchPan(const TouchPan& pan, double delta_time) no
     payload.y_px = last_y_px_;
     payload.delta_x_px = pan.delta_x_px;
     payload.delta_y_px = pan.delta_y_px;
-    send(CameraActionType::eRotateDelta, payload, delta_time);
+    // Ortho-only manipulators (e.g. OrthoPanZoomManipulator) pan on touch; orbit-style rotate
+    if (manipulator_->supportsOrthographic() && !manipulator_->supportsPerspective()) {
+        send(CameraActionType::ePanDelta, payload, delta_time);
+    } else {
+        send(CameraActionType::eRotateDelta, payload, delta_time);
+    }
 }
 
 void CameraInputAdapter::feedTouchPinch(const TouchPinch& pinch, double delta_time) noexcept {

@@ -301,6 +301,16 @@ void OrbitStyleBase::applyCommand(CameraActionType action,
         case CameraActionType::eOrbitPanModifier:
             interaction_.modifier_shift = payload.pressed;
             break;
+        case CameraActionType::eFitBounds: {
+            const vne::math::Vec3f extents = payload.aabb_max - payload.aabb_min;
+            if (extents.length() > kEpsilon) {
+                fitToAABB(payload.aabb_min, payload.aabb_max);
+            }
+            break;
+        }
+        case CameraActionType::eResetView:
+            resetState();
+            break;
         default:
             break;
     }
@@ -335,7 +345,7 @@ void OrbitStyleBase::handleMouseButton(int button, bool pressed, float x, float 
         if (button == button_map_.rotate) {
             endRotate(delta_time);
         }
-        if (button == button_map_.pan || pan_alias || button == button_map_.rotate) {
+        if (button == button_map_.pan || pan_alias || (button == button_map_.rotate && interaction_.panning)) {
             endPan(delta_time);
         }
     }

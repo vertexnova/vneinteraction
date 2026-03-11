@@ -143,6 +143,9 @@ struct VNE_INTERACTION_API CameraCommandPayload {
     float delta_y_px = 0.0f;
     float zoom_factor = 1.0f;
     bool pressed = false;
+    /// For eFitBounds: world-space AABB. Valid when (aabb_max - aabb_min).length() > 0.
+    vne::math::Vec3f aabb_min{0.0f, 0.0f, 0.0f};
+    vne::math::Vec3f aabb_max{0.0f, 0.0f, 0.0f};
 };
 
 // -----------------------------------------------------------------------------

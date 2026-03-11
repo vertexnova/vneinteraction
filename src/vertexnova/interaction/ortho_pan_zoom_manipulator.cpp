@@ -213,9 +213,8 @@ void OrthoPanZoomManipulator::applyCommand(CameraActionType action,
             pan_velocity_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
             break;
         case CameraActionType::ePanDelta:
-            if (panning_) {
-                pan(payload.delta_x_px, payload.delta_y_px, delta_time);
-            }
+            // Accept pan delta even when !panning_ (e.g. touch pan from adapter has no button)
+            pan(payload.delta_x_px, payload.delta_y_px, delta_time);
             break;
         case CameraActionType::eEndPan:
             panning_ = false;
@@ -224,6 +223,16 @@ void OrthoPanZoomManipulator::applyCommand(CameraActionType action,
             if (payload.zoom_factor > 0.0f) {
                 applyZoom(payload.zoom_factor, payload.x_px, payload.y_px);
             }
+            break;
+        case CameraActionType::eFitBounds: {
+            const vne::math::Vec3f extents = payload.aabb_max - payload.aabb_min;
+            if (extents.length() > kEpsilon) {
+                fitToAABB(payload.aabb_min, payload.aabb_max);
+            }
+            break;
+        }
+        case CameraActionType::eResetView:
+            resetState();
             break;
         default:
             break;

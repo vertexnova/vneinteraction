@@ -33,6 +33,7 @@ class VNE_INTERACTION_API ArcballManipulator final : public OrbitStyleBase {
                       const CameraCommandPayload& payload,
                       double delta_time) noexcept override;
 
+    void handleMouseMove(float x, float y, float delta_x, float delta_y, double delta_time) noexcept override;
     void handleMouseScroll(
         float scroll_x, float scroll_y, float mouse_x, float mouse_y, double delta_time) noexcept override;
     void handleTouchPan(const TouchPan& pan, double delta_time) noexcept override;

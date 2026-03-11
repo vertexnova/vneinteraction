@@ -15,6 +15,7 @@
 namespace vne::interaction {
 
 namespace {
+constexpr float kEpsilon = 1e-6f;
 constexpr float kFovMinDeg = 5.0f;
 constexpr float kFovMaxDeg = 120.0f;
 constexpr float kSceneScaleMin = 1e-4f;
@@ -61,8 +62,24 @@ void FollowManipulator::applyCommand(CameraActionType action, const CameraComman
     if (!enabled_ || !camera_) {
         return;
     }
-    if (action == CameraActionType::eZoomAtCursor && payload.zoom_factor > 0.0f) {
-        applyZoom(payload.zoom_factor);
+    switch (action) {
+        case CameraActionType::eZoomAtCursor:
+            if (payload.zoom_factor > 0.0f) {
+                applyZoom(payload.zoom_factor);
+            }
+            break;
+        case CameraActionType::eFitBounds: {
+            const vne::math::Vec3f extents = payload.aabb_max - payload.aabb_min;
+            if (extents.length() > kEpsilon) {
+                fitToAABB(payload.aabb_min, payload.aabb_max);
+            }
+            break;
+        }
+        case CameraActionType::eResetView:
+            resetState();
+            break;
+        default:
+            break;
     }
 }
 
@@ -112,7 +129,7 @@ void FollowManipulator::handleMouseScroll(float, float scroll_y, float, float, d
 }
 
 void FollowManipulator::handleTouchPinch(const TouchPinch& pinch, double) noexcept {
-    if (!enabled_ || pinch.scale <= 0.0f) {
+    if (!enabled_ || !camera_ || pinch.scale <= 0.0f) {
         return;
     }
     applyZoom(1.0f / pinch.scale);
