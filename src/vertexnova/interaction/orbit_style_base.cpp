@@ -32,10 +32,10 @@ constexpr float kInertiaPanThreshold = 1e-4f;
 constexpr int kKeyLeftShift = 340;
 constexpr int kKeyRightShift = 344;
 constexpr double kMinDeltaTimeForInertia = 0.001;  // 1ms: ignore tiny-dt inertia samples
-constexpr float kPanVelocityBlend = 0.35f;          // EMA blend factor for pan inertia velocity
-constexpr float kZoomToCursorStrength = 0.3f;       // how aggressively COI migrates toward cursor on zoom
-constexpr float kFitAnimationSpeed = 10.0f;         // exponential approach rate for fitToAABB animation
-constexpr float kFitConvergeThreshold = 1e-3f;      // stop animating when this close to target
+constexpr float kPanVelocityBlend = 0.35f;         // EMA blend factor for pan inertia velocity
+constexpr float kZoomToCursorStrength = 0.3f;      // how aggressively COI migrates toward cursor on zoom
+constexpr float kFitAnimationSpeed = 10.0f;        // exponential approach rate for fitToAABB animation
+constexpr float kFitConvergeThreshold = 1e-3f;     // stop animating when this close to target
 }  // namespace
 
 bool OrbitStyleBase::isPerspective() const noexcept {
