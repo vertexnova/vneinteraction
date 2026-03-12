@@ -87,10 +87,10 @@ void CameraSystemController::onEvent(const vne::events::Event& event, double del
             }
             first_mouse_ = false;
             input_adapter_.onMouseButton(static_cast<int>(e.button()),
-                                           true,
-                                           static_cast<float>(last_x_),
-                                           static_cast<float>(last_y_),
-                                           delta_time);
+                                         true,
+                                         static_cast<float>(last_x_),
+                                         static_cast<float>(last_y_),
+                                         delta_time);
             break;
         }
         case ET::eMouseButtonReleased: {
@@ -100,19 +100,19 @@ void CameraSystemController::onEvent(const vne::events::Event& event, double del
                 last_y_ = e.y();
             }
             input_adapter_.onMouseButton(static_cast<int>(e.button()),
-                                           false,
-                                           static_cast<float>(last_x_),
-                                           static_cast<float>(last_y_),
-                                           delta_time);
+                                         false,
+                                         static_cast<float>(last_x_),
+                                         static_cast<float>(last_y_),
+                                         delta_time);
             break;
         }
         case ET::eMouseScrolled: {
             const auto& e = static_cast<const vne::events::MouseScrolledEvent&>(event);
             input_adapter_.onMouseScroll(static_cast<float>(e.xOffset()),
-                                           static_cast<float>(e.yOffset()),
-                                           static_cast<float>(last_x_),
-                                           static_cast<float>(last_y_),
-                                           delta_time);
+                                         static_cast<float>(e.yOffset()),
+                                         static_cast<float>(last_x_),
+                                         static_cast<float>(last_y_),
+                                         delta_time);
             break;
         }
         case ET::eKeyPressed:

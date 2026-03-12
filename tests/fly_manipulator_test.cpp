@@ -198,11 +198,8 @@ TEST_F(FlyManipulatorTest, UpdateWithCameraDoesNotCrash) {
 TEST_F(FlyManipulatorTest, HandleMouseButtonPressDoesNotCrash) {
     manip_->setCamera(camera_);
     manip_->setViewportSize(1280.0f, 720.0f);
-    EXPECT_NO_FATAL_FAILURE(manip_->onMouseButton(static_cast<int>(vne::interaction::MouseButton::eRight),
-                                                      true,
-                                                      640.0f,
-                                                      360.0f,
-                                                      0.016));
+    EXPECT_NO_FATAL_FAILURE(
+        manip_->onMouseButton(static_cast<int>(vne::interaction::MouseButton::eRight), true, 640.0f, 360.0f, 0.016));
 }
 
 TEST_F(FlyManipulatorTest, HandleKeyboardWDoesNotCrash) {

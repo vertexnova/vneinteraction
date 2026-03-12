@@ -143,11 +143,8 @@ TEST_F(OrthoPanZoomManipulatorTest, HandleMouseScrollZoomsDoesNotCrash) {
 TEST_F(OrthoPanZoomManipulatorTest, HandleMouseButtonMiddlePanDoesNotCrash) {
     manip_->setCamera(ortho_cam_);
     manip_->setViewportSize(1280.0f, 720.0f);
-    EXPECT_NO_FATAL_FAILURE(manip_->onMouseButton(static_cast<int>(vne::interaction::MouseButton::eMiddle),
-                                                      true,
-                                                      640.0f,
-                                                      360.0f,
-                                                      0.016));
+    EXPECT_NO_FATAL_FAILURE(
+        manip_->onMouseButton(static_cast<int>(vne::interaction::MouseButton::eMiddle), true, 640.0f, 360.0f, 0.016));
 }
 
 TEST_F(OrthoPanZoomManipulatorTest, HandleTouchPinchDoesNotCrash) {

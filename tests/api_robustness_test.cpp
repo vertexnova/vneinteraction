@@ -280,7 +280,7 @@ TEST(ApiRobustness, FpsKeyboardForwardMovesCamera) {
 
     const vne::math::Vec3f pos_before = cam->getPosition();
     manip.onKeyboard(87, true, 0.016);   // W pressed
-    manip.update(0.1);                       // 100ms of movement
+    manip.update(0.1);                   // 100ms of movement
     manip.onKeyboard(87, false, 0.016);  // W released
 
     const vne::math::Vec3f pos_after = cam->getPosition();
