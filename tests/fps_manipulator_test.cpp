@@ -198,7 +198,7 @@ TEST_F(FpsManipulatorTest, UpdateWithCameraDoesNotCrash) {
 TEST_F(FpsManipulatorTest, HandleMouseButtonPressDoesNotCrash) {
     manip_->setCamera(camera_);
     manip_->setViewportSize(1280.0f, 720.0f);
-    EXPECT_NO_FATAL_FAILURE(manip_->handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eRight),
+    EXPECT_NO_FATAL_FAILURE(manip_->onMouseButton(static_cast<int>(vne::interaction::MouseButton::eRight),
                                                       true,
                                                       640.0f,
                                                       360.0f,
@@ -208,20 +208,20 @@ TEST_F(FpsManipulatorTest, HandleMouseButtonPressDoesNotCrash) {
 TEST_F(FpsManipulatorTest, HandleKeyboardWDoesNotCrash) {
     manip_->setCamera(camera_);
     manip_->setViewportSize(1280.0f, 720.0f);
-    EXPECT_NO_FATAL_FAILURE(manip_->handleKeyboard(87, true, 0.016));
+    EXPECT_NO_FATAL_FAILURE(manip_->onKeyboard(87, true, 0.016));
 }
 
 TEST_F(FpsManipulatorTest, HandleTouchPanDoesNotCrash) {
     manip_->setCamera(camera_);
     manip_->setViewportSize(1280.0f, 720.0f);
     vne::interaction::TouchPan pan{10.0f, -5.0f};
-    EXPECT_NO_FATAL_FAILURE(manip_->handleTouchPan(pan, 0.016));
+    EXPECT_NO_FATAL_FAILURE(manip_->onTouchPan(pan, 0.016));
 }
 
 TEST_F(FpsManipulatorTest, HandleMouseScrollDoesNotCrash) {
     manip_->setCamera(camera_);
     manip_->setViewportSize(1280.0f, 720.0f);
-    EXPECT_NO_FATAL_FAILURE(manip_->handleMouseScroll(0.0f, -1.0f, 640.0f, 360.0f, 0.016));
+    EXPECT_NO_FATAL_FAILURE(manip_->onMouseScroll(0.0f, -1.0f, 640.0f, 360.0f, 0.016));
 }
 
 }  // namespace vne_interaction_test

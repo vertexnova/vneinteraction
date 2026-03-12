@@ -102,7 +102,7 @@ class VNE_INTERACTION_API FollowManipulator final : public CameraManipulatorBase
      * @param delta_y Vertical delta in pixels
      * @param delta_time Time since last input in seconds
      */
-    void handleMouseMove(float x, float y, float delta_x, float delta_y, double delta_time) noexcept override;
+    void onMouseMove(float x, float y, float delta_x, float delta_y, double delta_time) noexcept override;
 
     /**
      * @brief Handle mouse button press/release (forwarded from controller).
@@ -112,7 +112,7 @@ class VNE_INTERACTION_API FollowManipulator final : public CameraManipulatorBase
      * @param y Cursor Y in viewport pixels
      * @param delta_time Time since last input in seconds
      */
-    void handleMouseButton(int button, bool pressed, float x, float y, double delta_time) noexcept override;
+    void onMouseButton(int button, bool pressed, float x, float y, double delta_time) noexcept override;
 
     /**
      * @brief Handle mouse scroll wheel input for zoom (forwarded from controller).
@@ -122,7 +122,7 @@ class VNE_INTERACTION_API FollowManipulator final : public CameraManipulatorBase
      * @param mouse_y Cursor Y in viewport pixels
      * @param delta_time Time since last input in seconds
      */
-    void handleMouseScroll(
+    void onMouseScroll(
         float scroll_x, float scroll_y, float mouse_x, float mouse_y, double delta_time) noexcept override;
 
     /**
@@ -131,21 +131,21 @@ class VNE_INTERACTION_API FollowManipulator final : public CameraManipulatorBase
      * @param pressed true if pressed, false if released
      * @param delta_time Time since last input in seconds
      */
-    void handleKeyboard(int key, bool pressed, double delta_time) noexcept override;
+    void onKeyboard(int key, bool pressed, double delta_time) noexcept override;
 
     /**
      * @brief Handle touch pan gesture (forwarded from controller).
      * @param pan Pan gesture with delta_x_px and delta_y_px
      * @param delta_time Time since last input in seconds
      */
-    void handleTouchPan(const TouchPan& pan, double delta_time) noexcept override;
+    void onTouchPan(const TouchPan& pan, double delta_time) noexcept override;
 
     /**
      * @brief Handle touch pinch (zoom) gesture (forwarded from controller).
      * @param pinch Pinch gesture with scale and center position
      * @param delta_time Time since last input in seconds
      */
-    void handleTouchPinch(const TouchPinch& pinch, double delta_time) noexcept override;
+    void onTouchPinch(const TouchPinch& pinch, double delta_time) noexcept override;
 
     /** Reset manipulator state. */
     void resetState() noexcept override {}

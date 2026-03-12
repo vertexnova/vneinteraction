@@ -198,7 +198,7 @@ TEST_F(FlyManipulatorTest, UpdateWithCameraDoesNotCrash) {
 TEST_F(FlyManipulatorTest, HandleMouseButtonPressDoesNotCrash) {
     manip_->setCamera(camera_);
     manip_->setViewportSize(1280.0f, 720.0f);
-    EXPECT_NO_FATAL_FAILURE(manip_->handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eRight),
+    EXPECT_NO_FATAL_FAILURE(manip_->onMouseButton(static_cast<int>(vne::interaction::MouseButton::eRight),
                                                       true,
                                                       640.0f,
                                                       360.0f,
@@ -208,14 +208,14 @@ TEST_F(FlyManipulatorTest, HandleMouseButtonPressDoesNotCrash) {
 TEST_F(FlyManipulatorTest, HandleKeyboardWDoesNotCrash) {
     manip_->setCamera(camera_);
     manip_->setViewportSize(1280.0f, 720.0f);
-    EXPECT_NO_FATAL_FAILURE(manip_->handleKeyboard(87, true, 0.016));
+    EXPECT_NO_FATAL_FAILURE(manip_->onKeyboard(87, true, 0.016));
 }
 
 TEST_F(FlyManipulatorTest, HandleTouchPinchDoesNotCrash) {
     manip_->setCamera(camera_);
     manip_->setViewportSize(1280.0f, 720.0f);
     vne::interaction::TouchPinch pinch{1.05f, 640.0f, 360.0f};
-    EXPECT_NO_FATAL_FAILURE(manip_->handleTouchPinch(pinch, 0.016));
+    EXPECT_NO_FATAL_FAILURE(manip_->onTouchPinch(pinch, 0.016));
 }
 
 }  // namespace vne_interaction_test

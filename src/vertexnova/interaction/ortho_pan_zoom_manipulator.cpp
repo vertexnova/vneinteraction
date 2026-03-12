@@ -242,7 +242,7 @@ void OrthoPanZoomManipulator::update(double delta_time) noexcept {
     }
 }
 
-void OrthoPanZoomManipulator::handleMouseMove(float, float, float delta_x, float delta_y, double delta_time) noexcept {
+void OrthoPanZoomManipulator::onMouseMove(float, float, float delta_x, float delta_y, double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }
@@ -251,7 +251,7 @@ void OrthoPanZoomManipulator::handleMouseMove(float, float, float delta_x, float
     }
 }
 
-void OrthoPanZoomManipulator::handleMouseButton(int button, bool pressed, float, float, double) noexcept {
+void OrthoPanZoomManipulator::onMouseButton(int button, bool pressed, float, float, double) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }
@@ -263,23 +263,23 @@ void OrthoPanZoomManipulator::handleMouseButton(int button, bool pressed, float,
     }
 }
 
-void OrthoPanZoomManipulator::handleMouseScroll(float, float scroll_y, float mouse_x, float mouse_y, double) noexcept {
+void OrthoPanZoomManipulator::onMouseScroll(float, float scroll_y, float mouse_x, float mouse_y, double) noexcept {
     if (!enabled_ || !camera_ || scroll_y == 0.0f) {
         return;
     }
     applyZoom((scroll_y > 0.0f) ? (1.0f / zoom_speed_) : zoom_speed_, mouse_x, mouse_y);
 }
 
-void OrthoPanZoomManipulator::handleKeyboard(int, bool, double) noexcept {}
+void OrthoPanZoomManipulator::onKeyboard(int, bool, double) noexcept {}
 
-void OrthoPanZoomManipulator::handleTouchPan(const TouchPan& pan, double delta_time) noexcept {
+void OrthoPanZoomManipulator::onTouchPan(const TouchPan& pan, double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }
     this->pan(pan.delta_x_px, pan.delta_y_px, delta_time);
 }
 
-void OrthoPanZoomManipulator::handleTouchPinch(const TouchPinch& pinch, double) noexcept {
+void OrthoPanZoomManipulator::onTouchPinch(const TouchPinch& pinch, double) noexcept {
     if (!enabled_ || !camera_ || pinch.scale <= 0.0f) {
         return;
     }

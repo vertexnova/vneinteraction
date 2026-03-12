@@ -36,17 +36,17 @@ inline void simulateMouseDrag(ICameraManipulator& manipulator,
     const float step_x = (frames > 0) ? (total_dx / static_cast<float>(frames)) : 0.0f;
     const float step_y = (frames > 0) ? (total_dy / static_cast<float>(frames)) : 0.0f;
 
-    manipulator.handleMouseButton(btn, /*pressed=*/true, start_x, start_y, dt);
+    manipulator.onMouseButton(btn, /*pressed=*/true, start_x, start_y, dt);
 
     float cx = start_x;
     float cy = start_y;
     for (int i = 0; i < frames; ++i) {
-        manipulator.handleMouseMove(cx + step_x, cy + step_y, step_x, step_y, dt);
+        manipulator.onMouseMove(cx + step_x, cy + step_y, step_x, step_y, dt);
         cx += step_x;
         cy += step_y;
     }
 
-    manipulator.handleMouseButton(btn, /*pressed=*/false, cx, cy, dt);
+    manipulator.onMouseButton(btn, /*pressed=*/false, cx, cy, dt);
 }
 
 /**
@@ -57,7 +57,7 @@ inline void simulateMouseDrag(ICameraManipulator& manipulator,
 inline void simulateMouseScroll(
     ICameraManipulator& manipulator, float scroll_y, float mouse_x, float mouse_y, int count, double dt) {
     for (int i = 0; i < count; ++i) {
-        manipulator.handleMouseScroll(0.0f, scroll_y, mouse_x, mouse_y, dt);
+        manipulator.onMouseScroll(0.0f, scroll_y, mouse_x, mouse_y, dt);
     }
 }
 
@@ -65,11 +65,11 @@ inline void simulateMouseScroll(
  * Press a key, run @p frames update() ticks, then release.
  */
 inline void simulateKeyHold(ICameraManipulator& manipulator, int key, int frames, double dt) {
-    manipulator.handleKeyboard(key, /*pressed=*/true, dt);
+    manipulator.onKeyboard(key, /*pressed=*/true, dt);
     for (int i = 0; i < frames; ++i) {
         manipulator.update(dt);
     }
-    manipulator.handleKeyboard(key, /*pressed=*/false, dt);
+    manipulator.onKeyboard(key, /*pressed=*/false, dt);
 }
 
 /**
@@ -84,7 +84,7 @@ inline void simulateKeyHoldMulti(ICameraManipulator& manipulator,
                                  int frames,
                                  double dt) {
     for (int k : keys) {
-        manipulator.handleKeyboard(k, /*pressed=*/true, dt);
+        manipulator.onKeyboard(k, /*pressed=*/true, dt);
     }
     for (int i = 0; i < frames; ++i) {
         manipulator.update(dt);
@@ -92,7 +92,7 @@ inline void simulateKeyHoldMulti(ICameraManipulator& manipulator,
     // Release in reverse order to mirror natural key-up sequencing
     for (auto it = keys.end(); it != keys.begin();) {
         --it;
-        manipulator.handleKeyboard(*it, /*pressed=*/false, dt);
+        manipulator.onKeyboard(*it, /*pressed=*/false, dt);
     }
 }
 

@@ -44,7 +44,7 @@ namespace vne::interaction {
  * controller->setManipulator(orbit_manipulator);
  *
  * // Each frame:
- * controller->handleMouseMove(x, y, dx, dy, delta_time);
+ * controller->onMouseMove(x, y, dx, dy, delta_time);
  * controller->update(delta_time);
  * ```
  *

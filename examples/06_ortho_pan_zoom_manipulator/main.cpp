@@ -72,7 +72,7 @@ int main() {
         pinch.center_x_px = 640.0f;
         pinch.center_y_px = 360.0f;
         for (int i = 0; i < 5; ++i) {
-            manipulator->handleTouchPinch(pinch, dt);
+            manipulator->onTouchPinch(pinch, dt);
         }
     }
     VNE_LOG_INFO << "After 5x touch-pinch zoom in:";
@@ -84,7 +84,7 @@ int main() {
         pan.delta_x_px = 5.0f;
         pan.delta_y_px = 0.0f;
         for (int i = 0; i < 20; ++i) {
-            manipulator->handleTouchPan(pan, dt);
+            manipulator->onTouchPan(pan, dt);
             manipulator->update(dt);
         }
     }

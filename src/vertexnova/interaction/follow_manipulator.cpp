@@ -77,10 +77,10 @@ void FollowManipulator::applyCommand(CameraActionType action, const CameraComman
     }
 }
 
-void FollowManipulator::handleMouseMove(float, float, float, float, double) noexcept {}
-void FollowManipulator::handleMouseButton(int, bool, float, float, double) noexcept {}
-void FollowManipulator::handleKeyboard(int, bool, double) noexcept {}
-void FollowManipulator::handleTouchPan(const TouchPan&, double) noexcept {}
+void FollowManipulator::onMouseMove(float, float, float, float, double) noexcept {}
+void FollowManipulator::onMouseButton(int, bool, float, float, double) noexcept {}
+void FollowManipulator::onKeyboard(int, bool, double) noexcept {}
+void FollowManipulator::onTouchPan(const TouchPan&, double) noexcept {}
 
 void FollowManipulator::applyZoom(float zoom_factor) noexcept {
     if (!camera_) {
@@ -115,14 +115,14 @@ void FollowManipulator::applyZoom(float zoom_factor) noexcept {
     }
 }
 
-void FollowManipulator::handleMouseScroll(float, float scroll_y, float, float, double) noexcept {
+void FollowManipulator::onMouseScroll(float, float scroll_y, float, float, double) noexcept {
     if (!enabled_ || !camera_ || scroll_y == 0.0f) {
         return;
     }
     applyZoom((scroll_y > 0.0f) ? (1.0f / zoom_speed_) : zoom_speed_);
 }
 
-void FollowManipulator::handleTouchPinch(const TouchPinch& pinch, double) noexcept {
+void FollowManipulator::onTouchPinch(const TouchPinch& pinch, double) noexcept {
     if (!enabled_ || !camera_ || pinch.scale <= 0.0f) {
         return;
     }

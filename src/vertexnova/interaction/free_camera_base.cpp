@@ -250,7 +250,7 @@ void FreeCameraBase::update(double delta_time) noexcept {
     camera_->updateMatrices();
 }
 
-void FreeCameraBase::handleMouseMove(float, float, float delta_x, float delta_y, double) noexcept {
+void FreeCameraBase::onMouseMove(float, float, float delta_x, float delta_y, double) noexcept {
     if (!enabled_ || !camera_ || !input_state_.looking) {
         return;
     }
@@ -260,7 +260,7 @@ void FreeCameraBase::handleMouseMove(float, float, float delta_x, float delta_y,
     applyAnglesToCamera();
 }
 
-void FreeCameraBase::handleMouseButton(int button, bool pressed, float, float, double) noexcept {
+void FreeCameraBase::onMouseButton(int button, bool pressed, float, float, double) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }
@@ -269,7 +269,7 @@ void FreeCameraBase::handleMouseButton(int button, bool pressed, float, float, d
     }
 }
 
-void FreeCameraBase::handleMouseScroll(float, float scroll_y, float, float, double) noexcept {
+void FreeCameraBase::onMouseScroll(float, float scroll_y, float, float, double) noexcept {
     if (!enabled_ || !camera_ || scroll_y == 0.0f) {
         return;
     }
@@ -280,7 +280,7 @@ void FreeCameraBase::handleMouseScroll(float, float scroll_y, float, float, doub
     }
 }
 
-void FreeCameraBase::handleKeyboard(int key, bool pressed, double) noexcept {
+void FreeCameraBase::onKeyboard(int key, bool pressed, double) noexcept {
     if (!enabled_) {
         return;
     }
@@ -303,7 +303,7 @@ void FreeCameraBase::handleKeyboard(int key, bool pressed, double) noexcept {
     }
 }
 
-void FreeCameraBase::handleTouchPan(const TouchPan& pan, double) noexcept {
+void FreeCameraBase::onTouchPan(const TouchPan& pan, double) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }
@@ -313,7 +313,7 @@ void FreeCameraBase::handleTouchPan(const TouchPan& pan, double) noexcept {
     applyAnglesToCamera();
 }
 
-void FreeCameraBase::handleTouchPinch(const TouchPinch& pinch, double) noexcept {
+void FreeCameraBase::onTouchPinch(const TouchPinch& pinch, double) noexcept {
     if (!enabled_ || !camera_ || pinch.scale <= 0.0f) {
         return;
     }

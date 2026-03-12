@@ -351,7 +351,7 @@ float ArcballManipulator::getWorldUnitsPerPixel() const noexcept {
     return OrbitStyleBase::getWorldUnitsPerPixel();
 }
 
-void ArcballManipulator::handleMouseMove(float x, float y, float delta_x, float delta_y, double delta_time) noexcept {
+void ArcballManipulator::onMouseMove(float x, float y, float delta_x, float delta_y, double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }
@@ -365,14 +365,14 @@ void ArcballManipulator::handleMouseMove(float x, float y, float delta_x, float 
     interaction_.last_y_px = y;
 }
 
-void ArcballManipulator::handleMouseScroll(float, float scroll_y, float mouse_x, float mouse_y, double) noexcept {
+void ArcballManipulator::onMouseScroll(float, float scroll_y, float mouse_x, float mouse_y, double) noexcept {
     if (!enabled_ || !camera_ || scroll_y == 0.0f) {
         return;
     }
     zoom(scrollToZoomFactor(scroll_y, zoom_speed_), mouse_x, mouse_y);
 }
 
-void ArcballManipulator::handleTouchPan(const TouchPan& pan, double delta_time) noexcept {
+void ArcballManipulator::onTouchPan(const TouchPan& pan, double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }

@@ -223,13 +223,13 @@ TEST_F(OrbitManipulatorTest, UpdateWithCameraDoesNotCrash) {
 TEST_F(OrbitManipulatorTest, HandleMouseMoveWithCameraDoesNotCrash) {
     manip_->setCamera(camera_);
     manip_->setViewportSize(1280.0f, 720.0f);
-    EXPECT_NO_FATAL_FAILURE(manip_->handleMouseMove(640.0f, 360.0f, 1.0f, -1.0f, 0.016));
+    EXPECT_NO_FATAL_FAILURE(manip_->onMouseMove(640.0f, 360.0f, 1.0f, -1.0f, 0.016));
 }
 
 TEST_F(OrbitManipulatorTest, HandleMouseScrollWithCameraDoesNotCrash) {
     manip_->setCamera(camera_);
     manip_->setViewportSize(1280.0f, 720.0f);
-    EXPECT_NO_FATAL_FAILURE(manip_->handleMouseScroll(0.0f, -1.0f, 640.0f, 360.0f, 0.016));
+    EXPECT_NO_FATAL_FAILURE(manip_->onMouseScroll(0.0f, -1.0f, 640.0f, 360.0f, 0.016));
 }
 
 TEST_F(OrbitManipulatorTest, SetViewDirectionFrontDoesNotCrash) {
@@ -286,9 +286,9 @@ TEST_F(OrbitManipulatorTest, ApplyCommandResetViewClearsInertiaAndInteraction) {
     manip_->setViewportSize(1280.0f, 720.0f);
 
     // Start a pan to accumulate inertia velocity, then end it
-    manip_->handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eMiddle), true, 640.0f, 360.0f, 0.016);
-    manip_->handleMouseMove(645.0f, 365.0f, 5.0f, 5.0f, 0.016);
-    manip_->handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eMiddle), false, 645.0f, 365.0f, 0.016);
+    manip_->onMouseButton(static_cast<int>(vne::interaction::MouseButton::eMiddle), true, 640.0f, 360.0f, 0.016);
+    manip_->onMouseMove(645.0f, 365.0f, 5.0f, 5.0f, 0.016);
+    manip_->onMouseButton(static_cast<int>(vne::interaction::MouseButton::eMiddle), false, 645.0f, 365.0f, 0.016);
 
     // eResetView must not crash and must stop any further camera movement
     vne::interaction::CameraCommandPayload payload{};

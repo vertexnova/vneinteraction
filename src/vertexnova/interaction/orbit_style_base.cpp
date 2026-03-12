@@ -310,7 +310,7 @@ void OrbitStyleBase::applyCommand(CameraActionType action,
     }
 }
 
-void OrbitStyleBase::handleMouseMove(float x, float y, float delta_x, float delta_y, double delta_time) noexcept {
+void OrbitStyleBase::onMouseMove(float x, float y, float delta_x, float delta_y, double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }
@@ -323,7 +323,7 @@ void OrbitStyleBase::handleMouseMove(float x, float y, float delta_x, float delt
     interaction_.last_y_px = y;
 }
 
-void OrbitStyleBase::handleMouseButton(int button, bool pressed, float x, float y, double delta_time) noexcept {
+void OrbitStyleBase::onMouseButton(int button, bool pressed, float x, float y, double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }
@@ -345,27 +345,27 @@ void OrbitStyleBase::handleMouseButton(int button, bool pressed, float x, float 
     }
 }
 
-void OrbitStyleBase::handleMouseScroll(float, float scroll_y, float mouse_x, float mouse_y, double) noexcept {
+void OrbitStyleBase::onMouseScroll(float, float scroll_y, float mouse_x, float mouse_y, double) noexcept {
     if (!enabled_ || !camera_ || scroll_y == 0.0f) {
         return;
     }
     zoom((scroll_y > 0.0f) ? (1.0f / zoom_speed_) : zoom_speed_, mouse_x, mouse_y);
 }
 
-void OrbitStyleBase::handleKeyboard(int key, bool pressed, double) noexcept {
+void OrbitStyleBase::onKeyboard(int key, bool pressed, double) noexcept {
     if (key == kKeyLeftShift || key == kKeyRightShift) {
         interaction_.modifier_shift = pressed;
     }
 }
 
-void OrbitStyleBase::handleTouchPan(const TouchPan& pan, double delta_time) noexcept {
+void OrbitStyleBase::onTouchPan(const TouchPan& pan, double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }
     dragRotate(pan.delta_x_px, pan.delta_y_px, delta_time);
 }
 
-void OrbitStyleBase::handleTouchPinch(const TouchPinch& pinch, double) noexcept {
+void OrbitStyleBase::onTouchPinch(const TouchPinch& pinch, double) noexcept {
     if (!enabled_ || !camera_ || pinch.scale <= 0.0f) {
         return;
     }

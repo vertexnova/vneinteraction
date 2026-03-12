@@ -137,13 +137,13 @@ TEST_F(OrthoPanZoomManipulatorTest, UpdateWithOrthoCameraDoesNotCrash) {
 TEST_F(OrthoPanZoomManipulatorTest, HandleMouseScrollZoomsDoesNotCrash) {
     manip_->setCamera(ortho_cam_);
     manip_->setViewportSize(1280.0f, 720.0f);
-    EXPECT_NO_FATAL_FAILURE(manip_->handleMouseScroll(0.0f, 1.0f, 640.0f, 360.0f, 0.016));
+    EXPECT_NO_FATAL_FAILURE(manip_->onMouseScroll(0.0f, 1.0f, 640.0f, 360.0f, 0.016));
 }
 
 TEST_F(OrthoPanZoomManipulatorTest, HandleMouseButtonMiddlePanDoesNotCrash) {
     manip_->setCamera(ortho_cam_);
     manip_->setViewportSize(1280.0f, 720.0f);
-    EXPECT_NO_FATAL_FAILURE(manip_->handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eMiddle),
+    EXPECT_NO_FATAL_FAILURE(manip_->onMouseButton(static_cast<int>(vne::interaction::MouseButton::eMiddle),
                                                       true,
                                                       640.0f,
                                                       360.0f,
@@ -154,14 +154,14 @@ TEST_F(OrthoPanZoomManipulatorTest, HandleTouchPinchDoesNotCrash) {
     manip_->setCamera(ortho_cam_);
     manip_->setViewportSize(1280.0f, 720.0f);
     vne::interaction::TouchPinch pinch{0.9f, 640.0f, 360.0f};
-    EXPECT_NO_FATAL_FAILURE(manip_->handleTouchPinch(pinch, 0.016));
+    EXPECT_NO_FATAL_FAILURE(manip_->onTouchPinch(pinch, 0.016));
 }
 
 TEST_F(OrthoPanZoomManipulatorTest, HandleTouchPanDoesNotCrash) {
     manip_->setCamera(ortho_cam_);
     manip_->setViewportSize(1280.0f, 720.0f);
     vne::interaction::TouchPan pan{5.0f, 3.0f};
-    EXPECT_NO_FATAL_FAILURE(manip_->handleTouchPan(pan, 0.016));
+    EXPECT_NO_FATAL_FAILURE(manip_->onTouchPan(pan, 0.016));
 }
 
 TEST_F(OrthoPanZoomManipulatorTest, SetCameraWithPerspectiveDoesNotCrash) {
@@ -201,9 +201,9 @@ TEST_F(OrthoPanZoomManipulatorTest, ApplyCommandResetViewClearsInertiaAndInterac
     manip_->setViewportSize(1280.0f, 720.0f);
 
     // Accumulate pan inertia
-    manip_->handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eMiddle), true, 640.0f, 360.0f, 0.016);
-    manip_->handleMouseMove(645.0f, 365.0f, 5.0f, 5.0f, 0.016);
-    manip_->handleMouseButton(static_cast<int>(vne::interaction::MouseButton::eMiddle), false, 645.0f, 365.0f, 0.016);
+    manip_->onMouseButton(static_cast<int>(vne::interaction::MouseButton::eMiddle), true, 640.0f, 360.0f, 0.016);
+    manip_->onMouseMove(645.0f, 365.0f, 5.0f, 5.0f, 0.016);
+    manip_->onMouseButton(static_cast<int>(vne::interaction::MouseButton::eMiddle), false, 645.0f, 365.0f, 0.016);
 
     vne::interaction::CameraCommandPayload payload{};
     EXPECT_NO_FATAL_FAILURE(manip_->applyCommand(vne::interaction::CameraActionType::eResetView, payload, 0.016));

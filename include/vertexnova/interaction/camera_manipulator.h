@@ -86,7 +86,7 @@ class VNE_INTERACTION_API ICameraManipulator {
      * @param delta_y Vertical movement delta in pixels
      * @param delta_time Time since last input in seconds
      */
-    virtual void handleMouseMove(float x, float y, float delta_x, float delta_y, double delta_time) noexcept = 0;
+    virtual void onMouseMove(float x, float y, float delta_x, float delta_y, double delta_time) noexcept = 0;
 
     /**
      * @brief Handle mouse button press or release.
@@ -96,7 +96,7 @@ class VNE_INTERACTION_API ICameraManipulator {
      * @param y Cursor Y position in viewport pixels
      * @param delta_time Time since last input in seconds
      */
-    virtual void handleMouseButton(int button, bool pressed, float x, float y, double delta_time) noexcept = 0;
+    virtual void onMouseButton(int button, bool pressed, float x, float y, double delta_time) noexcept = 0;
 
     /**
      * @brief Handle mouse scroll wheel input.
@@ -106,7 +106,7 @@ class VNE_INTERACTION_API ICameraManipulator {
      * @param mouse_y Cursor Y position in viewport pixels
      * @param delta_time Time since last input in seconds
      */
-    virtual void handleMouseScroll(
+    virtual void onMouseScroll(
         float scroll_x, float scroll_y, float mouse_x, float mouse_y, double delta_time) noexcept = 0;
 
     /**
@@ -115,21 +115,21 @@ class VNE_INTERACTION_API ICameraManipulator {
      * @param pressed true if pressed, false if released
      * @param delta_time Time since last input in seconds
      */
-    virtual void handleKeyboard(int key, bool pressed, double delta_time) noexcept = 0;
+    virtual void onKeyboard(int key, bool pressed, double delta_time) noexcept = 0;
 
     /**
      * @brief Handle touch pan gesture.
      * @param pan Pan gesture data with delta_x_px and delta_y_px
      * @param delta_time Time since last input in seconds
      */
-    virtual void handleTouchPan(const TouchPan& pan, double delta_time) noexcept = 0;
+    virtual void onTouchPan(const TouchPan& pan, double delta_time) noexcept = 0;
 
     /**
      * @brief Handle touch pinch (zoom) gesture.
      * @param pinch Pinch gesture data with scale and center position
      * @param delta_time Time since last input in seconds
      */
-    virtual void handleTouchPinch(const TouchPinch& pinch, double delta_time) noexcept = 0;
+    virtual void onTouchPinch(const TouchPinch& pinch, double delta_time) noexcept = 0;
 
     /**
      * @brief Get the current scene scale value.

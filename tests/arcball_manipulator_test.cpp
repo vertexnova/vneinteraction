@@ -251,9 +251,9 @@ TEST_F(ArcballManipulatorTest, FixedWorldPivotCoiStaysPinnedAfterPan) {
     const vne::math::Vec3f coi_before = manip_->getCenterOfInterestWorld();
 
     // Simulate a pan drag
-    manip_->handleMouseButton(1, true, 640.0f, 360.0f, 0.016);  // right-click = pan
-    manip_->handleMouseMove(660.0f, 370.0f, 20.0f, 10.0f, 0.016);
-    manip_->handleMouseButton(1, false, 660.0f, 370.0f, 0.016);
+    manip_->onMouseButton(1, true, 640.0f, 360.0f, 0.016);  // right-click = pan
+    manip_->onMouseMove(660.0f, 370.0f, 20.0f, 10.0f, 0.016);
+    manip_->onMouseButton(1, false, 660.0f, 370.0f, 0.016);
 
     const vne::math::Vec3f coi_after = manip_->getCenterOfInterestWorld();
     // COI must be unchanged
@@ -274,9 +274,9 @@ TEST_F(ArcballManipulatorTest, FixedWorldPivotEyeTranslatesAfterPan) {
 
     const vne::math::Vec3f eye_before = camera_->getPosition();
 
-    manip_->handleMouseButton(1, true, 640.0f, 360.0f, 0.016);
-    manip_->handleMouseMove(660.0f, 360.0f, 20.0f, 0.0f, 0.016);
-    manip_->handleMouseButton(1, false, 660.0f, 360.0f, 0.016);
+    manip_->onMouseButton(1, true, 640.0f, 360.0f, 0.016);
+    manip_->onMouseMove(660.0f, 360.0f, 20.0f, 0.0f, 0.016);
+    manip_->onMouseButton(1, false, 660.0f, 360.0f, 0.016);
 
     const vne::math::Vec3f eye_after = camera_->getPosition();
     // Eye must have moved (pan translated it)
@@ -294,9 +294,9 @@ TEST_F(ArcballManipulatorTest, ViewCenterPivotCoiUpdatesOnPanEnd) {
     manip_->setViewportSize(1280.0f, 720.0f);
     manip_->setPivotMode(vne::interaction::RotationPivotMode::eViewCenter);
 
-    manip_->handleMouseButton(1, true, 640.0f, 360.0f, 0.016);
-    manip_->handleMouseMove(700.0f, 360.0f, 60.0f, 0.0f, 0.016);
-    manip_->handleMouseButton(1, false, 700.0f, 360.0f, 0.016);  // endPan triggers COI update
+    manip_->onMouseButton(1, true, 640.0f, 360.0f, 0.016);
+    manip_->onMouseMove(700.0f, 360.0f, 60.0f, 0.0f, 0.016);
+    manip_->onMouseButton(1, false, 700.0f, 360.0f, 0.016);  // endPan triggers COI update
 
     const vne::math::Vec3f coi = manip_->getCenterOfInterestWorld();
     const vne::math::Vec3f target = camera_->getTarget();
@@ -374,7 +374,7 @@ TEST_F(ArcballManipulatorTest, ZoomToCursorShiftsCoiTowardCursor) {
     const vne::math::Vec3f coi_before = manip_->getCenterOfInterestWorld();
 
     // Scroll zoom-in with cursor offset from center (x=960, center=640 → cursor right of center)
-    manip_->handleMouseScroll(0.0f, 1.0f, 960.0f, 360.0f, 0.016);
+    manip_->onMouseScroll(0.0f, 1.0f, 960.0f, 360.0f, 0.016);
 
     const vne::math::Vec3f coi_after = manip_->getCenterOfInterestWorld();
     // COI must have moved (non-zero migration) — direction depends on camera orientation
@@ -392,7 +392,7 @@ TEST_F(ArcballManipulatorTest, ZoomInDecreasesOrbitDistance) {
     manip_->setViewportSize(1280.0f, 720.0f);
 
     const float dist_before = manip_->getOrbitDistance();
-    manip_->handleMouseScroll(0.0f, 1.0f, 640.0f, 360.0f, 0.016);  // scroll up = zoom in
+    manip_->onMouseScroll(0.0f, 1.0f, 640.0f, 360.0f, 0.016);  // scroll up = zoom in
     EXPECT_LT(manip_->getOrbitDistance(), dist_before);
 }
 
@@ -411,15 +411,15 @@ TEST_F(ArcballManipulatorTest, OrbitDistanceStableAfterManyRotationFrames) {
     const float dist_initial = manip_->getOrbitDistance();
 
     // Simulate 100 frames of drag rotation across the sphere
-    manip_->handleMouseButton(0, true, 640.0f, 360.0f, 0.016);
+    manip_->onMouseButton(0, true, 640.0f, 360.0f, 0.016);
     float x = 640.0f;
     float y = 360.0f;
     for (int i = 0; i < 100; ++i) {
         x += 3.0f;
         y += 1.0f;
-        manip_->handleMouseMove(x, y, 3.0f, 1.0f, 0.016);
+        manip_->onMouseMove(x, y, 3.0f, 1.0f, 0.016);
     }
-    manip_->handleMouseButton(0, false, x, y, 0.016);
+    manip_->onMouseButton(0, false, x, y, 0.016);
 
     // Distance from eye to COI must remain constant (±1e-3 tolerance for float accumulation)
     const vne::math::Vec3f eye = camera_->getPosition();

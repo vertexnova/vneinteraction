@@ -77,9 +77,9 @@ TEST(ApiRobustness, DisabledManipulatorDoesNotMoveCamera) {
 
     const vne::math::Vec3f pos_before = cam->getPosition();
     // Simulate a left-button drag that would normally rotate
-    manip.handleMouseButton(0, true, 640.0f, 360.0f, 0.016);
-    manip.handleMouseMove(680.0f, 360.0f, 40.0f, 0.0f, 0.016);
-    manip.handleMouseButton(0, false, 680.0f, 360.0f, 0.016);
+    manip.onMouseButton(0, true, 640.0f, 360.0f, 0.016);
+    manip.onMouseMove(680.0f, 360.0f, 40.0f, 0.0f, 0.016);
+    manip.onMouseButton(0, false, 680.0f, 360.0f, 0.016);
     manip.update(0.016);
 
     const vne::math::Vec3f pos_after = cam->getPosition();
@@ -188,9 +188,9 @@ TEST(ApiRobustness, OrbitRotationMovesCamera) {
 
     const vne::math::Vec3f pos_before = cam->getPosition();
     // Press left button, drag horizontally by 100px, release
-    manip.handleMouseButton(0, true, 640.0f, 360.0f, 0.016);
-    manip.handleMouseMove(740.0f, 360.0f, 100.0f, 0.0f, 0.016);
-    manip.handleMouseButton(0, false, 740.0f, 360.0f, 0.016);
+    manip.onMouseButton(0, true, 640.0f, 360.0f, 0.016);
+    manip.onMouseMove(740.0f, 360.0f, 100.0f, 0.0f, 0.016);
+    manip.onMouseButton(0, false, 740.0f, 360.0f, 0.016);
 
     const vne::math::Vec3f pos_after = cam->getPosition();
     EXPECT_GT((pos_after - pos_before).length(), 0.01f) << "Orbit drag should move camera position";
@@ -207,9 +207,9 @@ TEST(ApiRobustness, OrbitRotationPreservesDistance) {
     manip.setViewportSize(1280.0f, 720.0f);
 
     const float dist_before = manip.getOrbitDistance();
-    manip.handleMouseButton(0, true, 640.0f, 360.0f, 0.016);
-    manip.handleMouseMove(740.0f, 400.0f, 100.0f, 40.0f, 0.016);
-    manip.handleMouseButton(0, false, 740.0f, 400.0f, 0.016);
+    manip.onMouseButton(0, true, 640.0f, 360.0f, 0.016);
+    manip.onMouseMove(740.0f, 400.0f, 100.0f, 40.0f, 0.016);
+    manip.onMouseButton(0, false, 740.0f, 400.0f, 0.016);
 
     // Distance from eye to COI must remain constant after rotation
     const vne::math::Vec3f eye = cam->getPosition();
@@ -228,7 +228,7 @@ TEST(ApiRobustness, ScrollZoomInDecreasesOrbitDistance) {
     manip.setViewportSize(1280.0f, 720.0f);
 
     const float dist_before = manip.getOrbitDistance();
-    manip.handleMouseScroll(0.0f, 1.0f, 640.0f, 360.0f, 0.016);  // scroll up = zoom in
+    manip.onMouseScroll(0.0f, 1.0f, 640.0f, 360.0f, 0.016);  // scroll up = zoom in
     EXPECT_LT(manip.getOrbitDistance(), dist_before) << "Scroll up should decrease orbit distance (zoom in)";
 }
 
@@ -239,7 +239,7 @@ TEST(ApiRobustness, ScrollZoomOutIncreasesOrbitDistance) {
     manip.setViewportSize(1280.0f, 720.0f);
 
     const float dist_before = manip.getOrbitDistance();
-    manip.handleMouseScroll(0.0f, -1.0f, 640.0f, 360.0f, 0.016);  // scroll down = zoom out
+    manip.onMouseScroll(0.0f, -1.0f, 640.0f, 360.0f, 0.016);  // scroll down = zoom out
     EXPECT_GT(manip.getOrbitDistance(), dist_before) << "Scroll down should increase orbit distance (zoom out)";
 }
 
@@ -255,9 +255,9 @@ TEST(ApiRobustness, OrbitPanMovesCenterOfInterest) {
 
     const vne::math::Vec3f coi_before = manip.getCenterOfInterestWorld();
     // Middle-mouse pan
-    manip.handleMouseButton(2, true, 640.0f, 360.0f, 0.016);
-    manip.handleMouseMove(740.0f, 360.0f, 100.0f, 0.0f, 0.016);
-    manip.handleMouseButton(2, false, 740.0f, 360.0f, 0.016);
+    manip.onMouseButton(2, true, 640.0f, 360.0f, 0.016);
+    manip.onMouseMove(740.0f, 360.0f, 100.0f, 0.0f, 0.016);
+    manip.onMouseButton(2, false, 740.0f, 360.0f, 0.016);
 
     const vne::math::Vec3f coi_after = manip.getCenterOfInterestWorld();
     EXPECT_GT((coi_after - coi_before).length(), 1e-4f) << "Middle-mouse pan must move center of interest";
@@ -279,9 +279,9 @@ TEST(ApiRobustness, FpsKeyboardForwardMovesCamera) {
     manip.setMoveSpeed(5.0f);
 
     const vne::math::Vec3f pos_before = cam->getPosition();
-    manip.handleKeyboard(87, true, 0.016);   // W pressed
+    manip.onKeyboard(87, true, 0.016);   // W pressed
     manip.update(0.1);                       // 100ms of movement
-    manip.handleKeyboard(87, false, 0.016);  // W released
+    manip.onKeyboard(87, false, 0.016);  // W released
 
     const vne::math::Vec3f pos_after = cam->getPosition();
     EXPECT_GT((pos_after - pos_before).length(), 0.01f) << "W key held for 100ms must move FPS camera forward";
@@ -301,14 +301,14 @@ TEST(ApiRobustness, FpsSprintMultiplierMovesMoreThanNormal) {
     vne::interaction::FpsManipulator normal_manip;
     normal_manip.setCamera(cam1);
     normal_manip.setViewportSize(1280.0f, 720.0f);
-    normal_manip.handleKeyboard(87, true, 0.016);
+    normal_manip.onKeyboard(87, true, 0.016);
     normal_manip.update(0.1);
 
     vne::interaction::FpsManipulator sprint_manip;
     sprint_manip.setCamera(cam2);
     sprint_manip.setViewportSize(1280.0f, 720.0f);
-    sprint_manip.handleKeyboard(340, true, 0.016);  // Shift (sprint)
-    sprint_manip.handleKeyboard(87, true, 0.016);   // W
+    sprint_manip.onKeyboard(340, true, 0.016);  // Shift (sprint)
+    sprint_manip.onKeyboard(87, true, 0.016);   // W
     sprint_manip.update(0.1);
 
     const float normal_dist = (cam1->getPosition() - vne::math::Vec3f(0.0f)).length();
@@ -352,7 +352,7 @@ TEST(ApiRobustness, OrthoPanZoomScrollChangesExtents) {
     manip.setViewportSize(1280.0f, 720.0f);
 
     const float extent_before = ortho->getWidth();
-    manip.handleMouseScroll(0.0f, 1.0f, 640.0f, 360.0f, 0.016);  // zoom in
+    manip.onMouseScroll(0.0f, 1.0f, 640.0f, 360.0f, 0.016);  // zoom in
     EXPECT_LT(ortho->getWidth(), extent_before) << "Scroll in on ortho manipulator must shrink ortho extents";
 }
 
@@ -444,9 +444,9 @@ TEST(ApiRobustness, OrbitZUpRotationStaysAtSameHeight) {
     manip.setViewportSize(1280.0f, 720.0f);
 
     // Pure horizontal drag (no vertical) must not change height (Z component) when Z is up
-    manip.handleMouseButton(0, true, 640.0f, 360.0f, 0.016);
-    manip.handleMouseMove(740.0f, 360.0f, 100.0f, 0.0f, 0.016);  // pure horizontal
-    manip.handleMouseButton(0, false, 740.0f, 360.0f, 0.016);
+    manip.onMouseButton(0, true, 640.0f, 360.0f, 0.016);
+    manip.onMouseMove(740.0f, 360.0f, 100.0f, 0.0f, 0.016);  // pure horizontal
+    manip.onMouseButton(0, false, 740.0f, 360.0f, 0.016);
 
     EXPECT_NEAR(cam->getPosition().z(), 0.0f, 0.1f) << "Pure horizontal drag with Z-up must not change camera height";
 }

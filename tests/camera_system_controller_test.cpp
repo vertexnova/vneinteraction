@@ -40,12 +40,12 @@ class MockCameraManipulator : public vne::interaction::ICameraManipulator {
                 applyCommand,
                 (vne::interaction::CameraActionType, const vne::interaction::CameraCommandPayload&, double),
                 (noexcept, override));
-    MOCK_METHOD(void, handleMouseMove, (float, float, float, float, double), (noexcept, override));
-    MOCK_METHOD(void, handleMouseButton, (int, bool, float, float, double), (noexcept, override));
-    MOCK_METHOD(void, handleMouseScroll, (float, float, float, float, double), (noexcept, override));
-    MOCK_METHOD(void, handleKeyboard, (int, bool, double), (noexcept, override));
-    MOCK_METHOD(void, handleTouchPan, (const vne::interaction::TouchPan&, double), (noexcept, override));
-    MOCK_METHOD(void, handleTouchPinch, (const vne::interaction::TouchPinch&, double), (noexcept, override));
+    MOCK_METHOD(void, onMouseMove, (float, float, float, float, double), (noexcept, override));
+    MOCK_METHOD(void, onMouseButton, (int, bool, float, float, double), (noexcept, override));
+    MOCK_METHOD(void, onMouseScroll, (float, float, float, float, double), (noexcept, override));
+    MOCK_METHOD(void, onKeyboard, (int, bool, double), (noexcept, override));
+    MOCK_METHOD(void, onTouchPan, (const vne::interaction::TouchPan&, double), (noexcept, override));
+    MOCK_METHOD(void, onTouchPinch, (const vne::interaction::TouchPinch&, double), (noexcept, override));
     MOCK_METHOD(float, getSceneScale, (), (const, noexcept, override));
     MOCK_METHOD(float, getZoomSpeed, (), (const, noexcept, override));
     MOCK_METHOD(void, resetState, (), (noexcept, override));

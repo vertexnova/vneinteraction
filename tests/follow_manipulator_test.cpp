@@ -170,14 +170,14 @@ TEST_F(FollowManipulatorTest, UpdateWithCameraDoesNotCrash) {
 TEST_F(FollowManipulatorTest, HandleMouseScrollDoesNotCrash) {
     manip_->setCamera(camera_);
     manip_->setViewportSize(1280.0f, 720.0f);
-    EXPECT_NO_FATAL_FAILURE(manip_->handleMouseScroll(0.0f, -1.0f, 640.0f, 360.0f, 0.016));
+    EXPECT_NO_FATAL_FAILURE(manip_->onMouseScroll(0.0f, -1.0f, 640.0f, 360.0f, 0.016));
 }
 
 TEST_F(FollowManipulatorTest, HandleTouchPinchDoesNotCrash) {
     manip_->setCamera(camera_);
     manip_->setViewportSize(1280.0f, 720.0f);
     vne::interaction::TouchPinch pinch{0.95f, 640.0f, 360.0f};
-    EXPECT_NO_FATAL_FAILURE(manip_->handleTouchPinch(pinch, 0.016));
+    EXPECT_NO_FATAL_FAILURE(manip_->onTouchPinch(pinch, 0.016));
 }
 
 }  // namespace vne_interaction_test
