@@ -16,9 +16,7 @@ void CameraInputAdapter::send(CameraActionType action,
     }
 }
 
-void CameraInputAdapter::feedMouseMove(float x, float y, float delta_x, float delta_y, double delta_time) noexcept {
-    last_x_px_ = x;
-    last_y_px_ = y;
+void CameraInputAdapter::onMouseMove(float x, float y, float delta_x, float delta_y, double delta_time) noexcept {
     if (!manipulator_) {
         return;
     }
@@ -36,9 +34,7 @@ void CameraInputAdapter::feedMouseMove(float x, float y, float delta_x, float de
     }
 }
 
-void CameraInputAdapter::feedMouseButton(int button, bool pressed, float x, float y, double delta_time) noexcept {
-    last_x_px_ = x;
-    last_y_px_ = y;
+void CameraInputAdapter::onMouseButton(int button, bool pressed, float x, float y, double delta_time) noexcept {
     if (!manipulator_) {
         return;
     }
@@ -89,7 +85,7 @@ void CameraInputAdapter::feedMouseButton(int button, bool pressed, float x, floa
     }
 }
 
-void CameraInputAdapter::feedMouseScroll(
+void CameraInputAdapter::onMouseScroll(
     float /* scroll_x */, float scroll_y, float mouse_x, float mouse_y, double delta_time) noexcept {
     if (!manipulator_ || scroll_y == 0.0f) {
         return;
@@ -102,7 +98,7 @@ void CameraInputAdapter::feedMouseScroll(
     send(CameraActionType::eZoomAtCursor, payload, delta_time);
 }
 
-void CameraInputAdapter::feedKeyboard(int key, bool pressed, double delta_time) noexcept {
+void CameraInputAdapter::onKeyboard(int key, bool pressed, double delta_time) noexcept {
     if (!manipulator_) {
         return;
     }
@@ -129,15 +125,11 @@ void CameraInputAdapter::feedKeyboard(int key, bool pressed, double delta_time) 
     }
 }
 
-void CameraInputAdapter::feedTouchPan(const TouchPan& pan, double delta_time) noexcept {
+void CameraInputAdapter::onTouchPan(const TouchPan& pan, double delta_time) noexcept {
     if (!manipulator_) {
         return;
     }
-    last_x_px_ += pan.delta_x_px;
-    last_y_px_ += pan.delta_y_px;
     CameraCommandPayload payload;
-    payload.x_px = last_x_px_;
-    payload.y_px = last_y_px_;
     payload.delta_x_px = pan.delta_x_px;
     payload.delta_y_px = pan.delta_y_px;
     // Ortho-only manipulators pan on touch; orbit-style manipulators rotate
@@ -146,10 +138,7 @@ void CameraInputAdapter::feedTouchPan(const TouchPan& pan, double delta_time) no
         const bool has_delta = (pan.delta_x_px != 0.0f) || (pan.delta_y_px != 0.0f);
         if (has_delta) {
             if (!touch_pan_active_) {
-                CameraCommandPayload begin_payload;
-                begin_payload.x_px = last_x_px_;
-                begin_payload.y_px = last_y_px_;
-                send(CameraActionType::eBeginPan, begin_payload, delta_time);
+                send(CameraActionType::eBeginPan, payload, delta_time);
                 touch_pan_active_ = true;
             }
             send(CameraActionType::ePanDelta, payload, delta_time);
@@ -166,7 +155,7 @@ void CameraInputAdapter::feedTouchPan(const TouchPan& pan, double delta_time) no
     }
 }
 
-void CameraInputAdapter::feedTouchPinch(const TouchPinch& pinch, double delta_time) noexcept {
+void CameraInputAdapter::onTouchPinch(const TouchPinch& pinch, double delta_time) noexcept {
     if (!manipulator_ || pinch.scale <= 0.0f) {
         return;
     }

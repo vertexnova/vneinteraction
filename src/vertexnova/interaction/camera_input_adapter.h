@@ -58,49 +58,49 @@ class CameraInputAdapter {
      * @param delta_y Vertical delta in pixels
      * @param delta_time Time since last input in seconds
      */
-    void feedMouseMove(float x, float y, float delta_x, float delta_y, double delta_time) noexcept;
+    void onMouseMove(float x, float y, float delta_x, float delta_y, double delta_time) noexcept;
 
     /**
-     * @brief Feed mouse button press/release.
+     * @brief Mouse button press/release.
      * @param button Mouse button index
      * @param pressed true if pressed, false if released
      * @param x Cursor X in viewport pixels
      * @param y Cursor Y in viewport pixels
      * @param delta_time Time since last input in seconds
      */
-    void feedMouseButton(int button, bool pressed, float x, float y, double delta_time) noexcept;
+    void onMouseButton(int button, bool pressed, float x, float y, double delta_time) noexcept;
 
     /**
-     * @brief Feed mouse scroll input.
+     * @brief Mouse scroll input.
      * @param scroll_x Horizontal scroll delta
      * @param scroll_y Vertical scroll delta
      * @param mouse_x Cursor X in viewport pixels
      * @param mouse_y Cursor Y in viewport pixels
      * @param delta_time Time since last input in seconds
      */
-    void feedMouseScroll(float scroll_x, float scroll_y, float mouse_x, float mouse_y, double delta_time) noexcept;
+    void onMouseScroll(float scroll_x, float scroll_y, float mouse_x, float mouse_y, double delta_time) noexcept;
 
     /**
-     * @brief Feed keyboard input.
+     * @brief Keyboard input.
      * @param key Key code
      * @param pressed true if pressed, false if released
      * @param delta_time Time since last input in seconds
      */
-    void feedKeyboard(int key, bool pressed, double delta_time) noexcept;
+    void onKeyboard(int key, bool pressed, double delta_time) noexcept;
 
     /**
-     * @brief Feed touch pan gesture.
+     * @brief Touch pan gesture.
      * @param pan Pan gesture with delta_x_px and delta_y_px
      * @param delta_time Time since last input in seconds
      */
-    void feedTouchPan(const TouchPan& pan, double delta_time) noexcept;
+    void onTouchPan(const TouchPan& pan, double delta_time) noexcept;
 
     /**
-     * @brief Feed touch pinch (zoom) gesture.
+     * @brief Touch pinch (zoom) gesture.
      * @param pinch Pinch gesture with scale and center position
      * @param delta_time Time since last input in seconds
      */
-    void feedTouchPinch(const TouchPinch& pinch, double delta_time) noexcept;
+    void onTouchPinch(const TouchPinch& pinch, double delta_time) noexcept;
 
     /**
      * @brief Set input key/button bindings.
@@ -121,8 +121,6 @@ class CameraInputAdapter {
 
     std::shared_ptr<ICameraManipulator> manipulator_;
     Action current_action_ = Action::None;
-    float last_x_px_ = 0.0f;
-    float last_y_px_ = 0.0f;
     bool modifier_shift_ = false;
     bool touch_pan_active_ = false;
 

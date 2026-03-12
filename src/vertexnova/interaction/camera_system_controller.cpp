@@ -76,7 +76,7 @@ void CameraSystemController::onEvent(const vne::events::Event& event, double del
             last_x_ = e.x();
             last_y_ = e.y();
             first_mouse_ = false;
-            input_adapter_.feedMouseMove(x, y, dx, dy, delta_time);
+            input_adapter_.onMouseMove(x, y, dx, dy, delta_time);
             break;
         }
         case ET::eMouseButtonPressed: {
@@ -86,7 +86,7 @@ void CameraSystemController::onEvent(const vne::events::Event& event, double del
                 last_y_ = e.y();
             }
             first_mouse_ = false;
-            input_adapter_.feedMouseButton(static_cast<int>(e.button()),
+            input_adapter_.onMouseButton(static_cast<int>(e.button()),
                                            true,
                                            static_cast<float>(last_x_),
                                            static_cast<float>(last_y_),
@@ -99,7 +99,7 @@ void CameraSystemController::onEvent(const vne::events::Event& event, double del
                 last_x_ = e.x();
                 last_y_ = e.y();
             }
-            input_adapter_.feedMouseButton(static_cast<int>(e.button()),
+            input_adapter_.onMouseButton(static_cast<int>(e.button()),
                                            false,
                                            static_cast<float>(last_x_),
                                            static_cast<float>(last_y_),
@@ -108,7 +108,7 @@ void CameraSystemController::onEvent(const vne::events::Event& event, double del
         }
         case ET::eMouseScrolled: {
             const auto& e = static_cast<const vne::events::MouseScrolledEvent&>(event);
-            input_adapter_.feedMouseScroll(static_cast<float>(e.xOffset()),
+            input_adapter_.onMouseScroll(static_cast<float>(e.xOffset()),
                                            static_cast<float>(e.yOffset()),
                                            static_cast<float>(last_x_),
                                            static_cast<float>(last_y_),
@@ -118,12 +118,12 @@ void CameraSystemController::onEvent(const vne::events::Event& event, double del
         case ET::eKeyPressed:
         case ET::eKeyRepeat: {
             const auto& e = static_cast<const vne::events::KeyEvent&>(event);
-            input_adapter_.feedKeyboard(static_cast<int>(e.keyCode()), true, delta_time);
+            input_adapter_.onKeyboard(static_cast<int>(e.keyCode()), true, delta_time);
             break;
         }
         case ET::eKeyReleased: {
             const auto& e = static_cast<const vne::events::KeyEvent&>(event);
-            input_adapter_.feedKeyboard(static_cast<int>(e.keyCode()), false, delta_time);
+            input_adapter_.onKeyboard(static_cast<int>(e.keyCode()), false, delta_time);
             break;
         }
         case ET::eTouchPress: {
@@ -141,7 +141,7 @@ void CameraSystemController::onEvent(const vne::events::Event& event, double del
             last_y_ = e.y();
             first_mouse_ = false;
             TouchPan pan{dx, dy};
-            input_adapter_.feedTouchPan(pan, delta_time);
+            input_adapter_.onTouchPan(pan, delta_time);
             break;
         }
         case ET::eTouchRelease:
