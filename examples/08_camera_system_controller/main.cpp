@@ -22,6 +22,8 @@
 #include "vertexnova/interaction/camera_manipulator_factory.h"
 #include "vertexnova/interaction/camera_system_controller.h"
 #include "vertexnova/interaction/interaction_types.h"
+#include "vertexnova/events/mouse_event.h"
+#include "vertexnova/events/touch_event.h"
 
 int main() {
     vne::interaction::examples::LoggingGuard logging_guard;
@@ -77,18 +79,25 @@ int main() {
     VNE_LOG_INFO << "  sceneScale=" << controller.getManipulator()->getSceneScale()
                  << "  worldUnitsPerPixel=" << controller.getManipulator()->getWorldUnitsPerPixel();
 
-    // Touch-pan (no helper — demonstrates direct controller API)
+    // Touch-pan (demonstrates onEvent with touch events)
     {
-        vne::interaction::TouchPan pan{10.0f, 0.0f};
+        vne::events::TouchPressEvent press(0, 640.0, 360.0);
+        controller.onEvent(press, dt);
         for (int i = 0; i < 10; ++i) {
-            controller.handleTouchPan(pan, dt);
+            vne::events::TouchMoveEvent move(0, 640.0 + (i + 1) * 10.0, 360.0);
+            controller.onEvent(move, dt);
         }
+        vne::events::TouchReleaseEvent release(0, 740.0, 360.0);
+        controller.onEvent(release, dt);
     }
     VNE_LOG_INFO << "After touch-pan";
 
     // Phase 4: Detach — controller becomes a safe no-op
     controller.setManipulator(nullptr);
-    controller.handleMouseButton(0, true, 640.0f, 360.0f, dt);  // safe no-op
+    {
+        vne::events::MouseButtonPressedEvent e(vne::events::MouseButton::eLeft, 0, 640.0, 360.0);
+        controller.onEvent(e, dt);  // safe no-op
+    }
     controller.update(dt);
     VNE_LOG_INFO << "Phase 4: Manipulator detached — all input is safely ignored";
 

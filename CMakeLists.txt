@@ -194,6 +194,32 @@ function(_vneinteraction_configure_vnescene_dep)
 endfunction()
 _vneinteraction_configure_vnescene_dep()
 
+function(_vneinteraction_configure_vneevents_dep)
+    get_property(_vt_build_tests_ty CACHE BUILD_TESTS PROPERTY TYPE)
+    if(NOT _vt_build_tests_ty STREQUAL "NOTFOUND" AND _vt_build_tests_ty)
+        set(_vt_build_tests_saved "${BUILD_TESTS}")
+    endif()
+    get_property(_vt_build_examples_ty CACHE BUILD_EXAMPLES PROPERTY TYPE)
+    if(NOT _vt_build_examples_ty STREQUAL "NOTFOUND" AND _vt_build_examples_ty)
+        set(_vt_build_examples_saved "${BUILD_EXAMPLES}")
+    endif()
+    set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
+    set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
+    vne_use_dep(TARGET vne::events SUBDIR "${VNE_DEPS_INTERNAL_DIR}/vneevents" BINARY_DIR "${CMAKE_BINARY_DIR}/deps/internal/vneevents"
+        CACHE_VARS BUILD_TESTS OFF BUILD_EXAMPLES OFF)
+    if(DEFINED _vt_build_tests_saved)
+        set(BUILD_TESTS "${_vt_build_tests_saved}" CACHE BOOL "" FORCE)
+    else()
+        unset(BUILD_TESTS CACHE)
+    endif()
+    if(DEFINED _vt_build_examples_saved)
+        set(BUILD_EXAMPLES "${_vt_build_examples_saved}" CACHE BOOL "" FORCE)
+    else()
+        unset(BUILD_EXAMPLES CACHE)
+    endif()
+endfunction()
+_vneinteraction_configure_vneevents_dep()
+
 # iOS/Xcode: ensure vnescene (and any dep) target has signing set so build does not fail with
 # "Signing for vnescene requires a development team". Prefer DEVELOPMENT_TEAM when provided;
 # otherwise disable code signing for the library target.

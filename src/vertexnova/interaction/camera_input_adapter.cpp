@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/interaction/detail/camera_input_adapter.h"
+#include "vertexnova/interaction/camera_input_adapter.h"
 
 namespace vne::interaction {
 

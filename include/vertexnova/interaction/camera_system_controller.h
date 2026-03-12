@@ -11,9 +11,12 @@
 
 #include "vertexnova/interaction/camera_controller.h"
 #include "vertexnova/interaction/camera_manipulator.h"
-#include "vertexnova/interaction/detail/camera_input_adapter.h"
+#include "vertexnova/interaction/camera_input_adapter.h"
 #include "vertexnova/interaction/export.h"
 #include "vertexnova/interaction/interaction_types.h"
+#include "vertexnova/events/event.h"
+#include "vertexnova/events/key_event.h"
+#include "vertexnova/events/mouse_event.h"
 
 #include <memory>
 #include <string>
@@ -132,56 +135,15 @@ class VNE_INTERACTION_API CameraSystemController : public ICameraController {
     void setViewportSize(float width_px, float height_px) noexcept;
 
     /**
-     * @brief Handle mouse movement input.
-     * @param x Current cursor X position in viewport pixels
-     * @param y Current cursor Y position in viewport pixels
-     * @param delta_x Horizontal movement delta in pixels
-     * @param delta_y Vertical movement delta in pixels
+     * @brief Dispatch a vne::events::Event to this controller.
+     *
+     * Handles: eMouseMoved, eMouseButtonPressed, eMouseButtonReleased, eMouseScrolled,
+     * eKeyPressed, eKeyReleased, eKeyRepeat, eTouchMove, eTouchPress, eTouchRelease.
+     *
+     * @param event The event to process
      * @param delta_time Time since last input in seconds
      */
-    void handleMouseMove(float x, float y, float delta_x, float delta_y, double delta_time) noexcept;
-
-    /**
-     * @brief Handle mouse button press/release.
-     * @param button Mouse button index (0=left, 1=right, 2=middle)
-     * @param pressed true if pressed, false if released
-     * @param x Cursor X position in viewport pixels
-     * @param y Cursor Y position in viewport pixels
-     * @param delta_time Time since last input in seconds
-     */
-    void handleMouseButton(int button, bool pressed, float x, float y, double delta_time) noexcept;
-
-    /**
-     * @brief Handle mouse scroll wheel input.
-     * @param scroll_x Horizontal scroll delta
-     * @param scroll_y Vertical scroll delta
-     * @param mouse_x Cursor X position in viewport pixels
-     * @param mouse_y Cursor Y position in viewport pixels
-     * @param delta_time Time since last input in seconds
-     */
-    void handleMouseScroll(float scroll_x, float scroll_y, float mouse_x, float mouse_y, double delta_time) noexcept;
-
-    /**
-     * @brief Handle keyboard input (key press/release).
-     * @param key Key code (e.g. GLFW key code)
-     * @param pressed true if pressed, false if released
-     * @param delta_time Time since last input in seconds
-     */
-    void handleKeyboard(int key, bool pressed, double delta_time) noexcept;
-
-    /**
-     * @brief Handle touch pan gesture.
-     * @param pan Pan gesture data with delta_x_px and delta_y_px
-     * @param delta_time Time since last input in seconds
-     */
-    void handleTouchPan(const TouchPan& pan, double delta_time) noexcept;
-
-    /**
-     * @brief Handle touch pinch (zoom) gesture.
-     * @param pinch Pinch gesture data with scale and center position
-     * @param delta_time Time since last input in seconds
-     */
-    void handleTouchPinch(const TouchPinch& pinch, double delta_time) noexcept;
+    void onEvent(const vne::events::Event& event, double delta_time) noexcept;
 
     /**
      * @brief Configure input key/button bindings for this controller.
@@ -206,6 +168,9 @@ class VNE_INTERACTION_API CameraSystemController : public ICameraController {
     CameraInputAdapter input_adapter_;                       //!< Adapter converting raw input to commands
     bool enabled_ = true;                                    //!< Whether this controller is enabled
     std::string name_ = "VertexNovaCameraSystemController";  //!< Display name for this controller
+    double last_x_ = 0.0;                                    //!< Last known cursor X for delta computation
+    double last_y_ = 0.0;                                    //!< Last known cursor Y for delta computation
+    bool first_mouse_ = true;                                //!< True until first mouse event; prevents jump
 };
 
 }  // namespace vne::interaction

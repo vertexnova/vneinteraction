@@ -26,6 +26,8 @@
 #include "vertexnova/scene/camera/orthographic_camera.h"
 #include "vertexnova/scene/camera/perspective_camera.h"
 
+#include "vertexnova/events/mouse_event.h"
+
 #include <vertexnova/math/core/core.h>
 
 #include <gtest/gtest.h>
@@ -160,7 +162,8 @@ TEST(ApiRobustness, ScrollZoomViaAdapterUsesManipulatorZoomSpeed) {
 
     const float dist_before = manip->getOrbitDistance();
     // One scroll-in notch via the adapter (should use zoom_speed = 2.0)
-    ctrl.handleMouseScroll(0.0f, 1.0f, 640.0f, 360.0f, 0.016);
+    vne::events::MouseScrolledEvent scroll_evt(0.0, 1.0);
+    ctrl.onEvent(scroll_evt, 0.016);
 
     const float dist_after = manip->getOrbitDistance();
     // With zoom_speed=2.0, distance shrinks to dist/2.0; with default 1.1 it shrinks to dist/1.1

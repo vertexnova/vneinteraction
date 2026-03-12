@@ -41,9 +41,12 @@ set(HEADER_FILES
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/follow_manipulator.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/interaction.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/detail/camera_manipulator_base.h
-    ${VNE_INCLUDE_DIR}/vertexnova/interaction/detail/camera_input_adapter.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/detail/orbit_style_base.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/detail/free_camera_base.h
+)
+
+set(PRIVATE_HEADER_FILES
+    vertexnova/interaction/camera_input_adapter.h
 )
 
 # One library per build: static or shared, always named vneinteraction (alias vne::interaction).
@@ -53,7 +56,7 @@ else()
     set(_lib_type STATIC)
 endif()
 
-add_library(vneinteraction ${_lib_type} ${SOURCE_FILES} ${HEADER_FILES})
+add_library(vneinteraction ${_lib_type} ${SOURCE_FILES} ${HEADER_FILES} ${PRIVATE_HEADER_FILES})
 
 target_include_directories(vneinteraction
     PUBLIC
@@ -67,6 +70,11 @@ target_link_libraries(vneinteraction
         vne::interaction::Warnings
         vne::interaction::BuildSettings
 )
+
+# Link vne::events for the event-based API (onEvent).
+if(TARGET vne::events)
+    target_link_libraries(vneinteraction PUBLIC vne::events)
+endif()
 
 # Link only to vne::scene; it brings vne::math, vne::common, vne::logging transitively.
 # Avoid direct links to avoid duplicate library warnings (ld: ignoring duplicate libraries).
@@ -112,3 +120,4 @@ add_library(vne::interaction ALIAS vneinteraction)
 
 source_group("Sources" FILES ${SOURCE_FILES})
 source_group(TREE ${VNE_INCLUDE_DIR} PREFIX "Headers" FILES ${HEADER_FILES})
+source_group("Headers/Private" FILES ${PRIVATE_HEADER_FILES})
