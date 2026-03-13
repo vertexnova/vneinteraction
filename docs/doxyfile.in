@@ -4,7 +4,7 @@
 
 PROJECT_NAME           = "@CMAKE_PROJECT_NAME@"
 PROJECT_NUMBER         = @PROJECT_VERSION_MAJOR@.@PROJECT_VERSION_MINOR@.@PROJECT_VERSION_PATCH@
-PROJECT_BRIEF          = "Camera manipulators and interaction for VertexNova"
+PROJECT_BRIEF          = "Camera behaviors and controllers for VertexNova"
 PROJECT_LOGO           =
 
 INPUT                  = @PROJECT_SOURCE_DIR@/include \

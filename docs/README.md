@@ -1,6 +1,6 @@
 # VneInteraction Documentation
 
-Documentation for the VneInteraction library (camera manipulators and controller for VertexNova).
+Documentation for the VneInteraction library (camera behaviors and controllers for VertexNova).
 
 ## Generating API Documentation
 

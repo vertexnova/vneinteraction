@@ -48,15 +48,16 @@ endif()
 # Test sources
 #==============================================================================
 set(TEST_SOURCES
-    interaction_test.cpp
-    camera_manipulator_factory_test.cpp
-    camera_system_controller_test.cpp
-    orbit_manipulator_test.cpp
-    arcball_manipulator_test.cpp
-    fps_manipulator_test.cpp
-    fly_manipulator_test.cpp
-    ortho_pan_zoom_manipulator_test.cpp
-    follow_manipulator_test.cpp
+    orbit_arcball_behavior_test.cpp
+    free_look_behavior_test.cpp
+    ortho_pan_zoom_behavior_test.cpp
+    follow_behavior_test.cpp
+    input_mapper_test.cpp
+    camera_rig_test.cpp
+    inspect_controller_test.cpp
+    navigation_3d_controller_test.cpp
+    ortho_2d_controller_test.cpp
+    follow_controller_test.cpp
     api_robustness_test.cpp
 )
 
@@ -78,7 +79,6 @@ target_link_libraries(vneinteraction_tests
         vne::interaction
 )
 
-# MSVC: suppress C4251/C4275 when tests include dll-exported headers (vneinteraction + vnescene).
 if(MSVC)
     target_compile_options(vneinteraction_tests PRIVATE /wd4251 /wd4275)
 endif()

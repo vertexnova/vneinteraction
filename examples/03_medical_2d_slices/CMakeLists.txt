@@ -1,0 +1,1 @@
+vne_add_example(03_medical_2d_slices)

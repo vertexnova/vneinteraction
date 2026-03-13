@@ -4,32 +4,44 @@ This directory contains examples demonstrating the VneInteraction API.
 
 ## Building Examples
 
-From the project root (use `build/shared` or `build/static`):
+From the project root:
 
 ```bash
 # Shared library build
-cmake -B build/shared -DVNE_TEMPLATE_EXAMPLES=ON -DVNE_TEMPLATE_LIB_TYPE=shared
-cmake --build build/shared
-
-# Static library build
-cmake -B build/static -DVNE_TEMPLATE_EXAMPLES=ON -DVNE_TEMPLATE_LIB_TYPE=static
-cmake --build build/static
+./scripts/build_macos.sh   # macOS
+# or
+cmake -B build -DVNE_INTERACTION_EXAMPLES=ON -DVNE_INTERACTION_LIB_TYPE=shared
+cmake --build build
 ```
 
-Alternatively, `-DVNE_TEMPLATE_DEV=ON` enables both tests and examples.
+Alternatively, `-DVNE_INTERACTION_DEV=ON` enables both tests and examples.
 
-Executables are placed in `build/shared/bin/examples/` (or `build/static/bin/examples/`).
+Executables are placed in `build/shared/Debug/bin/examples/` (or `build/static/bin/examples/` for static builds).
 
 ## Available Examples
 
-### 01_hello_template — Getting Started
-
-Minimal usage: call `vne::template_ns::hello()` and `get_version()`.
-
-**Run:** `./build/<lib_type>/bin/examples/example_01_hello_template` (use `shared` or `static` to match your build)
+| Example | Description |
+|---------|-------------|
+| **01_library_info** | Version info; list all behavior types and presets |
+| **02_medical_3d_inspect** | InspectController — arcball rotation, landmark pivot, fitToAABB |
+| **03_medical_2d_slices** | Ortho2DController — pan, scroll-zoom, orthographic camera |
+| **04_game_editor_camera** | Navigation3DController — FPS + orbit modes, WASD |
+| **05_robotic_simulator** | InspectController + Navigation3DController + FollowController |
 
 ## Quick Reference
 
-| Example              | Focus          | Key Concepts              |
-|----------------------|----------------|---------------------------|
-| 01_hello_template    | Getting started| hello(), get_version()   |
+| Example | Controller | Focus |
+|---------|------------|-------|
+| 01_library_info | — | Version, behavior listing |
+| 02_medical_3d_inspect | InspectController | 3D inspection, arcball |
+| 03_medical_2d_slices | Ortho2DController | 2D slices, ortho pan+zoom |
+| 04_game_editor_camera | Navigation3DController | Game/editor camera |
+| 05_robotic_simulator | Inspect + Navigate + Follow | Robotic simulator |
+
+## Common
+
+The `common/` folder contains shared helpers:
+
+- `input_simulation.h` — Simulate mouse drag, scroll, key hold for headless testing
+- `key_codes.h` — Key code constants
+- `logging_guard.h` — Optional logging setup

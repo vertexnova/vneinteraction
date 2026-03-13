@@ -1,0 +1,1 @@
+vne_add_example(02_medical_3d_inspect)

@@ -11,26 +11,17 @@
 
 /**
  * @file interaction_types.h
- * @brief Types, enums, and structs for camera interaction (manipulators, gestures, bindings).
+ * @brief Types, enums, and structs for camera interaction (behaviors, gestures, bindings).
  */
 
 #include "vertexnova/interaction/export.h"
 
+#include <vertexnova/events/types.h>
 #include <vertexnova/math/core/core.h>
 
 #include <cstdint>
 
 namespace vne::interaction {
-
-/** Camera manipulator type enum for selecting interaction model. */
-enum class CameraManipulatorType : std::uint8_t {
-    eOrbit = 0,         //!< Orbit-style rotation around center of interest
-    eArcball = 1,       //!< Arcball-style quaternion-based smooth rotation
-    eFps = 2,           //!< FPS-style movement with world-up constraint
-    eFly = 3,           //!< Fly-style 6-DOF unconstrained movement
-    eOrthoPanZoom = 4,  //!< Orthographic pan and zoom (no rotation)
-    eFollow = 5,        //!< Follow-style autonomous behavior tracking
-};
 
 /** Space for center-of-interest specification. */
 enum class CenterOfInterestSpace : std::uint8_t {
@@ -56,13 +47,22 @@ enum class ZoomMethod : std::uint8_t {
     eChangeFov = 2,   //!< Adjust field of view (perspective cameras only)
 };
 
-/** Controls which point in world space the camera rotates around (the center of interest / pivot point). */
-enum class RotationPivotMode : std::uint8_t {
-    eCoi = 0,  //!< Rotate around the current center of interest in world space (default; panning moves this pivot)
-    eViewCenter = 1,  //!< On pan end, the center of interest updates to the camera's view center (current camera
-                      //!< target); subsequent rotations pivot around the point you panned to
-    eFixedWorld = 2,  //!< The world-space pivot is fixed; panning translates eye and target together without changing
-                      //!< the center of interest; rotation always orbits around this fixed pivot
+/** Rotation algorithm for orbit-style camera (OrbitArcballBehavior, InspectController). */
+enum class OrbitRotationMode : std::uint8_t {
+    eOrbit = 0,    //!< Classic orbit (Euler yaw/pitch), pitch clamped [-89°, 89°]
+    eArcball = 1,  //!< Arcball quaternion rotation (smooth, no gimbal lock)
+};
+
+/**
+ * @brief Pivot control mode for orbit-style camera behaviors.
+ *
+ * Determines which point in world space the camera orbits around.
+ * Used by OrbitArcballBehavior and InspectController.
+ */
+enum class OrbitPivotMode : std::uint8_t {
+    eCoi = 0,         //!< Rotate around the current center of interest (default; pan moves pivot)
+    eViewCenter = 1,  //!< On pan end, pivot updates to where the camera looks (panned-to point)
+    eFixed = 2,       //!< Pivot is fixed in world space; pan translates eye+target without moving pivot
 };
 
 /** World up axis selection. */
@@ -87,10 +87,28 @@ enum class MouseButton : int {
     eMiddle = 2,  //!< Middle/wheel mouse button
 };
 
-/** Button indices for rotate/pan (e.g. left/right mouse). Used by orbit-style manipulators. */
-struct VNE_INTERACTION_API ButtonMap {
-    int rotate = static_cast<int>(MouseButton::eLeft);  //!< Button for rotation (default: left mouse)
-    int pan = static_cast<int>(MouseButton::eRight);    //!< Button for panning (default: right mouse)
+/**
+ * @brief High-level gesture actions for remappable bindings.
+ *
+ * Used with InputMapper::bindGesture, bindScroll, bindDoubleClick to customize
+ * controls without exposing InputRule or CameraActionType.
+ */
+enum class GestureAction : std::uint8_t {
+    eRotate = 0,    //!< Orbit/arcball rotate (button + drag)
+    ePan = 1,       //!< Pan (button + drag)
+    eZoom = 2,      //!< Zoom (scroll wheel)
+    eLook = 3,      //!< FPS-style look (button + drag)
+    eSetPivot = 4,  //!< Set orbit pivot at cursor (double-click)
+};
+
+/**
+ * @brief Mouse button + modifier binding for gesture remapping.
+ *
+ * Uses vne::events::ModifierKey for modifier_mask (eModNone, eModShift, eModCtrl, eModAlt).
+ */
+struct VNE_INTERACTION_API MouseBinding {
+    MouseButton button = MouseButton::eLeft;
+    vne::events::ModifierKey modifier_mask = vne::events::ModifierKey::eModNone;
 };
 
 /** Touch pan gesture data with screen pixel deltas. */
@@ -107,54 +125,73 @@ struct VNE_INTERACTION_API TouchPinch final {
 };
 
 // -----------------------------------------------------------------------------
-// Input bindings (customizable mouse buttons, keys, modifiers)
+// Camera action / command layer (intent between input and behavior)
 // -----------------------------------------------------------------------------
-/// Configurable bindings for camera input when using CameraSystemController.
-/// Defaults match GLFW-like values (left=rotate, right=pan/look, WASD/QE, shift/ctrl).
-/// Set via CameraSystemController::setInputBindings() to support different setups.
-struct VNE_INTERACTION_API CameraInputBindings {
-    int rotate_button = static_cast<int>(MouseButton::eLeft);
-    int pan_button = static_cast<int>(MouseButton::eRight);
-    int pan_button_middle = static_cast<int>(MouseButton::eMiddle);  // additional pan alias
-    int look_button = static_cast<int>(MouseButton::eRight);
-
-    int key_move_forward = 87;   // W
-    int key_move_backward = 83;  // S
-    int key_move_left = 65;      // A
-    int key_move_right = 68;     // D
-    int key_move_up = 69;        // E
-    int key_move_down = 81;      // Q
-
-    int key_shift_left = 340;
-    int key_shift_right = 344;
-    int key_ctrl_left = 341;
-    int key_ctrl_right = 345;
+enum class CameraActionType : std::uint8_t {
+    eNone = 0,  //!< Sentinel: no action for this event phase (used in InputRule)
+    eBeginRotate = 1,
+    eRotateDelta = 2,
+    eEndRotate = 3,
+    eBeginPan = 4,
+    ePanDelta = 5,
+    eEndPan = 6,
+    eZoomAtCursor = 7,
+    eLookDelta = 8,
+    eBeginLook = 9,
+    eEndLook = 10,
+    eMoveForward = 11,
+    eMoveBackward = 12,
+    eMoveLeft = 13,
+    eMoveRight = 14,
+    eMoveUp = 15,
+    eMoveDown = 16,
+    eSprintModifier = 17,
+    eSlowModifier = 18,
+    eOrbitPanModifier = 19,  // shift: orbit uses for pan-alias, free uses SprintModifier
+    eResetView = 20,
+    eSetPivotAtCursor = 21,  //!< Double-click: move orbit pivot to cursor position on view ray
 };
 
 // -----------------------------------------------------------------------------
-// Camera action / command layer (intent between input and manipulator)
+// InputRule — data-driven input ->action mapping (replaces hardcoded adapter logic)
 // -----------------------------------------------------------------------------
-enum class CameraActionType : std::uint8_t {
-    eBeginRotate = 0,
-    eRotateDelta = 1,
-    eEndRotate = 2,
-    eBeginPan = 3,
-    ePanDelta = 4,
-    eEndPan = 5,
-    eZoomAtCursor = 6,
-    eLookDelta = 7,
-    eBeginLook = 8,
-    eEndLook = 9,
-    eMoveForward = 10,
-    eMoveBackward = 11,
-    eMoveLeft = 12,
-    eMoveRight = 13,
-    eMoveUp = 14,
-    eMoveDown = 15,
-    eSprintModifier = 16,
-    eSlowModifier = 17,
-    eOrbitPanModifier = 18,  // shift: orbit uses for pan-alias, free uses SprintModifier
-    eResetView = 19,
+
+/** Modifier key bitmask constants for InputRule::modifier_mask. */
+static constexpr int kModNone = 0;
+static constexpr int kModShift = 1 << 0;  //!< Shift key held
+static constexpr int kModCtrl = 1 << 1;   //!< Ctrl key held
+static constexpr int kModAlt = 1 << 2;    //!< Alt key held
+
+/**
+ * @brief A single data-driven input binding rule.
+ *
+ * Maps one input trigger (button press, key, scroll, touch, double-click) to
+ * CameraActionType values that are emitted to the active CameraRig.
+ *
+ * - For mouse/key triggers: on_press emitted on press, on_release on release,
+ *   on_delta emitted each frame that a move delta arrives while the button is held.
+ * - For scroll/touch triggers: on_delta emitted per event.
+ * - For double-click: on_press emitted once.
+ * - Use eNone as a sentinel to mean "no action for this event phase".
+ */
+struct VNE_INTERACTION_API InputRule {
+    /** What kind of input triggers this rule. */
+    enum class Trigger : std::uint8_t {
+        eMouseButton,    //!< Mouse button; code = MouseButton int (0=left, 1=right, 2=middle)
+        eKey,            //!< Keyboard key; code = vne::events::KeyCode:: value (e.g. KeyCode::eW)
+        eScroll,         //!< Mouse scroll wheel; code = 0
+        eTouchPan,       //!< Touch pan gesture; code = 0
+        eTouchPinch,     //!< Touch pinch gesture; code = 0
+        eMouseDblClick,  //!< Mouse button double-click; code = MouseButton int
+    };
+
+    Trigger trigger = Trigger::eMouseButton;
+    int code = 0;                  //!< Button index or key code; 0 for scroll/touch
+    int modifier_mask = kModNone;  //!< Required modifier bitmask; 0 = no modifier required
+
+    CameraActionType on_press = CameraActionType::eNone;    //!< Emitted on press / double-click
+    CameraActionType on_release = CameraActionType::eNone;  //!< Emitted on release
+    CameraActionType on_delta = CameraActionType::eNone;    //!< Emitted per delta/scroll/touch event
 };
 
 /** Payload for actions that carry pointer/cursor or delta data. */
@@ -191,7 +228,7 @@ struct VNE_INTERACTION_API OrbitInteractionState {
 };
 
 // -----------------------------------------------------------------------------
-// Internal camera state (manipulators operate on these, then apply to ICamera)
+// Internal camera state (behaviors operate on these, then apply to ICamera)
 // -----------------------------------------------------------------------------
 #ifdef _MSC_VER
 #pragma warning(push)

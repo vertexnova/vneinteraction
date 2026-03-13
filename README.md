@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <strong>Camera interaction library (manipulators and controller) for the VertexNova ecosystem</strong>
+  <strong>Camera interaction library (behaviors and controllers) for the VertexNova ecosystem</strong>
 </p>
 
 <p align="center">
@@ -21,23 +21,25 @@
 
 ## About
 
-VneInteraction provides camera manipulators and a thin input-forwarding controller for the [VertexNova](https://github.com/vertexnova) stack. It does not implement rendering, windowing, or an event system — it consumes raw input (mouse, keyboard, touch) that your application feeds in, and drives cameras from [vnescene](https://github.com/vertexnova/vnescene).
+VneInteraction provides composable camera behaviors and high-level controllers for the [VertexNova](https://github.com/vertexnova) stack. It does not implement rendering, windowing, or an event system — it consumes events (e.g. from [vneevents](https://github.com/vertexnova/vneevents)) that your application feeds in, and drives cameras from [vnescene](https://github.com/vertexnova/vnescene).
 
 VneInteraction is a C++20 library offering:
 
-- **Manipulators**: Orbit, arcball, FPS, fly, ortho pan/zoom, and follow — each implements `ICameraManipulator` and works with `vne::scene::ICamera` (perspective or orthographic).
-- **Factory**: `CameraManipulatorFactory` creates manipulators by type.
-- **Controller**: `CameraSystemController` holds the active manipulator and forwards `handleMouseMove`, `handleMouseButton`, `handleMouseScroll`, `handleKeyboard`, `handleTouchPan`, and `handleTouchPinch` from your app.
-- **Input-agnostic**: You get input from GLFW, SDL, [vneevents](https://github.com/vertexnova/vneevents), or any source and call the controller’s handle methods; no event-library dependency.
+- **Behaviors**: `OrbitArcballBehavior`, `FreeLookBehavior`, `OrthoPanZoomBehavior`, `FollowBehavior` — each implements `ICameraBehavior` and works with `vne::scene::ICamera` (perspective or orthographic).
+- **Controllers**: `InspectController`, `Navigation3DController`, `Ortho2DController`, `FollowController` — high-level wrappers that combine behaviors with `InputMapper` and event handling.
+- **InputMapper**: Maps mouse, keyboard, and touch events to `CameraActionType` via configurable `InputRule` presets (orbit, FPS, game, CAD, ortho).
+- **CameraRig**: Multi-behavior container for custom compositions.
+- **Event-based**: Controllers expose `onEvent(event, delta_time)` and `onUpdate(delta_time)`; compatible with vneevents or any event source.
 
-It depends on **vnescene** (and transitively **vnemath**) for cameras and math. Tests use Google Test; examples optionally use **vnelogging**.
+It depends on **vnescene** (and transitively **vnemath**) for cameras and math, and **vneevents** for event types. Tests use Google Test; examples optionally use **vnelogging**.
 
 ## Features
 
-- **Manipulators**: `OrbitManipulator`, `ArcballManipulator`, `FpsManipulator`, `FlyManipulator`, `OrthoPanZoomManipulator`, `FollowManipulator` — viewport, zoom method (dolly / scene scale / FOV), pan, rotation, fit-to-AABB.
-- **Factory**: `CameraManipulatorFactory::create(CameraManipulatorType)`.
-- **Controller**: `CameraSystemController` — set manipulator, set viewport size, update, and forward mouse/keyboard/touch.
-- **Types**: `MouseButton`, `TouchPan`, `TouchPinch`, `ZoomMethod`, `CenterOfInterestSpace`, etc. in `interaction_types.h`.
+- **Behaviors**: `OrbitArcballBehavior`, `FreeLookBehavior`, `OrthoPanZoomBehavior`, `FollowBehavior` — rotation modes (Euler/Quaternion), pivot modes, zoom methods, inertia, fit-to-AABB.
+- **Controllers**: `InspectController` (3D inspection), `Navigation3DController` (FPS/Fly/Game modes), `Ortho2DController` (2D slices, maps), `FollowController` (target following).
+- **InputMapper**: Presets (`orbitPreset`, `fpsPreset`, `gamePreset`, `cadPreset`, `orthoPreset`) and custom `InputRule` configuration.
+- **Types**: `CameraActionType`, `CameraCommandPayload`, `InputRule`, `ZoomMethod`, `OrbitPivotMode`, `NavigateMode`, etc. in `interaction_types.h`.
+- **Use cases**: Medical 3D/2D inspection, game/editor cameras, robotic simulators.
 - **Cross-platform**: Linux, macOS, Windows (and optionally iOS, Android, Web via vnemath).
 
 ## Installation
@@ -46,7 +48,7 @@ It depends on **vnescene** (and transitively **vnemath**) for cameras and math. 
 
 ```bash
 git submodule add https://github.com/vertexnova/vneinteraction.git deps/vneinteraction
-# Ensure vnescene and vnemath (and optionally vnelogging) are available as dependencies.
+# Ensure vnescene, vneevents, and vnemath (and optionally vnelogging) are available as dependencies.
 ```
 
 In your `CMakeLists.txt`:
@@ -80,7 +82,7 @@ cmake --build build
 sudo cmake --install build
 ```
 
-In your `CMakeLists.txt` (ensure [vnescene](https://github.com/vertexnova/vnescene) and [vnemath](https://github.com/vertexnova/vnemath) are installed first):
+In your `CMakeLists.txt` (ensure [vnescene](https://github.com/vertexnova/vnescene), [vneevents](https://github.com/vertexnova/vneevents), and [vnemath](https://github.com/vertexnova/vnemath) are installed first):
 
 ```cmake
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_PREFIX_PATH}/lib/cmake/VneInteraction")
@@ -124,6 +126,7 @@ cmake --build build
 #include <vertexnova/interaction/interaction.h>
 #include <vertexnova/interaction/version.h>
 #include <vertexnova/scene/camera/camera.h>
+#include <vertexnova/events/mouse_event.h>
 #include <memory>
 
 int main() {
@@ -135,36 +138,34 @@ int main() {
     auto camera = CameraFactory::createPerspective(
         PerspectiveCameraParameters(60.0f, 16.0f / 9.0f, 0.1f, 1000.0f));
     camera->setPosition(vne::math::Vec3f(0.0f, 2.0f, 5.0f));
+    camera->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
-    auto factory = std::make_shared<CameraManipulatorFactory>();
-    auto orbit = factory->create(CameraManipulatorType::eOrbit);
-    orbit->setCamera(camera);
-    orbit->setViewportSize(1280.0f, 720.0f);
+    InspectController ctrl;
+    ctrl.setCamera(camera);
+    ctrl.setViewportSize(1280.0f, 720.0f);
 
-    CameraSystemController controller;
-    controller.setManipulator(orbit);
-    controller.setViewportSize(1280.0f, 720.0f);
-
-    // Each frame: get input from your window/event system, then:
-    // controller.handleMouseMove(x, y, delta_x, delta_y, dt);
-    // controller.handleMouseButton(button, pressed, x, y, dt);
-    // controller.handleMouseScroll(scroll_x, scroll_y, mouse_x, mouse_y, dt);
-    // controller.handleKeyboard(key, pressed, dt);
-    controller.update(1.0 / 60.0);
+    // Each frame: feed events from your window/event system, then:
+    // ctrl.onEvent(mouse_event, dt);
+    // ctrl.onEvent(scroll_event, dt);
+    ctrl.onUpdate(1.0 / 60.0);
 
     return 0;
 }
 ```
 
-See [examples/01_hello_template](examples/01_hello_template) for a minimal example with version and factory usage.
+See [examples/01_library_info](examples/01_library_info) for version and behavior listing, and [examples/02_medical_3d_inspect](examples/02_medical_3d_inspect) for a minimal InspectController example.
 
 ## Examples
 
 | Example | Description |
 |---------|-------------|
-| [01_hello_template](examples/01_hello_template) | Minimal usage: version, factory, orbit manipulator, viewport |
+| [01_library_info](examples/01_library_info) | Version info; list all behavior types and presets |
+| [02_medical_3d_inspect](examples/02_medical_3d_inspect) | InspectController — arcball, landmark pivot, fitToAABB |
+| [03_medical_2d_slices](examples/03_medical_2d_slices) | Ortho2DController — pan, scroll-zoom, ortho camera |
+| [04_game_editor_camera](examples/04_game_editor_camera) | Navigation3DController — FPS + orbit modes, WASD |
+| [05_robotic_simulator](examples/05_robotic_simulator) | InspectController + Navigation3DController + FollowController |
 
-Build with `-DVNE_INTERACTION_EXAMPLES=ON` or use the dev preset (`-DVNE_INTERACTION_DEV=ON`). Run from `build/bin/examples/`.
+Build with `-DVNE_INTERACTION_EXAMPLES=ON` or use the dev preset (`-DVNE_INTERACTION_DEV=ON`). Run from `build/bin/examples/` (or `build/shared/Debug/bin/examples/` for Debug).
 
 ## Documentation
 
@@ -174,7 +175,7 @@ Build with `-DVNE_INTERACTION_EXAMPLES=ON` or use the dev preset (`-DVNE_INTERAC
 ## Platform Support
 
 | Platform | Status | Notes |
-|----------|--------|-------|
+|----------|--------|------|
 | Linux | Supported | GCC 10+, Clang 10+ |
 | macOS | Supported | Xcode 12+, Apple Clang |
 | Windows | Supported | MSVC 2019+, MinGW |
@@ -186,6 +187,7 @@ Build with `-DVNE_INTERACTION_EXAMPLES=ON` or use the dev preset (`-DVNE_INTERAC
 - C++20
 - CMake 3.19+
 - [vnescene](https://github.com/vertexnova/vnescene) (required; brings vnemath)
+- [vneevents](https://github.com/vertexnova/vneevents) (required; for event types)
 - vnelogging (optional; for examples)
 - Google Test (for tests; submodule or FetchContent)
 

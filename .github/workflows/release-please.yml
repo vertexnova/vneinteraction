@@ -12,7 +12,7 @@
 #   Tier 1 — source consumers: pin the release tag as a git submodule.
 #   Tier 2 — binary consumers: download .tar.gz from GitHub Releases.
 # Repo Settings required (one-time):
-#   Settings → General → Pull Requests → "Allow auto-merge" — ON
+#   Settings ->General ->Pull Requests ->"Allow auto-merge" — ON
 #   REPO_ACCESS_TOKEN (optional): use for higher limits; else github.token is used.
 #
 # Autodoc:   yes
@@ -53,7 +53,7 @@ jobs:
           token: ${{ secrets.REPO_ACCESS_TOKEN || github.token }}
 
       # Enable auto-merge so the Release PR merges once CI Gate passes. If the repo
-      # has not enabled "Allow auto-merge" (Settings → General, and Branches → main),
+      # has not enabled "Allow auto-merge" (Settings ->General, and Branches ->main),
       # we warn and leave the PR open for manual merge instead of failing the workflow.
       - name: Enable auto-merge on Release PR
         if: steps.rp.outputs.pr != ''
@@ -64,7 +64,7 @@ jobs:
           PR_NUMBER="$(echo "$PR_RAW" | python3 -c 'import sys,json; print(json.load(sys.stdin)["number"])')"
           if ! gh pr merge --repo "${{ github.repository }}" --auto --squash "$PR_NUMBER" 2>&1 | tee /tmp/gh-out; then
             if grep -q "enablePullRequestAutoMerge\|Auto merge is not allowed" /tmp/gh-out; then
-              echo "::warning::Auto-merge is disabled for this repo. Enable it under Settings → General → Pull Requests → 'Allow auto-merge'. Release PR #$PR_NUMBER remains open for manual merge."
+              echo "::warning::Auto-merge is disabled for this repo. Enable it under Settings ->General ->Pull Requests ->'Allow auto-merge'. Release PR #$PR_NUMBER remains open for manual merge."
               exit 0
             fi
             exit 1

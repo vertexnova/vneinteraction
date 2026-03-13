@@ -1,0 +1,1 @@
+vne_add_example(05_robotic_simulator)
