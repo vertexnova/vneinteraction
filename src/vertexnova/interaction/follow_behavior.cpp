@@ -13,6 +13,8 @@
 #include <vertexnova/math/core/core.h>
 #include <vertexnova/math/core/math_utils.h>
 
+#include <vertexnova/logging/logging.h>
+
 #include <algorithm>
 #include <cmath>
 
@@ -22,6 +24,7 @@ namespace vne::interaction {
 // Constants (mirrors follow_manipulator.cpp)
 // ---------------------------------------------------------------------------
 namespace {
+CREATE_VNE_LOGGER_CATEGORY("vne.interaction.follow");
 constexpr float kFovMinDeg = 5.0f;
 constexpr float kFovMaxDeg = 120.0f;
 constexpr float kSceneScaleMin = 1e-4f;
@@ -48,6 +51,7 @@ std::shared_ptr<vne::scene::OrthographicCamera> FollowBehavior::orthoCamera() co
 
 void FollowBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
     camera_ = std::move(camera);
+    if (!camera_) { VNE_LOG_WARN << "FollowBehavior: setCamera called with null camera"; }
 }
 
 void FollowBehavior::setViewportSize(float width_px, float height_px) noexcept {
@@ -58,8 +62,9 @@ void FollowBehavior::setViewportSize(float width_px, float height_px) noexcept {
 void FollowBehavior::setOffset(const vne::math::Vec3f& offset) noexcept {
     if (offset.length() > kOffsetMinLength) {
         offset_world_ = offset;
+    } else {
+        VNE_LOG_WARN << "FollowBehavior: setOffset ignored — offset length " << offset.length() << " is below minimum " << kOffsetMinLength;
     }
-    // silently ignore zero or near-zero offsets to avoid a degenerate look-at matrix
 }
 
 // ---------------------------------------------------------------------------
@@ -171,10 +176,11 @@ bool FollowBehavior::onAction(CameraActionType action,
     }
     switch (action) {
         case CameraActionType::eZoomAtCursor:
-            if (payload.zoom_factor > 0.0f) {
+            if (payload.zoom_factor > 0.0f && payload.zoom_factor != 1.0f) {
                 applyZoom(payload.zoom_factor);
                 return true;
             }
+            VNE_LOG_DEBUG << "FollowBehavior: ignoring zoom with factor=" << payload.zoom_factor;
             return false;
 
         case CameraActionType::eResetView:

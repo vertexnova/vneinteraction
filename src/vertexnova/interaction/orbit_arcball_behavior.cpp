@@ -13,6 +13,8 @@
 #include <vertexnova/math/core/core.h>
 #include <vertexnova/math/core/math_utils.h>
 
+#include <vertexnova/logging/logging.h>
+
 #include <algorithm>
 #include <cmath>
 
@@ -22,6 +24,7 @@ namespace vne::interaction {
 // Anonymous constants (mirrors orbit_style_base.cpp / arcball_manipulator.cpp)
 // ---------------------------------------------------------------------------
 namespace {
+CREATE_VNE_LOGGER_CATEGORY("vne.interaction.orbit_arcball");
 constexpr float kEpsilon = 1e-6f;
 constexpr float kFrontZNearVertical = 0.999f;
 constexpr float kMinOrbitDistance = 0.01f;
@@ -111,6 +114,7 @@ bool OrbitArcballBehavior::isOrthographic() const noexcept {
 
 void OrbitArcballBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
     camera_ = std::move(camera);
+    if (!camera_) { VNE_LOG_WARN << "OrbitArcballBehavior: setCamera called with null camera"; }
     syncFromCamera();
 }
 
@@ -885,6 +889,7 @@ bool OrbitArcballBehavior::onAction(CameraActionType action,
                 zoom(payload.zoom_factor, payload.x_px, payload.y_px);
                 return true;
             }
+            VNE_LOG_DEBUG << "OrbitArcballBehavior: ignoring zoom with factor=" << payload.zoom_factor;
             return false;
 
         case CameraActionType::eOrbitPanModifier:

@@ -14,7 +14,13 @@
 
 #include "vertexnova/events/mouse_event.h"
 
+#include <vertexnova/logging/logging.h>
+
 #include <cmath>
+
+namespace {
+CREATE_VNE_LOGGER_CATEGORY("vne.interaction.follow_controller");
+}  // namespace
 
 namespace vne::interaction {
 

@@ -15,6 +15,12 @@
 #include "vertexnova/events/mouse_event.h"
 #include "vertexnova/events/touch_event.h"
 
+#include <vertexnova/logging/logging.h>
+
+namespace {
+CREATE_VNE_LOGGER_CATEGORY("vne.interaction.ortho_2d");
+}  // namespace
+
 namespace vne::interaction {
 
 using namespace vne;
@@ -63,6 +69,7 @@ Ortho2DController& Ortho2DController::operator=(Ortho2DController&&) noexcept = 
 
 void Ortho2DController::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
     impl_->camera = camera;
+    if (!camera) { VNE_LOG_WARN << "Ortho2DController: setCamera called with null camera"; }
     impl_->rig.setCamera(camera);
 }
 

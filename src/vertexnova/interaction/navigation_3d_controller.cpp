@@ -17,6 +17,12 @@
 #include "vertexnova/events/mouse_event.h"
 #include "vertexnova/events/touch_event.h"
 
+#include <vertexnova/logging/logging.h>
+
+namespace {
+CREATE_VNE_LOGGER_CATEGORY("vne.interaction.navigation_3d");
+}  // namespace
+
 namespace vne::interaction {
 
 using namespace vne;
@@ -61,6 +67,7 @@ Navigation3DController& Navigation3DController::operator=(Navigation3DController
 
 void Navigation3DController::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
     impl_->camera = camera;
+    if (!camera) { VNE_LOG_WARN << "Navigation3DController: setCamera called with null camera"; }
     impl_->rig.setCamera(camera);
 }
 
@@ -290,6 +297,8 @@ void Navigation3DController::rebuild() noexcept {
             break;
         case NavigateMode::eGame: {
             impl_->free_look->setConstrainWorldUp(false);
+            impl_->free_look->setHandleZoom(false);
+            VNE_LOG_DEBUG << "Navigation3DController: Game mode — orbit owns zoom, free_look zoom disabled";
             impl_->orbit = std::make_shared<OrbitArcballBehavior>();
             impl_->orbit->setRotationMode(OrbitRotationMode::eOrbit);
             impl_->rig.addBehavior(impl_->orbit);

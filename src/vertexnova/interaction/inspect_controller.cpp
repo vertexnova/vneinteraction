@@ -16,7 +16,13 @@
 #include "vertexnova/events/mouse_event.h"
 #include "vertexnova/events/touch_event.h"
 
+#include <vertexnova/logging/logging.h>
+
 #include <algorithm>
+
+namespace {
+CREATE_VNE_LOGGER_CATEGORY("vne.interaction.inspect");
+}  // namespace
 
 namespace vne::interaction {
 
@@ -146,6 +152,7 @@ InspectController& InspectController::operator=(InspectController&&) noexcept = 
 
 void InspectController::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
     impl_->camera = camera;
+    if (!camera) { VNE_LOG_WARN << "InspectController: setCamera called with null camera"; }
     impl_->rig.setCamera(camera);
 }
 

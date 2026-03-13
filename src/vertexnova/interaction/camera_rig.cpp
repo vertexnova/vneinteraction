@@ -14,14 +14,22 @@
 #include "vertexnova/interaction/ortho_pan_zoom_behavior.h"
 #include "vertexnova/interaction/follow_behavior.h"
 
+#include <vertexnova/logging/logging.h>
+
 #include <algorithm>
+
+namespace {
+CREATE_VNE_LOGGER_CATEGORY("vne.interaction.camera_rig");
+}  // namespace
 
 namespace vne::interaction {
 
 void CameraRig::addBehavior(std::shared_ptr<ICameraBehavior> behavior) {
-    if (behavior) {
-        behaviors_.push_back(std::move(behavior));
+    if (!behavior) {
+        VNE_LOG_WARN << "CameraRig: addBehavior called with null behavior, ignoring";
+        return;
     }
+    behaviors_.push_back(std::move(behavior));
 }
 
 void CameraRig::removeBehavior(const std::shared_ptr<ICameraBehavior>& behavior) {
