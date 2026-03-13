@@ -50,6 +50,7 @@ endif()
 # Test sources
 #==============================================================================
 set(TEST_SOURCES
+    main.cpp
     orbit_arcball_behavior_test.cpp
     free_look_behavior_test.cpp
     ortho_pan_zoom_behavior_test.cpp
@@ -73,12 +74,14 @@ target_include_directories(vneinteraction_tests
         ${GTEST_INCLUDE_DIRS}
         ${VNE_INCLUDE_DIR}
         ${VNE_SRC_DIR}
+        ${VNE_LOGGING_INCLUDE_DIR}
 )
 
 target_link_libraries(vneinteraction_tests
     PRIVATE
         ${GTEST_LIBRARIES}
         vne::interaction
+        vne::logging
 )
 
 if(MSVC)
