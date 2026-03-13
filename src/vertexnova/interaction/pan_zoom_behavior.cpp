@@ -230,10 +230,10 @@ void PanZoomBehavior::resetState() noexcept {
 }
 
 // ---------------------------------------------------------------------------
-// update
+// onUpdate
 // ---------------------------------------------------------------------------
 
-void PanZoomBehavior::update(double delta_time) noexcept {
+void PanZoomBehavior::onUpdate(double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }

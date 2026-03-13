@@ -80,7 +80,7 @@ class OrbitBehavior final : public ICameraBehavior {
     bool onAction(CameraActionType action, const CameraCommandPayload& payload, double delta_time) noexcept override;
 
     /** Advance inertia (rotation and pan) and fitToAABB animation. */
-    void update(double delta_time) noexcept override;
+    void onUpdate(double delta_time) noexcept override;
 
     /** Attach camera; syncs internal state from camera. */
     void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;

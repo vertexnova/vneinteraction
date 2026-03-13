@@ -46,7 +46,7 @@ int main() {
                                                   dt);
 
     for (int i = 0; i < 15; ++i) {
-        inspect.update(dt);
+        inspect.onUpdate(dt);
     }
 
     // 2. NavigateController — move through environment
@@ -64,7 +64,7 @@ int main() {
     follow.setLag(0.15f);
 
     for (int i = 0; i < 30; ++i) {
-        follow.update(dt);
+        follow.onUpdate(dt);
     }
 
     std::cout << "Robotic simulator: InspectController + NavigateController + FollowController — done.\n";

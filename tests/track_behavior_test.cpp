@@ -45,7 +45,7 @@ TEST(TrackBehavior, CameraMovesTowardTarget) {
     b.setDamping(50.0f);
 
     const auto pos_before = cam->getPosition();
-    b.update(0.1);
+    b.onUpdate(0.1);
     const auto pos_after = cam->getPosition();
 
     EXPECT_GT((pos_after - pos_before).length(), 0.1f);

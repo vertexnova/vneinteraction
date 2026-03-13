@@ -70,7 +70,7 @@ inline void simulateMouseScroll(
 
 /**
  * Press a key, run @p frames update ticks, then release.
- * Caller must call controller.update(dt) in the loop.
+ * Caller must call controller.onUpdate(dt) in the loop.
  */
 inline void simulateKeyHold(
     EventCallback on_event, vne::events::KeyCode key, int frames, double dt, std::function<void(double)> update_fn) {

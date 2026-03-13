@@ -64,7 +64,7 @@ class VNE_INTERACTION_API ICameraBehavior {
      * @brief Advance behavior state by one frame (inertia, damping, autonomous motion).
      * @param delta_time Elapsed time in seconds since last frame
      */
-    virtual void update(double delta_time) noexcept = 0;
+    virtual void onUpdate(double delta_time) noexcept = 0;
 
     /**
      * @brief Set the camera this behavior controls.
@@ -87,7 +87,7 @@ class VNE_INTERACTION_API ICameraBehavior {
 
     /**
      * @brief Enable or disable this behavior.
-     * @param enabled false = behavior ignores all actions and update calls
+     * @param enabled false = behavior ignores all actions and onUpdate calls
      */
     virtual void setEnabled(bool enabled) noexcept = 0;
 };

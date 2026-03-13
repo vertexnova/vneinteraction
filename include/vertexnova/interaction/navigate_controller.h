@@ -21,7 +21,7 @@
  * ctrl.setViewportSize(1280, 720);
  * // In your loop:
  * ctrl.onEvent(event);
- * ctrl.update(dt);
+ * ctrl.onUpdate(dt);
  * @endcode
  *
  * ### Modes
@@ -96,7 +96,7 @@ class VNE_INTERACTION_API NavigateController {
     // -------------------------------------------------------------------------
 
     void onEvent(const vne::events::Event& event, double delta_time = 0.0) noexcept;
-    void update(double delta_time) noexcept;
+    void onUpdate(double delta_time) noexcept;
 
     // -------------------------------------------------------------------------
     // Mode

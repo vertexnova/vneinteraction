@@ -97,7 +97,7 @@ class VNE_INTERACTION_API CameraRig {
      * @brief Advance all behaviors by one frame.
      * @param delta_time Elapsed time in seconds since last frame
      */
-    void update(double delta_time) noexcept;
+    void onUpdate(double delta_time) noexcept;
 
     /**
      * @brief Set the controlled camera on all behaviors.

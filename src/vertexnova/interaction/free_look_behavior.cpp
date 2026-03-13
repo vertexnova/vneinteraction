@@ -227,10 +227,10 @@ void FreeLookBehavior::resetState() noexcept {
 }
 
 // ---------------------------------------------------------------------------
-// update
+// onUpdate
 // ---------------------------------------------------------------------------
 
-void FreeLookBehavior::update(double delta_time) noexcept {
+void FreeLookBehavior::onUpdate(double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }

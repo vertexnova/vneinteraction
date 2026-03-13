@@ -80,14 +80,14 @@ void FollowController::setViewportSize(float w, float h) noexcept {
 // Per-frame
 // ---------------------------------------------------------------------------
 
-void FollowController::update(double dt) noexcept {
+void FollowController::onUpdate(double dt) noexcept {
     // Poll dynamic target each frame before updating rig
     if (impl_->target_cb && impl_->track) {
         const vne::math::Mat4f t = impl_->target_cb();
         // Extract translation column
         impl_->track->setTargetWorld({t[3][0], t[3][1], t[3][2]});
     }
-    impl_->rig.update(dt);
+    impl_->rig.onUpdate(dt);
 }
 
 void FollowController::onEvent(const vne::events::Event& event) noexcept {

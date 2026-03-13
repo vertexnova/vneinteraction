@@ -58,14 +58,14 @@ int main() {
 
     // Inertia decay
     for (int i = 0; i < 30; ++i) {
-        ctrl.update(dt);
+        ctrl.onUpdate(dt);
     }
 
     // Fit to AABB (e.g. anatomy bounding box)
     ctrl.fitToAABB(vne::math::Vec3f(-1.0f, -1.0f, -1.0f), vne::math::Vec3f(1.0f, 1.0f, 1.0f));
 
     for (int i = 0; i < 60; ++i) {
-        ctrl.update(dt);
+        ctrl.onUpdate(dt);
     }
 
     std::cout << "Medical 3D inspect: arcball, fixed pivot, fitToAABB — done.\n";

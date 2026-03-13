@@ -121,10 +121,10 @@ void TrackBehavior::applyZoom(float zoom_factor) noexcept {
 }
 
 // ---------------------------------------------------------------------------
-// update
+// onUpdate
 // ---------------------------------------------------------------------------
 
-void TrackBehavior::update(double delta_time) noexcept {
+void TrackBehavior::onUpdate(double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }

@@ -173,8 +173,8 @@ void NavigateController::onEvent(const vne::events::Event& event, double delta_t
     }
 }
 
-void NavigateController::update(double dt) noexcept {
-    impl_->rig.update(dt);
+void NavigateController::onUpdate(double dt) noexcept {
+    impl_->rig.onUpdate(dt);
 }
 
 // ---------------------------------------------------------------------------

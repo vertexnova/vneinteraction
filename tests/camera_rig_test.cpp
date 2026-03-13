@@ -53,7 +53,7 @@ TEST(CameraRig, OnActionDispatchesToBehaviors) {
     rig.onAction(vne::interaction::CameraActionType::eBeginRotate, p, 0.016);
     rig.onAction(vne::interaction::CameraActionType::eRotateDelta, p, 0.016);
     rig.onAction(vne::interaction::CameraActionType::eEndRotate, p, 0.016);
-    rig.update(0.016);
+    rig.onUpdate(0.016);
 
     EXPECT_GT((cam->getPosition() - vne::math::Vec3f(0.0f, 0.0f, 5.0f)).length(), 0.01f);
 }

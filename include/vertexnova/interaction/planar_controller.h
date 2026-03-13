@@ -78,7 +78,7 @@ class VNE_INTERACTION_API PlanarController {
     // -------------------------------------------------------------------------
 
     void onEvent(const vne::events::Event& event) noexcept;
-    void update(double delta_time) noexcept;
+    void onUpdate(double delta_time) noexcept;
 
     // -------------------------------------------------------------------------
     // DOF

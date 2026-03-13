@@ -247,8 +247,8 @@ void InspectController::onEvent(const vne::events::Event& event, double delta_ti
     }
 }
 
-void InspectController::update(double dt) noexcept {
-    impl_->rig.update(dt);
+void InspectController::onUpdate(double dt) noexcept {
+    impl_->rig.onUpdate(dt);
 }
 
 // ---------------------------------------------------------------------------

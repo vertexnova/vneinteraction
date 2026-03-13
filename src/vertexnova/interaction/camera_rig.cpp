@@ -40,10 +40,10 @@ void CameraRig::onAction(CameraActionType action, const CameraCommandPayload& pa
     }
 }
 
-void CameraRig::update(double delta_time) noexcept {
+void CameraRig::onUpdate(double delta_time) noexcept {
     for (auto& b : behaviors_) {
         if (b && b->isEnabled()) {
-            b->update(delta_time);
+            b->onUpdate(delta_time);
         }
     }
 }

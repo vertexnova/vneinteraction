@@ -89,8 +89,8 @@ class VNE_INTERACTION_API FollowController {
     // Per-frame
     // -------------------------------------------------------------------------
 
-    /** No user input is required; call update() each frame to advance tracking. */
-    void update(double delta_time) noexcept;
+    /** No user input is required; call onUpdate() each frame to advance tracking. */
+    void onUpdate(double delta_time) noexcept;
 
     /** Optional: feed events to allow user-controlled zoom or offset adjustment. */
     void onEvent(const vne::events::Event& event) noexcept;
@@ -100,7 +100,7 @@ class VNE_INTERACTION_API FollowController {
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Set a dynamic target via callback (called every update()).
+     * @brief Set a dynamic target via callback (called every onUpdate()).
      * @param callback Returns current world-space transform of the target.
      */
     void setTarget(TargetCallback callback) noexcept;

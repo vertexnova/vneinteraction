@@ -52,7 +52,7 @@ TEST(FreeLookBehavior, CameraIntegration) {
     vne::interaction::CameraCommandPayload p;
     p.pressed = true;
     b.onAction(vne::interaction::CameraActionType::eMoveForward, p, 0.016);
-    b.update(0.1);
+    b.onUpdate(0.1);
     p.pressed = false;
     b.onAction(vne::interaction::CameraActionType::eMoveForward, p, 0.016);
     b.onAction(vne::interaction::CameraActionType::eMoveBackward, p, 0.016);

@@ -70,7 +70,7 @@ class FreeLookBehavior final : public ICameraBehavior {
     bool onAction(CameraActionType action, const CameraCommandPayload& payload, double delta_time) noexcept override;
 
     /** Advance WASD movement for one frame. */
-    void update(double delta_time) noexcept override;
+    void onUpdate(double delta_time) noexcept override;
 
     /** Attach camera; syncs yaw/pitch from current camera orientation. */
     void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;

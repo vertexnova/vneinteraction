@@ -28,7 +28,7 @@ TEST(FollowController, SetTargetStatic) {
     ctrl.setTarget(target);
     ctrl.setLag(0.1f);
 
-    ctrl.update(0.1);
+    ctrl.onUpdate(0.1);
     const auto pos = cam->getPosition();
     EXPECT_GT((pos - vne::math::Vec3f(0.0f, 0.0f, 5.0f)).length(), 0.01f);
 }
@@ -42,7 +42,7 @@ TEST(FollowController, SetTargetCallback) {
     vne::math::Vec3f dynamic_pos(0.0f, 0.0f, 0.0f);
     ctrl.setTarget([&dynamic_pos]() { return vne::math::Mat4f::translate(dynamic_pos); });
     dynamic_pos = vne::math::Vec3f(5.0f, 0.0f, 0.0f);
-    ctrl.update(0.1);
+    ctrl.onUpdate(0.1);
 
     EXPECT_GT((cam->getPosition() - vne::math::Vec3f(0.0f, 0.0f, 5.0f)).length(), 0.01f);
 }

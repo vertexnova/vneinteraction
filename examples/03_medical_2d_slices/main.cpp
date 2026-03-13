@@ -47,14 +47,14 @@ int main() {
     vne::interaction::examples::simulateMouseScroll(on_event, -0.5f, cx, cy, 2, dt);
 
     for (int i = 0; i < 20; ++i) {
-        ctrl.update(dt);
+        ctrl.onUpdate(dt);
     }
 
     // Fit to slice AABB
     ctrl.fitToAABB(vne::math::Vec3f(-2.0f, -2.0f, 0.0f), vne::math::Vec3f(2.0f, 2.0f, 0.0f));
 
     for (int i = 0; i < 30; ++i) {
-        ctrl.update(dt);
+        ctrl.onUpdate(dt);
     }
 
     std::cout << "Medical 2D slices: pan, zoom, fitToAABB — done.\n";

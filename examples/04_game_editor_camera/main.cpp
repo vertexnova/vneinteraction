@@ -50,7 +50,7 @@ int main() {
     vne::events::KeyPressedEvent w_press(vne::events::KeyCode::eW);
     on_event(w_press, dt);
     for (int i = 0; i < 20; ++i) {
-        ctrl.update(dt);
+        ctrl.onUpdate(dt);
     }
     vne::events::KeyReleasedEvent w_release(vne::events::KeyCode::eW);
     on_event(w_release, dt);
@@ -69,7 +69,7 @@ int main() {
                                                   dt);
 
     for (int i = 0; i < 20; ++i) {
-        ctrl.update(dt);
+        ctrl.onUpdate(dt);
     }
 
     std::cout << "Game editor camera: FPS + orbit modes, WASD — done.\n";

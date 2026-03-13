@@ -64,7 +64,7 @@ TEST(ApiRobustness, DisabledOrbitBehaviorDoesNotMoveCamera) {
     b.onAction(vne::interaction::CameraActionType::eBeginRotate, p, 0.016);
     b.onAction(vne::interaction::CameraActionType::eRotateDelta, p, 0.016);
     b.onAction(vne::interaction::CameraActionType::eEndRotate, p, 0.016);
-    b.update(0.016);
+    b.onUpdate(0.016);
 
     const auto pos_after = cam->getPosition();
     EXPECT_NEAR((pos_after - pos_before).length(), 0.0f, 1e-4f);
@@ -94,7 +94,7 @@ TEST(ApiRobustness, InspectControllerScrollZoom) {
     ctrl.onEvent(pos, 0.016);
     vne::events::MouseScrolledEvent scroll(0.0, 1.0);
     ctrl.onEvent(scroll, 0.016);
-    ctrl.update(0.016);
+    ctrl.onUpdate(0.016);
 
     const float dist_after = ctrl.orbitBehavior().getOrbitDistance();
     EXPECT_LT(dist_after, dist_before);
@@ -128,7 +128,7 @@ TEST(ApiRobustness, PlanarControllerScrollChangesExtents) {
     ctrl.onEvent(pos);
     vne::events::MouseScrolledEvent scroll(0.0, 1.0);
     ctrl.onEvent(scroll);
-    ctrl.update(0.016);
+    ctrl.onUpdate(0.016);
 
     EXPECT_LT(ortho->getWidth(), extent_before);
 }

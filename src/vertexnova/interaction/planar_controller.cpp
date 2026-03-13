@@ -152,8 +152,8 @@ void PlanarController::onEvent(const vne::events::Event& event) noexcept {
     }
 }
 
-void PlanarController::update(double dt) noexcept {
-    impl_->rig.update(dt);
+void PlanarController::onUpdate(double dt) noexcept {
+    impl_->rig.onUpdate(dt);
 }
 
 // ---------------------------------------------------------------------------

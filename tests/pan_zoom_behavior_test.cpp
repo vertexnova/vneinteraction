@@ -39,7 +39,7 @@ TEST(PanZoomBehavior, CameraIntegration) {
     b.onAction(vne::interaction::CameraActionType::eBeginPan, p, 0.016);
     b.onAction(vne::interaction::CameraActionType::ePanDelta, p, 0.016);
     b.onAction(vne::interaction::CameraActionType::eEndPan, p, 0.016);
-    b.update(0.016);
+    b.onUpdate(0.016);
 
     EXPECT_GT((cam->getPosition() - vne::math::Vec3f(0.0f, 0.0f, 5.0f)).length(), 0.001f);
 }
@@ -59,7 +59,7 @@ TEST(PanZoomBehavior, ZoomAtCursor) {
     p.zoom_factor = 1.2f;
 
     std::ignore = b.onAction(vne::interaction::CameraActionType::eZoomAtCursor, p, 0.016);
-    b.update(0.016);
+    b.onUpdate(0.016);
 
     EXPECT_GT(b.getWorldUnitsPerPixel(), 0.0f);
 }

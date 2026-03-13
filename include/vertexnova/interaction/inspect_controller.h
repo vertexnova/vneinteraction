@@ -22,7 +22,7 @@
  * ctrl.setViewportSize(1920, 1080);
  * // In your loop:
  * ctrl.onEvent(event);
- * ctrl.update(dt);
+ * ctrl.onUpdate(dt);
  * @endcode
  *
  * ### Defaults
@@ -95,7 +95,7 @@ class VNE_INTERACTION_API InspectController {
     InspectController& operator=(InspectController&&) noexcept;
 
     // -------------------------------------------------------------------------
-    // Core setup — must call before first onEvent / update
+    // Core setup — must call before first onEvent / onUpdate
     // -------------------------------------------------------------------------
 
     /** Attach a camera. Syncs internal state from its current position. */
@@ -112,7 +112,7 @@ class VNE_INTERACTION_API InspectController {
     void onEvent(const vne::events::Event& event, double delta_time = 0.0) noexcept;
 
     /** Advance inertia and fit animation by delta_time seconds. */
-    void update(double delta_time) noexcept;
+    void onUpdate(double delta_time) noexcept;
 
     // -------------------------------------------------------------------------
     // Rotation

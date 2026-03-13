@@ -816,10 +816,10 @@ void OrbitBehavior::setViewDirection(ViewDirection dir) noexcept {
 }
 
 // ---------------------------------------------------------------------------
-// update
+// onUpdate
 // ---------------------------------------------------------------------------
 
-void OrbitBehavior::update(double delta_time) noexcept {
+void OrbitBehavior::onUpdate(double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }
