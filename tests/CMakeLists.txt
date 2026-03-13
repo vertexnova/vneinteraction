@@ -55,8 +55,8 @@ set(TEST_SOURCES
     input_mapper_test.cpp
     camera_rig_test.cpp
     inspect_controller_test.cpp
-    navigate_controller_test.cpp
-    planar_controller_test.cpp
+    navigation_3d_controller_test.cpp
+    ortho_2d_controller_test.cpp
     follow_controller_test.cpp
     api_robustness_test.cpp
 )

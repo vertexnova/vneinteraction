@@ -3,13 +3,13 @@
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
  * Example 05: Robotic simulator — InspectController (robot/tool inspection),
- * NavigateController (environment), FollowController (end-effector view).
+ * Navigation3DController (environment), FollowController (end-effector view).
  * ----------------------------------------------------------------------
  */
 
 #include "vertexnova/interaction/follow_controller.h"
 #include "vertexnova/interaction/inspect_controller.h"
-#include "vertexnova/interaction/navigate_controller.h"
+#include "vertexnova/interaction/navigation_3d_controller.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
 
@@ -49,8 +49,8 @@ int main() {
         inspect.onUpdate(dt);
     }
 
-    // 2. NavigateController — move through environment
-    vne::interaction::NavigateController navigate;
+    // 2. Navigation3DController — move through environment
+    vne::interaction::Navigation3DController navigate;
     navigate.setCamera(camera);
     navigate.setViewportSize(1280.0f, 720.0f);
     navigate.setMode(vne::interaction::NavigateMode::eFps);
@@ -67,6 +67,6 @@ int main() {
         follow.onUpdate(dt);
     }
 
-    std::cout << "Robotic simulator: InspectController + NavigateController + FollowController — done.\n";
+    std::cout << "Robotic simulator: InspectController + Navigation3DController + FollowController — done.\n";
     return 0;
 }

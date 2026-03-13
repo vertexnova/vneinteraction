@@ -10,13 +10,13 @@
  */
 
 /**
- * @file navigate_controller.h
- * @brief NavigateController — high-level camera controller for environment traversal.
+ * @file navigation_3d_controller.h
+ * @brief Navigation3DController — high-level camera controller for 3D environment traversal.
  *
  * Covers FPS, Fly, and game-hybrid camera needs in three lines:
  *
  * @code
- * auto ctrl = vne::interaction::NavigateController{};
+ * auto ctrl = vne::interaction::Navigation3DController{};
  * ctrl.setCamera(camera);
  * ctrl.setViewportSize(1280, 720);
  * // In your loop:
@@ -56,7 +56,7 @@ class InputMapper;
 class FreeLookBehavior;
 class OrbitBehavior;
 
-/** Navigation mode for NavigateController. */
+/** Navigation mode for Navigation3DController. */
 enum class NavigateMode : std::uint8_t {
     eFps = 0,   //!< FPS: WASD + mouse look, world-up fixed, pitch clamped (default)
     eFly = 1,   //!< Fly: WASD + mouse look, unconstrained
@@ -64,7 +64,7 @@ enum class NavigateMode : std::uint8_t {
 };
 
 /**
- * @brief High-level camera controller for environment traversal.
+ * @brief High-level camera controller for 3D environment traversal.
  *
  * Wraps a CameraRig (FreeLookBehavior, optionally + OrbitBehavior) and an
  * InputMapper with a sensible preset for each NavigateMode.
@@ -74,15 +74,15 @@ enum class NavigateMode : std::uint8_t {
  *
  * @threadsafe Not thread-safe. Call all methods from the same thread.
  */
-class VNE_INTERACTION_API NavigateController {
+class VNE_INTERACTION_API Navigation3DController {
    public:
-    NavigateController();
-    ~NavigateController();
+    Navigation3DController();
+    ~Navigation3DController();
 
-    NavigateController(const NavigateController&) = delete;
-    NavigateController& operator=(const NavigateController&) = delete;
-    NavigateController(NavigateController&&) noexcept;
-    NavigateController& operator=(NavigateController&&) noexcept;
+    Navigation3DController(const Navigation3DController&) = delete;
+    Navigation3DController& operator=(const Navigation3DController&) = delete;
+    Navigation3DController(Navigation3DController&&) noexcept;
+    Navigation3DController& operator=(Navigation3DController&&) noexcept;
 
     // -------------------------------------------------------------------------
     // Core setup

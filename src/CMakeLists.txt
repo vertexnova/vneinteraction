@@ -17,8 +17,8 @@ set(SOURCE_FILES
     vertexnova/interaction/track_behavior.cpp
     vertexnova/interaction/camera_rig.cpp
     vertexnova/interaction/inspect_controller.cpp
-    vertexnova/interaction/navigate_controller.cpp
-    vertexnova/interaction/planar_controller.cpp
+    vertexnova/interaction/navigation_3d_controller.cpp
+    vertexnova/interaction/ortho_2d_controller.cpp
     vertexnova/interaction/follow_controller.cpp
 )
 
@@ -34,8 +34,8 @@ set(HEADER_FILES
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/track_behavior.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/input_mapper.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/inspect_controller.h
-    ${VNE_INCLUDE_DIR}/vertexnova/interaction/navigate_controller.h
-    ${VNE_INCLUDE_DIR}/vertexnova/interaction/planar_controller.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/navigation_3d_controller.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/ortho_2d_controller.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/follow_controller.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/interaction.h
 )

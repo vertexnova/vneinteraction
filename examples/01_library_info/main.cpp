@@ -34,8 +34,8 @@ int main() {
 
     std::cout << "Controllers:\n"
               << "  - InspectController  (3D object inspection)\n"
-              << "  - NavigateController (FPS/Fly/Game traversal)\n"
-              << "  - PlanarController   (2D slices, maps)\n"
+              << "  - Navigation3DController (FPS/Fly/Game 3D traversal)\n"
+              << "  - Ortho2DController     (orthographic 2D slices, maps)\n"
               << "  - FollowController   (end-effector follow-cam)\n";
 
     return 0;

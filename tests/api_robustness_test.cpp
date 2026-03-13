@@ -9,9 +9,9 @@
 #include "vertexnova/interaction/camera_behavior.h"
 #include "vertexnova/interaction/inspect_controller.h"
 #include "vertexnova/interaction/interaction_types.h"
-#include "vertexnova/interaction/navigate_controller.h"
+#include "vertexnova/interaction/navigation_3d_controller.h"
 #include "vertexnova/interaction/orbit_behavior.h"
-#include "vertexnova/interaction/planar_controller.h"
+#include "vertexnova/interaction/ortho_2d_controller.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
 #include "vertexnova/scene/camera/perspective_camera.h"
@@ -117,9 +117,9 @@ TEST(ApiRobustness, FitToAABBPositionsCOI) {
     EXPECT_NEAR(coi.z(), center.z(), 1e-2f);
 }
 
-TEST(ApiRobustness, PlanarControllerScrollChangesExtents) {
+TEST(ApiRobustness, Ortho2DControllerScrollChangesExtents) {
     auto ortho = makeOrthoCamera();
-    vne::interaction::PlanarController ctrl;
+    vne::interaction::Ortho2DController ctrl;
     ctrl.setCamera(ortho);
     ctrl.setViewportSize(1280.0f, 720.0f);
 

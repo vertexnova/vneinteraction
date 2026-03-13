@@ -2,11 +2,11 @@
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
- * Example 03: Medical 2D slices — PlanarController for ortho pan+zoom.
+ * Example 03: Medical 2D slices — Ortho2DController for ortho pan+zoom.
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/interaction/planar_controller.h"
+#include "vertexnova/interaction/ortho_2d_controller.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
 
@@ -23,7 +23,7 @@ int main() {
     camera->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
     camera->setTarget(vne::math::Vec3f(0.0f, 0.0f, 0.0f));
 
-    vne::interaction::PlanarController ctrl;
+    vne::interaction::Ortho2DController ctrl;
     ctrl.setCamera(camera);
     ctrl.setViewportSize(512.0f, 512.0f);
 

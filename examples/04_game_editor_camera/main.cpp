@@ -2,12 +2,12 @@
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
- * Example 04: Game/editor camera — NavigateController with orbit and
+ * Example 04: Game/editor camera — Navigation3DController with orbit and
  * free-look modes, WASD sprint, eSetPivotAtCursor.
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/interaction/navigate_controller.h"
+#include "vertexnova/interaction/navigation_3d_controller.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
 
@@ -26,7 +26,7 @@ int main() {
     camera->setPosition(vne::math::Vec3f(0.0f, 2.0f, 8.0f));
     camera->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
-    vne::interaction::NavigateController ctrl;
+    vne::interaction::Navigation3DController ctrl;
     ctrl.setCamera(camera);
     ctrl.setViewportSize(1280.0f, 720.0f);
     ctrl.setMoveSpeed(5.0f);

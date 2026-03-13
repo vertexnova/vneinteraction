@@ -10,14 +10,14 @@
  */
 
 /**
- * @file planar_controller.h
- * @brief PlanarController — high-level camera controller for 2D / orthographic viewports.
+ * @file ortho_2d_controller.h
+ * @brief Ortho2DController — high-level camera controller for orthographic 2D viewports.
  *
  * Designed for 2D maps, DICOM slice viewers, sprite editors, and any orthographic
  * viewport where panning and zoom-at-cursor are the primary interactions.
  *
  * @code
- * auto ctrl = vne::interaction::PlanarController{};
+ * auto ctrl = vne::interaction::Ortho2DController{};
  * ctrl.setCamera(orthoCamera);
  * ctrl.setViewportSize(512, 512);
  * // Scroll = zoom-at-cursor, LMB/MMB drag = pan. Done.
@@ -49,22 +49,22 @@ class InputMapper;
 class OrthoPanZoomBehavior;
 
 /**
- * @brief High-level camera controller for 2D / orthographic viewports.
+ * @brief High-level camera controller for orthographic 2D viewports.
  *
  * Wraps a CameraRig (OrthoPanZoomBehavior) and an InputMapper with the ortho preset.
  * Rotation is disabled by default; enable with setRotationEnabled(true).
  *
  * @threadsafe Not thread-safe. Call all methods from the same thread.
  */
-class VNE_INTERACTION_API PlanarController {
+class VNE_INTERACTION_API Ortho2DController {
    public:
-    PlanarController();
-    ~PlanarController();
+    Ortho2DController();
+    ~Ortho2DController();
 
-    PlanarController(const PlanarController&) = delete;
-    PlanarController& operator=(const PlanarController&) = delete;
-    PlanarController(PlanarController&&) noexcept;
-    PlanarController& operator=(PlanarController&&) noexcept;
+    Ortho2DController(const Ortho2DController&) = delete;
+    Ortho2DController& operator=(const Ortho2DController&) = delete;
+    Ortho2DController(Ortho2DController&&) noexcept;
+    Ortho2DController& operator=(Ortho2DController&&) noexcept;
 
     // -------------------------------------------------------------------------
     // Core setup

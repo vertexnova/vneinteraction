@@ -7,7 +7,7 @@
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/interaction/navigate_controller.h"
+#include "vertexnova/interaction/navigation_3d_controller.h"
 
 #include "vertexnova/interaction/input_mapper.h"
 #include "vertexnova/interaction/free_look_behavior.h"
@@ -23,7 +23,7 @@ namespace vne::interaction {
 // Pimpl
 // ---------------------------------------------------------------------------
 
-struct NavigateController::Impl {
+struct Navigation3DController::Impl {
     CameraRig rig;
     InputMapper mapper;
     std::shared_ptr<FreeLookBehavior> free_look;  // shared ownership; also in rig
@@ -44,25 +44,25 @@ struct NavigateController::Impl {
 // Constructor / destructor
 // ---------------------------------------------------------------------------
 
-NavigateController::NavigateController()
+Navigation3DController::Navigation3DController()
     : impl_(std::make_unique<Impl>()) {
     rebuild();
 }
 
-NavigateController::~NavigateController() = default;
-NavigateController::NavigateController(NavigateController&&) noexcept = default;
-NavigateController& NavigateController::operator=(NavigateController&&) noexcept = default;
+Navigation3DController::~Navigation3DController() = default;
+Navigation3DController::Navigation3DController(Navigation3DController&&) noexcept = default;
+Navigation3DController& Navigation3DController::operator=(Navigation3DController&&) noexcept = default;
 
 // ---------------------------------------------------------------------------
 // Core setup
 // ---------------------------------------------------------------------------
 
-void NavigateController::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
+void Navigation3DController::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
     impl_->camera = camera;
     impl_->rig.setCamera(camera);
 }
 
-void NavigateController::setViewportSize(float w, float h) noexcept {
+void Navigation3DController::setViewportSize(float w, float h) noexcept {
     impl_->viewport_w = w;
     impl_->viewport_h = h;
     impl_->rig.setViewportSize(w, h);
@@ -72,7 +72,7 @@ void NavigateController::setViewportSize(float w, float h) noexcept {
 // Per-frame
 // ---------------------------------------------------------------------------
 
-void NavigateController::onEvent(const vne::events::Event& event, double delta_time) noexcept {
+void Navigation3DController::onEvent(const vne::events::Event& event, double delta_time) noexcept {
     using ET = vne::events::EventType;
 
     switch (event.type()) {
@@ -173,7 +173,7 @@ void NavigateController::onEvent(const vne::events::Event& event, double delta_t
     }
 }
 
-void NavigateController::onUpdate(double dt) noexcept {
+void Navigation3DController::onUpdate(double dt) noexcept {
     impl_->rig.onUpdate(dt);
 }
 
@@ -181,12 +181,12 @@ void NavigateController::onUpdate(double dt) noexcept {
 // Mode
 // ---------------------------------------------------------------------------
 
-void NavigateController::setMode(NavigateMode mode) noexcept {
+void Navigation3DController::setMode(NavigateMode mode) noexcept {
     impl_->mode = mode;
     rebuild();
 }
 
-NavigateMode NavigateController::getMode() const noexcept {
+NavigateMode Navigation3DController::getMode() const noexcept {
     return impl_->mode;
 }
 
@@ -194,39 +194,39 @@ NavigateMode NavigateController::getMode() const noexcept {
 // Speed / sensitivity (delegates to free_look_)
 // ---------------------------------------------------------------------------
 
-void NavigateController::setMoveSpeed(float s) noexcept {
+void Navigation3DController::setMoveSpeed(float s) noexcept {
     if (impl_->free_look)
         impl_->free_look->setMoveSpeed(s);
 }
 
-float NavigateController::getMoveSpeed() const noexcept {
+float Navigation3DController::getMoveSpeed() const noexcept {
     return impl_->free_look ? impl_->free_look->getMoveSpeed() : 3.0f;
 }
 
-void NavigateController::setMouseSensitivity(float s) noexcept {
+void Navigation3DController::setMouseSensitivity(float s) noexcept {
     if (impl_->free_look)
         impl_->free_look->setMouseSensitivity(s);
 }
 
-float NavigateController::getMouseSensitivity() const noexcept {
+float Navigation3DController::getMouseSensitivity() const noexcept {
     return impl_->free_look ? impl_->free_look->getMouseSensitivity() : 0.15f;
 }
 
-void NavigateController::setSprintMultiplier(float m) noexcept {
+void Navigation3DController::setSprintMultiplier(float m) noexcept {
     if (impl_->free_look)
         impl_->free_look->setSprintMultiplier(m);
 }
 
-float NavigateController::getSprintMultiplier() const noexcept {
+float Navigation3DController::getSprintMultiplier() const noexcept {
     return impl_->free_look ? impl_->free_look->getSprintMultiplier() : 4.0f;
 }
 
-void NavigateController::setSlowMultiplier(float m) noexcept {
+void Navigation3DController::setSlowMultiplier(float m) noexcept {
     if (impl_->free_look)
         impl_->free_look->setSlowMultiplier(m);
 }
 
-float NavigateController::getSlowMultiplier() const noexcept {
+float Navigation3DController::getSlowMultiplier() const noexcept {
     return impl_->free_look ? impl_->free_look->getSlowMultiplier() : 0.2f;
 }
 
@@ -234,12 +234,12 @@ float NavigateController::getSlowMultiplier() const noexcept {
 // Convenience
 // ---------------------------------------------------------------------------
 
-void NavigateController::fitToAABB(const vne::math::Vec3f& mn, const vne::math::Vec3f& mx) noexcept {
+void Navigation3DController::fitToAABB(const vne::math::Vec3f& mn, const vne::math::Vec3f& mx) noexcept {
     if (impl_->free_look)
         impl_->free_look->fitToAABB(mn, mx);
 }
 
-void NavigateController::reset() noexcept {
+void Navigation3DController::reset() noexcept {
     impl_->first_mouse = true;
     impl_->rig.resetState();
     impl_->mapper.resetState();
@@ -249,13 +249,13 @@ void NavigateController::reset() noexcept {
 // Escape hatches
 // ---------------------------------------------------------------------------
 
-InputMapper& NavigateController::inputMapper() noexcept {
+InputMapper& Navigation3DController::inputMapper() noexcept {
     return impl_->mapper;
 }
-FreeLookBehavior& NavigateController::freeLookBehavior() noexcept {
+FreeLookBehavior& Navigation3DController::freeLookBehavior() noexcept {
     return *impl_->free_look;
 }
-OrbitBehavior* NavigateController::orbitBehavior() noexcept {
+OrbitBehavior* Navigation3DController::orbitBehavior() noexcept {
     return impl_->orbit.get();
 }
 
@@ -263,7 +263,7 @@ OrbitBehavior* NavigateController::orbitBehavior() noexcept {
 // Private rebuild — called on construction and mode switch
 // ---------------------------------------------------------------------------
 
-void NavigateController::rebuild() noexcept {
+void Navigation3DController::rebuild() noexcept {
     // Snapshot current speed settings before clearing
     float move_speed = impl_->free_look ? impl_->free_look->getMoveSpeed() : 3.0f;
     float sensitivity = impl_->free_look ? impl_->free_look->getMouseSensitivity() : 0.15f;

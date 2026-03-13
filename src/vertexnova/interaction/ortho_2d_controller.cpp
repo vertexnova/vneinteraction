@@ -7,7 +7,7 @@
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/interaction/planar_controller.h"
+#include "vertexnova/interaction/ortho_2d_controller.h"
 
 #include "vertexnova/interaction/input_mapper.h"
 #include "vertexnova/interaction/ortho_pan_zoom_behavior.h"
@@ -21,7 +21,7 @@ namespace vne::interaction {
 // Pimpl
 // ---------------------------------------------------------------------------
 
-struct PlanarController::Impl {
+struct Ortho2DController::Impl {
     CameraRig rig;
     InputMapper mapper;
     OrthoPanZoomBehavior* ortho_pan_zoom = nullptr;  // non-owning alias into rig
@@ -39,7 +39,7 @@ struct PlanarController::Impl {
 // Constructor / destructor
 // ---------------------------------------------------------------------------
 
-PlanarController::PlanarController()
+Ortho2DController::Ortho2DController()
     : impl_(std::make_unique<Impl>()) {
     auto behavior = std::make_shared<OrthoPanZoomBehavior>();
     impl_->ortho_pan_zoom = behavior.get();
@@ -51,20 +51,20 @@ PlanarController::PlanarController()
     rebuildRules();
 }
 
-PlanarController::~PlanarController() = default;
-PlanarController::PlanarController(PlanarController&&) noexcept = default;
-PlanarController& PlanarController::operator=(PlanarController&&) noexcept = default;
+Ortho2DController::~Ortho2DController() = default;
+Ortho2DController::Ortho2DController(Ortho2DController&&) noexcept = default;
+Ortho2DController& Ortho2DController::operator=(Ortho2DController&&) noexcept = default;
 
 // ---------------------------------------------------------------------------
 // Core setup
 // ---------------------------------------------------------------------------
 
-void PlanarController::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
+void Ortho2DController::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
     impl_->camera = camera;
     impl_->rig.setCamera(camera);
 }
 
-void PlanarController::setViewportSize(float w, float h) noexcept {
+void Ortho2DController::setViewportSize(float w, float h) noexcept {
     impl_->viewport_w = w;
     impl_->viewport_h = h;
     impl_->rig.setViewportSize(w, h);
@@ -74,7 +74,7 @@ void PlanarController::setViewportSize(float w, float h) noexcept {
 // Per-frame
 // ---------------------------------------------------------------------------
 
-void PlanarController::onEvent(const vne::events::Event& event) noexcept {
+void Ortho2DController::onEvent(const vne::events::Event& event) noexcept {
     using ET = vne::events::EventType;
     constexpr double kDt = 0.0;
 
@@ -152,7 +152,7 @@ void PlanarController::onEvent(const vne::events::Event& event) noexcept {
     }
 }
 
-void PlanarController::onUpdate(double dt) noexcept {
+void Ortho2DController::onUpdate(double dt) noexcept {
     impl_->rig.onUpdate(dt);
 }
 
@@ -160,17 +160,17 @@ void PlanarController::onUpdate(double dt) noexcept {
 // DOF
 // ---------------------------------------------------------------------------
 
-void PlanarController::setRotationEnabled(bool enabled) noexcept {
+void Ortho2DController::setRotationEnabled(bool enabled) noexcept {
     rotation_enabled_ = enabled;
     rebuildRules();
 }
 
-void PlanarController::setPanEnabled(bool enabled) noexcept {
+void Ortho2DController::setPanEnabled(bool enabled) noexcept {
     pan_enabled_ = enabled;
     rebuildRules();
 }
 
-void PlanarController::setZoomEnabled(bool enabled) noexcept {
+void Ortho2DController::setZoomEnabled(bool enabled) noexcept {
     zoom_enabled_ = enabled;
     rebuildRules();
 }
@@ -179,12 +179,12 @@ void PlanarController::setZoomEnabled(bool enabled) noexcept {
 // Convenience
 // ---------------------------------------------------------------------------
 
-void PlanarController::fitToAABB(const vne::math::Vec3f& mn, const vne::math::Vec3f& mx) noexcept {
+void Ortho2DController::fitToAABB(const vne::math::Vec3f& mn, const vne::math::Vec3f& mx) noexcept {
     if (impl_->ortho_pan_zoom)
         impl_->ortho_pan_zoom->fitToAABB(mn, mx);
 }
 
-void PlanarController::reset() noexcept {
+void Ortho2DController::reset() noexcept {
     impl_->first_mouse = true;
     impl_->rig.resetState();
     impl_->mapper.resetState();
@@ -194,10 +194,10 @@ void PlanarController::reset() noexcept {
 // Escape hatches
 // ---------------------------------------------------------------------------
 
-InputMapper& PlanarController::inputMapper() noexcept {
+InputMapper& Ortho2DController::inputMapper() noexcept {
     return impl_->mapper;
 }
-OrthoPanZoomBehavior& PlanarController::orthoPanZoomBehavior() noexcept {
+OrthoPanZoomBehavior& Ortho2DController::orthoPanZoomBehavior() noexcept {
     return *impl_->ortho_pan_zoom;
 }
 
@@ -205,7 +205,7 @@ OrthoPanZoomBehavior& PlanarController::orthoPanZoomBehavior() noexcept {
 // Private
 // ---------------------------------------------------------------------------
 
-void PlanarController::rebuildRules() noexcept {
+void Ortho2DController::rebuildRules() noexcept {
     std::vector<InputRule> rules;
 
     if (pan_enabled_) {

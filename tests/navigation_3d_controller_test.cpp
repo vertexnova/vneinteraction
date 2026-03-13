@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License")
  * --------------------------------------------------------------------- */
 
-#include "vertexnova/interaction/navigate_controller.h"
+#include "vertexnova/interaction/navigation_3d_controller.h"
 #include "vertexnova/events/key_event.h"
 #include "vertexnova/events/mouse_event.h"
 #include "vertexnova/events/types.h"
@@ -19,27 +19,27 @@ static std::shared_ptr<vne::scene::PerspectiveCamera> makePerspCamera() {
         vne::scene::PerspectiveCameraParameters(45.0f, 16.0f / 9.0f, 0.1f, 1000.0f));
 }
 
-TEST(NavigateController, DefaultFpsMode) {
-    vne::interaction::NavigateController ctrl;
+TEST(Navigation3DController, DefaultFpsMode) {
+    vne::interaction::Navigation3DController ctrl;
     EXPECT_EQ(ctrl.getMode(), vne::interaction::NavigateMode::eFps);
 }
 
-TEST(NavigateController, SetMode) {
-    vne::interaction::NavigateController ctrl;
+TEST(Navigation3DController, SetMode) {
+    vne::interaction::Navigation3DController ctrl;
     ctrl.setMode(vne::interaction::NavigateMode::eFly);
     EXPECT_EQ(ctrl.getMode(), vne::interaction::NavigateMode::eFly);
     ctrl.setMode(vne::interaction::NavigateMode::eGame);
     EXPECT_EQ(ctrl.getMode(), vne::interaction::NavigateMode::eGame);
 }
 
-TEST(NavigateController, OrbitBehaviorNullInFpsMode) {
-    vne::interaction::NavigateController ctrl;
+TEST(Navigation3DController, OrbitBehaviorNullInFpsMode) {
+    vne::interaction::Navigation3DController ctrl;
     ctrl.setMode(vne::interaction::NavigateMode::eFps);
     EXPECT_EQ(ctrl.orbitBehavior(), nullptr);
 }
 
-TEST(NavigateController, OrbitBehaviorNonNullInGameMode) {
-    vne::interaction::NavigateController ctrl;
+TEST(Navigation3DController, OrbitBehaviorNonNullInGameMode) {
+    vne::interaction::Navigation3DController ctrl;
     auto cam = makePerspCamera();
     ctrl.setCamera(cam);
     ctrl.setViewportSize(1280.0f, 720.0f);
@@ -47,8 +47,8 @@ TEST(NavigateController, OrbitBehaviorNonNullInGameMode) {
     EXPECT_NE(ctrl.orbitBehavior(), nullptr);
 }
 
-TEST(NavigateController, OnEventNoCrash) {
-    vne::interaction::NavigateController ctrl;
+TEST(Navigation3DController, OnEventNoCrash) {
+    vne::interaction::Navigation3DController ctrl;
     auto cam = makePerspCamera();
     ctrl.setCamera(cam);
     ctrl.setViewportSize(1280.0f, 720.0f);

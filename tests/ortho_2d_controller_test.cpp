@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License")
  * --------------------------------------------------------------------- */
 
-#include "vertexnova/interaction/planar_controller.h"
+#include "vertexnova/interaction/ortho_2d_controller.h"
 #include "vertexnova/events/mouse_event.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
@@ -17,19 +17,19 @@ static std::shared_ptr<vne::scene::OrthographicCamera> makeOrthoCamera() {
         vne::scene::OrthographicCameraParameters(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 1000.0f));
 }
 
-TEST(PlanarController, DefaultRotationDisabled) {
-    vne::interaction::PlanarController ctrl;
+TEST(Ortho2DController, DefaultRotationDisabled) {
+    vne::interaction::Ortho2DController ctrl;
     EXPECT_FALSE(ctrl.isRotationEnabled());
 }
 
-TEST(PlanarController, SetRotationEnabled) {
-    vne::interaction::PlanarController ctrl;
+TEST(Ortho2DController, SetRotationEnabled) {
+    vne::interaction::Ortho2DController ctrl;
     ctrl.setRotationEnabled(true);
     EXPECT_TRUE(ctrl.isRotationEnabled());
 }
 
-TEST(PlanarController, FitToAABB) {
-    vne::interaction::PlanarController ctrl;
+TEST(Ortho2DController, FitToAABB) {
+    vne::interaction::Ortho2DController ctrl;
     auto cam = makeOrthoCamera();
     ctrl.setCamera(cam);
     ctrl.setViewportSize(512.0f, 512.0f);
@@ -37,8 +37,8 @@ TEST(PlanarController, FitToAABB) {
     EXPECT_NO_FATAL_FAILURE(ctrl.fitToAABB(vne::math::Vec3f(-2.0f, -2.0f, 0.0f), vne::math::Vec3f(2.0f, 2.0f, 0.0f)));
 }
 
-TEST(PlanarController, OnEventNoCrash) {
-    vne::interaction::PlanarController ctrl;
+TEST(Ortho2DController, OnEventNoCrash) {
+    vne::interaction::Ortho2DController ctrl;
     auto cam = makeOrthoCamera();
     ctrl.setCamera(cam);
     ctrl.setViewportSize(512.0f, 512.0f);
