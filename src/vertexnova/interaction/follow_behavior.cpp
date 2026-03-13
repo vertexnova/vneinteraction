@@ -51,7 +51,9 @@ std::shared_ptr<vne::scene::OrthographicCamera> FollowBehavior::orthoCamera() co
 
 void FollowBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
     camera_ = std::move(camera);
-    if (!camera_) { VNE_LOG_WARN << "FollowBehavior: setCamera called with null camera"; }
+    if (!camera_) {
+        VNE_LOG_WARN << "FollowBehavior: setCamera called with null camera";
+    }
 }
 
 void FollowBehavior::setViewportSize(float width_px, float height_px) noexcept {
@@ -63,7 +65,8 @@ void FollowBehavior::setOffset(const vne::math::Vec3f& offset) noexcept {
     if (offset.length() > kOffsetMinLength) {
         offset_world_ = offset;
     } else {
-        VNE_LOG_WARN << "FollowBehavior: setOffset ignored — offset length " << offset.length() << " is below minimum " << kOffsetMinLength;
+        VNE_LOG_WARN << "FollowBehavior: setOffset ignored — offset length " << offset.length() << " is below minimum "
+                     << kOffsetMinLength;
     }
 }
 

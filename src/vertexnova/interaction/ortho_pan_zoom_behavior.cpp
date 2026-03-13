@@ -50,7 +50,9 @@ std::shared_ptr<vne::scene::OrthographicCamera> OrthoPanZoomBehavior::orthoCamer
 
 void OrthoPanZoomBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
     camera_ = std::move(camera);
-    if (!camera_) { VNE_LOG_WARN << "OrthoPanZoomBehavior: setCamera called with null camera"; }
+    if (!camera_) {
+        VNE_LOG_WARN << "OrthoPanZoomBehavior: setCamera called with null camera";
+    }
 }
 
 void OrthoPanZoomBehavior::setViewportSize(float width_px, float height_px) noexcept {

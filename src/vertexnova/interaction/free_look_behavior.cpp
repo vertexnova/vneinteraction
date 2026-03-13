@@ -84,7 +84,9 @@ vne::math::Vec3f FreeLookBehavior::upVector() const noexcept {
 
 void FreeLookBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
     camera_ = std::move(camera);
-    if (!camera_) { VNE_LOG_WARN << "FreeLookBehavior: setCamera called with null camera"; }
+    if (!camera_) {
+        VNE_LOG_WARN << "FreeLookBehavior: setCamera called with null camera";
+    }
     syncAnglesFromCamera();
 }
 

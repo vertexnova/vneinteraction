@@ -114,7 +114,9 @@ bool OrbitArcballBehavior::isOrthographic() const noexcept {
 
 void OrbitArcballBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
     camera_ = std::move(camera);
-    if (!camera_) { VNE_LOG_WARN << "OrbitArcballBehavior: setCamera called with null camera"; }
+    if (!camera_) {
+        VNE_LOG_WARN << "OrbitArcballBehavior: setCamera called with null camera";
+    }
     syncFromCamera();
 }
 
