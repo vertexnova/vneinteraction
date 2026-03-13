@@ -5,17 +5,17 @@
  *
  * Author:    Ajeet Singh Yadav
  * Created:   March 2026
- * Autodoc:   no  (internal — not part of the public API)
+ * Autodoc:   yes
  * ----------------------------------------------------------------------
  */
 
 /**
  * @file camera_behavior_base.h
- * @brief CameraBehaviorBase — internal non-virtual base for ICameraBehavior implementations.
+ * @brief CameraBehaviorBase — non-virtual base for ICameraBehavior implementations.
  *
  * Provides the common fields and trivial method bodies shared by every concrete
  * behavior (camera_, enabled_, viewport_width_, viewport_height_, scene_scale_).
- * This header is internal: it lives under src/ and is never installed.
+ * This header is part of the public interaction API surface.
  */
 
 #include "vertexnova/interaction/camera_behavior.h"
@@ -29,14 +29,15 @@ class ICamera;
 namespace vne::interaction {
 
 /**
- * @brief Internal non-virtual base class for ICameraBehavior implementations.
+ * @brief Non-virtual base class for ICameraBehavior implementations.
  *
  * Concrete behaviors inherit from this instead of ICameraBehavior directly.
  * They still override the remaining pure-virtual methods (onAction, onUpdate,
  * resetState) and may override setCamera / setViewportSize when extra sync work
  * is needed (calling the base version first).
  *
- * Not part of the public API — do not include from public headers.
+ * This type is intended for use by camera behavior implementations rather than
+ * direct use by most application code.
  */
 class CameraBehaviorBase : public ICameraBehavior {
    public:

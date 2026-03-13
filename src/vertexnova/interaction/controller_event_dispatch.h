@@ -5,7 +5,7 @@
  *
  * Author:    Ajeet Singh Yadav
  * Created:   March 2026
- * Autodoc:   no  (internal — not part of the public API)
+ * Autodoc:   no  (internal — excluded from install, not part of the public API)
  * ----------------------------------------------------------------------
  */
 

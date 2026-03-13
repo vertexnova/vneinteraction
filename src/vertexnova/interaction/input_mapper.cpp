@@ -325,7 +325,6 @@ void InputMapper::onMouseScroll(float /*scroll_x*/, float scroll_y, float mouse_
 }
 
 void InputMapper::onKey(int key, bool pressed, double dt) noexcept {
-    assert(key >= 0 && key < kMaxKeys && "key code out of range");
     if (key < 0 || key >= kMaxKeys) {
         VNE_LOG_WARN << "InputMapper: key code " << key << " out of range [0, " << kMaxKeys << ")";
         return;
