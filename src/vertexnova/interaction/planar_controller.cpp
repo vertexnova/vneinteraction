@@ -10,7 +10,7 @@
 #include "vertexnova/interaction/planar_controller.h"
 
 #include "vertexnova/interaction/input_mapper.h"
-#include "vertexnova/interaction/pan_zoom_behavior.h"
+#include "vertexnova/interaction/ortho_pan_zoom_behavior.h"
 
 #include "vertexnova/events/mouse_event.h"
 #include "vertexnova/events/touch_event.h"
@@ -24,7 +24,7 @@ namespace vne::interaction {
 struct PlanarController::Impl {
     CameraRig rig;
     InputMapper mapper;
-    PanZoomBehavior* pan_zoom = nullptr;  // non-owning alias into rig
+    OrthoPanZoomBehavior* ortho_pan_zoom = nullptr;  // non-owning alias into rig
 
     std::shared_ptr<vne::scene::ICamera> camera;
     float viewport_w = 1280.0f;
@@ -41,8 +41,8 @@ struct PlanarController::Impl {
 
 PlanarController::PlanarController()
     : impl_(std::make_unique<Impl>()) {
-    auto behavior = std::make_shared<PanZoomBehavior>();
-    impl_->pan_zoom = behavior.get();
+    auto behavior = std::make_shared<OrthoPanZoomBehavior>();
+    impl_->ortho_pan_zoom = behavior.get();
     impl_->rig.addBehavior(std::move(behavior));
 
     impl_->mapper.setActionCallback(
@@ -180,8 +180,8 @@ void PlanarController::setZoomEnabled(bool enabled) noexcept {
 // ---------------------------------------------------------------------------
 
 void PlanarController::fitToAABB(const vne::math::Vec3f& mn, const vne::math::Vec3f& mx) noexcept {
-    if (impl_->pan_zoom)
-        impl_->pan_zoom->fitToAABB(mn, mx);
+    if (impl_->ortho_pan_zoom)
+        impl_->ortho_pan_zoom->fitToAABB(mn, mx);
 }
 
 void PlanarController::reset() noexcept {
@@ -197,8 +197,8 @@ void PlanarController::reset() noexcept {
 InputMapper& PlanarController::inputMapper() noexcept {
     return impl_->mapper;
 }
-PanZoomBehavior& PlanarController::panZoomBehavior() noexcept {
-    return *impl_->pan_zoom;
+OrthoPanZoomBehavior& PlanarController::orthoPanZoomBehavior() noexcept {
+    return *impl_->ortho_pan_zoom;
 }
 
 // ---------------------------------------------------------------------------
@@ -241,7 +241,7 @@ void PlanarController::rebuildRules() noexcept {
     }
 
     if (rotation_enabled_) {
-        // RMB = in-plane rotate (eRotateDelta — PanZoomBehavior ignores it,
+        // RMB = in-plane rotate (eRotateDelta — OrthoPanZoomBehavior ignores it,
         // but a future OrbitBehavior layer could handle it)
         rules.push_back({
             .trigger = InputRule::Trigger::eMouseButton,

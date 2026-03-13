@@ -22,7 +22,7 @@ int main() {
     std::cout << "Behaviors:\n"
               << "  - OrbitBehavior   (arcball / Euler orbit)\n"
               << "  - FreeLookBehavior (FPS / Fly)\n"
-              << "  - PanZoomBehavior  (2D ortho pan+zoom)\n"
+              << "  - OrthoPanZoomBehavior  (orthographic 2D pan+zoom)\n"
               << "  - TrackBehavior    (smooth follow)\n\n";
 
     std::cout << "InputMapper presets:\n"

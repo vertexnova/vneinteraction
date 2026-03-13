@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License")
  * --------------------------------------------------------------------- */
 
-#include "vertexnova/interaction/pan_zoom_behavior.h"
+#include "vertexnova/interaction/ortho_pan_zoom_behavior.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
 
@@ -16,17 +16,17 @@ static std::shared_ptr<vne::scene::OrthographicCamera> makeOrthoCamera() {
         vne::scene::OrthographicCameraParameters(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 1000.0f));
 }
 
-TEST(PanZoomBehavior, DefaultValues) {
-    vne::interaction::PanZoomBehavior b;
+TEST(OrthoPanZoomBehavior, DefaultValues) {
+    vne::interaction::OrthoPanZoomBehavior b;
     EXPECT_GT(b.getZoomSpeed(), 0.0f);
 }
 
-TEST(PanZoomBehavior, CameraIntegration) {
+TEST(OrthoPanZoomBehavior, CameraIntegration) {
     auto cam = makeOrthoCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
     cam->setTarget(vne::math::Vec3f(0.0f, 0.0f, 0.0f));
 
-    vne::interaction::PanZoomBehavior b;
+    vne::interaction::OrthoPanZoomBehavior b;
     b.setCamera(cam);
     b.setViewportSize(512.0f, 512.0f);
 
@@ -44,12 +44,12 @@ TEST(PanZoomBehavior, CameraIntegration) {
     EXPECT_GT((cam->getPosition() - vne::math::Vec3f(0.0f, 0.0f, 5.0f)).length(), 0.001f);
 }
 
-TEST(PanZoomBehavior, ZoomAtCursor) {
+TEST(OrthoPanZoomBehavior, ZoomAtCursor) {
     auto cam = makeOrthoCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
     cam->setTarget(vne::math::Vec3f(0.0f, 0.0f, 0.0f));
 
-    vne::interaction::PanZoomBehavior b;
+    vne::interaction::OrthoPanZoomBehavior b;
     b.setCamera(cam);
     b.setViewportSize(512.0f, 512.0f);
 

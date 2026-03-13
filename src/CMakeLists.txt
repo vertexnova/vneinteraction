@@ -13,7 +13,7 @@ set(SOURCE_FILES
     vertexnova/interaction/input_mapper.cpp
     vertexnova/interaction/orbit_behavior.cpp
     vertexnova/interaction/free_look_behavior.cpp
-    vertexnova/interaction/pan_zoom_behavior.cpp
+    vertexnova/interaction/ortho_pan_zoom_behavior.cpp
     vertexnova/interaction/track_behavior.cpp
     vertexnova/interaction/camera_rig.cpp
     vertexnova/interaction/inspect_controller.cpp
@@ -30,7 +30,7 @@ set(HEADER_FILES
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_rig.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/orbit_behavior.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/free_look_behavior.h
-    ${VNE_INCLUDE_DIR}/vertexnova/interaction/pan_zoom_behavior.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/ortho_pan_zoom_behavior.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/track_behavior.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/input_mapper.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/inspect_controller.h

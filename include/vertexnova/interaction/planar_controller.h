@@ -46,12 +46,12 @@ class ICamera;
 namespace vne::interaction {
 
 class InputMapper;
-class PanZoomBehavior;
+class OrthoPanZoomBehavior;
 
 /**
  * @brief High-level camera controller for 2D / orthographic viewports.
  *
- * Wraps a CameraRig (PanZoomBehavior) and an InputMapper with the ortho preset.
+ * Wraps a CameraRig (OrthoPanZoomBehavior) and an InputMapper with the ortho preset.
  * Rotation is disabled by default; enable with setRotationEnabled(true).
  *
  * @threadsafe Not thread-safe. Call all methods from the same thread.
@@ -110,7 +110,7 @@ class VNE_INTERACTION_API PlanarController {
     // -------------------------------------------------------------------------
 
     [[nodiscard]] InputMapper& inputMapper() noexcept;
-    [[nodiscard]] PanZoomBehavior& panZoomBehavior() noexcept;
+    [[nodiscard]] OrthoPanZoomBehavior& orthoPanZoomBehavior() noexcept;
 
    private:
     void rebuildRules() noexcept;

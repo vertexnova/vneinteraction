@@ -24,6 +24,6 @@
 #include "vertexnova/interaction/interaction_types.h"
 #include "vertexnova/interaction/navigate_controller.h"
 #include "vertexnova/interaction/orbit_behavior.h"
-#include "vertexnova/interaction/pan_zoom_behavior.h"
+#include "vertexnova/interaction/ortho_pan_zoom_behavior.h"
 #include "vertexnova/interaction/planar_controller.h"
 #include "vertexnova/interaction/track_behavior.h"

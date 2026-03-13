@@ -11,7 +11,7 @@
 
 #include "vertexnova/interaction/orbit_behavior.h"
 #include "vertexnova/interaction/free_look_behavior.h"
-#include "vertexnova/interaction/pan_zoom_behavior.h"
+#include "vertexnova/interaction/ortho_pan_zoom_behavior.h"
 #include "vertexnova/interaction/track_behavior.h"
 
 #include <algorithm>
@@ -108,7 +108,7 @@ CameraRig CameraRig::makeFly() {
 
 CameraRig CameraRig::makeOrthoPanZoom() {
     CameraRig rig;
-    rig.addBehavior(std::make_shared<PanZoomBehavior>());
+    rig.addBehavior(std::make_shared<OrthoPanZoomBehavior>());
     return rig;
 }
 

@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/interaction/pan_zoom_behavior.h"
+#include "vertexnova/interaction/ortho_pan_zoom_behavior.h"
 
 #include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/orthographic_camera.h"
@@ -37,7 +37,7 @@ constexpr float kPanVelocityThreshold = 1e-4f;
 // Camera helper
 // ---------------------------------------------------------------------------
 
-std::shared_ptr<vne::scene::OrthographicCamera> PanZoomBehavior::orthoCamera() const noexcept {
+std::shared_ptr<vne::scene::OrthographicCamera> OrthoPanZoomBehavior::orthoCamera() const noexcept {
     return std::dynamic_pointer_cast<vne::scene::OrthographicCamera>(camera_);
 }
 
@@ -45,11 +45,11 @@ std::shared_ptr<vne::scene::OrthographicCamera> PanZoomBehavior::orthoCamera() c
 // ICameraBehavior: setCamera / setViewportSize
 // ---------------------------------------------------------------------------
 
-void PanZoomBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
+void OrthoPanZoomBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
     camera_ = std::move(camera);
 }
 
-void PanZoomBehavior::setViewportSize(float width_px, float height_px) noexcept {
+void OrthoPanZoomBehavior::setViewportSize(float width_px, float height_px) noexcept {
     viewport_width_ = std::max(1.0f, width_px);
     viewport_height_ = std::max(1.0f, height_px);
 }
@@ -58,7 +58,7 @@ void PanZoomBehavior::setViewportSize(float width_px, float height_px) noexcept 
 // Pan
 // ---------------------------------------------------------------------------
 
-void PanZoomBehavior::pan(float delta_x_px, float delta_y_px, double delta_time) noexcept {
+void OrthoPanZoomBehavior::pan(float delta_x_px, float delta_y_px, double delta_time) noexcept {
     auto ortho = orthoCamera();
     if (!ortho) {
         return;
@@ -91,7 +91,7 @@ void PanZoomBehavior::pan(float delta_x_px, float delta_y_px, double delta_time)
 // Zoom
 // ---------------------------------------------------------------------------
 
-void PanZoomBehavior::zoomToCursor(float zoom_factor, float mouse_x_px, float mouse_y_px) noexcept {
+void OrthoPanZoomBehavior::zoomToCursor(float zoom_factor, float mouse_x_px, float mouse_y_px) noexcept {
     auto ortho = orthoCamera();
     if (!ortho) {
         return;
@@ -125,7 +125,7 @@ void PanZoomBehavior::zoomToCursor(float zoom_factor, float mouse_x_px, float mo
     ortho->updateMatrices();
 }
 
-void PanZoomBehavior::applyZoom(float zoom_factor, float mouse_x_px, float mouse_y_px) noexcept {
+void OrthoPanZoomBehavior::applyZoom(float zoom_factor, float mouse_x_px, float mouse_y_px) noexcept {
     auto ortho = orthoCamera();
     if (!ortho) {
         return;
@@ -145,7 +145,7 @@ void PanZoomBehavior::applyZoom(float zoom_factor, float mouse_x_px, float mouse
 // Inertia
 // ---------------------------------------------------------------------------
 
-void PanZoomBehavior::applyInertia(double delta_time) noexcept {
+void OrthoPanZoomBehavior::applyInertia(double delta_time) noexcept {
     auto ortho = orthoCamera();
     if (!ortho || delta_time <= 0.0) {
         return;
@@ -166,7 +166,7 @@ void PanZoomBehavior::applyInertia(double delta_time) noexcept {
 // fitToAABB / getWorldUnitsPerPixel / resetState
 // ---------------------------------------------------------------------------
 
-void PanZoomBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept {
+void OrthoPanZoomBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept {
     auto ortho = orthoCamera();
     if (!ortho) {
         return;
@@ -219,12 +219,12 @@ void PanZoomBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::ma
     ortho->updateMatrices();
 }
 
-float PanZoomBehavior::getWorldUnitsPerPixel() const noexcept {
+float OrthoPanZoomBehavior::getWorldUnitsPerPixel() const noexcept {
     auto ortho = orthoCamera();
     return ortho ? (ortho->getHeight() / viewport_height_) : 0.0f;
 }
 
-void PanZoomBehavior::resetState() noexcept {
+void OrthoPanZoomBehavior::resetState() noexcept {
     panning_ = false;
     pan_velocity_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
 }
@@ -233,7 +233,7 @@ void PanZoomBehavior::resetState() noexcept {
 // onUpdate
 // ---------------------------------------------------------------------------
 
-void PanZoomBehavior::onUpdate(double delta_time) noexcept {
+void OrthoPanZoomBehavior::onUpdate(double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }
@@ -246,9 +246,9 @@ void PanZoomBehavior::onUpdate(double delta_time) noexcept {
 // onAction
 // ---------------------------------------------------------------------------
 
-bool PanZoomBehavior::onAction(CameraActionType action,
-                               const CameraCommandPayload& payload,
-                               double delta_time) noexcept {
+bool OrthoPanZoomBehavior::onAction(CameraActionType action,
+                                    const CameraCommandPayload& payload,
+                                    double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return false;
     }

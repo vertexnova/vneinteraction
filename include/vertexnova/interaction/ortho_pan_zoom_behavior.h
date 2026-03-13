@@ -10,8 +10,8 @@
  */
 
 /**
- * @file pan_zoom_behavior.h
- * @brief PanZoomBehavior — 2D pan + zoom behavior for orthographic viewports.
+ * @file ortho_pan_zoom_behavior.h
+ * @brief OrthoPanZoomBehavior — orthographic 2D pan + zoom behavior.
  *
  * Consolidates OrthoPanZoomManipulator into a composable ICameraBehavior.
  * Handles ePanDelta, eZoomAtCursor, eResetView actions.
@@ -35,7 +35,7 @@ class ICamera;
 namespace vne::interaction {
 
 /**
- * @brief 2D pan and zoom camera behavior for orthographic viewports.
+ * @brief Orthographic 2D pan and zoom camera behavior.
  *
  * Does not handle rotation. Pan is in screen-to-world pixel coordinates.
  * Zoom-to-cursor preserves the world point under the cursor. Inertia is
@@ -43,15 +43,15 @@ namespace vne::interaction {
  *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
  */
-class PanZoomBehavior final : public ICameraBehavior {
+class OrthoPanZoomBehavior final : public ICameraBehavior {
    public:
-    PanZoomBehavior() noexcept = default;
-    ~PanZoomBehavior() noexcept override = default;
+    OrthoPanZoomBehavior() noexcept = default;
+    ~OrthoPanZoomBehavior() noexcept override = default;
 
-    PanZoomBehavior(const PanZoomBehavior&) = delete;
-    PanZoomBehavior& operator=(const PanZoomBehavior&) = delete;
-    PanZoomBehavior(PanZoomBehavior&&) noexcept = default;
-    PanZoomBehavior& operator=(PanZoomBehavior&&) noexcept = default;
+    OrthoPanZoomBehavior(const OrthoPanZoomBehavior&) = delete;
+    OrthoPanZoomBehavior& operator=(const OrthoPanZoomBehavior&) = delete;
+    OrthoPanZoomBehavior(OrthoPanZoomBehavior&&) noexcept = default;
+    OrthoPanZoomBehavior& operator=(OrthoPanZoomBehavior&&) noexcept = default;
 
     // -------------------------------------------------------------------------
     // ICameraBehavior
@@ -79,7 +79,7 @@ class PanZoomBehavior final : public ICameraBehavior {
     void setEnabled(bool enabled) noexcept override { enabled_ = enabled; }
 
     // -------------------------------------------------------------------------
-    // PanZoom-specific API
+    // OrthoPanZoom-specific API
     // -------------------------------------------------------------------------
 
     /** Set zoom method (eDollyToCoi and eChangeFov both use zoom-to-cursor for ortho). */

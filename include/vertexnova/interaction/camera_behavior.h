@@ -38,7 +38,7 @@ namespace vne::interaction {
  * Concrete implementations:
  *  - OrbitBehavior    — rotate/pan/zoom around a pivot (Euler or Quaternion mode)
  *  - FreeLookBehavior — WASD movement + mouse look (FPS or unconstrained Fly mode)
- *  - PanZoomBehavior  — 2D pan + zoom (orthographic viewports)
+ *  - OrthoPanZoomBehavior — orthographic 2D pan + zoom
  *  - TrackBehavior    — autonomous smooth target following
  *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.

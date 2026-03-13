@@ -50,7 +50,7 @@ endif()
 set(TEST_SOURCES
     orbit_behavior_test.cpp
     free_look_behavior_test.cpp
-    pan_zoom_behavior_test.cpp
+    ortho_pan_zoom_behavior_test.cpp
     track_behavior_test.cpp
     input_mapper_test.cpp
     camera_rig_test.cpp
