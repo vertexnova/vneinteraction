@@ -30,8 +30,8 @@ constexpr float kFovMaxDeg = 120.0f;
 constexpr float kSceneScaleMin = 1e-4f;
 constexpr float kSceneScaleMax = 1e4f;
 constexpr float kMinRadiusFallback = 1.0f;
-constexpr float kFitToAabbDistFactor = 2.5f;   // fallback multiplier for non-perspective cameras
-constexpr float kFitToAabbMargin = 1.1f;        // 10 % breathing room added to FOV-derived distance
+constexpr float kFitToAabbDistFactor = 2.5f;  // fallback multiplier for non-perspective cameras
+constexpr float kFitToAabbMargin = 1.1f;      // 10 % breathing room added to FOV-derived distance
 
 /// Build reference forward + right vectors from an arbitrary up axis.
 void buildReferenceFrame(const vne::math::Vec3f& up, vne::math::Vec3f& ref_fwd, vne::math::Vec3f& ref_right) noexcept {
