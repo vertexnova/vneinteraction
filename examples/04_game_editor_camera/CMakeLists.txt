@@ -1,0 +1,1 @@
+vne_add_example(04_game_editor_camera)

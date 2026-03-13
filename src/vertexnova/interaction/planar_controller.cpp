@@ -22,8 +22,8 @@ namespace vne::interaction {
 // ---------------------------------------------------------------------------
 
 struct PlanarController::Impl {
-    CameraRig       rig;
-    InputMapper     mapper;
+    CameraRig rig;
+    InputMapper mapper;
     PanZoomBehavior* pan_zoom = nullptr;  // non-owning alias into rig
 
     std::shared_ptr<vne::scene::ICamera> camera;
@@ -40,16 +40,13 @@ struct PlanarController::Impl {
 // ---------------------------------------------------------------------------
 
 PlanarController::PlanarController()
-    : impl_(std::make_unique<Impl>())
-{
+    : impl_(std::make_unique<Impl>()) {
     auto behavior = std::make_shared<PanZoomBehavior>();
     impl_->pan_zoom = behavior.get();
     impl_->rig.addBehavior(std::move(behavior));
 
     impl_->mapper.setActionCallback(
-        [this](CameraActionType a, const CameraCommandPayload& p, double dt) {
-            impl_->rig.onAction(a, p, dt);
-        });
+        [this](CameraActionType a, const CameraCommandPayload& p, double dt) { impl_->rig.onAction(a, p, dt); });
 
     rebuildRules();
 }
@@ -84,8 +81,8 @@ void PlanarController::onEvent(const vne::events::Event& event) noexcept {
     switch (event.type()) {
         case ET::eMouseMoved: {
             const auto& e = static_cast<const vne::events::MouseMovedEvent&>(event);
-            const float x  = static_cast<float>(e.x());
-            const float y  = static_cast<float>(e.y());
+            const float x = static_cast<float>(e.x());
+            const float y = static_cast<float>(e.y());
             const float dx = impl_->first_mouse ? 0.0f : static_cast<float>(e.x() - impl_->last_x);
             const float dy = impl_->first_mouse ? 0.0f : static_cast<float>(e.y() - impl_->last_y);
             impl_->last_x = e.x();
@@ -96,29 +93,44 @@ void PlanarController::onEvent(const vne::events::Event& event) noexcept {
         }
         case ET::eMouseButtonPressed: {
             const auto& e = static_cast<const vne::events::MouseButtonEvent&>(event);
-            if (e.hasPosition()) { impl_->last_x = e.x(); impl_->last_y = e.y(); }
+            if (e.hasPosition()) {
+                impl_->last_x = e.x();
+                impl_->last_y = e.y();
+            }
             impl_->first_mouse = false;
-            impl_->mapper.onMouseButton(static_cast<int>(e.button()), true,
-                static_cast<float>(impl_->last_x), static_cast<float>(impl_->last_y), kDt);
+            impl_->mapper.onMouseButton(static_cast<int>(e.button()),
+                                        true,
+                                        static_cast<float>(impl_->last_x),
+                                        static_cast<float>(impl_->last_y),
+                                        kDt);
             break;
         }
         case ET::eMouseButtonReleased: {
             const auto& e = static_cast<const vne::events::MouseButtonEvent&>(event);
-            if (e.hasPosition()) { impl_->last_x = e.x(); impl_->last_y = e.y(); }
-            impl_->mapper.onMouseButton(static_cast<int>(e.button()), false,
-                static_cast<float>(impl_->last_x), static_cast<float>(impl_->last_y), kDt);
+            if (e.hasPosition()) {
+                impl_->last_x = e.x();
+                impl_->last_y = e.y();
+            }
+            impl_->mapper.onMouseButton(static_cast<int>(e.button()),
+                                        false,
+                                        static_cast<float>(impl_->last_x),
+                                        static_cast<float>(impl_->last_y),
+                                        kDt);
             break;
         }
         case ET::eMouseScrolled: {
             const auto& e = static_cast<const vne::events::MouseScrolledEvent&>(event);
-            impl_->mapper.onMouseScroll(
-                static_cast<float>(e.xOffset()), static_cast<float>(e.yOffset()),
-                static_cast<float>(impl_->last_x), static_cast<float>(impl_->last_y), kDt);
+            impl_->mapper.onMouseScroll(static_cast<float>(e.xOffset()),
+                                        static_cast<float>(e.yOffset()),
+                                        static_cast<float>(impl_->last_x),
+                                        static_cast<float>(impl_->last_y),
+                                        kDt);
             break;
         }
         case ET::eTouchPress: {
             const auto& e = static_cast<const vne::events::TouchPressEvent&>(event);
-            impl_->last_x = e.x(); impl_->last_y = e.y();
+            impl_->last_x = e.x();
+            impl_->last_y = e.y();
             impl_->first_mouse = false;
             break;
         }
@@ -126,7 +138,8 @@ void PlanarController::onEvent(const vne::events::Event& event) noexcept {
             const auto& e = static_cast<const vne::events::TouchMoveEvent&>(event);
             const float dx = impl_->first_mouse ? 0.0f : static_cast<float>(e.x() - impl_->last_x);
             const float dy = impl_->first_mouse ? 0.0f : static_cast<float>(e.y() - impl_->last_y);
-            impl_->last_x = e.x(); impl_->last_y = e.y();
+            impl_->last_x = e.x();
+            impl_->last_y = e.y();
             impl_->first_mouse = false;
             impl_->mapper.onTouchPan(TouchPan{dx, dy}, kDt);
             break;
@@ -166,9 +179,9 @@ void PlanarController::setZoomEnabled(bool enabled) noexcept {
 // Convenience
 // ---------------------------------------------------------------------------
 
-void PlanarController::fitToAABB(const vne::math::Vec3f& mn,
-                                  const vne::math::Vec3f& mx) noexcept {
-    if (impl_->pan_zoom) impl_->pan_zoom->fitToAABB(mn, mx);
+void PlanarController::fitToAABB(const vne::math::Vec3f& mn, const vne::math::Vec3f& mx) noexcept {
+    if (impl_->pan_zoom)
+        impl_->pan_zoom->fitToAABB(mn, mx);
 }
 
 void PlanarController::reset() noexcept {
@@ -181,8 +194,12 @@ void PlanarController::reset() noexcept {
 // Escape hatches
 // ---------------------------------------------------------------------------
 
-InputMapper& PlanarController::inputMapper() noexcept { return impl_->mapper; }
-PanZoomBehavior& PlanarController::panZoomBehavior() noexcept { return *impl_->pan_zoom; }
+InputMapper& PlanarController::inputMapper() noexcept {
+    return impl_->mapper;
+}
+PanZoomBehavior& PlanarController::panZoomBehavior() noexcept {
+    return *impl_->pan_zoom;
+}
 
 // ---------------------------------------------------------------------------
 // Private
@@ -193,32 +210,32 @@ void PlanarController::rebuildRules() noexcept {
 
     if (pan_enabled_) {
         rules.push_back({
-            .trigger    = InputRule::Trigger::eMouseButton,
-            .code       = static_cast<int>(MouseButton::eLeft),
-            .on_press   = CameraActionType::eBeginPan,
+            .trigger = InputRule::Trigger::eMouseButton,
+            .code = static_cast<int>(MouseButton::eLeft),
+            .on_press = CameraActionType::eBeginPan,
             .on_release = CameraActionType::eEndPan,
-            .on_delta   = CameraActionType::ePanDelta,
+            .on_delta = CameraActionType::ePanDelta,
         });
         rules.push_back({
-            .trigger    = InputRule::Trigger::eMouseButton,
-            .code       = static_cast<int>(MouseButton::eMiddle),
-            .on_press   = CameraActionType::eBeginPan,
+            .trigger = InputRule::Trigger::eMouseButton,
+            .code = static_cast<int>(MouseButton::eMiddle),
+            .on_press = CameraActionType::eBeginPan,
             .on_release = CameraActionType::eEndPan,
-            .on_delta   = CameraActionType::ePanDelta,
+            .on_delta = CameraActionType::ePanDelta,
         });
         rules.push_back({
-            .trigger  = InputRule::Trigger::eTouchPan,
+            .trigger = InputRule::Trigger::eTouchPan,
             .on_delta = CameraActionType::ePanDelta,
         });
     }
 
     if (zoom_enabled_) {
         rules.push_back({
-            .trigger  = InputRule::Trigger::eScroll,
+            .trigger = InputRule::Trigger::eScroll,
             .on_delta = CameraActionType::eZoomAtCursor,
         });
         rules.push_back({
-            .trigger  = InputRule::Trigger::eTouchPinch,
+            .trigger = InputRule::Trigger::eTouchPinch,
             .on_delta = CameraActionType::eZoomAtCursor,
         });
     }
@@ -227,11 +244,11 @@ void PlanarController::rebuildRules() noexcept {
         // RMB = in-plane rotate (eRotateDelta — PanZoomBehavior ignores it,
         // but a future OrbitBehavior layer could handle it)
         rules.push_back({
-            .trigger    = InputRule::Trigger::eMouseButton,
-            .code       = static_cast<int>(MouseButton::eRight),
-            .on_press   = CameraActionType::eBeginRotate,
+            .trigger = InputRule::Trigger::eMouseButton,
+            .code = static_cast<int>(MouseButton::eRight),
+            .on_press = CameraActionType::eBeginRotate,
             .on_release = CameraActionType::eEndRotate,
-            .on_delta   = CameraActionType::eRotateDelta,
+            .on_delta = CameraActionType::eRotateDelta,
         });
     }
 

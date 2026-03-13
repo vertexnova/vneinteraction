@@ -25,9 +25,7 @@ void CameraRig::addBehavior(std::shared_ptr<ICameraBehavior> behavior) {
 }
 
 void CameraRig::removeBehavior(const std::shared_ptr<ICameraBehavior>& behavior) {
-    behaviors_.erase(
-        std::remove(behaviors_.begin(), behaviors_.end(), behavior),
-        behaviors_.end());
+    behaviors_.erase(std::remove(behaviors_.begin(), behaviors_.end(), behavior), behaviors_.end());
 }
 
 void CameraRig::clearBehaviors() {

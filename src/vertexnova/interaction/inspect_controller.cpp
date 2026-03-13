@@ -25,13 +25,18 @@ namespace vne::interaction {
 // ---------------------------------------------------------------------------
 
 struct InspectController::Impl {
-    CameraRig     rig;
-    InputMapper   mapper;
-    OrbitBehavior* orbit = nullptr;  // non-owning alias into rig
+    CameraRig rig;
+    InputMapper mapper;
+    std::shared_ptr<OrbitBehavior> orbit;  // shared ownership; also in rig
 
     std::shared_ptr<vne::scene::ICamera> camera;
     float viewport_w = 1280.0f;
     float viewport_h = 720.0f;
+
+    InspectRotationMode rotation_mode = InspectRotationMode::eArcball;
+    bool rotation_enabled = true;
+    bool pan_enabled = true;
+    bool zoom_enabled = true;
 
     bool first_mouse = true;
     double last_x = 0.0;
@@ -48,25 +53,25 @@ static std::vector<InputRule> buildInspectRules(bool rotation, bool pan, bool zo
     if (rotation) {
         // LMB = rotate
         rules.push_back({
-            .trigger    = InputRule::Trigger::eMouseButton,
-            .code       = static_cast<int>(MouseButton::eLeft),
-            .on_press   = CameraActionType::eBeginRotate,
+            .trigger = InputRule::Trigger::eMouseButton,
+            .code = static_cast<int>(MouseButton::eLeft),
+            .on_press = CameraActionType::eBeginRotate,
             .on_release = CameraActionType::eEndRotate,
-            .on_delta   = CameraActionType::eRotateDelta,
+            .on_delta = CameraActionType::eRotateDelta,
         });
         // Shift+LMB = pan alias
         rules.push_back({
-            .trigger       = InputRule::Trigger::eMouseButton,
-            .code          = static_cast<int>(MouseButton::eLeft),
+            .trigger = InputRule::Trigger::eMouseButton,
+            .code = static_cast<int>(MouseButton::eLeft),
             .modifier_mask = kModShift,
-            .on_press      = CameraActionType::eBeginPan,
-            .on_release    = CameraActionType::eEndPan,
-            .on_delta      = CameraActionType::ePanDelta,
+            .on_press = CameraActionType::eBeginPan,
+            .on_release = CameraActionType::eEndPan,
+            .on_delta = CameraActionType::ePanDelta,
         });
         // Double-click LMB = set pivot at cursor
         rules.push_back({
-            .trigger  = InputRule::Trigger::eMouseDblClick,
-            .code     = static_cast<int>(MouseButton::eLeft),
+            .trigger = InputRule::Trigger::eMouseDblClick,
+            .code = static_cast<int>(MouseButton::eLeft),
             .on_press = CameraActionType::eSetPivotAtCursor,
         });
     }
@@ -74,23 +79,23 @@ static std::vector<InputRule> buildInspectRules(bool rotation, bool pan, bool zo
     if (pan) {
         // RMB = pan
         rules.push_back({
-            .trigger    = InputRule::Trigger::eMouseButton,
-            .code       = static_cast<int>(MouseButton::eRight),
-            .on_press   = CameraActionType::eBeginPan,
+            .trigger = InputRule::Trigger::eMouseButton,
+            .code = static_cast<int>(MouseButton::eRight),
+            .on_press = CameraActionType::eBeginPan,
             .on_release = CameraActionType::eEndPan,
-            .on_delta   = CameraActionType::ePanDelta,
+            .on_delta = CameraActionType::ePanDelta,
         });
         // MMB = pan
         rules.push_back({
-            .trigger    = InputRule::Trigger::eMouseButton,
-            .code       = static_cast<int>(MouseButton::eMiddle),
-            .on_press   = CameraActionType::eBeginPan,
+            .trigger = InputRule::Trigger::eMouseButton,
+            .code = static_cast<int>(MouseButton::eMiddle),
+            .on_press = CameraActionType::eBeginPan,
             .on_release = CameraActionType::eEndPan,
-            .on_delta   = CameraActionType::ePanDelta,
+            .on_delta = CameraActionType::ePanDelta,
         });
         // Touch pan
         rules.push_back({
-            .trigger  = InputRule::Trigger::eTouchPan,
+            .trigger = InputRule::Trigger::eTouchPan,
             .on_delta = CameraActionType::ePanDelta,
         });
     }
@@ -98,12 +103,12 @@ static std::vector<InputRule> buildInspectRules(bool rotation, bool pan, bool zo
     if (zoom) {
         // Scroll = zoom
         rules.push_back({
-            .trigger  = InputRule::Trigger::eScroll,
+            .trigger = InputRule::Trigger::eScroll,
             .on_delta = CameraActionType::eZoomAtCursor,
         });
         // Pinch = zoom
         rules.push_back({
-            .trigger  = InputRule::Trigger::eTouchPinch,
+            .trigger = InputRule::Trigger::eTouchPinch,
             .on_delta = CameraActionType::eZoomAtCursor,
         });
     }
@@ -116,19 +121,15 @@ static std::vector<InputRule> buildInspectRules(bool rotation, bool pan, bool zo
 // ---------------------------------------------------------------------------
 
 InspectController::InspectController()
-    : impl_(std::make_unique<Impl>())
-{
+    : impl_(std::make_unique<Impl>()) {
     // Build rig with arcball orbit
-    auto behavior = std::make_shared<OrbitBehavior>();
-    behavior->setRotationMode(OrbitRotationMode::eQuaternion);
-    impl_->orbit = behavior.get();
-    impl_->rig.addBehavior(std::move(behavior));
+    impl_->orbit = std::make_shared<OrbitBehavior>();
+    impl_->orbit->setRotationMode(OrbitRotationMode::eQuaternion);
+    impl_->rig.addBehavior(impl_->orbit);
 
     // Wire mapper → rig
     impl_->mapper.setActionCallback(
-        [this](CameraActionType a, const CameraCommandPayload& p, double dt) {
-            impl_->rig.onAction(a, p, dt);
-        });
+        [this](CameraActionType a, const CameraCommandPayload& p, double dt) { impl_->rig.onAction(a, p, dt); });
 
     rebuildRules();
 }
@@ -156,56 +157,75 @@ void InspectController::setViewportSize(float w, float h) noexcept {
 // Per-frame
 // ---------------------------------------------------------------------------
 
-void InspectController::onEvent(const vne::events::Event& event) noexcept {
+void InspectController::onEvent(const vne::events::Event& event, double delta_time) noexcept {
     using ET = vne::events::EventType;
-    constexpr double kDt = 0.0;  // no dt needed for input translation
 
     switch (event.type()) {
         case ET::eMouseMoved: {
             const auto& e = static_cast<const vne::events::MouseMovedEvent&>(event);
-            const float x  = static_cast<float>(e.x());
-            const float y  = static_cast<float>(e.y());
+            const float x = static_cast<float>(e.x());
+            const float y = static_cast<float>(e.y());
             const float dx = impl_->first_mouse ? 0.0f : static_cast<float>(e.x() - impl_->last_x);
             const float dy = impl_->first_mouse ? 0.0f : static_cast<float>(e.y() - impl_->last_y);
             impl_->last_x = e.x();
             impl_->last_y = e.y();
             impl_->first_mouse = false;
-            impl_->mapper.onMouseMove(x, y, dx, dy, kDt);
+            impl_->mapper.onMouseMove(x, y, dx, dy, delta_time);
             break;
         }
         case ET::eMouseButtonPressed: {
             const auto& e = static_cast<const vne::events::MouseButtonEvent&>(event);
-            if (e.hasPosition()) { impl_->last_x = e.x(); impl_->last_y = e.y(); }
+            if (e.hasPosition()) {
+                impl_->last_x = e.x();
+                impl_->last_y = e.y();
+            }
             impl_->first_mouse = false;
-            impl_->mapper.onMouseButton(static_cast<int>(e.button()), true,
-                static_cast<float>(impl_->last_x), static_cast<float>(impl_->last_y), kDt);
+            impl_->mapper.onMouseButton(static_cast<int>(e.button()),
+                                        true,
+                                        static_cast<float>(impl_->last_x),
+                                        static_cast<float>(impl_->last_y),
+                                        delta_time);
             break;
         }
         case ET::eMouseButtonReleased: {
             const auto& e = static_cast<const vne::events::MouseButtonEvent&>(event);
-            if (e.hasPosition()) { impl_->last_x = e.x(); impl_->last_y = e.y(); }
-            impl_->mapper.onMouseButton(static_cast<int>(e.button()), false,
-                static_cast<float>(impl_->last_x), static_cast<float>(impl_->last_y), kDt);
+            if (e.hasPosition()) {
+                impl_->last_x = e.x();
+                impl_->last_y = e.y();
+            }
+            impl_->mapper.onMouseButton(static_cast<int>(e.button()),
+                                        false,
+                                        static_cast<float>(impl_->last_x),
+                                        static_cast<float>(impl_->last_y),
+                                        delta_time);
             break;
         }
         case ET::eMouseButtonDoubleClicked: {
             const auto& e = static_cast<const vne::events::MouseButtonEvent&>(event);
-            if (e.hasPosition()) { impl_->last_x = e.x(); impl_->last_y = e.y(); }
+            if (e.hasPosition()) {
+                impl_->last_x = e.x();
+                impl_->last_y = e.y();
+            }
             impl_->first_mouse = false;
             impl_->mapper.onMouseDoubleClick(static_cast<int>(e.button()),
-                static_cast<float>(impl_->last_x), static_cast<float>(impl_->last_y), kDt);
+                                             static_cast<float>(impl_->last_x),
+                                             static_cast<float>(impl_->last_y),
+                                             delta_time);
             break;
         }
         case ET::eMouseScrolled: {
             const auto& e = static_cast<const vne::events::MouseScrolledEvent&>(event);
-            impl_->mapper.onMouseScroll(
-                static_cast<float>(e.xOffset()), static_cast<float>(e.yOffset()),
-                static_cast<float>(impl_->last_x), static_cast<float>(impl_->last_y), kDt);
+            impl_->mapper.onMouseScroll(static_cast<float>(e.xOffset()),
+                                        static_cast<float>(e.yOffset()),
+                                        static_cast<float>(impl_->last_x),
+                                        static_cast<float>(impl_->last_y),
+                                        delta_time);
             break;
         }
         case ET::eTouchPress: {
             const auto& e = static_cast<const vne::events::TouchPressEvent&>(event);
-            impl_->last_x = e.x(); impl_->last_y = e.y();
+            impl_->last_x = e.x();
+            impl_->last_y = e.y();
             impl_->first_mouse = false;
             break;
         }
@@ -213,9 +233,10 @@ void InspectController::onEvent(const vne::events::Event& event) noexcept {
             const auto& e = static_cast<const vne::events::TouchMoveEvent&>(event);
             const float dx = impl_->first_mouse ? 0.0f : static_cast<float>(e.x() - impl_->last_x);
             const float dy = impl_->first_mouse ? 0.0f : static_cast<float>(e.y() - impl_->last_y);
-            impl_->last_x = e.x(); impl_->last_y = e.y();
+            impl_->last_x = e.x();
+            impl_->last_y = e.y();
             impl_->first_mouse = false;
-            impl_->mapper.onTouchPan(TouchPan{dx, dy}, kDt);
+            impl_->mapper.onTouchPan(TouchPan{dx, dy}, delta_time);
             break;
         }
         case ET::eTouchRelease:
@@ -235,13 +256,15 @@ void InspectController::update(double dt) noexcept {
 // ---------------------------------------------------------------------------
 
 void InspectController::setRotationMode(InspectRotationMode mode) noexcept {
-    rotation_mode_ = mode;
+    impl_->rotation_mode = mode;
     if (impl_->orbit) {
-        impl_->orbit->setRotationMode(
-            mode == InspectRotationMode::eArcball
-                ? OrbitRotationMode::eQuaternion
-                : OrbitRotationMode::eEuler);
+        impl_->orbit->setRotationMode(mode == InspectRotationMode::eArcball ? OrbitRotationMode::eQuaternion
+                                                                            : OrbitRotationMode::eEuler);
     }
+}
+
+InspectRotationMode InspectController::getRotationMode() const noexcept {
+    return impl_->rotation_mode;
 }
 
 // ---------------------------------------------------------------------------
@@ -262,7 +285,8 @@ void InspectController::setPivotMode(OrbitPivotMode mode) noexcept {
 }
 
 OrbitPivotMode InspectController::getPivotMode() const noexcept {
-    if (impl_->orbit) return impl_->orbit->getPivotMode();
+    if (impl_->orbit)
+        return impl_->orbit->getPivotMode();
     return OrbitPivotMode::eCoi;
 }
 
@@ -271,17 +295,17 @@ OrbitPivotMode InspectController::getPivotMode() const noexcept {
 // ---------------------------------------------------------------------------
 
 void InspectController::setRotationEnabled(bool enabled) noexcept {
-    rotation_enabled_ = enabled;
+    impl_->rotation_enabled = enabled;
     rebuildRules();
 }
 
 void InspectController::setPanEnabled(bool enabled) noexcept {
-    pan_enabled_ = enabled;
+    impl_->pan_enabled = enabled;
     rebuildRules();
 }
 
 void InspectController::setZoomEnabled(bool enabled) noexcept {
-    zoom_enabled_ = enabled;
+    impl_->zoom_enabled = enabled;
     rebuildRules();
 }
 
@@ -289,9 +313,9 @@ void InspectController::setZoomEnabled(bool enabled) noexcept {
 // Convenience
 // ---------------------------------------------------------------------------
 
-void InspectController::fitToAABB(const vne::math::Vec3f& mn,
-                                   const vne::math::Vec3f& mx) noexcept {
-    if (impl_->orbit) impl_->orbit->fitToAABB(mn, mx);
+void InspectController::fitToAABB(const vne::math::Vec3f& mn, const vne::math::Vec3f& mx) noexcept {
+    if (impl_->orbit)
+        impl_->orbit->fitToAABB(mn, mx);
 }
 
 void InspectController::reset() noexcept {
@@ -304,16 +328,20 @@ void InspectController::reset() noexcept {
 // Escape hatches
 // ---------------------------------------------------------------------------
 
-InputMapper& InspectController::inputMapper() noexcept { return impl_->mapper; }
+InputMapper& InspectController::inputMapper() noexcept {
+    return impl_->mapper;
+}
 
-OrbitBehavior& InspectController::orbitBehavior() noexcept { return *impl_->orbit; }
+OrbitBehavior& InspectController::orbitBehavior() noexcept {
+    return *impl_->orbit;
+}
 
 // ---------------------------------------------------------------------------
 // Private
 // ---------------------------------------------------------------------------
 
 void InspectController::rebuildRules() noexcept {
-    auto rules = buildInspectRules(rotation_enabled_, pan_enabled_, zoom_enabled_);
+    auto rules = buildInspectRules(impl_->rotation_enabled, impl_->pan_enabled, impl_->zoom_enabled);
     impl_->mapper.setRules(rules);
 }
 

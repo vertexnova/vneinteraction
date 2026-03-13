@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------------
  */
 
-#include "pan_zoom_behavior.h"
+#include "vertexnova/interaction/pan_zoom_behavior.h"
 
 #include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/orthographic_camera.h"
@@ -21,15 +21,15 @@ namespace vne::interaction {
 // Constants (mirrors ortho_pan_zoom_manipulator.cpp)
 // ---------------------------------------------------------------------------
 namespace {
-constexpr float kEpsilon              = 1e-6f;
-constexpr float kZoomFactorMin        = 0.01f;
-constexpr float kZoomFactorMax        = 100.0f;
-constexpr float kSceneScaleMin        = 1e-4f;
-constexpr float kSceneScaleMax        = 1e4f;
-constexpr float kZoomToCursorHalfMin  = 1e-3f;
-constexpr float kZoomToCursorHalfMax  = 1e6f;
-constexpr float kFitToAabbMargin      = 1.1f;
-constexpr float kMinOrthoExtent       = 1e-3f;
+constexpr float kEpsilon = 1e-6f;
+constexpr float kZoomFactorMin = 0.01f;
+constexpr float kZoomFactorMax = 100.0f;
+constexpr float kSceneScaleMin = 1e-4f;
+constexpr float kSceneScaleMax = 1e4f;
+constexpr float kZoomToCursorHalfMin = 1e-3f;
+constexpr float kZoomToCursorHalfMax = 1e6f;
+constexpr float kFitToAabbMargin = 1.1f;
+constexpr float kMinOrthoExtent = 1e-3f;
 constexpr float kPanVelocityThreshold = 1e-4f;
 }  // namespace
 
@@ -50,7 +50,7 @@ void PanZoomBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noe
 }
 
 void PanZoomBehavior::setViewportSize(float width_px, float height_px) noexcept {
-    viewport_width_  = std::max(1.0f, width_px);
+    viewport_width_ = std::max(1.0f, width_px);
     viewport_height_ = std::max(1.0f, height_px);
 }
 
@@ -63,7 +63,7 @@ void PanZoomBehavior::pan(float delta_x_px, float delta_y_px, double delta_time)
     if (!ortho) {
         return;
     }
-    const vne::math::Vec3f eye    = ortho->getPosition();
+    const vne::math::Vec3f eye = ortho->getPosition();
     const vne::math::Vec3f target = ortho->getTarget();
     vne::math::Vec3f front_vec = target - eye;
     float len = front_vec.length();
@@ -74,7 +74,7 @@ void PanZoomBehavior::pan(float delta_x_px, float delta_y_px, double delta_time)
     len = r.length();
     r = (len < kEpsilon) ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : (r / len);
 
-    const float wppx = ortho->getWidth()  / viewport_width_;
+    const float wppx = ortho->getWidth() / viewport_width_;
     const float wppy = ortho->getHeight() / viewport_height_;
     const vne::math::Vec3f delta_world = r * (delta_x_px * wppx) + up * (-delta_y_px * wppy);
 
@@ -97,12 +97,12 @@ void PanZoomBehavior::zoomToCursor(float zoom_factor, float mouse_x_px, float mo
         return;
     }
     zoom_factor = vne::math::clamp(zoom_factor, kZoomFactorMin, kZoomFactorMax);
-    const float ndc_x  = (2.0f * mouse_x_px / viewport_width_)  - 1.0f;
-    const float ndc_y  = 1.0f - (2.0f * mouse_y_px / viewport_height_);
-    const float half_w = ortho->getWidth()  * 0.5f;
+    const float ndc_x = (2.0f * mouse_x_px / viewport_width_) - 1.0f;
+    const float ndc_y = 1.0f - (2.0f * mouse_y_px / viewport_height_);
+    const float half_w = ortho->getWidth() * 0.5f;
     const float half_h = ortho->getHeight() * 0.5f;
 
-    const vne::math::Vec3f eye    = ortho->getPosition();
+    const vne::math::Vec3f eye = ortho->getPosition();
     const vne::math::Vec3f target = ortho->getTarget();
     vne::math::Vec3f front_vec = target - eye;
     float len = front_vec.length();
@@ -116,11 +116,10 @@ void PanZoomBehavior::zoomToCursor(float zoom_factor, float mouse_x_px, float mo
     const vne::math::Vec3f world_at_cursor = target + r * (ndc_x * half_w) + up * (ndc_y * half_h);
     const float new_half_w = vne::math::clamp(half_w * zoom_factor, kZoomToCursorHalfMin, kZoomToCursorHalfMax);
     const float new_half_h = vne::math::clamp(half_h * zoom_factor, kZoomToCursorHalfMin, kZoomToCursorHalfMax);
-    const vne::math::Vec3f new_target  = world_at_cursor - r * (ndc_x * new_half_w) - up * (ndc_y * new_half_h);
-    const vne::math::Vec3f eye_offset  = eye - target;
+    const vne::math::Vec3f new_target = world_at_cursor - r * (ndc_x * new_half_w) - up * (ndc_y * new_half_h);
+    const vne::math::Vec3f eye_offset = eye - target;
 
-    ortho->setBounds(-new_half_w, new_half_w, -new_half_h, new_half_h,
-                     ortho->getNearPlane(), ortho->getFarPlane());
+    ortho->setBounds(-new_half_w, new_half_w, -new_half_h, new_half_h, ortho->getNearPlane(), ortho->getFarPlane());
     ortho->setTarget(new_target);
     ortho->setPosition(new_target + eye_offset);
     ortho->updateMatrices();
@@ -167,14 +166,13 @@ void PanZoomBehavior::applyInertia(double delta_time) noexcept {
 // fitToAABB / getWorldUnitsPerPixel / resetState
 // ---------------------------------------------------------------------------
 
-void PanZoomBehavior::fitToAABB(const vne::math::Vec3f& min_world,
-                                 const vne::math::Vec3f& max_world) noexcept {
+void PanZoomBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept {
     auto ortho = orthoCamera();
     if (!ortho) {
         return;
     }
     const vne::math::Vec3f center = (min_world + max_world) * 0.5f;
-    const vne::math::Vec3f eye    = ortho->getPosition();
+    const vne::math::Vec3f eye = ortho->getPosition();
     const vne::math::Vec3f target = ortho->getTarget();
     vne::math::Vec3f front_vec = target - eye;
     float len = front_vec.length();
@@ -187,12 +185,12 @@ void PanZoomBehavior::fitToAABB(const vne::math::Vec3f& min_world,
 
     const vne::math::Vec3f corners[8] = {
         min_world,
-        { max_world.x(), min_world.y(), min_world.z() },
-        { min_world.x(), max_world.y(), min_world.z() },
-        { min_world.x(), min_world.y(), max_world.z() },
-        { max_world.x(), max_world.y(), min_world.z() },
-        { max_world.x(), min_world.y(), max_world.z() },
-        { min_world.x(), max_world.y(), max_world.z() },
+        {max_world.x(), min_world.y(), min_world.z()},
+        {min_world.x(), max_world.y(), min_world.z()},
+        {min_world.x(), min_world.y(), max_world.z()},
+        {max_world.x(), max_world.y(), min_world.z()},
+        {max_world.x(), min_world.y(), max_world.z()},
+        {min_world.x(), max_world.y(), max_world.z()},
         max_world,
     };
 
@@ -227,7 +225,7 @@ float PanZoomBehavior::getWorldUnitsPerPixel() const noexcept {
 }
 
 void PanZoomBehavior::resetState() noexcept {
-    panning_      = false;
+    panning_ = false;
     pan_velocity_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
 }
 
@@ -249,14 +247,14 @@ void PanZoomBehavior::update(double delta_time) noexcept {
 // ---------------------------------------------------------------------------
 
 bool PanZoomBehavior::onAction(CameraActionType action,
-                                const CameraCommandPayload& payload,
-                                double delta_time) noexcept {
+                               const CameraCommandPayload& payload,
+                               double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return false;
     }
     switch (action) {
         case CameraActionType::eBeginPan:
-            panning_      = true;
+            panning_ = true;
             pan_velocity_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
             return true;
 

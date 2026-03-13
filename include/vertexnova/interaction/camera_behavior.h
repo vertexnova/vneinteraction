@@ -58,9 +58,7 @@ class VNE_INTERACTION_API ICameraBehavior {
      * @param delta_time Time since last input in seconds
      * @return true if the action was handled (informational; does not block other behaviors)
      */
-    virtual bool onAction(CameraActionType action,
-                          const CameraCommandPayload& payload,
-                          double delta_time) noexcept = 0;
+    virtual bool onAction(CameraActionType action, const CameraCommandPayload& payload, double delta_time) noexcept = 0;
 
     /**
      * @brief Advance behavior state by one frame (inertia, damping, autonomous motion).

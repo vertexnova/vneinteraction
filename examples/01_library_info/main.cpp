@@ -2,53 +2,41 @@
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
- * Example 01 - Library Info
- * Demonstrates: querying the library version and listing all available
- * manipulator types via CameraManipulatorFactory.
+ * Example 01: Library info — version query and behavior system overview.
  * ----------------------------------------------------------------------
  */
 
-#include "common/logging_guard.h"
-#include "vertexnova/interaction/camera_manipulator_factory.h"
+#include "vertexnova/interaction/interaction.h"
+#include "vertexnova/interaction/input_mapper.h"
 #include "vertexnova/interaction/version.h"
 
-#include <array>
-#include <string_view>
+#include "common/logging_guard.h"
+
+#include <iostream>
 
 int main() {
     vne::interaction::examples::LoggingGuard logging_guard;
 
-    // --- Version info ---
-    VNE_LOG_INFO << "VneInteraction version: " << vne::interaction::get_version();
+    std::cout << "VneInteraction " << vne::interaction::get_version() << "\n\n";
 
-    // --- Factory: create every manipulator type and report capabilities ---
-    const vne::interaction::CameraManipulatorFactory factory;
+    std::cout << "Behaviors:\n"
+              << "  - OrbitBehavior   (arcball / Euler orbit)\n"
+              << "  - FreeLookBehavior (FPS / Fly)\n"
+              << "  - PanZoomBehavior  (2D ortho pan+zoom)\n"
+              << "  - TrackBehavior    (smooth follow)\n\n";
 
-    struct TypeInfo {
-        vne::interaction::CameraManipulatorType type;
-        std::string_view name;
-    };
-    static constexpr std::array types{
-        TypeInfo{vne::interaction::CameraManipulatorType::eOrbit, "Orbit"},
-        TypeInfo{vne::interaction::CameraManipulatorType::eArcball, "Arcball"},
-        TypeInfo{vne::interaction::CameraManipulatorType::eFps, "FPS"},
-        TypeInfo{vne::interaction::CameraManipulatorType::eFly, "Fly"},
-        TypeInfo{vne::interaction::CameraManipulatorType::eOrthoPanZoom, "OrthoPanZoom"},
-        TypeInfo{vne::interaction::CameraManipulatorType::eFollow, "Follow"},
-    };
+    std::cout << "InputMapper presets:\n"
+              << "  - orbitPreset()  (LMB=rotate, RMB=pan, scroll=zoom)\n"
+              << "  - fpsPreset()    (RMB=look, WASD=move, scroll=zoom)\n"
+              << "  - gamePreset()   (orbit + free-look hybrid)\n"
+              << "  - cadPreset()    (MMB=pan, Shift+MMB=rotate)\n"
+              << "  - orthoPreset()  (RMB/MMB=pan, scroll=zoom)\n\n";
 
-    VNE_LOG_INFO << "Available manipulators:";
-    for (const auto& info : types) {
-        auto manipulator = factory.create(info.type);
-        if (!manipulator) {
-            VNE_LOG_INFO << "  [" << info.name << "] creation failed";
-            continue;
-        }
-        VNE_LOG_INFO << "  [" << info.name << "]"
-                     << "  perspective=" << (manipulator->supportsPerspective() ? "yes" : "no")
-                     << "  orthographic=" << (manipulator->supportsOrthographic() ? "yes" : "no")
-                     << "  sceneScale=" << manipulator->getSceneScale();
-    }
+    std::cout << "Controllers:\n"
+              << "  - InspectController  (3D object inspection)\n"
+              << "  - NavigateController (FPS/Fly/Game traversal)\n"
+              << "  - PlanarController   (2D slices, maps)\n"
+              << "  - FollowController   (end-effector follow-cam)\n";
 
     return 0;
 }

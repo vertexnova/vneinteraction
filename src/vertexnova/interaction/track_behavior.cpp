@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------------
  */
 
-#include "track_behavior.h"
+#include "vertexnova/interaction/track_behavior.h"
 
 #include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/perspective_camera.h"
@@ -22,10 +22,10 @@ namespace vne::interaction {
 // Constants (mirrors follow_manipulator.cpp)
 // ---------------------------------------------------------------------------
 namespace {
-constexpr float kFovMinDeg       =   5.0f;
-constexpr float kFovMaxDeg       = 120.0f;
-constexpr float kSceneScaleMin   = 1e-4f;
-constexpr float kSceneScaleMax   = 1e4f;
+constexpr float kFovMinDeg = 5.0f;
+constexpr float kFovMaxDeg = 120.0f;
+constexpr float kSceneScaleMin = 1e-4f;
+constexpr float kSceneScaleMax = 1e4f;
 constexpr float kOffsetMinLength = 0.1f;
 constexpr float kOffsetMaxLength = 1e4f;
 }  // namespace
@@ -51,7 +51,7 @@ void TrackBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexc
 }
 
 void TrackBehavior::setViewportSize(float width_px, float height_px) noexcept {
-    viewport_width_  = std::max(1.0f, width_px);
+    viewport_width_ = std::max(1.0f, width_px);
     viewport_height_ = std::max(1.0f, height_px);
 }
 
@@ -67,8 +67,7 @@ vne::math::Vec3f TrackBehavior::getTargetWorld() const noexcept {
 // fitToAABB / getWorldUnitsPerPixel
 // ---------------------------------------------------------------------------
 
-void TrackBehavior::fitToAABB(const vne::math::Vec3f& min_world,
-                               const vne::math::Vec3f& max_world) noexcept {
+void TrackBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept {
     target_world_ = (min_world + max_world) * 0.5f;
 }
 
@@ -77,7 +76,7 @@ float TrackBehavior::getWorldUnitsPerPixel() const noexcept {
         return ortho->getHeight() / viewport_height_;
     }
     if (auto persp = perspCamera()) {
-        const float dist      = offset_world_.length();
+        const float dist = offset_world_.length();
         const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
         return 2.0f * dist * vne::math::tan(fov_y_rad * 0.5f) / viewport_height_;
     }
@@ -133,11 +132,11 @@ void TrackBehavior::update(double delta_time) noexcept {
     if (dt <= 0.0f) {
         return;
     }
-    const vne::math::Vec3f target       = getTargetWorld();
-    const vne::math::Vec3f desired_eye  = target + offset_world_;
-    const vne::math::Vec3f eye          = camera_->getPosition();
-    const float alpha                   = 1.0f - std::exp(-damping_ * dt);
-    const vne::math::Vec3f new_eye      = eye + (desired_eye - eye) * alpha;
+    const vne::math::Vec3f target = getTargetWorld();
+    const vne::math::Vec3f desired_eye = target + offset_world_;
+    const vne::math::Vec3f eye = camera_->getPosition();
+    const float alpha = 1.0f - std::exp(-damping_ * dt);
+    const vne::math::Vec3f new_eye = eye + (desired_eye - eye) * alpha;
 
     camera_->setPosition(new_eye);
     camera_->setTarget(target);
@@ -150,8 +149,8 @@ void TrackBehavior::update(double delta_time) noexcept {
 // ---------------------------------------------------------------------------
 
 bool TrackBehavior::onAction(CameraActionType action,
-                              const CameraCommandPayload& payload,
-                              double /*delta_time*/) noexcept {
+                             const CameraCommandPayload& payload,
+                             double /*delta_time*/) noexcept {
     if (!enabled_ || !camera_) {
         return false;
     }

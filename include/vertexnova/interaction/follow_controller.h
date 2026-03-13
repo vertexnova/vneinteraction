@@ -66,7 +66,7 @@ class TrackBehavior;
  * @threadsafe Not thread-safe. Call all methods from the same thread.
  */
 class VNE_INTERACTION_API FollowController {
-public:
+   public:
     /** Callback type returning the current target world transform. */
     using TargetCallback = std::function<vne::math::Mat4f()>;
 
@@ -142,7 +142,7 @@ public:
     [[nodiscard]] InputMapper& inputMapper() noexcept;
     [[nodiscard]] TrackBehavior& trackBehavior() noexcept;
 
-private:
+   private:
     struct Impl;
     std::unique_ptr<Impl> impl_;
 };

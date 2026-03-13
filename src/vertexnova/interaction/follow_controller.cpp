@@ -23,8 +23,8 @@ namespace vne::interaction {
 // ---------------------------------------------------------------------------
 
 struct FollowController::Impl {
-    CameraRig      rig;
-    InputMapper    mapper;
+    CameraRig rig;
+    InputMapper mapper;
     TrackBehavior* track = nullptr;  // non-owning alias into rig
 
     std::shared_ptr<vne::scene::ICamera> camera;
@@ -42,22 +42,19 @@ struct FollowController::Impl {
 // ---------------------------------------------------------------------------
 
 FollowController::FollowController()
-    : impl_(std::make_unique<Impl>())
-{
+    : impl_(std::make_unique<Impl>()) {
     auto behavior = std::make_shared<TrackBehavior>();
     impl_->track = behavior.get();
     impl_->rig.addBehavior(std::move(behavior));
 
     // Scroll = zoom (optional, user may want to adjust distance)
     impl_->mapper.addRule({
-        .trigger  = InputRule::Trigger::eScroll,
+        .trigger = InputRule::Trigger::eScroll,
         .on_delta = CameraActionType::eZoomAtCursor,
     });
 
     impl_->mapper.setActionCallback(
-        [this](CameraActionType a, const CameraCommandPayload& p, double dt) {
-            impl_->rig.onAction(a, p, dt);
-        });
+        [this](CameraActionType a, const CameraCommandPayload& p, double dt) { impl_->rig.onAction(a, p, dt); });
 }
 
 FollowController::~FollowController() = default;
@@ -99,9 +96,11 @@ void FollowController::onEvent(const vne::events::Event& event) noexcept {
 
     if (event.type() == ET::eMouseScrolled) {
         const auto& e = static_cast<const vne::events::MouseScrolledEvent&>(event);
-        impl_->mapper.onMouseScroll(
-            static_cast<float>(e.xOffset()), static_cast<float>(e.yOffset()),
-            static_cast<float>(impl_->last_x), static_cast<float>(impl_->last_y), kDt);
+        impl_->mapper.onMouseScroll(static_cast<float>(e.xOffset()),
+                                    static_cast<float>(e.yOffset()),
+                                    static_cast<float>(impl_->last_x),
+                                    static_cast<float>(impl_->last_y),
+                                    kDt);
     }
 }
 
@@ -116,9 +115,7 @@ void FollowController::setTarget(TargetCallback cb) noexcept {
 void FollowController::setTarget(const vne::math::Mat4f& world_transform) noexcept {
     impl_->target_cb = nullptr;
     if (impl_->track) {
-        impl_->track->setTargetWorld({world_transform[3][0],
-                                      world_transform[3][1],
-                                      world_transform[3][2]});
+        impl_->track->setTargetWorld({world_transform[3][0], world_transform[3][1], world_transform[3][2]});
     }
 }
 
@@ -127,7 +124,8 @@ void FollowController::setTarget(const vne::math::Mat4f& world_transform) noexce
 // ---------------------------------------------------------------------------
 
 void FollowController::setOffset(const vne::math::Vec3f& offset) noexcept {
-    if (impl_->track) impl_->track->setOffset(offset);
+    if (impl_->track)
+        impl_->track->setOffset(offset);
 }
 
 vne::math::Vec3f FollowController::getOffset() const noexcept {
@@ -144,7 +142,8 @@ void FollowController::setLag(float lag) noexcept {
 }
 
 float FollowController::getLag() const noexcept {
-    if (!impl_->track) return 0.0f;
+    if (!impl_->track)
+        return 0.0f;
     // Invert the formula above
     return 1.0f - (impl_->track->getDamping() / 20.0f);
 }
@@ -162,7 +161,11 @@ void FollowController::reset() noexcept {
 // Escape hatches
 // ---------------------------------------------------------------------------
 
-InputMapper& FollowController::inputMapper() noexcept { return impl_->mapper; }
-TrackBehavior& FollowController::trackBehavior() noexcept { return *impl_->track; }
+InputMapper& FollowController::inputMapper() noexcept {
+    return impl_->mapper;
+}
+TrackBehavior& FollowController::trackBehavior() noexcept {
+    return *impl_->track;
+}
 
 }  // namespace vne::interaction

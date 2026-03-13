@@ -57,7 +57,7 @@ class PanZoomBehavior;
  * @threadsafe Not thread-safe. Call all methods from the same thread.
  */
 class VNE_INTERACTION_API PlanarController {
-public:
+   public:
     PlanarController();
     ~PlanarController();
 
@@ -101,8 +101,7 @@ public:
     // Convenience
     // -------------------------------------------------------------------------
 
-    void fitToAABB(const vne::math::Vec3f& min_world,
-                   const vne::math::Vec3f& max_world) noexcept;
+    void fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept;
 
     void reset() noexcept;
 
@@ -113,15 +112,15 @@ public:
     [[nodiscard]] InputMapper& inputMapper() noexcept;
     [[nodiscard]] PanZoomBehavior& panZoomBehavior() noexcept;
 
-private:
+   private:
     void rebuildRules() noexcept;
 
     struct Impl;
     std::unique_ptr<Impl> impl_;
 
     bool rotation_enabled_ = false;
-    bool pan_enabled_      = true;
-    bool zoom_enabled_     = true;
+    bool pan_enabled_ = true;
+    bool zoom_enabled_ = true;
 };
 
 }  // namespace vne::interaction

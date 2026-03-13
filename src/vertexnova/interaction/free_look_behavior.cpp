@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------------
  */
 
-#include "free_look_behavior.h"
+#include "vertexnova/interaction/free_look_behavior.h"
 
 #include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/perspective_camera.h"
@@ -22,23 +22,20 @@ namespace vne::interaction {
 // Anonymous constants (mirrors free_camera_base.cpp)
 // ---------------------------------------------------------------------------
 namespace {
-constexpr float kEpsilon               = 1e-6f;
-constexpr float kPitchMinDeg           = -89.0f;
-constexpr float kPitchMaxDeg           =  89.0f;
-constexpr float kFovMinDeg             =   5.0f;
-constexpr float kFovMaxDeg             = 120.0f;
-constexpr float kSceneScaleMin         = 1e-4f;
-constexpr float kSceneScaleMax         = 1e4f;
-constexpr float kMinRadiusFallback     = 1.0f;
-constexpr float kFitToAabbDistFactor   = 2.5f;
+constexpr float kEpsilon = 1e-6f;
+constexpr float kPitchMinDeg = -89.0f;
+constexpr float kPitchMaxDeg = 89.0f;
+constexpr float kFovMinDeg = 5.0f;
+constexpr float kFovMaxDeg = 120.0f;
+constexpr float kSceneScaleMin = 1e-4f;
+constexpr float kSceneScaleMax = 1e4f;
+constexpr float kMinRadiusFallback = 1.0f;
+constexpr float kFitToAabbDistFactor = 2.5f;
 
 /// Build reference forward + right vectors from an arbitrary up axis.
-void buildReferenceFrame(const vne::math::Vec3f& up,
-                         vne::math::Vec3f& ref_fwd,
-                         vne::math::Vec3f& ref_right) noexcept {
+void buildReferenceFrame(const vne::math::Vec3f& up, vne::math::Vec3f& ref_fwd, vne::math::Vec3f& ref_right) noexcept {
     vne::math::Vec3f candidate =
-        (std::abs(up.y()) > 0.9f) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f)
-                                  : vne::math::Vec3f(0.0f, -1.0f, 0.0f);
+        (std::abs(up.y()) > 0.9f) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : vne::math::Vec3f(0.0f, -1.0f, 0.0f);
     ref_fwd = (candidate - up * candidate.dot(up));
     const float fwd_len = ref_fwd.length();
     ref_fwd = (fwd_len < kEpsilon) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : (ref_fwd / fwd_len);
@@ -87,7 +84,7 @@ void FreeLookBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) no
 }
 
 void FreeLookBehavior::setViewportSize(float width_px, float height_px) noexcept {
-    viewport_width_  = std::max(1.0f, width_px);
+    viewport_width_ = std::max(1.0f, width_px);
     viewport_height_ = std::max(1.0f, height_px);
 }
 
@@ -100,12 +97,11 @@ vne::math::Vec3f FreeLookBehavior::front() const noexcept {
     vne::math::Vec3f ref_fwd, ref_right;
     buildReferenceFrame(up, ref_fwd, ref_right);
 
-    const float yaw_rad   = vne::math::degToRad(yaw_deg_);
+    const float yaw_rad = vne::math::degToRad(yaw_deg_);
     const float pitch_rad = vne::math::degToRad(pitch_deg_);
     const float cp = vne::math::cos(pitch_rad);
     vne::math::Vec3f f =
-        (ref_fwd * vne::math::cos(yaw_rad) + ref_right * vne::math::sin(yaw_rad)) * cp
-        + up * vne::math::sin(pitch_rad);
+        (ref_fwd * vne::math::cos(yaw_rad) + ref_right * vne::math::sin(yaw_rad)) * cp + up * vne::math::sin(pitch_rad);
     const float len = f.length();
     return (len < kEpsilon) ? ref_fwd : (f / len);
 }
@@ -123,7 +119,7 @@ void FreeLookBehavior::syncAnglesFromCamera() noexcept {
     vne::math::Vec3f f = camera_->getTarget() - camera_->getPosition();
     const float len = f.length();
     if (len < kEpsilon) {
-        yaw_deg_   = 0.0f;
+        yaw_deg_ = 0.0f;
         pitch_deg_ = 0.0f;
         return;
     }
@@ -204,8 +200,7 @@ float FreeLookBehavior::getWorldUnitsPerPixel() const noexcept {
     return 1.0f;
 }
 
-void FreeLookBehavior::fitToAABB(const vne::math::Vec3f& min_world,
-                                  const vne::math::Vec3f& max_world) noexcept {
+void FreeLookBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept {
     if (!camera_) {
         return;
     }
@@ -243,16 +238,28 @@ void FreeLookBehavior::update(double delta_time) noexcept {
     if (dt <= 0.0f) {
         return;
     }
-    const vne::math::Vec3f f   = front();
-    const vne::math::Vec3f r   = right(f);
-    const vne::math::Vec3f up  = upVector();
+    const vne::math::Vec3f f = front();
+    const vne::math::Vec3f r = right(f);
+    const vne::math::Vec3f up = upVector();
     vne::math::Vec3f move(0.0f, 0.0f, 0.0f);
-    if (input_state_.move_forward)  { move += f; }
-    if (input_state_.move_backward) { move -= f; }
-    if (input_state_.move_right)    { move += r; }
-    if (input_state_.move_left)     { move -= r; }
-    if (input_state_.move_up)       { move += up; }
-    if (input_state_.move_down)     { move -= up; }
+    if (input_state_.move_forward) {
+        move += f;
+    }
+    if (input_state_.move_backward) {
+        move -= f;
+    }
+    if (input_state_.move_right) {
+        move += r;
+    }
+    if (input_state_.move_left) {
+        move -= r;
+    }
+    if (input_state_.move_up) {
+        move += up;
+    }
+    if (input_state_.move_down) {
+        move -= up;
+    }
     if (move.length() <= kEpsilon) {
         return;
     }
@@ -273,8 +280,8 @@ void FreeLookBehavior::update(double delta_time) noexcept {
 // ---------------------------------------------------------------------------
 
 bool FreeLookBehavior::onAction(CameraActionType action,
-                                 const CameraCommandPayload& payload,
-                                 double /*delta_time*/) noexcept {
+                                const CameraCommandPayload& payload,
+                                double /*delta_time*/) noexcept {
     if (!enabled_) {
         return false;
     }
@@ -289,7 +296,7 @@ bool FreeLookBehavior::onAction(CameraActionType action,
 
         case CameraActionType::eLookDelta:
             if (camera_ && input_state_.looking) {
-                yaw_deg_   -= payload.delta_x_px * mouse_sensitivity_;
+                yaw_deg_ -= payload.delta_x_px * mouse_sensitivity_;
                 pitch_deg_ += payload.delta_y_px * mouse_sensitivity_;
                 if (constrain_world_up_) {
                     pitch_deg_ = vne::math::clamp(pitch_deg_, kPitchMinDeg, kPitchMaxDeg);
@@ -334,11 +341,9 @@ bool FreeLookBehavior::onAction(CameraActionType action,
         case CameraActionType::eZoomAtCursor:
             if (camera_ && payload.zoom_factor > 0.0f) {
                 if (zoom_method_ == ZoomMethod::eDollyToCoi) {
-                    applyZoom((payload.zoom_factor < 1.0f) ? move_speed_ * zoom_speed_
-                                                           : -move_speed_ * zoom_speed_);
+                    applyZoom((payload.zoom_factor < 1.0f) ? move_speed_ * zoom_speed_ : -move_speed_ * zoom_speed_);
                 } else {
-                    applyZoom((payload.zoom_factor < 1.0f) ? (1.0f / fov_zoom_speed_)
-                                                           : fov_zoom_speed_);
+                    applyZoom((payload.zoom_factor < 1.0f) ? (1.0f / fov_zoom_speed_) : fov_zoom_speed_);
                 }
                 return true;
             }

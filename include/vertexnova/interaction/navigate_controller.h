@@ -58,8 +58,8 @@ class OrbitBehavior;
 
 /** Navigation mode for NavigateController. */
 enum class NavigateMode : std::uint8_t {
-    eFps  = 0,  //!< FPS: WASD + mouse look, world-up fixed, pitch clamped (default)
-    eFly  = 1,  //!< Fly: WASD + mouse look, unconstrained
+    eFps = 0,   //!< FPS: WASD + mouse look, world-up fixed, pitch clamped (default)
+    eFly = 1,   //!< Fly: WASD + mouse look, unconstrained
     eGame = 2,  //!< Game hybrid: WASD fly + RMB orbit simultaneously
 };
 
@@ -75,7 +75,7 @@ enum class NavigateMode : std::uint8_t {
  * @threadsafe Not thread-safe. Call all methods from the same thread.
  */
 class VNE_INTERACTION_API NavigateController {
-public:
+   public:
     NavigateController();
     ~NavigateController();
 
@@ -95,7 +95,7 @@ public:
     // Per-frame
     // -------------------------------------------------------------------------
 
-    void onEvent(const vne::events::Event& event) noexcept;
+    void onEvent(const vne::events::Event& event, double delta_time = 0.0) noexcept;
     void update(double delta_time) noexcept;
 
     // -------------------------------------------------------------------------
@@ -104,7 +104,7 @@ public:
 
     /** Switch navigation mode. Rebuilds rig and input rules. */
     void setMode(NavigateMode mode) noexcept;
-    [[nodiscard]] NavigateMode getMode() const noexcept { return mode_; }
+    [[nodiscard]] NavigateMode getMode() const noexcept;
 
     // -------------------------------------------------------------------------
     // Speed / sensitivity
@@ -126,8 +126,7 @@ public:
     // Convenience
     // -------------------------------------------------------------------------
 
-    void fitToAABB(const vne::math::Vec3f& min_world,
-                   const vne::math::Vec3f& max_world) noexcept;
+    void fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept;
 
     void reset() noexcept;
 
@@ -141,16 +140,16 @@ public:
     /**
      * @brief Access the orbit behavior (only valid in eGame mode).
      * Returns nullptr in eFps / eFly modes.
+     * @warning The returned pointer is invalidated by setMode() when switching
+     *          away from eGame. Do not hold the pointer across mode changes.
      */
     [[nodiscard]] OrbitBehavior* orbitBehavior() noexcept;
 
-private:
+   private:
     void rebuild() noexcept;
 
     struct Impl;
     std::unique_ptr<Impl> impl_;
-
-    NavigateMode mode_ = NavigateMode::eFps;
 };
 
 }  // namespace vne::interaction

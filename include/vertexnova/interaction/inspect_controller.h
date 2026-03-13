@@ -73,7 +73,7 @@ class OrbitBehavior;
 /** Rotation algorithm used by InspectController. */
 enum class InspectRotationMode : std::uint8_t {
     eArcball = 0,  //!< Quaternion arcball — smooth, no gimbal lock (default)
-    eOrbit   = 1,  //!< Classic Euler yaw/pitch turntable
+    eOrbit = 1,    //!< Classic Euler yaw/pitch turntable
 };
 
 /**
@@ -85,7 +85,7 @@ enum class InspectRotationMode : std::uint8_t {
  * @threadsafe Not thread-safe. Call all methods from the same thread.
  */
 class VNE_INTERACTION_API InspectController {
-public:
+   public:
     InspectController();
     ~InspectController();
 
@@ -109,7 +109,7 @@ public:
     // -------------------------------------------------------------------------
 
     /** Feed a vneevents event (mouse, keyboard, touch, double-click). */
-    void onEvent(const vne::events::Event& event) noexcept;
+    void onEvent(const vne::events::Event& event, double delta_time = 0.0) noexcept;
 
     /** Advance inertia and fit animation by delta_time seconds. */
     void update(double delta_time) noexcept;
@@ -120,7 +120,7 @@ public:
 
     /** Switch rotation algorithm (default: eArcball). */
     void setRotationMode(InspectRotationMode mode) noexcept;
-    [[nodiscard]] InspectRotationMode getRotationMode() const noexcept { return rotation_mode_; }
+    [[nodiscard]] InspectRotationMode getRotationMode() const noexcept;
 
     // -------------------------------------------------------------------------
     // Pivot / anchor
@@ -158,8 +158,7 @@ public:
     // -------------------------------------------------------------------------
 
     /** Fit camera to an AABB with smooth animation. */
-    void fitToAABB(const vne::math::Vec3f& min_world,
-                   const vne::math::Vec3f& max_world) noexcept;
+    void fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept;
 
     /** Reset camera and interaction state. */
     void reset() noexcept;
@@ -174,16 +173,11 @@ public:
     /** Direct access to the underlying OrbitBehavior for fine-tuning. */
     [[nodiscard]] OrbitBehavior& orbitBehavior() noexcept;
 
-private:
+   private:
     void rebuildRules() noexcept;
 
     struct Impl;
     std::unique_ptr<Impl> impl_;
-
-    InspectRotationMode rotation_mode_ = InspectRotationMode::eArcball;
-    bool rotation_enabled_ = true;
-    bool pan_enabled_      = true;
-    bool zoom_enabled_     = true;
 };
 
 }  // namespace vne::interaction
