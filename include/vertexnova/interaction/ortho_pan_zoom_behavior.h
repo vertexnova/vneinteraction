@@ -13,9 +13,8 @@
  * @file ortho_pan_zoom_behavior.h
  * @brief OrthoPanZoomBehavior — orthographic 2D pan + zoom behavior.
  *
- * Consolidates OrthoPanZoomManipulator into a composable ICameraBehavior.
- * Handles ePanDelta, eZoomAtCursor, eResetView actions.
- * Inertia via exponential decay on pan velocity.
+ * For orthographic viewports. Handles eBeginPan, ePanDelta, eEndPan,
+ * eZoomAtCursor, eResetView. Inertia via exponential decay on pan velocity.
  */
 
 #include "vertexnova/interaction/camera_behavior.h"

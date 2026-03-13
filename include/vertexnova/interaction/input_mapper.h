@@ -9,13 +9,13 @@
  */
 
 /**
- * @brief Translates raw input events into CameraActionType commands using
- * data-driven InputRule mappings.
+ * @file input_mapper.h
+ * @brief InputMapper — translates raw input events into CameraActionType commands.
  *
- * Replaces CameraInputAdapter's hardcoded logic. Callers configure rules via
- * setRules() or addRule(), or use one of the static preset factories.
- * The controller calls the typed on*() methods which evaluate rules and emit
- * the appropriate actions to the registered callback.
+ * Data-driven InputRule mappings. Callers configure rules via setRules() or
+ * addRule(), or use one of the static preset factories (orbitPreset, fpsPreset,
+ * gamePreset, cadPreset, orthoPreset). Controllers call the on*() methods which
+ * evaluate rules and emit actions to the registered callback.
  */
 
 #include "vertexnova/interaction/interaction_types.h"
@@ -33,7 +33,7 @@ namespace vne::interaction {
 using ActionCallback = std::function<void(CameraActionType, const CameraCommandPayload&, double)>;
 
 /**
- * @brief Data-driven input → CameraAction mapper.
+ * @brief Data-driven input ->CameraAction mapper.
  *
  * Each InputRule describes a trigger (button, key, scroll, touch, double-click),
  * optional modifier mask, and up to three action types (on_press, on_release, on_delta).

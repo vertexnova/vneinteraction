@@ -122,7 +122,7 @@ enum class CameraActionType : std::uint8_t {
 };
 
 // -----------------------------------------------------------------------------
-// InputRule — data-driven input → action mapping (replaces hardcoded adapter logic)
+// InputRule — data-driven input ->action mapping (replaces hardcoded adapter logic)
 // -----------------------------------------------------------------------------
 
 /** Modifier key bitmask constants for InputRule::modifier_mask. */

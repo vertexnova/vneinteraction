@@ -82,7 +82,7 @@ class VNE_INTERACTION_API CameraRig {
     [[nodiscard]] const std::vector<std::shared_ptr<ICameraBehavior>>& behaviors() const noexcept { return behaviors_; }
 
     // -------------------------------------------------------------------------
-    // Action dispatch (called by CameraSystemController)
+    // Action dispatch (called by controllers)
     // -------------------------------------------------------------------------
 
     /**

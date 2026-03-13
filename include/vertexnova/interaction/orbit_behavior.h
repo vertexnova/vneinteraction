@@ -13,9 +13,9 @@
  * @file orbit_behavior.h
  * @brief OrbitBehavior — orbit/arcball camera behavior (ICameraBehavior implementation).
  *
- * Consolidates OrbitManipulator, ArcballManipulator, and OrbitStyleBase into a single
- * composable behavior class. Supports both Euler (classic orbit) and Quaternion (arcball)
- * rotation modes, and three pivot modes.
+ * Supports both Euler (classic orbit) and Quaternion (arcball) rotation modes,
+ * and three pivot modes (COI, ViewCenter, Fixed). Handles rotate, pan, zoom,
+ * inertia, and fitToAABB.
  */
 
 #include "vertexnova/interaction/camera_behavior.h"
@@ -39,8 +39,8 @@ namespace vne::interaction {
  * @brief Rotation algorithm selection for OrbitBehavior.
  */
 enum class OrbitRotationMode : std::uint8_t {
-    eEuler = 0,       //!< Classic Euler yaw/pitch orbit (OrbitManipulator algorithm)
-    eQuaternion = 1,  //!< Arcball quaternion rotation (ArcballManipulator algorithm)
+    eEuler = 0,       //!< Classic Euler yaw/pitch orbit
+    eQuaternion = 1,  //!< Arcball quaternion rotation (smooth, no gimbal lock)
 };
 
 /**
@@ -49,11 +49,11 @@ enum class OrbitRotationMode : std::uint8_t {
  * Implements ICameraBehavior for orbit-style interaction. Handles rotate, pan, and zoom
  * actions. Supports inertia via exponential decay.
  *
- * - RotationMode::eEuler     → classic yaw/pitch orbit, pitch clamped to [-89, 89]
- * - RotationMode::eQuaternion → arcball quaternion rotation (unconstrained)
- * - PivotMode::eCoi          → orbit center follows panning (standard)
- * - PivotMode::eViewCenter   → pivot snaps to view center on pan release
- * - PivotMode::eFixed        → pivot stays fixed; pan translates eye+target
+ * - RotationMode::eEuler     ->classic yaw/pitch orbit, pitch clamped to [-89, 89]
+ * - RotationMode::eQuaternion ->arcball quaternion rotation (unconstrained)
+ * - PivotMode::eCoi          ->orbit center follows panning (standard)
+ * - PivotMode::eViewCenter   ->pivot snaps to view center on pan release
+ * - PivotMode::eFixed        ->pivot stays fixed; pan translates eye+target
  *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
  */

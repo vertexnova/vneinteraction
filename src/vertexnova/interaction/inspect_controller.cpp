@@ -127,7 +127,7 @@ InspectController::InspectController()
     impl_->orbit->setRotationMode(OrbitRotationMode::eQuaternion);
     impl_->rig.addBehavior(impl_->orbit);
 
-    // Wire mapper → rig
+    // Wire mapper ->rig
     impl_->mapper.setActionCallback(
         [this](CameraActionType a, const CameraCommandPayload& p, double dt) { impl_->rig.onAction(a, p, dt); });
 

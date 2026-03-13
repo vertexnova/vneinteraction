@@ -133,7 +133,7 @@ vne::math::Vec3f FollowController::getOffset() const noexcept {
 }
 
 void FollowController::setLag(float lag) noexcept {
-    // Convert lag [0,1] to damping: lag=0 → very high damping (instant), lag=1 → 0 (never arrives)
+    // Convert lag [0,1] to damping: lag=0 ->very high damping (instant), lag=1 ->0 (never arrives)
     // damping = -ln(lag_remainder) / typical_dt; we use a simple inversion: damping = (1-lag)*20
     if (impl_->track) {
         const float damping = (1.0f - std::clamp(lag, 0.0f, 0.999f)) * 20.0f;

@@ -13,11 +13,9 @@
  * @file free_look_behavior.h
  * @brief FreeLookBehavior — FPS / Fly camera behavior (ICameraBehavior implementation).
  *
- * Consolidates FpsManipulator, FlyManipulator, and FreeCameraBase into a single
- * composable behavior class.
- *
- * - constrainWorldUp = true  → FPS mode (world up fixed, pitch clamped [-89, 89])
- * - constrainWorldUp = false → Fly mode (unconstrained, up follows camera)
+ * WASD movement + mouse look. Two modes:
+ * - constrainWorldUp = true  ->FPS mode (world up fixed, pitch clamped [-89°, 89°])
+ * - constrainWorldUp = false ->Fly mode (unconstrained, up follows camera)
  */
 
 #include "vertexnova/interaction/camera_behavior.h"

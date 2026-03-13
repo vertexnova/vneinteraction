@@ -13,9 +13,9 @@
  * @file track_behavior.h
  * @brief TrackBehavior — autonomous smooth target-following camera behavior.
  *
- * Consolidates FollowManipulator into a composable ICameraBehavior.
  * The camera smoothly moves toward `target + offset` each frame using
- * exponential approach. Handles eZoomAtCursor and eResetView actions.
+ * exponential approach. Target can be fixed or from a callback.
+ * Handles eZoomAtCursor and eResetView actions.
  */
 
 #include "vertexnova/interaction/camera_behavior.h"
