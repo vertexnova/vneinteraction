@@ -483,12 +483,16 @@ void OrbitArcballBehavior::zoom(float zoom_factor, float mouse_x_px, float mouse
             auto persp = perspCamera();
             if (persp) {
                 const float fov = persp->getFieldOfView();
-                persp->setFieldOfView(
-                    vne::math::clamp(fov * ((zoom_factor < 1.0f) ? (1.0f / fov_zoom_speed_) : fov_zoom_speed_),
-                                     kFovMinDeg,
-                                     kFovMaxDeg));
+                const float new_fov = vne::math::clamp(
+                    fov * ((zoom_factor < 1.0f) ? (1.0f / fov_zoom_speed_) : fov_zoom_speed_),
+                    kFovMinDeg,
+                    kFovMaxDeg);
+                persp->setFieldOfView(new_fov);
                 persp->updateMatrices();
-                return;
+                // If FOV has not changed (limit reached), fall through to dolly so zoom doesn't feel stuck
+                if (new_fov != fov) {
+                    return;
+                }
             }
             [[fallthrough]];
         }
