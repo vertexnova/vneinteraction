@@ -51,7 +51,7 @@ std::shared_ptr<vne::scene::OrthographicCamera> OrthoPanZoomBehavior::orthoCamer
 void OrthoPanZoomBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
     camera_ = std::move(camera);
     if (!camera_) {
-        VNE_LOG_DEBUG << "OrthoPanZoomBehavior: setCamera called with null camera (detach)";
+        VNE_LOG_DEBUG << "OrthoPanZoomBehavior: camera detached (null camera)";
     }
 }
 

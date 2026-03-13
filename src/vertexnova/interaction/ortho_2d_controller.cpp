@@ -66,7 +66,7 @@ Ortho2DController& Ortho2DController::operator=(Ortho2DController&&) noexcept = 
 void Ortho2DController::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
     impl_->camera = camera;
     if (!camera) {
-        VNE_LOG_DEBUG << "Ortho2DController: setCamera called with null camera (detach)";
+        VNE_LOG_DEBUG << "Ortho2DController: camera detached (null camera)";
     }
     impl_->rig.setCamera(camera);
 }

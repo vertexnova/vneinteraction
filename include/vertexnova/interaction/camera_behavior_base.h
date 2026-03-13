@@ -39,7 +39,7 @@ namespace vne::interaction {
  * This type is intended for use by camera behavior implementations rather than
  * direct use by most application code.
  */
-class CameraBehaviorBase : public ICameraBehavior {
+class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
    public:
     ~CameraBehaviorBase() noexcept override = default;
 

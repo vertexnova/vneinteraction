@@ -65,7 +65,7 @@ Navigation3DController& Navigation3DController::operator=(Navigation3DController
 void Navigation3DController::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
     impl_->camera = camera;
     if (!camera) {
-        VNE_LOG_DEBUG << "Navigation3DController: setCamera called with null camera (detach)";
+        VNE_LOG_DEBUG << "Navigation3DController: camera detached (null camera)";
     }
     impl_->rig.setCamera(camera);
 }

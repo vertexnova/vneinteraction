@@ -33,7 +33,6 @@ class LoggingGuard {
 int main(int argc, char** argv) {
     LoggingGuard logging_guard;
 
-    ::testing::InitGoogleTest(&argc, argv);
     ::testing::InitGoogleMock(&argc, argv);
 
     VNE_LOG_INFO << "Starting vneinteraction test suite";

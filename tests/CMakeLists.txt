@@ -74,7 +74,6 @@ target_include_directories(vneinteraction_tests
         ${GTEST_INCLUDE_DIRS}
         ${VNE_INCLUDE_DIR}
         ${VNE_SRC_DIR}
-        ${VNE_LOGGING_INCLUDE_DIR}
 )
 
 target_link_libraries(vneinteraction_tests
