@@ -149,7 +149,7 @@ InspectController& InspectController::operator=(InspectController&&) noexcept = 
 void InspectController::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
     impl_->camera = camera;
     if (!camera) {
-        VNE_LOG_WARN << "InspectController: setCamera called with null camera";
+        VNE_LOG_DEBUG << "InspectController: setCamera called with null camera (detach)";
     }
     impl_->rig.setCamera(camera);
 }
