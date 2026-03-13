@@ -356,7 +356,7 @@ void OrbitArcballBehavior::dragRotateArcball(float x_px, float y_px, double delt
         return;
     }
     axis /= axis_len;
-    const float angle = vne::math::acos(dot) * rotation_speed_;
+    const float angle = vne::math::acos(dot);
 
     const vne::math::Quatf delta_q = vne::math::Quatf::fromAxisAngle(axis, angle);
     orientation_ = delta_q * orientation_;
