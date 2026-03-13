@@ -71,6 +71,15 @@ class CameraInputAdapter {
     void onMouseButton(int button, bool pressed, float x, float y, double delta_time) noexcept;
 
     /**
+     * @brief Mouse button double-click.
+     * @param button Mouse button index
+     * @param x Cursor X in viewport pixels
+     * @param y Cursor Y in viewport pixels
+     * @param delta_time Time since last input in seconds
+     */
+    void onMouseDoubleClick(int button, float x, float y, double delta_time) noexcept;
+
+    /**
      * @brief Mouse scroll input.
      * @param scroll_x Horizontal scroll delta
      * @param scroll_y Vertical scroll delta

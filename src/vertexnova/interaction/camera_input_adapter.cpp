@@ -85,6 +85,19 @@ void CameraInputAdapter::onMouseButton(int button, bool pressed, float x, float 
     }
 }
 
+void CameraInputAdapter::onMouseDoubleClick(int button, float x, float y, double delta_time) noexcept {
+    if (!manipulator_) {
+        return;
+    }
+    // Double-click on the rotate button: set pivot at cursor position
+    if (button == bindings_.rotate_button) {
+        CameraCommandPayload payload;
+        payload.x_px = x;
+        payload.y_px = y;
+        send(CameraActionType::eSetPivotAtCursor, payload, delta_time);
+    }
+}
+
 void CameraInputAdapter::onMouseScroll(
     float /* scroll_x */, float scroll_y, float mouse_x, float mouse_y, double delta_time) noexcept {
     if (!manipulator_ || scroll_y == 0.0f) {

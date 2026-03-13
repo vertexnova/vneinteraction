@@ -11,12 +11,12 @@
 
 #include "vertexnova/interaction/camera_controller.h"
 #include "vertexnova/interaction/camera_manipulator.h"
+#include "vertexnova/interaction/camera_rig.h"
 #include "vertexnova/interaction/camera_input_adapter.h"
+#include "vertexnova/interaction/input_mapper.h"
 #include "vertexnova/interaction/export.h"
 #include "vertexnova/interaction/interaction_types.h"
 #include "vertexnova/events/event.h"
-#include "vertexnova/events/key_event.h"
-#include "vertexnova/events/mouse_event.h"
 
 #include <memory>
 #include <string>
@@ -157,20 +157,55 @@ class VNE_INTERACTION_API CameraSystemController : public ICameraController {
      */
     [[nodiscard]] CameraInputBindings getInputBindings() const noexcept;
 
+    // -------------------------------------------------------------------------
+    // New composable API
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Access the camera rig (behavior container).
+     *
+     * Add behaviors to compose camera interactions:
+     * ```cpp
+     * ctrl.rig().addBehavior(std::make_shared<OrbitBehavior>());
+     * ctrl.rig().addBehavior(std::make_shared<FreeLookBehavior>());
+     * ```
+     */
+    [[nodiscard]] CameraRig& rig() noexcept { return rig_; }
+    [[nodiscard]] const CameraRig& rig() const noexcept { return rig_; }
+
+    /**
+     * @brief Access the InputMapper (data-driven input rules for the rig).
+     *
+     * Configure rules to remap any input:
+     * ```cpp
+     * ctrl.inputMapper().setRules(InputMapper::orbitPreset());
+     * ```
+     */
+    [[nodiscard]] InputMapper& inputMapper() noexcept { return input_mapper_; }
+    [[nodiscard]] const InputMapper& inputMapper() const noexcept { return input_mapper_; }
+
    private:
     /**
-     * @brief Assign the active camera to the current manipulator.
+     * @brief Assign the active camera to the current manipulator and rig.
      */
     void assignCameraToManipulator() noexcept;
 
+    // -------------------------------------------------------------------------
+    // Private helpers
+    // -------------------------------------------------------------------------
+    void dispatchToRig(CameraActionType action, const CameraCommandPayload& payload, double dt) noexcept;
+
     std::shared_ptr<vne::scene::ICamera> camera_;            //!< Shared pointer to the active camera
-    std::shared_ptr<ICameraManipulator> manipulator_;        //!< Shared pointer to the active manipulator
-    CameraInputAdapter input_adapter_;                       //!< Adapter converting raw input to commands
+    std::shared_ptr<ICameraManipulator> manipulator_;        //!< Shared pointer to the active manipulator (legacy)
+    CameraInputAdapter input_adapter_;                       //!< Legacy adapter (used when manipulator_ is set)
+    InputMapper input_mapper_;                               //!< Data-driven mapper routing events to rig_
+    CameraRig rig_;                                          //!< Composable behavior container (new API)
     bool enabled_ = true;                                    //!< Whether this controller is enabled
     std::string name_ = "VertexNovaCameraSystemController";  //!< Display name for this controller
     double last_x_ = 0.0;                                    //!< Last known cursor X for delta computation
     double last_y_ = 0.0;                                    //!< Last known cursor Y for delta computation
     bool first_mouse_ = true;                                //!< True until first mouse event; prevents jump
+    bool input_mapper_callback_set_ = false;  //!< Lazy init guard for InputMapper→rig callback
 };
 
 }  // namespace vne::interaction

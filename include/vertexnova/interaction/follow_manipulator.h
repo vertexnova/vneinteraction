@@ -150,6 +150,18 @@ class VNE_INTERACTION_API FollowManipulator final : public CameraManipulatorBase
     /** Reset manipulator state. */
     void resetState() noexcept override {}
 
+    // ICameraBehavior: onAction delegates to applyCommand for compatibility
+    bool onAction(CameraActionType action,
+                  const CameraCommandPayload& payload,
+                  double delta_time) noexcept override {
+        applyCommand(action, payload, delta_time);
+        return true;
+    }
+    // ICameraBehavior: setViewportSize delegates to CameraManipulatorBase
+    void setViewportSize(float w, float h) noexcept override {
+        CameraManipulatorBase::setViewportSize(w, h);
+    }
+
     /**
      * @brief Adjust camera to frame the given AABB.
      * @param min_world Minimum corner of AABB in world space

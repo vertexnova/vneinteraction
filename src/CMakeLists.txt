@@ -22,6 +22,18 @@ set(SOURCE_FILES
     vertexnova/interaction/ortho_pan_zoom_manipulator.cpp
     vertexnova/interaction/follow_manipulator.cpp
     vertexnova/interaction/version.cpp
+    # New composable behavior system
+    vertexnova/interaction/input_mapper.cpp
+    vertexnova/interaction/orbit_behavior.cpp
+    vertexnova/interaction/free_look_behavior.cpp
+    vertexnova/interaction/pan_zoom_behavior.cpp
+    vertexnova/interaction/track_behavior.cpp
+    vertexnova/interaction/camera_rig.cpp
+    # High-level controllers
+    vertexnova/interaction/inspect_controller.cpp
+    vertexnova/interaction/navigate_controller.cpp
+    vertexnova/interaction/planar_controller.cpp
+    vertexnova/interaction/follow_controller.cpp
 )
 
 set(HEADER_FILES
@@ -40,6 +52,11 @@ set(HEADER_FILES
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/ortho_pan_zoom_manipulator.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/follow_manipulator.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/interaction.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_rig.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/inspect_controller.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/navigate_controller.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/planar_controller.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/follow_controller.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/detail/camera_manipulator_base.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/detail/orbit_style_base.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/detail/free_camera_base.h
@@ -47,6 +64,11 @@ set(HEADER_FILES
 
 set(PRIVATE_HEADER_FILES
     vertexnova/interaction/camera_input_adapter.h
+    vertexnova/interaction/input_mapper.h
+    vertexnova/interaction/orbit_behavior.h
+    vertexnova/interaction/free_look_behavior.h
+    vertexnova/interaction/pan_zoom_behavior.h
+    vertexnova/interaction/track_behavior.h
 )
 
 # One library per build: static or shared, always named vneinteraction (alias vne::interaction).

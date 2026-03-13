@@ -65,6 +65,18 @@ enum class RotationPivotMode : std::uint8_t {
                       //!< the center of interest; rotation always orbits around this fixed pivot
 };
 
+/**
+ * @brief Pivot control mode for orbit-style camera behaviors.
+ *
+ * Determines which point in world space the camera orbits around.
+ * Used by OrbitBehavior and InspectController.
+ */
+enum class OrbitPivotMode : std::uint8_t {
+    eCoi        = 0,  //!< Rotate around the current center of interest (default; pan moves pivot)
+    eViewCenter = 1,  //!< On pan end, pivot updates to where the camera looks (panned-to point)
+    eFixed      = 2,  //!< Pivot is fixed in world space; pan translates eye+target without moving pivot
+};
+
 /** World up axis selection. */
 enum class UpAxis : std::uint8_t {
     eY = 0,  //!< Y axis is world up (standard in graphics)
@@ -108,6 +120,8 @@ struct VNE_INTERACTION_API TouchPinch final {
 
 // -----------------------------------------------------------------------------
 // Input bindings (customizable mouse buttons, keys, modifiers)
+// Legacy struct — retained for backward compatibility with setInputBindings().
+// New code should use InputRule / InputMapper instead.
 // -----------------------------------------------------------------------------
 /// Configurable bindings for camera input when using CameraSystemController.
 /// Defaults match GLFW-like values (left=rotate, right=pan/look, WASD/QE, shift/ctrl).
@@ -155,6 +169,49 @@ enum class CameraActionType : std::uint8_t {
     eSlowModifier = 17,
     eOrbitPanModifier = 18,  // shift: orbit uses for pan-alias, free uses SprintModifier
     eResetView = 19,
+    eSetPivotAtCursor = 20,  //!< Double-click: move orbit pivot to cursor position on view ray
+};
+
+// -----------------------------------------------------------------------------
+// InputRule — data-driven input → action mapping (replaces hardcoded adapter logic)
+// -----------------------------------------------------------------------------
+
+/** Modifier key bitmask constants for InputRule::modifier_mask. */
+static constexpr int kModNone  = 0;
+static constexpr int kModShift = 1 << 0;  //!< Shift key held
+static constexpr int kModCtrl  = 1 << 1;  //!< Ctrl key held
+static constexpr int kModAlt   = 1 << 2;  //!< Alt key held
+
+/**
+ * @brief A single data-driven input binding rule.
+ *
+ * Maps one input trigger (button press, key, scroll, touch, double-click) to
+ * CameraActionType values that are emitted to the active CameraRig.
+ *
+ * - For mouse/key triggers: on_press emitted on press, on_release on release,
+ *   on_delta emitted each frame that a move delta arrives while the button is held.
+ * - For scroll/touch triggers: on_delta emitted per event.
+ * - For double-click: on_press emitted once.
+ * - Use eResetView as a sentinel to mean "no action for this event phase".
+ */
+struct VNE_INTERACTION_API InputRule {
+    /** What kind of input triggers this rule. */
+    enum class Trigger : std::uint8_t {
+        eMouseButton,   //!< Mouse button; code = MouseButton int (0=left, 1=right, 2=middle)
+        eKey,           //!< Keyboard key; code = GLFW key code (e.g. 87 = W)
+        eScroll,        //!< Mouse scroll wheel; code = 0
+        eTouchPan,      //!< Touch pan gesture; code = 0
+        eTouchPinch,    //!< Touch pinch gesture; code = 0
+        eMouseDblClick, //!< Mouse button double-click; code = MouseButton int
+    };
+
+    Trigger trigger       = Trigger::eMouseButton;
+    int     code          = 0;          //!< Button index or key code; 0 for scroll/touch
+    int     modifier_mask = kModNone;   //!< Required modifier bitmask; 0 = no modifier required
+
+    CameraActionType on_press   = CameraActionType::eResetView;  //!< Emitted on press / double-click
+    CameraActionType on_release = CameraActionType::eResetView;  //!< Emitted on release
+    CameraActionType on_delta   = CameraActionType::eResetView;  //!< Emitted per delta/scroll/touch event
 };
 
 /** Payload for actions that carry pointer/cursor or delta data. */

@@ -9,6 +9,7 @@
 
 #include "vertexnova/interaction/camera_system_controller.h"
 
+#include "vertexnova/interaction/input_mapper.h"
 #include "vertexnova/events/key_event.h"
 #include "vertexnova/events/mouse_event.h"
 #include "vertexnova/events/touch_event.h"
@@ -19,6 +20,13 @@ void CameraSystemController::assignCameraToManipulator() noexcept {
     if (manipulator_ && camera_) {
         manipulator_->setCamera(camera_);
     }
+    rig_.setCamera(camera_);
+}
+
+void CameraSystemController::dispatchToRig(CameraActionType action,
+                                            const CameraCommandPayload& payload,
+                                            double dt) noexcept {
+    rig_.onAction(action, payload, dt);
 }
 
 void CameraSystemController::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
@@ -37,6 +45,7 @@ void CameraSystemController::update(double delta_time) noexcept {
     if (manipulator_) {
         manipulator_->update(delta_time);
     }
+    rig_.update(delta_time);
 }
 
 void CameraSystemController::reset() noexcept {
@@ -44,6 +53,7 @@ void CameraSystemController::reset() noexcept {
     if (manipulator_) {
         manipulator_->resetState();
     }
+    rig_.resetState();
 }
 
 void CameraSystemController::setManipulator(std::shared_ptr<ICameraManipulator> manipulator) noexcept {
@@ -59,11 +69,19 @@ void CameraSystemController::setViewportSize(float width_px, float height_px) no
     if (manipulator_) {
         manipulator_->setViewportSize(width_px, height_px);
     }
+    rig_.setViewportSize(width_px, height_px);
 }
 
 void CameraSystemController::onEvent(const vne::events::Event& event, double delta_time) noexcept {
-    if (!enabled_ || !manipulator_) {
+    if (!enabled_) {
         return;
+    }
+    // Ensure the InputMapper routes to the rig (safe to set every call; it's a move assignment)
+    if (!input_mapper_callback_set_) {
+        input_mapper_.setActionCallback([this](CameraActionType a, const CameraCommandPayload& p, double dt) {
+            rig_.onAction(a, p, dt);
+        });
+        input_mapper_callback_set_ = true;
     }
     using ET = vne::events::EventType;
     switch (event.type()) {
@@ -76,54 +94,50 @@ void CameraSystemController::onEvent(const vne::events::Event& event, double del
             last_x_ = e.x();
             last_y_ = e.y();
             first_mouse_ = false;
-            input_adapter_.onMouseMove(x, y, dx, dy, delta_time);
+            if (manipulator_) input_adapter_.onMouseMove(x, y, dx, dy, delta_time);
+            input_mapper_.onMouseMove(x, y, dx, dy, delta_time);
             break;
         }
         case ET::eMouseButtonPressed: {
             const auto& e = static_cast<const vne::events::MouseButtonEvent&>(event);
-            if (e.hasPosition()) {
-                last_x_ = e.x();
-                last_y_ = e.y();
-            }
+            if (e.hasPosition()) { last_x_ = e.x(); last_y_ = e.y(); }
             first_mouse_ = false;
-            input_adapter_.onMouseButton(static_cast<int>(e.button()),
-                                         true,
-                                         static_cast<float>(last_x_),
-                                         static_cast<float>(last_y_),
-                                         delta_time);
+            if (manipulator_) input_adapter_.onMouseButton(static_cast<int>(e.button()), true, static_cast<float>(last_x_), static_cast<float>(last_y_), delta_time);
+            input_mapper_.onMouseButton(static_cast<int>(e.button()), true, static_cast<float>(last_x_), static_cast<float>(last_y_), delta_time);
+            break;
+        }
+        case ET::eMouseButtonDoubleClicked: {
+            const auto& e = static_cast<const vne::events::MouseButtonEvent&>(event);
+            if (e.hasPosition()) { last_x_ = e.x(); last_y_ = e.y(); }
+            first_mouse_ = false;
+            if (manipulator_) input_adapter_.onMouseDoubleClick(static_cast<int>(e.button()), static_cast<float>(last_x_), static_cast<float>(last_y_), delta_time);
+            input_mapper_.onMouseDoubleClick(static_cast<int>(e.button()), static_cast<float>(last_x_), static_cast<float>(last_y_), delta_time);
             break;
         }
         case ET::eMouseButtonReleased: {
             const auto& e = static_cast<const vne::events::MouseButtonEvent&>(event);
-            if (e.hasPosition()) {
-                last_x_ = e.x();
-                last_y_ = e.y();
-            }
-            input_adapter_.onMouseButton(static_cast<int>(e.button()),
-                                         false,
-                                         static_cast<float>(last_x_),
-                                         static_cast<float>(last_y_),
-                                         delta_time);
+            if (e.hasPosition()) { last_x_ = e.x(); last_y_ = e.y(); }
+            if (manipulator_) input_adapter_.onMouseButton(static_cast<int>(e.button()), false, static_cast<float>(last_x_), static_cast<float>(last_y_), delta_time);
+            input_mapper_.onMouseButton(static_cast<int>(e.button()), false, static_cast<float>(last_x_), static_cast<float>(last_y_), delta_time);
             break;
         }
         case ET::eMouseScrolled: {
             const auto& e = static_cast<const vne::events::MouseScrolledEvent&>(event);
-            input_adapter_.onMouseScroll(static_cast<float>(e.xOffset()),
-                                         static_cast<float>(e.yOffset()),
-                                         static_cast<float>(last_x_),
-                                         static_cast<float>(last_y_),
-                                         delta_time);
+            if (manipulator_) input_adapter_.onMouseScroll(static_cast<float>(e.xOffset()), static_cast<float>(e.yOffset()), static_cast<float>(last_x_), static_cast<float>(last_y_), delta_time);
+            input_mapper_.onMouseScroll(static_cast<float>(e.xOffset()), static_cast<float>(e.yOffset()), static_cast<float>(last_x_), static_cast<float>(last_y_), delta_time);
             break;
         }
         case ET::eKeyPressed:
         case ET::eKeyRepeat: {
             const auto& e = static_cast<const vne::events::KeyEvent&>(event);
-            input_adapter_.onKeyboard(static_cast<int>(e.keyCode()), true, delta_time);
+            if (manipulator_) input_adapter_.onKeyboard(static_cast<int>(e.keyCode()), true, delta_time);
+            input_mapper_.onKey(static_cast<int>(e.keyCode()), true, delta_time);
             break;
         }
         case ET::eKeyReleased: {
             const auto& e = static_cast<const vne::events::KeyEvent&>(event);
-            input_adapter_.onKeyboard(static_cast<int>(e.keyCode()), false, delta_time);
+            if (manipulator_) input_adapter_.onKeyboard(static_cast<int>(e.keyCode()), false, delta_time);
+            input_mapper_.onKey(static_cast<int>(e.keyCode()), false, delta_time);
             break;
         }
         case ET::eTouchPress: {
@@ -141,7 +155,8 @@ void CameraSystemController::onEvent(const vne::events::Event& event, double del
             last_y_ = e.y();
             first_mouse_ = false;
             TouchPan pan{dx, dy};
-            input_adapter_.onTouchPan(pan, delta_time);
+            if (manipulator_) input_adapter_.onTouchPan(pan, delta_time);
+            input_mapper_.onTouchPan(pan, delta_time);
             break;
         }
         case ET::eTouchRelease:
