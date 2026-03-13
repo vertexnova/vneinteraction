@@ -36,21 +36,13 @@ class ICamera;
 namespace vne::interaction {
 
 /**
- * @brief Rotation algorithm selection for OrbitArcballBehavior.
- */
-enum class OrbitRotationMode : std::uint8_t {
-    eEuler = 0,       //!< Classic Euler yaw/pitch orbit
-    eQuaternion = 1,  //!< Arcball quaternion rotation (smooth, no gimbal lock)
-};
-
-/**
  * @brief Orbit/arcball camera behavior.
  *
  * Implements ICameraBehavior for orbit-style interaction. Handles rotate, pan, and zoom
  * actions. Supports inertia via exponential decay.
  *
- * - RotationMode::eEuler     ->classic yaw/pitch orbit, pitch clamped to [-89, 89]
- * - RotationMode::eQuaternion ->arcball quaternion rotation (unconstrained)
+ * - RotationMode::eOrbit   — classic yaw/pitch orbit, pitch clamped to [-89°, 89°]
+ * - RotationMode::eArcball — arcball quaternion rotation (unconstrained)
  * - PivotMode::eCoi          ->orbit center follows panning (standard)
  * - PivotMode::eViewCenter   ->pivot snaps to view center on pan release
  * - PivotMode::eFixed        ->pivot stays fixed; pan translates eye+target
@@ -59,7 +51,7 @@ enum class OrbitRotationMode : std::uint8_t {
  */
 class OrbitArcballBehavior final : public ICameraBehavior {
    public:
-    /** Construct with default settings (Euler mode, eCoi pivot, Y-up). */
+    /** Construct with default settings (eOrbit mode, eCoi pivot, Y-up). */
     OrbitArcballBehavior() noexcept;
     ~OrbitArcballBehavior() noexcept override = default;
 
@@ -101,7 +93,7 @@ class OrbitArcballBehavior final : public ICameraBehavior {
     // Orbit/arcball-specific API
     // -------------------------------------------------------------------------
 
-    /** Set the rotation algorithm (Euler or Quaternion). */
+    /** Set the rotation algorithm (eOrbit or eArcball). */
     void setRotationMode(OrbitRotationMode mode) noexcept { rotation_mode_ = mode; }
     /** Get the current rotation algorithm. */
     [[nodiscard]] OrbitRotationMode getRotationMode() const noexcept { return rotation_mode_; }
@@ -226,7 +218,7 @@ class OrbitArcballBehavior final : public ICameraBehavior {
     float viewport_height_ = 720.0f;
     float scene_scale_ = 1.0f;
 
-    OrbitRotationMode rotation_mode_ = OrbitRotationMode::eEuler;
+    OrbitRotationMode rotation_mode_ = OrbitRotationMode::eOrbit;
     OrbitPivotMode pivot_mode_ = OrbitPivotMode::eCoi;
 
     // Common orbit state

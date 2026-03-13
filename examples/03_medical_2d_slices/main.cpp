@@ -13,8 +13,6 @@
 #include "common/input_simulation.h"
 #include "common/logging_guard.h"
 
-#include <iostream>
-
 int main() {
     vne::interaction::examples::LoggingGuard logging_guard;
 
@@ -57,6 +55,6 @@ int main() {
         ctrl.onUpdate(dt);
     }
 
-    std::cout << "Medical 2D slices: pan, zoom, fitToAABB — done.\n";
+    VNE_LOG_INFO << "Medical 2D slices: pan, zoom, fitToAABB — done.";
     return 0;
 }

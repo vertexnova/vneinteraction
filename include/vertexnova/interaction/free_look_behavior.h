@@ -14,8 +14,8 @@
  * @brief FreeLookBehavior — FPS / Fly camera behavior (ICameraBehavior implementation).
  *
  * WASD movement + mouse look. Two modes:
- * - constrainWorldUp = true  ->FPS mode (world up fixed, pitch clamped [-89°, 89°])
- * - constrainWorldUp = false ->Fly mode (unconstrained, up follows camera)
+ * - FreeLookMode::eFps — world up fixed, pitch clamped [-89°, 89°]
+ * - FreeLookMode::eFly  — unconstrained, up follows camera
  */
 
 #include "vertexnova/interaction/camera_behavior.h"
@@ -35,19 +35,25 @@ class ICamera;
 
 namespace vne::interaction {
 
+/** Movement mode for FreeLookBehavior. */
+enum class FreeLookMode : std::uint8_t {
+    eFps = 0,  //!< FPS: world-up fixed, pitch clamped [-89°, 89°] (default)
+    eFly = 1,  //!< Fly: unconstrained, up follows camera
+};
+
 /**
  * @brief Free-look camera behavior supporting FPS and Fly movement modes.
  *
  * Handles WASD movement + mouse-look + zoom actions. Two sub-modes:
  *
- * - **FPS** (constrainWorldUp = true):  world_up_ is fixed, pitch clamped to [-89°, 89°].
- * - **Fly** (constrainWorldUp = false): up vector tracks camera orientation, no pitch constraint.
+ * - **eFps** — world_up fixed, pitch clamped to [-89°, 89°].
+ * - **eFly** — up vector tracks camera orientation, no pitch constraint.
  *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
  */
 class FreeLookBehavior final : public ICameraBehavior {
    public:
-    /** Construct with default FPS settings (constrainWorldUp = true, Y-up). */
+    /** Construct with default FPS settings (FreeLookMode::eFps, Y-up). */
     FreeLookBehavior() noexcept = default;
     ~FreeLookBehavior() noexcept override = default;
 
@@ -86,12 +92,18 @@ class FreeLookBehavior final : public ICameraBehavior {
     // FreeLook-specific API
     // -------------------------------------------------------------------------
 
+    /** Set movement mode (eFps or eFly). */
+    void setMode(FreeLookMode mode) noexcept { mode_ = mode; }
+    [[nodiscard]] FreeLookMode getMode() const noexcept { return mode_; }
+
     /**
-     * @brief Toggle between FPS and Fly movement modes.
-     * @param constrain true = FPS (world-up fixed, pitch clamped); false = Fly (unconstrained)
+     * @brief Convenience: set mode from bool (true = eFps, false = eFly).
+     * @param constrain true = FPS; false = Fly
      */
-    void setConstrainWorldUp(bool constrain) noexcept { constrain_world_up_ = constrain; }
-    [[nodiscard]] bool getConstrainWorldUp() const noexcept { return constrain_world_up_; }
+    void setConstrainWorldUp(bool constrain) noexcept {
+        mode_ = constrain ? FreeLookMode::eFps : FreeLookMode::eFly;
+    }
+    [[nodiscard]] bool getConstrainWorldUp() const noexcept { return mode_ == FreeLookMode::eFps; }
 
     /** Set the world-space up vector used in FPS mode (default: +Y). */
     void setWorldUp(const vne::math::Vec3f& up) noexcept;
@@ -158,7 +170,7 @@ class FreeLookBehavior final : public ICameraBehavior {
     float viewport_height_ = 720.0f;
     float scene_scale_ = 1.0f;
 
-    bool constrain_world_up_ = true;  // true = FPS, false = Fly
+    FreeLookMode mode_ = FreeLookMode::eFps;
     vne::math::Vec3f world_up_{0.0f, 1.0f, 0.0f};
 
     float yaw_deg_ = 0.0f;

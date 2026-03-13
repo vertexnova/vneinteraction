@@ -62,7 +62,7 @@ std::shared_ptr<vne::scene::PerspectiveCamera> FreeLookBehavior::perspCamera() c
 // ---------------------------------------------------------------------------
 
 vne::math::Vec3f FreeLookBehavior::upVector() const noexcept {
-    if (constrain_world_up_) {
+    if (mode_ == FreeLookMode::eFps) {
         // FPS: fixed world up
         return world_up_;
     }
@@ -212,7 +212,7 @@ void FreeLookBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::m
     const vne::math::Vec3f f = front();
     camera_->setPosition(center - f * (radius * kFitToAabbDistFactor));
     camera_->setTarget(center);
-    if (constrain_world_up_) {
+    if (mode_ == FreeLookMode::eFps) {
         camera_->setUp(world_up_);
     }
     camera_->updateMatrices();
@@ -298,7 +298,7 @@ bool FreeLookBehavior::onAction(CameraActionType action,
             if (camera_ && input_state_.looking) {
                 yaw_deg_ -= payload.delta_x_px * mouse_sensitivity_;
                 pitch_deg_ += payload.delta_y_px * mouse_sensitivity_;
-                if (constrain_world_up_) {
+                if (mode_ == FreeLookMode::eFps) {
                     pitch_deg_ = vne::math::clamp(pitch_deg_, kPitchMinDeg, kPitchMaxDeg);
                 }
                 applyAnglesToCamera();

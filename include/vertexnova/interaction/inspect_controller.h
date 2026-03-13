@@ -70,12 +70,6 @@ namespace vne::interaction {
 class InputMapper;
 class OrbitArcballBehavior;
 
-/** Rotation algorithm used by InspectController. */
-enum class InspectRotationMode : std::uint8_t {
-    eArcball = 0,  //!< Quaternion arcball — smooth, no gimbal lock (default)
-    eOrbit = 1,    //!< Classic Euler yaw/pitch turntable
-};
-
 /**
  * @brief High-level camera controller for object inspection.
  *
@@ -118,9 +112,9 @@ class VNE_INTERACTION_API InspectController {
     // Rotation
     // -------------------------------------------------------------------------
 
-    /** Switch rotation algorithm (default: eArcball). */
-    void setRotationMode(InspectRotationMode mode) noexcept;
-    [[nodiscard]] InspectRotationMode getRotationMode() const noexcept;
+    /** Switch rotation algorithm (default: OrbitRotationMode::eArcball). */
+    void setRotationMode(OrbitRotationMode mode) noexcept;
+    [[nodiscard]] OrbitRotationMode getRotationMode() const noexcept;
 
     // -------------------------------------------------------------------------
     // Pivot / anchor

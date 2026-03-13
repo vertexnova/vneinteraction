@@ -19,7 +19,7 @@ static std::shared_ptr<vne::scene::PerspectiveCamera> makePerspCamera() {
 
 TEST(InspectController, DefaultArcballMode) {
     vne::interaction::InspectController ctrl;
-    EXPECT_EQ(ctrl.getRotationMode(), vne::interaction::InspectRotationMode::eArcball);
+    EXPECT_EQ(ctrl.getRotationMode(), vne::interaction::OrbitRotationMode::eArcball);
 }
 
 TEST(InspectController, SetPivotMode) {
@@ -36,8 +36,8 @@ TEST(InspectController, SetRotationEnabled) {
     vne::interaction::InspectController ctrl;
     ctrl.setRotationEnabled(false);
     ctrl.setRotationEnabled(true);
-    EXPECT_TRUE(ctrl.getRotationMode() == vne::interaction::InspectRotationMode::eArcball
-                || ctrl.getRotationMode() == vne::interaction::InspectRotationMode::eOrbit);
+    EXPECT_TRUE(ctrl.getRotationMode() == vne::interaction::OrbitRotationMode::eArcball
+                || ctrl.getRotationMode() == vne::interaction::OrbitRotationMode::eOrbit);
 }
 
 TEST(InspectController, FitToAABB) {

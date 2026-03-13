@@ -16,8 +16,6 @@
 
 #include "vertexnova/events/key_event.h"
 
-#include <iostream>
-
 int main() {
     vne::interaction::examples::LoggingGuard logging_guard;
 
@@ -72,6 +70,6 @@ int main() {
         ctrl.onUpdate(dt);
     }
 
-    std::cout << "Game editor camera: FPS + orbit modes, WASD — done.\n";
+    VNE_LOG_INFO << "Game editor camera: FPS + orbit modes, WASD — done.";
     return 0;
 }

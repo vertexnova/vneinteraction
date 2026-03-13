@@ -12,31 +12,17 @@
 
 #include "common/logging_guard.h"
 
-#include <iostream>
-
 int main() {
     vne::interaction::examples::LoggingGuard logging_guard;
 
-    std::cout << "VneInteraction " << vne::interaction::get_version() << "\n\n";
+    VNE_LOG_INFO << "VneInteraction " << vne::interaction::get_version();
 
-    std::cout << "Behaviors:\n"
-              << "  - OrbitArcballBehavior   (arcball / Euler orbit)\n"
-              << "  - FreeLookBehavior (FPS / Fly)\n"
-              << "  - OrthoPanZoomBehavior  (orthographic 2D pan+zoom)\n"
-              << "  - FollowBehavior   (smooth follow)\n\n";
+    VNE_LOG_INFO << "Behaviors: OrbitArcballBehavior (arcball / orbit), FreeLookBehavior (FPS / Fly), "
+                 << "OrthoPanZoomBehavior (orthographic 2D pan+zoom), FollowBehavior (smooth follow)";
 
-    std::cout << "InputMapper presets:\n"
-              << "  - orbitPreset()  (LMB=rotate, RMB=pan, scroll=zoom)\n"
-              << "  - fpsPreset()    (RMB=look, WASD=move, scroll=zoom)\n"
-              << "  - gamePreset()   (orbit + free-look hybrid)\n"
-              << "  - cadPreset()    (MMB=pan, Shift+MMB=rotate)\n"
-              << "  - orthoPreset()  (RMB/MMB=pan, scroll=zoom)\n\n";
+    VNE_LOG_INFO << "InputMapper presets: orbitPreset(), fpsPreset(), gamePreset(), cadPreset(), orthoPreset()";
 
-    std::cout << "Controllers:\n"
-              << "  - InspectController  (3D object inspection)\n"
-              << "  - Navigation3DController (FPS/Fly/Game 3D traversal)\n"
-              << "  - Ortho2DController     (orthographic 2D slices, maps)\n"
-              << "  - FollowController   (end-effector follow-cam)\n";
+    VNE_LOG_INFO << "Controllers: InspectController, Navigation3DController, Ortho2DController, FollowController";
 
     return 0;
 }

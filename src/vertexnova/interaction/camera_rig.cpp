@@ -85,7 +85,7 @@ CameraRig CameraRig::makeOrbit() {
 CameraRig CameraRig::makeArcball() {
     CameraRig rig;
     auto b = std::make_shared<OrbitArcballBehavior>();
-    b->setRotationMode(OrbitRotationMode::eQuaternion);
+    b->setRotationMode(OrbitRotationMode::eArcball);
     rig.addBehavior(std::move(b));
     return rig;
 }

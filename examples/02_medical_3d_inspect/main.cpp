@@ -14,8 +14,6 @@
 #include "common/input_simulation.h"
 #include "common/logging_guard.h"
 
-#include <iostream>
-
 int main() {
     vne::interaction::examples::LoggingGuard logging_guard;
 
@@ -29,9 +27,8 @@ int main() {
     ctrl.setViewportSize(1280.0f, 720.0f);
 
     // Default: arcball (quaternion), eCoi pivot
-    std::cout << "Rotation mode: "
-              << (ctrl.getRotationMode() == vne::interaction::InspectRotationMode::eArcball ? "arcball" : "orbit")
-              << "\n";
+    VNE_LOG_INFO << "Rotation mode: "
+                 << (ctrl.getRotationMode() == vne::interaction::OrbitRotationMode::eArcball ? "arcball" : "orbit");
 
     // Landmark-centered inspection (medical use case)
     ctrl.setPivot(vne::math::Vec3f(0.5f, 0.3f, 0.0f));  // e.g. anatomical landmark
@@ -68,6 +65,6 @@ int main() {
         ctrl.onUpdate(dt);
     }
 
-    std::cout << "Medical 3D inspect: arcball, fixed pivot, fitToAABB — done.\n";
+    VNE_LOG_INFO << "Medical 3D inspect: arcball, fixed pivot, fitToAABB — done.";
     return 0;
 }

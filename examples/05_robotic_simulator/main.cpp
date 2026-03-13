@@ -16,8 +16,6 @@
 #include "common/input_simulation.h"
 #include "common/logging_guard.h"
 
-#include <iostream>
-
 int main() {
     vne::interaction::examples::LoggingGuard logging_guard;
 
@@ -67,6 +65,6 @@ int main() {
         follow.onUpdate(dt);
     }
 
-    std::cout << "Robotic simulator: InspectController + Navigation3DController + FollowController — done.\n";
+    VNE_LOG_INFO << "Robotic simulator: InspectController + Navigation3DController + FollowController — done.";
     return 0;
 }

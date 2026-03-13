@@ -19,7 +19,7 @@ static std::shared_ptr<vne::scene::PerspectiveCamera> makePerspCamera() {
 
 TEST(OrbitArcballBehavior, DefaultValues) {
     vne::interaction::OrbitArcballBehavior b;
-    EXPECT_EQ(b.getRotationMode(), vne::interaction::OrbitRotationMode::eEuler);
+    EXPECT_EQ(b.getRotationMode(), vne::interaction::OrbitRotationMode::eOrbit);
     EXPECT_EQ(b.getPivotMode(), vne::interaction::OrbitPivotMode::eCoi);
     EXPECT_GT(b.getOrbitDistance(), 0.0f);
     EXPECT_GT(b.getZoomSpeed(), 0.0f);
@@ -27,8 +27,8 @@ TEST(OrbitArcballBehavior, DefaultValues) {
 
 TEST(OrbitArcballBehavior, SetRotationMode) {
     vne::interaction::OrbitArcballBehavior b;
-    b.setRotationMode(vne::interaction::OrbitRotationMode::eQuaternion);
-    EXPECT_EQ(b.getRotationMode(), vne::interaction::OrbitRotationMode::eQuaternion);
+    b.setRotationMode(vne::interaction::OrbitRotationMode::eArcball);
+    EXPECT_EQ(b.getRotationMode(), vne::interaction::OrbitRotationMode::eArcball);
 }
 
 TEST(OrbitArcballBehavior, SetPivotMode) {

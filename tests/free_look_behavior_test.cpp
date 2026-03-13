@@ -18,12 +18,21 @@ static std::shared_ptr<vne::scene::PerspectiveCamera> makePerspCamera() {
 
 TEST(FreeLookBehavior, DefaultFpsMode) {
     vne::interaction::FreeLookBehavior b;
+    EXPECT_EQ(b.getMode(), vne::interaction::FreeLookMode::eFps);
     EXPECT_TRUE(b.getConstrainWorldUp());
+}
+
+TEST(FreeLookBehavior, SetMode) {
+    vne::interaction::FreeLookBehavior b;
+    b.setMode(vne::interaction::FreeLookMode::eFly);
+    EXPECT_EQ(b.getMode(), vne::interaction::FreeLookMode::eFly);
+    EXPECT_FALSE(b.getConstrainWorldUp());
 }
 
 TEST(FreeLookBehavior, SetConstrainWorldUp) {
     vne::interaction::FreeLookBehavior b;
     b.setConstrainWorldUp(false);
+    EXPECT_EQ(b.getMode(), vne::interaction::FreeLookMode::eFly);
     EXPECT_FALSE(b.getConstrainWorldUp());
 }
 

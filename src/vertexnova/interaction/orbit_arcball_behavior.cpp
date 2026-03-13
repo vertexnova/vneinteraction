@@ -151,7 +151,7 @@ vne::math::Vec3f OrbitArcballBehavior::computeUp(const vne::math::Vec3f& front, 
 // ---------------------------------------------------------------------------
 
 vne::math::Vec3f OrbitArcballBehavior::computeFront() const noexcept {
-    if (rotation_mode_ == OrbitRotationMode::eQuaternion) {
+    if (rotation_mode_ == OrbitRotationMode::eArcball) {
         // Arcball front: camera looks toward -back direction
         // back = orientation_.rotate(+Z), so front = -(back)
         const vne::math::Vec3f back = orientation_.rotate(vne::math::Vec3f(0.0f, 0.0f, 1.0f));
@@ -181,7 +181,7 @@ void OrbitArcballBehavior::syncFromCamera() noexcept {
     coi_world_ = camera_->getTarget();
     orbit_distance_ = std::max((camera_->getPosition() - coi_world_).length(), kMinOrbitDistance);
 
-    if (rotation_mode_ == OrbitRotationMode::eQuaternion) {
+    if (rotation_mode_ == OrbitRotationMode::eArcball) {
         // Build orientation_ from the full camera basis — same as ArcballManipulator::syncFromCamera
         vne::math::Vec3f back = (camera_->getPosition() - coi_world_);
         const float back_len = back.length();
@@ -239,7 +239,7 @@ void OrbitArcballBehavior::applyToCamera() noexcept {
     if (!camera_) {
         return;
     }
-    if (rotation_mode_ == OrbitRotationMode::eQuaternion) {
+    if (rotation_mode_ == OrbitRotationMode::eArcball) {
         // Arcball: eye direction and up come from orientation_
         const vne::math::Vec3f eye_dir = orientation_.rotate(vne::math::Vec3f(0.0f, 0.0f, 1.0f));
         const vne::math::Vec3f up = orientation_.rotate(vne::math::Vec3f(0.0f, 1.0f, 0.0f));
@@ -259,7 +259,7 @@ void OrbitArcballBehavior::applyToCamera() noexcept {
 }
 
 void OrbitArcballBehavior::onPivotChanged() noexcept {
-    if (rotation_mode_ == OrbitRotationMode::eQuaternion) {
+    if (rotation_mode_ == OrbitRotationMode::eArcball) {
         syncFromCamera();
     }
     // Euler: no extra sync needed; yaw/pitch are still valid after COI moves
@@ -547,7 +547,7 @@ void OrbitArcballBehavior::applyInertia(double delta_time) noexcept {
     }
     const float dt = static_cast<float>(delta_time);
 
-    if (rotation_mode_ == OrbitRotationMode::eQuaternion) {
+    if (rotation_mode_ == OrbitRotationMode::eArcball) {
         bool changed = false;
         if (std::abs(inertia_rot_speed_) > kInertiaRotSpeedThreshold) {
             const vne::math::Quatf q = vne::math::Quatf::fromAxisAngle(inertia_rot_axis_, inertia_rot_speed_ * dt);
@@ -686,7 +686,7 @@ void OrbitArcballBehavior::resetState() noexcept {
     arcball_start_y_ = 0.0f;
     normalize_counter_ = 0;
     animating_fit_ = false;
-    if (rotation_mode_ == OrbitRotationMode::eQuaternion) {
+    if (rotation_mode_ == OrbitRotationMode::eArcball) {
         syncFromCamera();
     }
 }
@@ -739,7 +739,7 @@ void OrbitArcballBehavior::setLandmark(const vne::math::Vec3f& world_pos) noexce
 }
 
 void OrbitArcballBehavior::setViewDirection(ViewDirection dir) noexcept {
-    if (rotation_mode_ == OrbitRotationMode::eQuaternion) {
+    if (rotation_mode_ == OrbitRotationMode::eArcball) {
         // Convert to equivalent Euler angles then build orientation
         float yaw = 0.0f, pitch = 0.0f;
         switch (dir) {
@@ -776,7 +776,7 @@ void OrbitArcballBehavior::setViewDirection(ViewDirection dir) noexcept {
         yaw_deg_ = yaw;
         pitch_deg_ = pitch;
         const OrbitRotationMode prev = rotation_mode_;
-        rotation_mode_ = OrbitRotationMode::eEuler;
+        rotation_mode_ = OrbitRotationMode::eOrbit;
         applyToCamera();
         rotation_mode_ = prev;
         syncFromCamera();
@@ -859,7 +859,7 @@ bool OrbitArcballBehavior::onAction(CameraActionType action, const CameraCommand
 
         case CameraActionType::eRotateDelta:
             if (interaction_.rotating) {
-                if (rotation_mode_ == OrbitRotationMode::eQuaternion) {
+                if (rotation_mode_ == OrbitRotationMode::eArcball) {
                     // Arcball needs the running absolute screen position.
                     // The payload.x_px / y_px carry absolute cursor position;
                     // update arcball_start_ was already set at beginRotate, so

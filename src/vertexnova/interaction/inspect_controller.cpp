@@ -33,7 +33,7 @@ struct InspectController::Impl {
     float viewport_w = 1280.0f;
     float viewport_h = 720.0f;
 
-    InspectRotationMode rotation_mode = InspectRotationMode::eArcball;
+    OrbitRotationMode rotation_mode = OrbitRotationMode::eArcball;
     bool rotation_enabled = true;
     bool pan_enabled = true;
     bool zoom_enabled = true;
@@ -124,7 +124,7 @@ InspectController::InspectController()
     : impl_(std::make_unique<Impl>()) {
     // Build rig with arcball orbit
     impl_->orbit = std::make_shared<OrbitArcballBehavior>();
-    impl_->orbit->setRotationMode(OrbitRotationMode::eQuaternion);
+    impl_->orbit->setRotationMode(OrbitRotationMode::eArcball);
     impl_->rig.addBehavior(impl_->orbit);
 
     // Wire mapper ->rig
@@ -255,15 +255,14 @@ void InspectController::onUpdate(double dt) noexcept {
 // Rotation mode
 // ---------------------------------------------------------------------------
 
-void InspectController::setRotationMode(InspectRotationMode mode) noexcept {
+void InspectController::setRotationMode(OrbitRotationMode mode) noexcept {
     impl_->rotation_mode = mode;
     if (impl_->orbit) {
-        impl_->orbit->setRotationMode(mode == InspectRotationMode::eArcball ? OrbitRotationMode::eQuaternion
-                                                                            : OrbitRotationMode::eEuler);
+        impl_->orbit->setRotationMode(mode);
     }
 }
 
-InspectRotationMode InspectController::getRotationMode() const noexcept {
+OrbitRotationMode InspectController::getRotationMode() const noexcept {
     return impl_->rotation_mode;
 }
 

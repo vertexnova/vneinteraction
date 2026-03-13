@@ -291,7 +291,7 @@ void Navigation3DController::rebuild() noexcept {
         case NavigateMode::eGame: {
             impl_->free_look->setConstrainWorldUp(false);
             impl_->orbit = std::make_shared<OrbitArcballBehavior>();
-            impl_->orbit->setRotationMode(OrbitRotationMode::eEuler);
+            impl_->orbit->setRotationMode(OrbitRotationMode::eOrbit);
             impl_->rig.addBehavior(impl_->orbit);
             break;
         }
