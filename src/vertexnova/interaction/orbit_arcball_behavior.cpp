@@ -127,13 +127,15 @@ void OrbitArcballBehavior::setViewportSize(float width_px, float height_px) noex
 // ---------------------------------------------------------------------------
 
 vne::math::Vec3f OrbitArcballBehavior::computeRight(const vne::math::Vec3f& front) const noexcept {
-    vne::math::Vec3f r = world_up_.cross(front);
+    // front × up = right  (standard RH rule; replaces the old up × front = left)
+    vne::math::Vec3f r = front.cross(world_up_);
     float len = r.length();
     if (len < kEpsilon) {
+        // front is collinear with world_up — use a fallback up axis
         const vne::math::Vec3f fallback_up = (std::abs(front.z()) < kFrontZNearVertical)
                                                  ? vne::math::Vec3f(0.0f, 0.0f, 1.0f)
                                                  : vne::math::Vec3f(0.0f, 1.0f, 0.0f);
-        r = fallback_up.cross(front);
+        r = front.cross(fallback_up);
         len = r.length();
     }
     return (len < kEpsilon) ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : (r / len);
@@ -141,7 +143,8 @@ vne::math::Vec3f OrbitArcballBehavior::computeRight(const vne::math::Vec3f& fron
 
 vne::math::Vec3f OrbitArcballBehavior::computeUp(const vne::math::Vec3f& front,
                                                  const vne::math::Vec3f& right) const noexcept {
-    const vne::math::Vec3f up = front.cross(right);
+    // right × front = up  (standard RH rule; replaces the old front × right = -up)
+    const vne::math::Vec3f up = right.cross(front);
     const float len = up.length();
     return (len < kEpsilon) ? world_up_ : (up / len);
 }
@@ -331,9 +334,11 @@ void OrbitArcballBehavior::dragRotateArcball(float x_px, float y_px, double delt
     const vne::math::Vec3f r = computeRight(front);
     const vne::math::Vec3f u = computeUp(front, r);
 
-    // Swap prev/curr: drag-the-world convention
-    const vne::math::Vec3f prev_world = (r * curr_cam.x() + u * curr_cam.y() + front * curr_cam.z()).normalized();
-    const vne::math::Vec3f curr_world = (r * prev_cam.x() + u * prev_cam.y() + front * prev_cam.z()).normalized();
+    // Map screen-space arcball vectors into world space.
+    // With computeRight returning the true +right vector, the natural prev→curr
+    // direction already implements drag-the-world — no swap needed.
+    const vne::math::Vec3f prev_world = (r * prev_cam.x() + u * prev_cam.y() + front * prev_cam.z()).normalized();
+    const vne::math::Vec3f curr_world = (r * curr_cam.x() + u * curr_cam.y() + front * curr_cam.z()).normalized();
 
     arcball_start_x_ = x_px;
     arcball_start_y_ = y_px;
@@ -394,13 +399,13 @@ void OrbitArcballBehavior::dragPan(
 
     if (isPerspective()) {
         const float wpp = getWorldUnitsPerPixel();
-        delta_world = r * (delta_x_px * wpp * pan_speed_) + u * (-delta_y_px * wpp * pan_speed_);
+        delta_world = r * (-delta_x_px * wpp * pan_speed_) + u * (-delta_y_px * wpp * pan_speed_);
     } else {
         auto ortho = orthoCamera();
         if (ortho) {
             const float wppx = ortho->getWidth() / viewport_width_;
             const float wppy = ortho->getHeight() / viewport_height_;
-            delta_world = r * (delta_x_px * wppx * pan_speed_) + u * (-delta_y_px * wppy * pan_speed_);
+            delta_world = r * (-delta_x_px * wppx * pan_speed_) + u * (-delta_y_px * wppy * pan_speed_);
         }
     }
 
@@ -468,6 +473,9 @@ void OrbitArcballBehavior::zoom(float zoom_factor, float mouse_x_px, float mouse
     switch (zoom_method_) {
         case ZoomMethod::eSceneScale:
             scene_scale_ = vne::math::clamp(scene_scale_ * zoom_factor, kSceneScaleMin, kSceneScaleMax);
+            // Camera position/target/up are unchanged; call updateMatrices so any
+            // change-listener or dirty-flag system still gets notified.
+            applyToCamera();
             return;
         case ZoomMethod::eChangeFov: {
             auto persp = perspCamera();
@@ -741,78 +749,52 @@ void OrbitArcballBehavior::setLandmark(const vne::math::Vec3f& world_pos) noexce
 }
 
 void OrbitArcballBehavior::setViewDirection(ViewDirection dir) noexcept {
+    // Shared yaw/pitch table — pitch is the look-direction elevation, so negative
+    // means looking down (camera above), positive means looking up (camera below).
+    float yaw = 0.0f;
+    float pitch = 0.0f;
+    switch (dir) {
+        case ViewDirection::eFront:
+            yaw = 0.0f;
+            pitch = 0.0f;
+            break;
+        case ViewDirection::eBack:
+            yaw = 180.0f;
+            pitch = 0.0f;
+            break;
+        case ViewDirection::eLeft:
+            yaw = -90.0f;
+            pitch = 0.0f;
+            break;
+        case ViewDirection::eRight:
+            yaw = 90.0f;
+            pitch = 0.0f;
+            break;
+        case ViewDirection::eTop:
+            yaw = 0.0f;
+            pitch = -89.0f;
+            break;
+        case ViewDirection::eBottom:
+            yaw = 0.0f;
+            pitch = 89.0f;
+            break;
+        case ViewDirection::eIso:
+            yaw = 45.0f;
+            pitch = -35.2643897f;
+            break;
+    }
+
+    yaw_deg_ = yaw;
+    pitch_deg_ = pitch;
+
     if (rotation_mode_ == OrbitRotationMode::eArcball) {
-        // Convert to equivalent Euler angles then build orientation
-        float yaw = 0.0f, pitch = 0.0f;
-        switch (dir) {
-            case ViewDirection::eFront:
-                yaw = 0.0f;
-                pitch = 0.0f;
-                break;
-            case ViewDirection::eBack:
-                yaw = 180.0f;
-                pitch = 0.0f;
-                break;
-            case ViewDirection::eLeft:
-                yaw = -90.0f;
-                pitch = 0.0f;
-                break;
-            case ViewDirection::eRight:
-                yaw = 90.0f;
-                pitch = 0.0f;
-                break;
-            case ViewDirection::eTop:
-                yaw = 0.0f;
-                pitch = 89.0f;
-                break;
-            case ViewDirection::eBottom:
-                yaw = 0.0f;
-                pitch = -89.0f;
-                break;
-            case ViewDirection::eIso:
-                yaw = 45.0f;
-                pitch = 35.2643897f;
-                break;
-        }
-        // Temporarily set euler angles, apply to camera, then resync arcball orientation
-        yaw_deg_ = yaw;
-        pitch_deg_ = pitch;
+        // Apply via Euler path temporarily, then bake the result into orientation_.
         const OrbitRotationMode prev = rotation_mode_;
         rotation_mode_ = OrbitRotationMode::eOrbit;
         applyToCamera();
         rotation_mode_ = prev;
         syncFromCamera();
     } else {
-        switch (dir) {
-            case ViewDirection::eFront:
-                yaw_deg_ = 0.0f;
-                pitch_deg_ = 0.0f;
-                break;
-            case ViewDirection::eBack:
-                yaw_deg_ = 180.0f;
-                pitch_deg_ = 0.0f;
-                break;
-            case ViewDirection::eLeft:
-                yaw_deg_ = -90.0f;
-                pitch_deg_ = 0.0f;
-                break;
-            case ViewDirection::eRight:
-                yaw_deg_ = 90.0f;
-                pitch_deg_ = 0.0f;
-                break;
-            case ViewDirection::eTop:
-                yaw_deg_ = 0.0f;
-                pitch_deg_ = 89.0f;
-                break;
-            case ViewDirection::eBottom:
-                yaw_deg_ = 0.0f;
-                pitch_deg_ = -89.0f;
-                break;
-            case ViewDirection::eIso:
-                yaw_deg_ = 45.0f;
-                pitch_deg_ = 35.2643897f;
-                break;
-        }
         applyToCamera();
     }
 }
@@ -899,7 +881,7 @@ bool OrbitArcballBehavior::onAction(CameraActionType action,
             return true;
 
         case CameraActionType::eZoomAtCursor:
-            if (payload.zoom_factor > 0.0f) {
+            if (payload.zoom_factor > 0.0f && payload.zoom_factor != 1.0f) {
                 zoom(payload.zoom_factor, payload.x_px, payload.y_px);
                 return true;
             }
