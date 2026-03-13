@@ -4,13 +4,15 @@
 
 This document reviews the vneinteraction camera manipulation library against modern game engines (Unity/Cinemachine, Unreal Engine, Godot, O3DE) and medical visualization toolkits (3D Slicer, VTK, MITK). It identifies missing features, potential code issues, and provides a prioritized roadmap for both game and medical visualization use cases.
 
+> **Note (2026)**: The library has been refactored to a behavior-based architecture. Legacy manipulators (`ICameraManipulator`, `OrbitManipulator`, etc.) have been removed. The current design uses `ICameraBehavior` (OrbitBehavior, FreeLookBehavior, OrthoPanZoomBehavior, TrackBehavior) and high-level controllers (InspectController, Navigation3DController, Ortho2DController, FollowController). Many items below remain relevant for future enhancements; some references to removed classes are historical.
+
 ---
 
 ## Current Strengths
 
-- Clean interface hierarchy: `ICameraManipulator` -> `CameraManipulatorBase` -> `OrbitStyleBase`/`FreeCameraBase` -> concrete types
+- Clean interface hierarchy: `ICameraBehavior` -> `OrbitBehavior`, `FreeLookBehavior`, `OrthoPanZoomBehavior`, `TrackBehavior`
 - Command/action layer (`CameraInputAdapter` + `CameraActionType`) decouples input bindings from manipulation logic
-- Both perspective and orthographic camera support across orbit-style manipulators
+- Both perspective and orthographic camera support across orbit-style behaviors
 - Inertia with exponential decay on pan and rotation
 - Cursor-tracking zoom (Blender-style dolly-to-cursor)
 - Touch input support (pan + pinch)
@@ -117,35 +119,31 @@ The library computes `getWorldUnitsPerPixel()` but has no:
 
 ## Existing Code Issues
 
-### `FollowManipulator::getWorldUnitsPerPixel()` returns 0
+> The following issues referred to legacy manipulator code that has been removed. Equivalent behavior classes (e.g. `TrackBehavior`, `FreeLookBehavior`) have been audited; `getWorldUnitsPerPixel()` is implemented where applicable. Retained for historical reference.
+
+### ~~`FollowManipulator::getWorldUnitsPerPixel()` returns 0~~ (resolved in TrackBehavior)
 
 `follow_manipulator.cpp:131` returns `0.0f` unconditionally. Any downstream division by this value produces infinity or NaN.
 
 **Fix:** Compute from offset distance and camera FOV/viewport, similar to `OrbitStyleBase::getWorldUnitsPerPixel()`.
 
-### `FpsManipulator::getWorldUnitsPerPixel()` returns 0
+### ~~`FpsManipulator::getWorldUnitsPerPixel()` returns 0~~ (resolved in FreeLookBehavior)
 
 `fps_manipulator.cpp:62` returns `0.0f` unconditionally. Same issue as above.
 
 **Fix:** Compute from FOV and a reference distance (1.0 unit ahead of camera).
 
-### `FlyManipulator::getWorldUnitsPerPixel()` returns 0
+### ~~`FlyManipulator::getWorldUnitsPerPixel()` returns 0~~ (resolved in FreeLookBehavior)
 
 `fly_manipulator.cpp:62` returns `0.0f` unconditionally. Same issue as above.
 
 **Fix:** Same approach as FPS manipulator.
 
-### `OrbitManipulator` assumes Y-up in `syncFromCamera()` and `computeFront()`
+### `OrbitBehavior` Y-up handling
 
-`orbit_manipulator.cpp:74` uses `front.y()` for pitch and `atan2(front.x(), -front.z())` for yaw, which only works when `world_up_ = (0,1,0)`. Setting Z-up via `setWorldUp()` produces incorrect angles.
+OrbitBehavior and FreeLookBehavior use world-up for spherical coordinates. Verify Z-up (`setWorldUp`) works correctly across all modes.
 
-**Fix:** Generalize yaw/pitch extraction by projecting onto the world-up axis and its perpendicular plane. Update both `syncFromCamera()` and `computeFront()` to work with any `world_up_` direction.
-
-### `FreeCameraBase` assumes Y-up in `front()` and `syncAnglesFromCamera()`
-
-`free_camera_base.cpp:48` hardcodes Y-up spherical coordinates. Same root cause as the orbit issue.
-
-**Fix:** Use the virtual `upVector()` to generalize the spherical coordinate extraction.
+**Fix:** Generalize yaw/pitch extraction by projecting onto the world-up axis and its perpendicular plane.
 
 ### `UpAxis` enum defined but unused
 
@@ -159,17 +157,17 @@ All classes are marked not thread-safe. In a modern engine where rendering and i
 
 **Recommendation:** Add a frame-synced camera snapshot or command queue pattern for multi-threaded use.
 
-### Dual Input Paths
+### Input path
 
-Both direct `handleMouse*()` methods and `applyCommand()` exist as public API. `CameraSystemController` routes through `CameraInputAdapter` -> `applyCommand()`, but direct methods are also callable. This creates two code paths that can diverge. Consider deprecating the direct methods or making them non-public.
+The new design uses a single path: events -> `InputMapper` -> `CameraActionType` -> behaviors. No dual-path concern.
 
-### Factory lacks configuration
+### Behavior configuration
 
-`CameraManipulatorFactory::create()` returns a default-configured manipulator with no way to pass initial parameters. Consider a builder or config-struct pattern.
+Behaviors are constructed with defaults; configuration is via setters (`setRotationMode`, `setPivotMode`, etc.). Consider builder or config-struct for complex setups.
 
-### `CameraManipulatorBase::applyCommand()` is a silent no-op
+### Unhandled actions
 
-The base implementation silently drops all commands. If a new `CameraActionType` is added and a subclass forgets to handle it, there is no warning.
+`ICameraBehavior::onAction` returns `bool`; behaviors silently ignore actions they don't handle. Consider logging or assertion for unknown `CameraActionType` in debug builds.
 
 ---
 

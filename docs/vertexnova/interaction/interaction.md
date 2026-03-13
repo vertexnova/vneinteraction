@@ -2,40 +2,46 @@
 
 ## Overview
 
-The Interaction module provides camera manipulators and a thin controller that forwards input to the active manipulator. It is designed for use with [vnescene](https://github.com/vertexnova/vnescene) cameras and does not implement windowing, event systems, or rendering.
+The Interaction module provides composable camera behaviors and high-level controllers for camera interaction. It is designed for use with [vnescene](https://github.com/vertexnova/vnescene) cameras and [vneevents](https://github.com/vertexnova/vneevents) for event types. It does not implement windowing or rendering.
 
 **Key characteristics:**
 
-- **Input-agnostic**: Your application obtains input (mouse, keyboard, touch) from any source (GLFW, SDL, vneevents, native APIs) and calls the controller’s `handle*` methods with raw values. No dependency on a specific event library.
-- **Manipulators**: Each manipulator implements `ICameraManipulator`, holds a `std::shared_ptr<vne::scene::ICamera>`, and updates the camera from input (orbit, arcball, FPS, fly, ortho pan/zoom, follow).
-- **Single controller**: `CameraSystemController` holds one manipulator and forwards all input to it; you can swap manipulators at runtime.
+- **Event-based**: Controllers consume `vne::events::Event` objects (mouse, keyboard, touch) and expose `onEvent(event, delta_time)` and `onUpdate(delta_time)`.
+- **Behaviors**: Each behavior implements `ICameraBehavior`, holds a `std::shared_ptr<vne::scene::ICamera>`, and processes `CameraActionType` actions (orbit, pan, zoom, move, look, etc.).
+- **Controllers**: High-level wrappers (`InspectController`, `Navigation3DController`, `Ortho2DController`, `FollowController`) combine behaviors with `InputMapper` and event handling.
+- **Composable**: `CameraRig` holds multiple behaviors; each receives every action independently. Enables hybrid setups (e.g. orbit + free-look for game editors).
 
 ## Architecture
 
-- **Public API** (`include/vertexnova/interaction/`): `camera_manipulator.h`, `camera_manipulator_factory.h`, `camera_system_controller.h`, `interaction_types.h`, `orbit_manipulator.h`, `arcball_manipulator.h`, `fps_manipulator.h`, `fly_manipulator.h`, `ortho_pan_zoom_manipulator.h`, `follow_manipulator.h`, `interaction.h` (umbrella), `version.h`.
-- **Implementation** (`src/vertexnova/interaction/`): One `.cpp` per manipulator plus factory, controller, and version.
-- **Dependencies**: **vnescene** (cameras, `ICamera`, `PerspectiveCamera`, `OrthographicCamera`, `CameraFactory`), **vnemath** (vectors, quaternions, matrices; pulled in via vnescene).
+- **Public API** (`include/vertexnova/interaction/`): `camera_behavior.h`, `camera_rig.h`, `orbit_behavior.h`, `free_look_behavior.h`, `ortho_pan_zoom_behavior.h`, `track_behavior.h`, `input_mapper.h`, `inspect_controller.h`, `navigation_3d_controller.h`, `ortho_2d_controller.h`, `follow_controller.h`, `interaction_types.h`, `interaction.h` (umbrella), `version.h`.
+- **Implementation** (`src/vertexnova/interaction/`): One `.cpp` per behavior and controller plus `input_mapper.cpp`, `camera_rig.cpp`, and `version.cpp`.
+- **Dependencies**: **vnescene** (cameras, `ICamera`, `PerspectiveCamera`, `OrthographicCamera`, `CameraFactory`), **vneevents** (event types), **vnemath** (vectors, quaternions, matrices; pulled in via vnescene).
 
 ## Key Components
 
-### Controller
+### Behaviors (ICameraBehavior)
 
-- **camera_system_controller.h**: `CameraSystemController` — `setManipulator`, `getManipulator`, `setViewportSize`, `update(delta_time)`, and input forwarding: `handleMouseMove`, `handleMouseButton`, `handleMouseScroll`, `handleKeyboard`, `handleTouchPan`, `handleTouchPinch`.
+- **camera_behavior.h**: `ICameraBehavior` — interface: `onAction`, `onUpdate`, `setCamera`, `setViewportSize`, `resetState`, `isEnabled`, `setEnabled`.
+- **orbit_behavior.h**: `OrbitBehavior` — orbit around a center of interest; Euler or Quaternion rotation; pivot modes (COI, ViewCenter, Fixed); pan, zoom, inertia, fitToAABB.
+- **free_look_behavior.h**: `FreeLookBehavior` — FPS or Fly mode; WASD movement, mouse look, sprint/slow modifiers.
+- **ortho_pan_zoom_behavior.h**: `OrthoPanZoomBehavior` — orthographic camera only; pan and zoom-to-cursor; inertia.
+- **track_behavior.h**: `TrackBehavior` — follow a target (static or from provider); smooth damping; offset.
 
-### Manipulators
+### Controllers
 
-- **camera_manipulator.h**: `ICameraManipulator` — interface: `setCamera`, `setViewportSize`, `handleMouseMove`, `handleMouseButton`, `handleMouseScroll`, `handleKeyboard`, `handleTouchPan`, `handleTouchPinch`, `getSceneScale`, `resetState`, `fitToAabb`, and support queries (`supportsPerspective`, `supportsOrthographic`).
-- **orbit_manipulator.h**: `OrbitManipulator` — orbit around a center of interest; rotation, pan, zoom (dolly / scene scale / FOV).
-- **arcball_manipulator.h**: `ArcballManipulator` — arcball rotation, pan, zoom.
-- **fps_manipulator.h**: `FpsManipulator` — first-person style: yaw/pitch from mouse, move from keys.
-- **fly_manipulator.h**: `FlyManipulator` — fly-through: move and look, sprint/slow modifiers.
-- **ortho_pan_zoom_manipulator.h**: `OrthoPanZoomManipulator` — orthographic camera only; pan and zoom.
-- **follow_manipulator.h**: `FollowManipulator` — follow a target (static or from provider), optional offset and zoom.
+- **inspect_controller.h**: `InspectController` — 3D inspection (medical, CAD); wraps `OrbitBehavior` + `InputMapper` with orbit preset; pivot, DOF toggles, fitToAABB.
+- **navigation_3d_controller.h**: `Navigation3DController` — 3D environment traversal; FPS, Fly, or Game mode; wraps `FreeLookBehavior` (+ optional `OrbitBehavior` in Game mode) + `InputMapper`.
+- **ortho_2d_controller.h**: `Ortho2DController` — 2D orthographic viewports (slices, maps); wraps `OrthoPanZoomBehavior` + `InputMapper` with ortho preset.
+- **follow_controller.h**: `FollowController` — target-follow camera; wraps `TrackBehavior`; no user input required.
 
-### Factory and Types
+### Input and Rig
 
-- **camera_manipulator_factory.h**: `CameraManipulatorFactory::create(CameraManipulatorType)` — creates `eOrbit`, `eArcball`, `eFps`, `eFly`, `eOrthoPanZoom`, `eFollow`.
-- **interaction_types.h**: `CameraManipulatorType`, `CenterOfInterestSpace`, `ViewDirection`, `ZoomMethod`, `UpAxis`, `MouseButton`, `TouchPan`, `TouchPinch`.
+- **input_mapper.h**: `InputMapper` — maps mouse/keyboard/touch events to `CameraActionType` via `InputRule`; presets: `orbitPreset`, `fpsPreset`, `gamePreset`, `cadPreset`, `orthoPreset`.
+- **camera_rig.h**: `CameraRig` — multi-behavior container; `onAction`, `onUpdate`, `setCamera`, `setViewportSize`, `resetState`; factory methods: `makeOrbit`, `makeArcball`, `makeFps`, `makeFly`, `makeOrthoPanZoom`, `makeFollow`, `makeGameCamera`, `make2D`.
+
+### Types
+
+- **interaction_types.h**: `CameraActionType`, `CameraCommandPayload`, `InputRule`, `ZoomMethod`, `OrbitPivotMode`, `OrbitRotationMode`, `NavigateMode`, `UpAxis`, `MouseButton`, `TouchPan`, `TouchPinch`.
 
 ### Version
 
@@ -43,52 +49,56 @@ The Interaction module provides camera manipulators and a thin controller that f
 
 ## Usage
 
-### Minimal: controller + orbit + camera
+### Minimal: InspectController + camera
 
 ```cpp
 #include <vertexnova/interaction/interaction.h>
-#include <vertexnova/scene/scene.h>
+#include <vertexnova/scene/camera/camera.h>
+#include <vertexnova/events/mouse_event.h>
 
 int main() {
     using namespace vne::interaction;
     using namespace vne::scene;
-    using namespace vne::math;
 
     auto camera = CameraFactory::createPerspective(
         PerspectiveCameraParameters(60.0f, 16.0f / 9.0f, 0.1f, 1000.0f));
-    camera->setPosition(Vec3f(0.0f, 2.0f, 5.0f));
+    camera->setPosition(vne::math::Vec3f(0.0f, 2.0f, 5.0f));
+    camera->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
-    auto factory = std::make_shared<CameraManipulatorFactory>();
-    auto orbit = factory->create(CameraManipulatorType::eOrbit);
-    orbit->setCamera(camera);
-    orbit->setViewportSize(1280.0f, 720.0f);
+    InspectController ctrl;
+    ctrl.setCamera(camera);
+    ctrl.setViewportSize(1280.0f, 720.0f);
 
-    CameraSystemController controller;
-    controller.setManipulator(orbit);
-    controller.setViewportSize(1280.0f, 720.0f);
+    // Game loop: feed events then update
+    vne::events::MouseMovedEvent move(640.0, 360.0);
+    ctrl.onEvent(move, 0.016);
+    vne::events::MouseScrolledEvent scroll(0.0, 1.0);
+    ctrl.onEvent(scroll, 0.016);
+    ctrl.onUpdate(0.016);
 
-    // Game loop: feed input then update
-    controller.handleMouseMove(x, y, dx, dy, dt);
-    controller.handleMouseButton(static_cast<int>(MouseButton::eLeft), true, x, y, dt);
-    controller.handleMouseScroll(0.0f, scroll_delta, x, y, dt);
-    controller.handleKeyboard(key_code, pressed, dt);
-    controller.update(dt);
     return 0;
 }
 ```
 
-### Bridging from an event library
+### Bridging from vneevents
 
-If you use [vneevents](https://github.com/vertexnova/vneevents) or similar, register a listener that maps events to controller calls:
+If you use [vneevents](https://github.com/vertexnova/vneevents), register a listener that forwards events to the controller:
 
 ```cpp
-// Pseudocode: on MouseMovedEvent -> controller.handleMouseMove(e.x(), e.y(), e.dx(), e.dy(), dt);
-//            on KeyPressedEvent  -> controller.handleKeyboard(e.keyCode(), true, dt);
-//            on KeyReleasedEvent -> controller.handleKeyboard(e.keyCode(), false, dt);
-// etc.
+// Pseudocode: on any Event -> controller.onEvent(event, dt);
+// Each frame: controller.onUpdate(dt);
 ```
 
-No dependency on vneevents is required; the controller only needs raw numbers.
+The controller's `onEvent` handles `MouseMovedEvent`, `MouseButtonPressedEvent`, `MouseButtonReleasedEvent`, `MouseScrolledEvent`, `KeyPressedEvent`, `KeyReleasedEvent`, etc.
+
+### Use-case mapping
+
+| Use case | Controller | Notes |
+|----------|------------|-------|
+| Medical 3D inspection | `InspectController` | Arcball default; `setPivotMode(eFixed)` for landmark-centred |
+| Medical 2D slices | `Ortho2DController` | Pan + zoom; optional in-plane rotate via `setRotationEnabled(true)` |
+| Game / editor camera | `Navigation3DController` | Orbit mode for object view; FPS/Fly for world nav |
+| Robotic simulator | `InspectController` + `Navigation3DController` + `FollowController` | Inspect robot; navigate environment; follow end-effector |
 
 ## CMake options
 

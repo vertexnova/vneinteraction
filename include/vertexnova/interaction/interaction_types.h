@@ -11,7 +11,7 @@
 
 /**
  * @file interaction_types.h
- * @brief Types, enums, and structs for camera interaction (manipulators, gestures, bindings).
+ * @brief Types, enums, and structs for camera interaction (behaviors, gestures, bindings).
  */
 
 #include "vertexnova/interaction/export.h"
@@ -94,7 +94,7 @@ struct VNE_INTERACTION_API TouchPinch final {
 };
 
 // -----------------------------------------------------------------------------
-// Camera action / command layer (intent between input and manipulator)
+// Camera action / command layer (intent between input and behavior)
 // -----------------------------------------------------------------------------
 enum class CameraActionType : std::uint8_t {
     eNone = 0,  //!< Sentinel: no action for this event phase (used in InputRule)
@@ -197,7 +197,7 @@ struct VNE_INTERACTION_API OrbitInteractionState {
 };
 
 // -----------------------------------------------------------------------------
-// Internal camera state (manipulators operate on these, then apply to ICamera)
+// Internal camera state (behaviors operate on these, then apply to ICamera)
 // -----------------------------------------------------------------------------
 #ifdef _MSC_VER
 #pragma warning(push)
