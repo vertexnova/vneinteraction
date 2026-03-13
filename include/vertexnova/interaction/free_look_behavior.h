@@ -135,6 +135,14 @@ class FreeLookBehavior final : public ICameraBehavior {
     void setFovZoomSpeed(float speed) noexcept { fov_zoom_speed_ = std::max(0.01f, speed); }
     [[nodiscard]] float getFovZoomSpeed() const noexcept { return fov_zoom_speed_; }
 
+    /**
+     * @brief Enable or disable zoom handling for this behavior (default: true).
+     * Disable when another behavior in the same rig (e.g. OrbitArcballBehavior)
+     * should own eZoomAtCursor to avoid double-zoom per scroll tick.
+     */
+    void setHandleZoom(bool enable) noexcept { handle_zoom_ = enable; }
+    [[nodiscard]] bool getHandleZoom() const noexcept { return handle_zoom_; }
+
     /** Get world units per pixel (FPS: at unit distance from camera). */
     [[nodiscard]] float getWorldUnitsPerPixel() const noexcept;
 
@@ -180,6 +188,7 @@ class FreeLookBehavior final : public ICameraBehavior {
     float zoom_speed_ = 0.5f;
     float fov_zoom_speed_ = 1.05f;
     ZoomMethod zoom_method_ = ZoomMethod::eDollyToCoi;
+    bool handle_zoom_ = true;
 
     FreeLookInputState input_state_;
 };

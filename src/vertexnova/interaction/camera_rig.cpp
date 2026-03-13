@@ -123,6 +123,7 @@ CameraRig CameraRig::makeGameCamera() {
     rig.addBehavior(std::make_shared<OrbitArcballBehavior>());
     auto fl = std::make_shared<FreeLookBehavior>();
     fl->setConstrainWorldUp(true);
+    fl->setHandleZoom(false);  // orbit behavior owns eZoomAtCursor
     rig.addBehavior(std::move(fl));
     return rig;
 }

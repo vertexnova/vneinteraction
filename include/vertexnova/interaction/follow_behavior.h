@@ -111,8 +111,9 @@ class FollowBehavior final : public ICameraBehavior {
     /**
      * @brief Set the camera offset from the target (world space).
      * Default: (0, 2, 5) — behind and above the target.
+     * Near-zero offsets are silently ignored to prevent a degenerate look-at matrix.
      */
-    void setOffset(const vne::math::Vec3f& offset) noexcept { offset_world_ = offset; }
+    void setOffset(const vne::math::Vec3f& offset) noexcept;
     [[nodiscard]] vne::math::Vec3f getOffset() const noexcept { return offset_world_; }
 
     /**

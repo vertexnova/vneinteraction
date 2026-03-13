@@ -55,6 +55,13 @@ void FollowBehavior::setViewportSize(float width_px, float height_px) noexcept {
     viewport_height_ = std::max(1.0f, height_px);
 }
 
+void FollowBehavior::setOffset(const vne::math::Vec3f& offset) noexcept {
+    if (offset.length() > kOffsetMinLength) {
+        offset_world_ = offset;
+    }
+    // silently ignore zero or near-zero offsets to avoid a degenerate look-at matrix
+}
+
 // ---------------------------------------------------------------------------
 // Target
 // ---------------------------------------------------------------------------
@@ -140,7 +147,16 @@ void FollowBehavior::onUpdate(double delta_time) noexcept {
 
     camera_->setPosition(new_eye);
     camera_->setTarget(target);
-    camera_->setUp(vne::math::Vec3f(0.0f, 1.0f, 0.0f));
+
+    // Choose up vector; fall back to -Z when view direction is nearly parallel to Y
+    // (e.g. top-down follow) to avoid a degenerate look-at matrix.
+    const vne::math::Vec3f view_dir = (target - new_eye).normalized();
+    const vne::math::Vec3f up_hint =
+        (std::abs(view_dir.dot(vne::math::Vec3f(0.0f, 1.0f, 0.0f))) > 0.99f)
+            ? vne::math::Vec3f(0.0f, 0.0f, -1.0f)
+            : vne::math::Vec3f(0.0f, 1.0f, 0.0f);
+    camera_->setUp(up_hint);
+
     camera_->updateMatrices();
 }
 

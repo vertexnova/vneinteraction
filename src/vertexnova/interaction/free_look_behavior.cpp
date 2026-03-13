@@ -30,7 +30,8 @@ constexpr float kFovMaxDeg = 120.0f;
 constexpr float kSceneScaleMin = 1e-4f;
 constexpr float kSceneScaleMax = 1e4f;
 constexpr float kMinRadiusFallback = 1.0f;
-constexpr float kFitToAabbDistFactor = 2.5f;
+constexpr float kFitToAabbDistFactor = 2.5f;   // fallback multiplier for non-perspective cameras
+constexpr float kFitToAabbMargin = 1.1f;        // 10 % breathing room added to FOV-derived distance
 
 /// Build reference forward + right vectors from an arbitrary up axis.
 void buildReferenceFrame(const vne::math::Vec3f& up, vne::math::Vec3f& ref_fwd, vne::math::Vec3f& ref_right) noexcept {
@@ -107,7 +108,7 @@ vne::math::Vec3f FreeLookBehavior::front() const noexcept {
 }
 
 vne::math::Vec3f FreeLookBehavior::right(const vne::math::Vec3f& front_vec) const noexcept {
-    vne::math::Vec3f r = upVector().cross(front_vec);
+    vne::math::Vec3f r = front_vec.cross(upVector());
     const float len = r.length();
     return (len < kEpsilon) ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : (r / len);
 }
@@ -146,8 +147,30 @@ void FreeLookBehavior::applyAnglesToCamera() noexcept {
         return;
     }
     const vne::math::Vec3f eye = camera_->getPosition();
-    camera_->setTarget(eye + front());
-    camera_->setUp(upVector());
+    const vne::math::Vec3f f = front();
+    camera_->setTarget(eye + f);
+
+    if (mode_ == FreeLookMode::eFly) {
+        // Derive an orthogonal up from front + current camera up (as a hint).
+        // This lets the up vector evolve with roll in Fly mode instead of
+        // reading back the stale value that was never actually updated.
+        const vne::math::Vec3f up_hint = upVector();
+        vne::math::Vec3f r = f.cross(up_hint);
+        float r_len = r.length();
+        if (r_len < kEpsilon) {
+            // front is parallel to the hint — fall back to world up
+            r = f.cross(world_up_);
+            r_len = r.length();
+        }
+        if (r_len > kEpsilon) {
+            r /= r_len;
+            camera_->setUp(r.cross(f).normalized());
+        }
+        // if still degenerate, leave up unchanged
+    } else {
+        camera_->setUp(upVector());
+    }
+
     camera_->updateMatrices();
 }
 
@@ -210,7 +233,13 @@ void FreeLookBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::m
         radius = kMinRadiusFallback;
     }
     const vne::math::Vec3f f = front();
-    camera_->setPosition(center - f * (radius * kFitToAabbDistFactor));
+    if (auto persp = perspCamera()) {
+        const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
+        const float dist = (radius / vne::math::tan(fov_y_rad * 0.5f)) * kFitToAabbMargin;
+        camera_->setPosition(center - f * dist);
+    } else {
+        camera_->setPosition(center - f * (radius * kFitToAabbDistFactor));
+    }
     camera_->setTarget(center);
     if (mode_ == FreeLookMode::eFps) {
         camera_->setUp(world_up_);
@@ -339,7 +368,10 @@ bool FreeLookBehavior::onAction(CameraActionType action,
             return true;
 
         case CameraActionType::eZoomAtCursor:
-            if (camera_ && payload.zoom_factor > 0.0f) {
+            if (!handle_zoom_) {
+                return false;
+            }
+            if (camera_ && payload.zoom_factor > 0.0f && payload.zoom_factor != 1.0f) {
                 if (zoom_method_ == ZoomMethod::eDollyToCoi) {
                     applyZoom((payload.zoom_factor < 1.0f) ? move_speed_ * zoom_speed_ : -move_speed_ * zoom_speed_);
                 } else {
