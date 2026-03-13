@@ -20,10 +20,10 @@ int main() {
     std::cout << "VneInteraction " << vne::interaction::get_version() << "\n\n";
 
     std::cout << "Behaviors:\n"
-              << "  - OrbitBehavior   (arcball / Euler orbit)\n"
+              << "  - OrbitArcballBehavior   (arcball / Euler orbit)\n"
               << "  - FreeLookBehavior (FPS / Fly)\n"
               << "  - OrthoPanZoomBehavior  (orthographic 2D pan+zoom)\n"
-              << "  - TrackBehavior    (smooth follow)\n\n";
+              << "  - FollowBehavior   (smooth follow)\n\n";
 
     std::cout << "InputMapper presets:\n"
               << "  - orbitPreset()  (LMB=rotate, RMB=pan, scroll=zoom)\n"

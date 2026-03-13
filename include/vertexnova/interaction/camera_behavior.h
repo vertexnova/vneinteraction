@@ -36,10 +36,10 @@ namespace vne::interaction {
  * simultaneously on a CameraRig — they each receive every action independently.
  *
  * Concrete implementations:
- *  - OrbitBehavior    — rotate/pan/zoom around a pivot (Euler or Quaternion mode)
+ *  - OrbitArcballBehavior — rotate/pan/zoom around a pivot (Euler or Quaternion mode)
  *  - FreeLookBehavior — WASD movement + mouse look (FPS or unconstrained Fly mode)
  *  - OrthoPanZoomBehavior — orthographic 2D pan + zoom
- *  - TrackBehavior    — autonomous smooth target following
+ *  - FollowBehavior   — autonomous smooth target following
  *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
  */

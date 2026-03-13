@@ -10,7 +10,7 @@
 #include "vertexnova/interaction/follow_controller.h"
 
 #include "vertexnova/interaction/input_mapper.h"
-#include "vertexnova/interaction/track_behavior.h"
+#include "vertexnova/interaction/follow_behavior.h"
 
 #include "vertexnova/events/mouse_event.h"
 
@@ -25,7 +25,7 @@ namespace vne::interaction {
 struct FollowController::Impl {
     CameraRig rig;
     InputMapper mapper;
-    TrackBehavior* track = nullptr;  // non-owning alias into rig
+    FollowBehavior* follow = nullptr;  // non-owning alias into rig
 
     std::shared_ptr<vne::scene::ICamera> camera;
     float viewport_w = 1280.0f;
@@ -43,8 +43,8 @@ struct FollowController::Impl {
 
 FollowController::FollowController()
     : impl_(std::make_unique<Impl>()) {
-    auto behavior = std::make_shared<TrackBehavior>();
-    impl_->track = behavior.get();
+    auto behavior = std::make_shared<FollowBehavior>();
+    impl_->follow = behavior.get();
     impl_->rig.addBehavior(std::move(behavior));
 
     // Scroll = zoom (optional, user may want to adjust distance)
@@ -82,10 +82,10 @@ void FollowController::setViewportSize(float w, float h) noexcept {
 
 void FollowController::onUpdate(double dt) noexcept {
     // Poll dynamic target each frame before updating rig
-    if (impl_->target_cb && impl_->track) {
+    if (impl_->target_cb && impl_->follow) {
         const vne::math::Mat4f t = impl_->target_cb();
         // Extract translation column
-        impl_->track->setTargetWorld({t[3][0], t[3][1], t[3][2]});
+        impl_->follow->setTargetWorld({t[3][0], t[3][1], t[3][2]});
     }
     impl_->rig.onUpdate(dt);
 }
@@ -114,8 +114,8 @@ void FollowController::setTarget(TargetCallback cb) noexcept {
 
 void FollowController::setTarget(const vne::math::Mat4f& world_transform) noexcept {
     impl_->target_cb = nullptr;
-    if (impl_->track) {
-        impl_->track->setTargetWorld({world_transform[3][0], world_transform[3][1], world_transform[3][2]});
+    if (impl_->follow) {
+        impl_->follow->setTargetWorld({world_transform[3][0], world_transform[3][1], world_transform[3][2]});
     }
 }
 
@@ -124,28 +124,28 @@ void FollowController::setTarget(const vne::math::Mat4f& world_transform) noexce
 // ---------------------------------------------------------------------------
 
 void FollowController::setOffset(const vne::math::Vec3f& offset) noexcept {
-    if (impl_->track)
-        impl_->track->setOffset(offset);
+    if (impl_->follow)
+        impl_->follow->setOffset(offset);
 }
 
 vne::math::Vec3f FollowController::getOffset() const noexcept {
-    return impl_->track ? impl_->track->getOffset() : vne::math::Vec3f{0.0f, 2.0f, 5.0f};
+    return impl_->follow ? impl_->follow->getOffset() : vne::math::Vec3f{0.0f, 2.0f, 5.0f};
 }
 
 void FollowController::setLag(float lag) noexcept {
     // Convert lag [0,1] to damping: lag=0 ->very high damping (instant), lag=1 ->0 (never arrives)
     // damping = -ln(lag_remainder) / typical_dt; we use a simple inversion: damping = (1-lag)*20
-    if (impl_->track) {
+    if (impl_->follow) {
         const float damping = (1.0f - std::clamp(lag, 0.0f, 0.999f)) * 20.0f;
-        impl_->track->setDamping(damping);
+        impl_->follow->setDamping(damping);
     }
 }
 
 float FollowController::getLag() const noexcept {
-    if (!impl_->track)
+    if (!impl_->follow)
         return 0.0f;
     // Invert the formula above
-    return 1.0f - (impl_->track->getDamping() / 20.0f);
+    return 1.0f - (impl_->follow->getDamping() / 20.0f);
 }
 
 // ---------------------------------------------------------------------------
@@ -164,8 +164,8 @@ void FollowController::reset() noexcept {
 InputMapper& FollowController::inputMapper() noexcept {
     return impl_->mapper;
 }
-TrackBehavior& FollowController::trackBehavior() noexcept {
-    return *impl_->track;
+FollowBehavior& FollowController::followBehavior() noexcept {
+    return *impl_->follow;
 }
 
 }  // namespace vne::interaction

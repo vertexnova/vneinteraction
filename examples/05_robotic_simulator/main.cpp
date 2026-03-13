@@ -55,7 +55,7 @@ int main() {
     navigate.setViewportSize(1280.0f, 720.0f);
     navigate.setMode(vne::interaction::NavigateMode::eFps);
 
-    // 3. FollowController — end-effector follow-cam (TrackBehavior)
+    // 3. FollowController — end-effector follow-cam (FollowBehavior)
     vne::interaction::FollowController follow;
     follow.setCamera(camera);
     follow.setViewportSize(1280.0f, 720.0f);

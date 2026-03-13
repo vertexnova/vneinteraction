@@ -50,7 +50,7 @@ enum class ZoomMethod : std::uint8_t {
  * @brief Pivot control mode for orbit-style camera behaviors.
  *
  * Determines which point in world space the camera orbits around.
- * Used by OrbitBehavior and InspectController.
+ * Used by OrbitArcballBehavior and InspectController.
  */
 enum class OrbitPivotMode : std::uint8_t {
     eCoi = 0,         //!< Rotate around the current center of interest (default; pan moves pivot)

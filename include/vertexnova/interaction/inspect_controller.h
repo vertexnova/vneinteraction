@@ -68,7 +68,7 @@ class ICamera;
 namespace vne::interaction {
 
 class InputMapper;
-class OrbitBehavior;
+class OrbitArcballBehavior;
 
 /** Rotation algorithm used by InspectController. */
 enum class InspectRotationMode : std::uint8_t {
@@ -79,7 +79,7 @@ enum class InspectRotationMode : std::uint8_t {
 /**
  * @brief High-level camera controller for object inspection.
  *
- * Wraps a CameraRig (OrbitBehavior) and an InputMapper with a sensible preset.
+ * Wraps a CameraRig (OrbitArcballBehavior) and an InputMapper with a sensible preset.
  * Covers: 3D model viewers, CAD, scientific visualization, medical 3D.
  *
  * @threadsafe Not thread-safe. Call all methods from the same thread.
@@ -170,8 +170,8 @@ class VNE_INTERACTION_API InspectController {
     /** Direct access to the underlying InputMapper for full rebind. */
     [[nodiscard]] InputMapper& inputMapper() noexcept;
 
-    /** Direct access to the underlying OrbitBehavior for fine-tuning. */
-    [[nodiscard]] OrbitBehavior& orbitBehavior() noexcept;
+    /** Direct access to the underlying OrbitArcballBehavior for fine-tuning. */
+    [[nodiscard]] OrbitArcballBehavior& orbitArcballBehavior() noexcept;
 
    private:
     void rebuildRules() noexcept;

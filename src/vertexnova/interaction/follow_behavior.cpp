@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/interaction/track_behavior.h"
+#include "vertexnova/interaction/follow_behavior.h"
 
 #include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/perspective_camera.h"
@@ -34,11 +34,11 @@ constexpr float kOffsetMaxLength = 1e4f;
 // Camera helpers
 // ---------------------------------------------------------------------------
 
-std::shared_ptr<vne::scene::PerspectiveCamera> TrackBehavior::perspCamera() const noexcept {
+std::shared_ptr<vne::scene::PerspectiveCamera> FollowBehavior::perspCamera() const noexcept {
     return std::dynamic_pointer_cast<vne::scene::PerspectiveCamera>(camera_);
 }
 
-std::shared_ptr<vne::scene::OrthographicCamera> TrackBehavior::orthoCamera() const noexcept {
+std::shared_ptr<vne::scene::OrthographicCamera> FollowBehavior::orthoCamera() const noexcept {
     return std::dynamic_pointer_cast<vne::scene::OrthographicCamera>(camera_);
 }
 
@@ -46,11 +46,11 @@ std::shared_ptr<vne::scene::OrthographicCamera> TrackBehavior::orthoCamera() con
 // ICameraBehavior: setCamera / setViewportSize
 // ---------------------------------------------------------------------------
 
-void TrackBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
+void FollowBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
     camera_ = std::move(camera);
 }
 
-void TrackBehavior::setViewportSize(float width_px, float height_px) noexcept {
+void FollowBehavior::setViewportSize(float width_px, float height_px) noexcept {
     viewport_width_ = std::max(1.0f, width_px);
     viewport_height_ = std::max(1.0f, height_px);
 }
@@ -59,7 +59,7 @@ void TrackBehavior::setViewportSize(float width_px, float height_px) noexcept {
 // Target
 // ---------------------------------------------------------------------------
 
-vne::math::Vec3f TrackBehavior::getTargetWorld() const noexcept {
+vne::math::Vec3f FollowBehavior::getTargetWorld() const noexcept {
     return target_provider_ ? target_provider_() : target_world_;
 }
 
@@ -67,11 +67,11 @@ vne::math::Vec3f TrackBehavior::getTargetWorld() const noexcept {
 // fitToAABB / getWorldUnitsPerPixel
 // ---------------------------------------------------------------------------
 
-void TrackBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept {
+void FollowBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept {
     target_world_ = (min_world + max_world) * 0.5f;
 }
 
-float TrackBehavior::getWorldUnitsPerPixel() const noexcept {
+float FollowBehavior::getWorldUnitsPerPixel() const noexcept {
     if (auto ortho = orthoCamera()) {
         return ortho->getHeight() / viewport_height_;
     }
@@ -87,7 +87,7 @@ float TrackBehavior::getWorldUnitsPerPixel() const noexcept {
 // Zoom
 // ---------------------------------------------------------------------------
 
-void TrackBehavior::applyZoom(float zoom_factor) noexcept {
+void FollowBehavior::applyZoom(float zoom_factor) noexcept {
     if (!camera_) {
         return;
     }
@@ -124,7 +124,7 @@ void TrackBehavior::applyZoom(float zoom_factor) noexcept {
 // onUpdate
 // ---------------------------------------------------------------------------
 
-void TrackBehavior::onUpdate(double delta_time) noexcept {
+void FollowBehavior::onUpdate(double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }
@@ -148,9 +148,9 @@ void TrackBehavior::onUpdate(double delta_time) noexcept {
 // onAction
 // ---------------------------------------------------------------------------
 
-bool TrackBehavior::onAction(CameraActionType action,
-                             const CameraCommandPayload& payload,
-                             double /*delta_time*/) noexcept {
+bool FollowBehavior::onAction(CameraActionType action,
+                              const CameraCommandPayload& payload,
+                              double /*delta_time*/) noexcept {
     if (!enabled_ || !camera_) {
         return false;
     }

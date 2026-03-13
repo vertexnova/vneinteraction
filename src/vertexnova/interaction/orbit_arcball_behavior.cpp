@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/interaction/orbit_behavior.h"
+#include "vertexnova/interaction/orbit_arcball_behavior.h"
 
 #include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/perspective_camera.h"
@@ -77,7 +77,7 @@ void buildReferenceFrame(const vne::math::Vec3f& world_up,
 // Constructor
 // ---------------------------------------------------------------------------
 
-OrbitBehavior::OrbitBehavior() noexcept
+OrbitArcballBehavior::OrbitArcballBehavior() noexcept
     : orientation_(0.0f, 0.0f, 0.0f, 1.0f) {
     world_up_ = vne::math::Vec3f(0.0f, 1.0f, 0.0f);
     coi_world_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
@@ -89,19 +89,19 @@ OrbitBehavior::OrbitBehavior() noexcept
 // Camera helpers
 // ---------------------------------------------------------------------------
 
-std::shared_ptr<vne::scene::PerspectiveCamera> OrbitBehavior::perspCamera() const noexcept {
+std::shared_ptr<vne::scene::PerspectiveCamera> OrbitArcballBehavior::perspCamera() const noexcept {
     return std::dynamic_pointer_cast<vne::scene::PerspectiveCamera>(camera_);
 }
 
-std::shared_ptr<vne::scene::OrthographicCamera> OrbitBehavior::orthoCamera() const noexcept {
+std::shared_ptr<vne::scene::OrthographicCamera> OrbitArcballBehavior::orthoCamera() const noexcept {
     return std::dynamic_pointer_cast<vne::scene::OrthographicCamera>(camera_);
 }
 
-bool OrbitBehavior::isPerspective() const noexcept {
+bool OrbitArcballBehavior::isPerspective() const noexcept {
     return static_cast<bool>(perspCamera());
 }
 
-bool OrbitBehavior::isOrthographic() const noexcept {
+bool OrbitArcballBehavior::isOrthographic() const noexcept {
     return static_cast<bool>(orthoCamera());
 }
 
@@ -109,12 +109,12 @@ bool OrbitBehavior::isOrthographic() const noexcept {
 // ICameraBehavior: setCamera / setViewportSize
 // ---------------------------------------------------------------------------
 
-void OrbitBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
+void OrbitArcballBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
     camera_ = std::move(camera);
     syncFromCamera();
 }
 
-void OrbitBehavior::setViewportSize(float width_px, float height_px) noexcept {
+void OrbitArcballBehavior::setViewportSize(float width_px, float height_px) noexcept {
     viewport_width_ = std::max(1.0f, width_px);
     viewport_height_ = std::max(1.0f, height_px);
     if (auto persp = perspCamera()) {
@@ -126,7 +126,7 @@ void OrbitBehavior::setViewportSize(float width_px, float height_px) noexcept {
 // Geometry helpers
 // ---------------------------------------------------------------------------
 
-vne::math::Vec3f OrbitBehavior::computeRight(const vne::math::Vec3f& front) const noexcept {
+vne::math::Vec3f OrbitArcballBehavior::computeRight(const vne::math::Vec3f& front) const noexcept {
     vne::math::Vec3f r = world_up_.cross(front);
     float len = r.length();
     if (len < kEpsilon) {
@@ -139,7 +139,7 @@ vne::math::Vec3f OrbitBehavior::computeRight(const vne::math::Vec3f& front) cons
     return (len < kEpsilon) ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : (r / len);
 }
 
-vne::math::Vec3f OrbitBehavior::computeUp(const vne::math::Vec3f& front, const vne::math::Vec3f& right) const noexcept {
+vne::math::Vec3f OrbitArcballBehavior::computeUp(const vne::math::Vec3f& front, const vne::math::Vec3f& right) const noexcept {
     const vne::math::Vec3f up = front.cross(right);
     const float len = up.length();
     return (len < kEpsilon) ? world_up_ : (up / len);
@@ -150,7 +150,7 @@ vne::math::Vec3f OrbitBehavior::computeUp(const vne::math::Vec3f& front, const v
 // (Quaternion-mode derives front from orientation_ in applyToCamera)
 // ---------------------------------------------------------------------------
 
-vne::math::Vec3f OrbitBehavior::computeFront() const noexcept {
+vne::math::Vec3f OrbitArcballBehavior::computeFront() const noexcept {
     if (rotation_mode_ == OrbitRotationMode::eQuaternion) {
         // Arcball front: camera looks toward -back direction
         // back = orientation_.rotate(+Z), so front = -(back)
@@ -174,7 +174,7 @@ vne::math::Vec3f OrbitBehavior::computeFront() const noexcept {
 // syncFromCamera / applyToCamera
 // ---------------------------------------------------------------------------
 
-void OrbitBehavior::syncFromCamera() noexcept {
+void OrbitArcballBehavior::syncFromCamera() noexcept {
     if (!camera_) {
         return;
     }
@@ -235,7 +235,7 @@ void OrbitBehavior::syncFromCamera() noexcept {
     }
 }
 
-void OrbitBehavior::applyToCamera() noexcept {
+void OrbitArcballBehavior::applyToCamera() noexcept {
     if (!camera_) {
         return;
     }
@@ -258,7 +258,7 @@ void OrbitBehavior::applyToCamera() noexcept {
     camera_->updateMatrices();
 }
 
-void OrbitBehavior::onPivotChanged() noexcept {
+void OrbitArcballBehavior::onPivotChanged() noexcept {
     if (rotation_mode_ == OrbitRotationMode::eQuaternion) {
         syncFromCamera();
     }
@@ -269,7 +269,7 @@ void OrbitBehavior::onPivotChanged() noexcept {
 // Rotation
 // ---------------------------------------------------------------------------
 
-void OrbitBehavior::beginRotate(float x_px, float y_px) noexcept {
+void OrbitArcballBehavior::beginRotate(float x_px, float y_px) noexcept {
     interaction_.rotating = true;
     interaction_.last_x_px = x_px;
     interaction_.last_y_px = y_px;
@@ -280,7 +280,7 @@ void OrbitBehavior::beginRotate(float x_px, float y_px) noexcept {
     inertia_rot_speed_ = 0.0f;
 }
 
-void OrbitBehavior::dragRotateEuler(float delta_x_px, float delta_y_px, double delta_time) noexcept {
+void OrbitArcballBehavior::dragRotateEuler(float delta_x_px, float delta_y_px, double delta_time) noexcept {
     yaw_deg_ -= delta_x_px * rotation_speed_;
     pitch_deg_ += delta_y_px * rotation_speed_;
     pitch_deg_ = vne::math::clamp(pitch_deg_, kPitchMinDeg, kPitchMaxDeg);
@@ -292,7 +292,7 @@ void OrbitBehavior::dragRotateEuler(float delta_x_px, float delta_y_px, double d
     }
 }
 
-vne::math::Vec3f OrbitBehavior::projectToArcball(float x_px, float y_px) const noexcept {
+vne::math::Vec3f OrbitArcballBehavior::projectToArcball(float x_px, float y_px) const noexcept {
     const float half_size = 0.5f * std::min(viewport_width_, viewport_height_);
     const float cx = viewport_width_ * 0.5f;
     const float cy = viewport_height_ * 0.5f;
@@ -317,7 +317,7 @@ vne::math::Vec3f OrbitBehavior::projectToArcball(float x_px, float y_px) const n
     return vne::math::Vec3f(vx, vy, vz).normalized();
 }
 
-void OrbitBehavior::dragRotateArcball(float x_px, float y_px, double delta_time) noexcept {
+void OrbitArcballBehavior::dragRotateArcball(float x_px, float y_px, double delta_time) noexcept {
     if (!camera_) {
         return;
     }
@@ -366,7 +366,7 @@ void OrbitBehavior::dragRotateArcball(float x_px, float y_px, double delta_time)
     }
 }
 
-void OrbitBehavior::endRotate(double) noexcept {
+void OrbitArcballBehavior::endRotate(double) noexcept {
     interaction_.rotating = false;
 }
 
@@ -374,14 +374,14 @@ void OrbitBehavior::endRotate(double) noexcept {
 // Pan
 // ---------------------------------------------------------------------------
 
-void OrbitBehavior::beginPan(float x_px, float y_px) noexcept {
+void OrbitArcballBehavior::beginPan(float x_px, float y_px) noexcept {
     interaction_.panning = true;
     interaction_.last_x_px = x_px;
     interaction_.last_y_px = y_px;
     inertia_pan_velocity_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
 }
 
-void OrbitBehavior::dragPan(float /*x*/, float /*y*/, float delta_x_px, float delta_y_px, double delta_time) noexcept {
+void OrbitArcballBehavior::dragPan(float /*x*/, float /*y*/, float delta_x_px, float delta_y_px, double delta_time) noexcept {
     if (!camera_) {
         return;
     }
@@ -418,7 +418,7 @@ void OrbitBehavior::dragPan(float /*x*/, float /*y*/, float delta_x_px, float de
     }
 }
 
-void OrbitBehavior::endPan(double) noexcept {
+void OrbitArcballBehavior::endPan(double) noexcept {
     interaction_.panning = false;
     if (pivot_mode_ == OrbitPivotMode::eViewCenter && camera_) {
         coi_world_ = camera_->getTarget();
@@ -431,7 +431,7 @@ void OrbitBehavior::endPan(double) noexcept {
 // Zoom
 // ---------------------------------------------------------------------------
 
-void OrbitBehavior::zoomOrthoToCursor(float zoom_factor, float mouse_x_px, float mouse_y_px) noexcept {
+void OrbitArcballBehavior::zoomOrthoToCursor(float zoom_factor, float mouse_x_px, float mouse_y_px) noexcept {
     auto ortho = orthoCamera();
     if (!ortho) {
         return;
@@ -459,7 +459,7 @@ void OrbitBehavior::zoomOrthoToCursor(float zoom_factor, float mouse_x_px, float
     coi_world_ = new_target;
 }
 
-void OrbitBehavior::zoom(float zoom_factor, float mouse_x_px, float mouse_y_px) noexcept {
+void OrbitArcballBehavior::zoom(float zoom_factor, float mouse_x_px, float mouse_y_px) noexcept {
     if (!camera_) {
         return;
     }
@@ -519,7 +519,7 @@ void OrbitBehavior::zoom(float zoom_factor, float mouse_x_px, float mouse_y_px) 
 // Inertia
 // ---------------------------------------------------------------------------
 
-void OrbitBehavior::doPanInertia(double delta_time) noexcept {
+void OrbitArcballBehavior::doPanInertia(double delta_time) noexcept {
     if (delta_time <= 0.0 || !camera_) {
         return;
     }
@@ -541,7 +541,7 @@ void OrbitBehavior::doPanInertia(double delta_time) noexcept {
     }
 }
 
-void OrbitBehavior::applyInertia(double delta_time) noexcept {
+void OrbitArcballBehavior::applyInertia(double delta_time) noexcept {
     if (!camera_ || delta_time <= 0.0) {
         return;
     }
@@ -592,7 +592,7 @@ void OrbitBehavior::applyInertia(double delta_time) noexcept {
 // fitToAABB
 // ---------------------------------------------------------------------------
 
-void OrbitBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept {
+void OrbitArcballBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept {
     if (!camera_) {
         return;
     }
@@ -658,7 +658,7 @@ void OrbitBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::math
 // getWorldUnitsPerPixel
 // ---------------------------------------------------------------------------
 
-float OrbitBehavior::getWorldUnitsPerPixel() const noexcept {
+float OrbitArcballBehavior::getWorldUnitsPerPixel() const noexcept {
     if (auto ortho = orthoCamera()) {
         return ortho->getHeight() / viewport_height_;
     }
@@ -673,7 +673,7 @@ float OrbitBehavior::getWorldUnitsPerPixel() const noexcept {
 // resetState
 // ---------------------------------------------------------------------------
 
-void OrbitBehavior::resetState() noexcept {
+void OrbitArcballBehavior::resetState() noexcept {
     interaction_.rotating = false;
     interaction_.panning = false;
     interaction_.modifier_shift = false;
@@ -695,19 +695,19 @@ void OrbitBehavior::resetState() noexcept {
 // Public setters that need logic
 // ---------------------------------------------------------------------------
 
-void OrbitBehavior::setWorldUp(const vne::math::Vec3f& world_up) noexcept {
+void OrbitArcballBehavior::setWorldUp(const vne::math::Vec3f& world_up) noexcept {
     if (world_up.length() < kEpsilon) {
         return;
     }
     world_up_ = world_up.normalized();
 }
 
-void OrbitBehavior::setOrbitDistance(float distance) noexcept {
+void OrbitArcballBehavior::setOrbitDistance(float distance) noexcept {
     orbit_distance_ = vne::math::clamp(distance, kMinOrbitDistance, kMaxOrbitDistance);
     applyToCamera();
 }
 
-void OrbitBehavior::setPivot(const vne::math::Vec3f& pos, CenterOfInterestSpace space) noexcept {
+void OrbitArcballBehavior::setPivot(const vne::math::Vec3f& pos, CenterOfInterestSpace space) noexcept {
     if (!camera_) {
         coi_world_ = pos;
         return;
@@ -728,7 +728,7 @@ void OrbitBehavior::setPivot(const vne::math::Vec3f& pos, CenterOfInterestSpace 
     syncFromCamera();
 }
 
-void OrbitBehavior::setLandmark(const vne::math::Vec3f& world_pos) noexcept {
+void OrbitArcballBehavior::setLandmark(const vne::math::Vec3f& world_pos) noexcept {
     coi_world_ = world_pos;
     pivot_mode_ = OrbitPivotMode::eFixed;
     if (camera_) {
@@ -738,7 +738,7 @@ void OrbitBehavior::setLandmark(const vne::math::Vec3f& world_pos) noexcept {
     }
 }
 
-void OrbitBehavior::setViewDirection(ViewDirection dir) noexcept {
+void OrbitArcballBehavior::setViewDirection(ViewDirection dir) noexcept {
     if (rotation_mode_ == OrbitRotationMode::eQuaternion) {
         // Convert to equivalent Euler angles then build orientation
         float yaw = 0.0f, pitch = 0.0f;
@@ -819,7 +819,7 @@ void OrbitBehavior::setViewDirection(ViewDirection dir) noexcept {
 // onUpdate
 // ---------------------------------------------------------------------------
 
-void OrbitBehavior::onUpdate(double delta_time) noexcept {
+void OrbitArcballBehavior::onUpdate(double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }
@@ -848,7 +848,7 @@ void OrbitBehavior::onUpdate(double delta_time) noexcept {
 // onAction
 // ---------------------------------------------------------------------------
 
-bool OrbitBehavior::onAction(CameraActionType action, const CameraCommandPayload& payload, double delta_time) noexcept {
+bool OrbitArcballBehavior::onAction(CameraActionType action, const CameraCommandPayload& payload, double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return false;
     }

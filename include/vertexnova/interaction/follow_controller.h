@@ -52,12 +52,12 @@ class ICamera;
 namespace vne::interaction {
 
 class InputMapper;
-class TrackBehavior;
+class FollowBehavior;
 
 /**
  * @brief High-level camera controller for smooth target following.
  *
- * Wraps a CameraRig (TrackBehavior). No user input is required;
+ * Wraps a CameraRig (FollowBehavior). No user input is required;
  * the camera autonomously tracks the target transform each frame.
  *
  * Covers: third-person game cameras, cinematic rigs, vehicle chase cams,
@@ -140,7 +140,7 @@ class VNE_INTERACTION_API FollowController {
     // -------------------------------------------------------------------------
 
     [[nodiscard]] InputMapper& inputMapper() noexcept;
-    [[nodiscard]] TrackBehavior& trackBehavior() noexcept;
+    [[nodiscard]] FollowBehavior& followBehavior() noexcept;
 
    private:
     struct Impl;

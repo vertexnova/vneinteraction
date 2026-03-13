@@ -10,8 +10,8 @@
  */
 
 /**
- * @file track_behavior.h
- * @brief TrackBehavior — autonomous smooth target-following camera behavior.
+ * @file follow_behavior.h
+ * @brief FollowBehavior — autonomous smooth target-following camera behavior.
  *
  * The camera smoothly moves toward `target + offset` each frame using
  * exponential approach. Target can be fixed or from a callback.
@@ -49,15 +49,15 @@ namespace vne::interaction {
  *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
  */
-class TrackBehavior final : public ICameraBehavior {
+class FollowBehavior final : public ICameraBehavior {
    public:
-    TrackBehavior() noexcept = default;
-    ~TrackBehavior() noexcept override = default;
+    FollowBehavior() noexcept = default;
+    ~FollowBehavior() noexcept override = default;
 
-    TrackBehavior(const TrackBehavior&) = delete;
-    TrackBehavior& operator=(const TrackBehavior&) = delete;
-    TrackBehavior(TrackBehavior&&) noexcept = default;
-    TrackBehavior& operator=(TrackBehavior&&) noexcept = default;
+    FollowBehavior(const FollowBehavior&) = delete;
+    FollowBehavior& operator=(const FollowBehavior&) = delete;
+    FollowBehavior(FollowBehavior&&) noexcept = default;
+    FollowBehavior& operator=(FollowBehavior&&) noexcept = default;
 
     // -------------------------------------------------------------------------
     // ICameraBehavior
@@ -85,7 +85,7 @@ class TrackBehavior final : public ICameraBehavior {
     void setEnabled(bool enabled) noexcept override { enabled_ = enabled; }
 
     // -------------------------------------------------------------------------
-    // Track-specific API
+    // Follow-specific API
     // -------------------------------------------------------------------------
 
     /**

@@ -9,10 +9,10 @@
 
 #include "vertexnova/interaction/camera_rig.h"
 
-#include "vertexnova/interaction/orbit_behavior.h"
+#include "vertexnova/interaction/orbit_arcball_behavior.h"
 #include "vertexnova/interaction/free_look_behavior.h"
 #include "vertexnova/interaction/ortho_pan_zoom_behavior.h"
-#include "vertexnova/interaction/track_behavior.h"
+#include "vertexnova/interaction/follow_behavior.h"
 
 #include <algorithm>
 
@@ -78,13 +78,13 @@ void CameraRig::resetState() noexcept {
 
 CameraRig CameraRig::makeOrbit() {
     CameraRig rig;
-    rig.addBehavior(std::make_shared<OrbitBehavior>());
+    rig.addBehavior(std::make_shared<OrbitArcballBehavior>());
     return rig;
 }
 
 CameraRig CameraRig::makeArcball() {
     CameraRig rig;
-    auto b = std::make_shared<OrbitBehavior>();
+    auto b = std::make_shared<OrbitArcballBehavior>();
     b->setRotationMode(OrbitRotationMode::eQuaternion);
     rig.addBehavior(std::move(b));
     return rig;
@@ -114,13 +114,13 @@ CameraRig CameraRig::makeOrthoPanZoom() {
 
 CameraRig CameraRig::makeFollow() {
     CameraRig rig;
-    rig.addBehavior(std::make_shared<TrackBehavior>());
+    rig.addBehavior(std::make_shared<FollowBehavior>());
     return rig;
 }
 
 CameraRig CameraRig::makeGameCamera() {
     CameraRig rig;
-    rig.addBehavior(std::make_shared<OrbitBehavior>());
+    rig.addBehavior(std::make_shared<OrbitArcballBehavior>());
     auto fl = std::make_shared<FreeLookBehavior>();
     fl->setConstrainWorldUp(true);
     rig.addBehavior(std::move(fl));

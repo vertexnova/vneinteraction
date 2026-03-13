@@ -11,7 +11,7 @@
 
 #include "vertexnova/interaction/input_mapper.h"
 #include "vertexnova/interaction/free_look_behavior.h"
-#include "vertexnova/interaction/orbit_behavior.h"
+#include "vertexnova/interaction/orbit_arcball_behavior.h"
 
 #include "vertexnova/events/key_event.h"
 #include "vertexnova/events/mouse_event.h"
@@ -27,7 +27,7 @@ struct Navigation3DController::Impl {
     CameraRig rig;
     InputMapper mapper;
     std::shared_ptr<FreeLookBehavior> free_look;  // shared ownership; also in rig
-    std::shared_ptr<OrbitBehavior> orbit;         // shared ownership; only in eGame mode
+    std::shared_ptr<OrbitArcballBehavior> orbit;         // shared ownership; only in eGame mode
 
     NavigateMode mode = NavigateMode::eFps;
 
@@ -255,7 +255,7 @@ InputMapper& Navigation3DController::inputMapper() noexcept {
 FreeLookBehavior& Navigation3DController::freeLookBehavior() noexcept {
     return *impl_->free_look;
 }
-OrbitBehavior* Navigation3DController::orbitBehavior() noexcept {
+OrbitArcballBehavior* Navigation3DController::orbitArcballBehavior() noexcept {
     return impl_->orbit.get();
 }
 
@@ -290,7 +290,7 @@ void Navigation3DController::rebuild() noexcept {
             break;
         case NavigateMode::eGame: {
             impl_->free_look->setConstrainWorldUp(false);
-            impl_->orbit = std::make_shared<OrbitBehavior>();
+            impl_->orbit = std::make_shared<OrbitArcballBehavior>();
             impl_->orbit->setRotationMode(OrbitRotationMode::eEuler);
             impl_->rig.addBehavior(impl_->orbit);
             break;

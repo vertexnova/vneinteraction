@@ -4,13 +4,13 @@
 
 This document reviews the vneinteraction camera manipulation library against modern game engines (Unity/Cinemachine, Unreal Engine, Godot, O3DE) and medical visualization toolkits (3D Slicer, VTK, MITK). It identifies missing features, potential code issues, and provides a prioritized roadmap for both game and medical visualization use cases.
 
-> **Note (2026)**: The library has been refactored to a behavior-based architecture. Legacy manipulators (`ICameraManipulator`, `OrbitManipulator`, etc.) have been removed. The current design uses `ICameraBehavior` (OrbitBehavior, FreeLookBehavior, OrthoPanZoomBehavior, TrackBehavior) and high-level controllers (InspectController, Navigation3DController, Ortho2DController, FollowController). Many items below remain relevant for future enhancements; some references to removed classes are historical.
+> **Note (2026)**: The library has been refactored to a behavior-based architecture. Legacy manipulators (`ICameraManipulator`, `OrbitManipulator`, etc.) have been removed. The current design uses `ICameraBehavior` (OrbitArcballBehavior, FreeLookBehavior, OrthoPanZoomBehavior, FollowBehavior) and high-level controllers (InspectController, Navigation3DController, Ortho2DController, FollowController). Many items below remain relevant for future enhancements; some references to removed classes are historical.
 
 ---
 
 ## Current Strengths
 
-- Clean interface hierarchy: `ICameraBehavior` -> `OrbitBehavior`, `FreeLookBehavior`, `OrthoPanZoomBehavior`, `TrackBehavior`
+- Clean interface hierarchy: `ICameraBehavior` -> `OrbitArcballBehavior`, `FreeLookBehavior`, `OrthoPanZoomBehavior`, `FollowBehavior`
 - Command/action layer (`CameraInputAdapter` + `CameraActionType`) decouples input bindings from manipulation logic
 - Both perspective and orthographic camera support across orbit-style behaviors
 - Inertia with exponential decay on pan and rotation
@@ -119,9 +119,9 @@ The library computes `getWorldUnitsPerPixel()` but has no:
 
 ## Existing Code Issues
 
-> The following issues referred to legacy manipulator code that has been removed. Equivalent behavior classes (e.g. `TrackBehavior`, `FreeLookBehavior`) have been audited; `getWorldUnitsPerPixel()` is implemented where applicable. Retained for historical reference.
+> The following issues referred to legacy manipulator code that has been removed. Equivalent behavior classes (e.g. `FollowBehavior`, `FreeLookBehavior`) have been audited; `getWorldUnitsPerPixel()` is implemented where applicable. Retained for historical reference.
 
-### ~~`FollowManipulator::getWorldUnitsPerPixel()` returns 0~~ (resolved in TrackBehavior)
+### ~~`FollowManipulator::getWorldUnitsPerPixel()` returns 0~~ (resolved in FollowBehavior)
 
 `follow_manipulator.cpp:131` returns `0.0f` unconditionally. Any downstream division by this value produces infinity or NaN.
 
@@ -139,9 +139,9 @@ The library computes `getWorldUnitsPerPixel()` but has no:
 
 **Fix:** Same approach as FPS manipulator.
 
-### `OrbitBehavior` Y-up handling
+### `OrbitArcballBehavior` Y-up handling
 
-OrbitBehavior and FreeLookBehavior use world-up for spherical coordinates. Verify Z-up (`setWorldUp`) works correctly across all modes.
+OrbitArcballBehavior and FreeLookBehavior use world-up for spherical coordinates. Verify Z-up (`setWorldUp`) works correctly across all modes.
 
 **Fix:** Generalize yaw/pitch extraction by projecting onto the world-up axis and its perpendicular plane.
 

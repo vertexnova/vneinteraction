@@ -242,7 +242,7 @@ void Ortho2DController::rebuildRules() noexcept {
 
     if (rotation_enabled_) {
         // RMB = in-plane rotate (eRotateDelta — OrthoPanZoomBehavior ignores it,
-        // but a future OrbitBehavior layer could handle it)
+        // but a future OrbitArcballBehavior layer could handle it)
         rules.push_back({
             .trigger = InputRule::Trigger::eMouseButton,
             .code = static_cast<int>(MouseButton::eRight),

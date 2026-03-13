@@ -33,7 +33,7 @@ namespace vne::interaction {
  *
  * All registered behaviors receive every CameraAction. Each behavior silently
  * ignores actions it doesn't handle. This enables composition: e.g. adding
- * both OrbitBehavior and FreeLookBehavior creates a "game camera" that
+ * both OrbitArcballBehavior and FreeLookBehavior creates a "game camera" that
  * supports both orbiting and WASD flight simultaneously.
  *
  * ### Usage
@@ -43,7 +43,7 @@ namespace vne::interaction {
  *
  * // Custom composition (game camera):
  * CameraRig rig;
- * rig.addBehavior(std::make_shared<OrbitBehavior>());
+ * rig.addBehavior(std::make_shared<OrbitArcballBehavior>());
  * rig.addBehavior(std::make_shared<FreeLookBehavior>());
  * ```
  *
@@ -119,10 +119,10 @@ class VNE_INTERACTION_API CameraRig {
     // Convenience factory methods
     // -------------------------------------------------------------------------
 
-    /** Orbit rig: OrbitBehavior with Euler rotation. Default for 3D model viewers. */
+    /** Orbit rig: OrbitArcballBehavior with Euler rotation. Default for 3D model viewers. */
     static CameraRig makeOrbit();
 
-    /** Arcball rig: OrbitBehavior with Quaternion rotation. Smoother, no gimbal lock. */
+    /** Arcball rig: OrbitArcballBehavior with Quaternion rotation. Smoother, no gimbal lock. */
     static CameraRig makeArcball();
 
     /** FPS rig: FreeLookBehavior with world-up constraint. */
@@ -134,11 +134,11 @@ class VNE_INTERACTION_API CameraRig {
     /** Ortho pan+zoom rig: OrthoPanZoomBehavior. */
     static CameraRig makeOrthoPanZoom();
 
-    /** Follow rig: TrackBehavior (autonomous smooth target following). */
+    /** Follow rig: FollowBehavior (autonomous smooth target following). */
     static CameraRig makeFollow();
 
     /**
-     * Game camera rig: OrbitBehavior (Euler) + FreeLookBehavior (constrained).
+     * Game camera rig: OrbitArcballBehavior (Euler) + FreeLookBehavior (constrained).
      * LMB orbits, RMB looks, WASD flies — all simultaneously.
      */
     static CameraRig makeGameCamera();

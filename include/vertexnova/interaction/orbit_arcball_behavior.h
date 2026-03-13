@@ -10,8 +10,8 @@
  */
 
 /**
- * @file orbit_behavior.h
- * @brief OrbitBehavior — orbit/arcball camera behavior (ICameraBehavior implementation).
+ * @file orbit_arcball_behavior.h
+ * @brief OrbitArcballBehavior — orbit/arcball camera behavior (ICameraBehavior implementation).
  *
  * Supports both Euler (classic orbit) and Quaternion (arcball) rotation modes,
  * and three pivot modes (COI, ViewCenter, Fixed). Handles rotate, pan, zoom,
@@ -36,7 +36,7 @@ class ICamera;
 namespace vne::interaction {
 
 /**
- * @brief Rotation algorithm selection for OrbitBehavior.
+ * @brief Rotation algorithm selection for OrbitArcballBehavior.
  */
 enum class OrbitRotationMode : std::uint8_t {
     eEuler = 0,       //!< Classic Euler yaw/pitch orbit
@@ -57,16 +57,16 @@ enum class OrbitRotationMode : std::uint8_t {
  *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
  */
-class OrbitBehavior final : public ICameraBehavior {
+class OrbitArcballBehavior final : public ICameraBehavior {
    public:
     /** Construct with default settings (Euler mode, eCoi pivot, Y-up). */
-    OrbitBehavior() noexcept;
-    ~OrbitBehavior() noexcept override = default;
+    OrbitArcballBehavior() noexcept;
+    ~OrbitArcballBehavior() noexcept override = default;
 
-    OrbitBehavior(const OrbitBehavior&) = delete;
-    OrbitBehavior& operator=(const OrbitBehavior&) = delete;
-    OrbitBehavior(OrbitBehavior&&) noexcept = default;
-    OrbitBehavior& operator=(OrbitBehavior&&) noexcept = default;
+    OrbitArcballBehavior(const OrbitArcballBehavior&) = delete;
+    OrbitArcballBehavior& operator=(const OrbitArcballBehavior&) = delete;
+    OrbitArcballBehavior(OrbitArcballBehavior&&) noexcept = default;
+    OrbitArcballBehavior& operator=(OrbitArcballBehavior&&) noexcept = default;
 
     // -------------------------------------------------------------------------
     // ICameraBehavior
@@ -98,7 +98,7 @@ class OrbitBehavior final : public ICameraBehavior {
     void setEnabled(bool enabled) noexcept override { enabled_ = enabled; }
 
     // -------------------------------------------------------------------------
-    // Orbit-specific API
+    // Orbit/arcball-specific API
     // -------------------------------------------------------------------------
 
     /** Set the rotation algorithm (Euler or Quaternion). */
