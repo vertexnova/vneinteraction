@@ -19,6 +19,8 @@
 
 namespace vne::interaction {
 
+using namespace vne;
+
 // ---------------------------------------------------------------------------
 // Pimpl
 // ---------------------------------------------------------------------------
@@ -27,7 +29,7 @@ struct Navigation3DController::Impl {
     CameraRig rig;
     InputMapper mapper;
     std::shared_ptr<FreeLookBehavior> free_look;  // shared ownership; also in rig
-    std::shared_ptr<OrbitArcballBehavior> orbit;         // shared ownership; only in eGame mode
+    std::shared_ptr<OrbitArcballBehavior> orbit;  // shared ownership; only in eGame mode
 
     NavigateMode mode = NavigateMode::eFps;
 
@@ -72,12 +74,10 @@ void Navigation3DController::setViewportSize(float w, float h) noexcept {
 // Per-frame
 // ---------------------------------------------------------------------------
 
-void Navigation3DController::onEvent(const vne::events::Event& event, double delta_time) noexcept {
-    using ET = vne::events::EventType;
-
+void Navigation3DController::onEvent(const events::Event& event, double delta_time) noexcept {
     switch (event.type()) {
-        case ET::eMouseMoved: {
-            const auto& e = static_cast<const vne::events::MouseMovedEvent&>(event);
+        case events::EventType::eMouseMoved: {
+            const auto& e = static_cast<const events::MouseMovedEvent&>(event);
             const float x = static_cast<float>(e.x());
             const float y = static_cast<float>(e.y());
             const float dx = impl_->first_mouse ? 0.0f : static_cast<float>(e.x() - impl_->last_x);
@@ -88,8 +88,8 @@ void Navigation3DController::onEvent(const vne::events::Event& event, double del
             impl_->mapper.onMouseMove(x, y, dx, dy, delta_time);
             break;
         }
-        case ET::eMouseButtonPressed: {
-            const auto& e = static_cast<const vne::events::MouseButtonEvent&>(event);
+        case events::EventType::eMouseButtonPressed: {
+            const auto& e = static_cast<const events::MouseButtonEvent&>(event);
             if (e.hasPosition()) {
                 impl_->last_x = e.x();
                 impl_->last_y = e.y();
@@ -102,8 +102,8 @@ void Navigation3DController::onEvent(const vne::events::Event& event, double del
                                         delta_time);
             break;
         }
-        case ET::eMouseButtonReleased: {
-            const auto& e = static_cast<const vne::events::MouseButtonEvent&>(event);
+        case events::EventType::eMouseButtonReleased: {
+            const auto& e = static_cast<const events::MouseButtonEvent&>(event);
             if (e.hasPosition()) {
                 impl_->last_x = e.x();
                 impl_->last_y = e.y();
@@ -115,8 +115,8 @@ void Navigation3DController::onEvent(const vne::events::Event& event, double del
                                         delta_time);
             break;
         }
-        case ET::eMouseButtonDoubleClicked: {
-            const auto& e = static_cast<const vne::events::MouseButtonEvent&>(event);
+        case events::EventType::eMouseButtonDoubleClicked: {
+            const auto& e = static_cast<const events::MouseButtonEvent&>(event);
             if (e.hasPosition()) {
                 impl_->last_x = e.x();
                 impl_->last_y = e.y();
@@ -128,8 +128,8 @@ void Navigation3DController::onEvent(const vne::events::Event& event, double del
                                              delta_time);
             break;
         }
-        case ET::eMouseScrolled: {
-            const auto& e = static_cast<const vne::events::MouseScrolledEvent&>(event);
+        case events::EventType::eMouseScrolled: {
+            const auto& e = static_cast<const events::MouseScrolledEvent&>(event);
             impl_->mapper.onMouseScroll(static_cast<float>(e.xOffset()),
                                         static_cast<float>(e.yOffset()),
                                         static_cast<float>(impl_->last_x),
@@ -137,26 +137,26 @@ void Navigation3DController::onEvent(const vne::events::Event& event, double del
                                         delta_time);
             break;
         }
-        case ET::eKeyPressed:
-        case ET::eKeyRepeat: {
-            const auto& e = static_cast<const vne::events::KeyEvent&>(event);
+        case events::EventType::eKeyPressed:
+        case events::EventType::eKeyRepeat: {
+            const auto& e = static_cast<const events::KeyEvent&>(event);
             impl_->mapper.onKey(static_cast<int>(e.keyCode()), true, delta_time);
             break;
         }
-        case ET::eKeyReleased: {
-            const auto& e = static_cast<const vne::events::KeyEvent&>(event);
+        case events::EventType::eKeyReleased: {
+            const auto& e = static_cast<const events::KeyEvent&>(event);
             impl_->mapper.onKey(static_cast<int>(e.keyCode()), false, delta_time);
             break;
         }
-        case ET::eTouchPress: {
-            const auto& e = static_cast<const vne::events::TouchPressEvent&>(event);
+        case events::EventType::eTouchPress: {
+            const auto& e = static_cast<const events::TouchPressEvent&>(event);
             impl_->last_x = e.x();
             impl_->last_y = e.y();
             impl_->first_mouse = false;
             break;
         }
-        case ET::eTouchMove: {
-            const auto& e = static_cast<const vne::events::TouchMoveEvent&>(event);
+        case events::EventType::eTouchMove: {
+            const auto& e = static_cast<const events::TouchMoveEvent&>(event);
             const float dx = impl_->first_mouse ? 0.0f : static_cast<float>(e.x() - impl_->last_x);
             const float dy = impl_->first_mouse ? 0.0f : static_cast<float>(e.y() - impl_->last_y);
             impl_->last_x = e.x();
@@ -165,7 +165,7 @@ void Navigation3DController::onEvent(const vne::events::Event& event, double del
             impl_->mapper.onTouchPan(TouchPan{dx, dy}, delta_time);
             break;
         }
-        case ET::eTouchRelease:
+        case events::EventType::eTouchRelease:
             impl_->first_mouse = true;
             break;
         default:

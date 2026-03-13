@@ -16,6 +16,7 @@
 
 #include "vertexnova/interaction/export.h"
 
+#include <vertexnova/events/types.h>
 #include <vertexnova/math/core/core.h>
 
 #include <cstdint>
@@ -48,8 +49,8 @@ enum class ZoomMethod : std::uint8_t {
 
 /** Rotation algorithm for orbit-style camera (OrbitArcballBehavior, InspectController). */
 enum class OrbitRotationMode : std::uint8_t {
-    eOrbit = 0,   //!< Classic orbit (Euler yaw/pitch), pitch clamped [-89°, 89°]
-    eArcball = 1, //!< Arcball quaternion rotation (smooth, no gimbal lock)
+    eOrbit = 0,    //!< Classic orbit (Euler yaw/pitch), pitch clamped [-89°, 89°]
+    eArcball = 1,  //!< Arcball quaternion rotation (smooth, no gimbal lock)
 };
 
 /**
@@ -84,6 +85,30 @@ enum class MouseButton : int {
     eLeft = 0,    //!< Left mouse button
     eRight = 1,   //!< Right mouse button
     eMiddle = 2,  //!< Middle/wheel mouse button
+};
+
+/**
+ * @brief High-level gesture actions for remappable bindings.
+ *
+ * Used with InputMapper::bindGesture, bindScroll, bindDoubleClick to customize
+ * controls without exposing InputRule or CameraActionType.
+ */
+enum class GestureAction : std::uint8_t {
+    eRotate = 0,    //!< Orbit/arcball rotate (button + drag)
+    ePan = 1,       //!< Pan (button + drag)
+    eZoom = 2,      //!< Zoom (scroll wheel)
+    eLook = 3,      //!< FPS-style look (button + drag)
+    eSetPivot = 4,  //!< Set orbit pivot at cursor (double-click)
+};
+
+/**
+ * @brief Mouse button + modifier binding for gesture remapping.
+ *
+ * Uses vne::events::ModifierKey for modifier_mask (eModNone, eModShift, eModCtrl, eModAlt).
+ */
+struct VNE_INTERACTION_API MouseBinding {
+    MouseButton button = MouseButton::eLeft;
+    vne::events::ModifierKey modifier_mask = vne::events::ModifierKey::eModNone;
 };
 
 /** Touch pan gesture data with screen pixel deltas. */
@@ -153,7 +178,7 @@ struct VNE_INTERACTION_API InputRule {
     /** What kind of input triggers this rule. */
     enum class Trigger : std::uint8_t {
         eMouseButton,    //!< Mouse button; code = MouseButton int (0=left, 1=right, 2=middle)
-        eKey,            //!< Keyboard key; code = GLFW key code (e.g. 87 = W)
+        eKey,            //!< Keyboard key; code = vne::events::KeyCode:: value (e.g. KeyCode::eW)
         eScroll,         //!< Mouse scroll wheel; code = 0
         eTouchPan,       //!< Touch pan gesture; code = 0
         eTouchPinch,     //!< Touch pinch gesture; code = 0

@@ -99,6 +99,34 @@ class InputMapper {
     /** Ortho 2D: RMB/MMB=pan, scroll=zoom, no rotation rules. */
     static std::vector<InputRule> orthoPreset();
 
+    // -------------------------------------------------------------------------
+    // Gesture binding API — remap controls without exposing InputRule
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Bind a button+drag gesture (rotate, pan, look) to a new mouse button.
+     * Replaces any existing rule for this gesture. Call after setRules(preset).
+     */
+    void bindGesture(GestureAction action, MouseBinding binding);
+
+    /**
+     * @brief Bind scroll wheel to zoom (or other scroll action). Replaces existing scroll rule.
+     * @param modifier Modifier required (eModNone for default).
+     */
+    void bindScroll(GestureAction action, vne::events::ModifierKey modifier = vne::events::ModifierKey::eModNone);
+
+    /**
+     * @brief Bind double-click to set pivot. Replaces existing double-click rule for this action.
+     */
+    void bindDoubleClick(GestureAction action,
+                         MouseButton button,
+                         vne::events::ModifierKey modifier = vne::events::ModifierKey::eModNone);
+
+    /**
+     * @brief Remove all rules that implement the given gesture.
+     */
+    void unbindGesture(GestureAction action);
+
    private:
     void emit(CameraActionType action, const CameraCommandPayload& payload, double dt) noexcept;
 

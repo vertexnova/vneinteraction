@@ -20,6 +20,8 @@
 
 namespace vne::interaction {
 
+using namespace vne;
+
 // ---------------------------------------------------------------------------
 // Pimpl
 // ---------------------------------------------------------------------------
@@ -157,12 +159,10 @@ void InspectController::setViewportSize(float w, float h) noexcept {
 // Per-frame
 // ---------------------------------------------------------------------------
 
-void InspectController::onEvent(const vne::events::Event& event, double delta_time) noexcept {
-    using ET = vne::events::EventType;
-
+void InspectController::onEvent(const events::Event& event, double delta_time) noexcept {
     switch (event.type()) {
-        case ET::eMouseMoved: {
-            const auto& e = static_cast<const vne::events::MouseMovedEvent&>(event);
+        case events::EventType::eMouseMoved: {
+            const auto& e = static_cast<const events::MouseMovedEvent&>(event);
             const float x = static_cast<float>(e.x());
             const float y = static_cast<float>(e.y());
             const float dx = impl_->first_mouse ? 0.0f : static_cast<float>(e.x() - impl_->last_x);
@@ -173,8 +173,8 @@ void InspectController::onEvent(const vne::events::Event& event, double delta_ti
             impl_->mapper.onMouseMove(x, y, dx, dy, delta_time);
             break;
         }
-        case ET::eMouseButtonPressed: {
-            const auto& e = static_cast<const vne::events::MouseButtonEvent&>(event);
+        case events::EventType::eMouseButtonPressed: {
+            const auto& e = static_cast<const events::MouseButtonEvent&>(event);
             if (e.hasPosition()) {
                 impl_->last_x = e.x();
                 impl_->last_y = e.y();
@@ -187,8 +187,8 @@ void InspectController::onEvent(const vne::events::Event& event, double delta_ti
                                         delta_time);
             break;
         }
-        case ET::eMouseButtonReleased: {
-            const auto& e = static_cast<const vne::events::MouseButtonEvent&>(event);
+        case events::EventType::eMouseButtonReleased: {
+            const auto& e = static_cast<const events::MouseButtonEvent&>(event);
             if (e.hasPosition()) {
                 impl_->last_x = e.x();
                 impl_->last_y = e.y();
@@ -200,8 +200,8 @@ void InspectController::onEvent(const vne::events::Event& event, double delta_ti
                                         delta_time);
             break;
         }
-        case ET::eMouseButtonDoubleClicked: {
-            const auto& e = static_cast<const vne::events::MouseButtonEvent&>(event);
+        case events::EventType::eMouseButtonDoubleClicked: {
+            const auto& e = static_cast<const events::MouseButtonEvent&>(event);
             if (e.hasPosition()) {
                 impl_->last_x = e.x();
                 impl_->last_y = e.y();
@@ -213,8 +213,8 @@ void InspectController::onEvent(const vne::events::Event& event, double delta_ti
                                              delta_time);
             break;
         }
-        case ET::eMouseScrolled: {
-            const auto& e = static_cast<const vne::events::MouseScrolledEvent&>(event);
+        case events::EventType::eMouseScrolled: {
+            const auto& e = static_cast<const events::MouseScrolledEvent&>(event);
             impl_->mapper.onMouseScroll(static_cast<float>(e.xOffset()),
                                         static_cast<float>(e.yOffset()),
                                         static_cast<float>(impl_->last_x),
@@ -222,15 +222,15 @@ void InspectController::onEvent(const vne::events::Event& event, double delta_ti
                                         delta_time);
             break;
         }
-        case ET::eTouchPress: {
-            const auto& e = static_cast<const vne::events::TouchPressEvent&>(event);
+        case events::EventType::eTouchPress: {
+            const auto& e = static_cast<const events::TouchPressEvent&>(event);
             impl_->last_x = e.x();
             impl_->last_y = e.y();
             impl_->first_mouse = false;
             break;
         }
-        case ET::eTouchMove: {
-            const auto& e = static_cast<const vne::events::TouchMoveEvent&>(event);
+        case events::EventType::eTouchMove: {
+            const auto& e = static_cast<const events::TouchMoveEvent&>(event);
             const float dx = impl_->first_mouse ? 0.0f : static_cast<float>(e.x() - impl_->last_x);
             const float dy = impl_->first_mouse ? 0.0f : static_cast<float>(e.y() - impl_->last_y);
             impl_->last_x = e.x();
@@ -239,7 +239,7 @@ void InspectController::onEvent(const vne::events::Event& event, double delta_ti
             impl_->mapper.onTouchPan(TouchPan{dx, dy}, delta_time);
             break;
         }
-        case ET::eTouchRelease:
+        case events::EventType::eTouchRelease:
             impl_->first_mouse = true;
             break;
         default:

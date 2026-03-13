@@ -18,6 +18,8 @@
 
 namespace vne::interaction {
 
+using namespace vne;
+
 // ---------------------------------------------------------------------------
 // Pimpl
 // ---------------------------------------------------------------------------
@@ -90,12 +92,11 @@ void FollowController::onUpdate(double dt) noexcept {
     impl_->rig.onUpdate(dt);
 }
 
-void FollowController::onEvent(const vne::events::Event& event) noexcept {
-    using ET = vne::events::EventType;
+void FollowController::onEvent(const events::Event& event) noexcept {
     constexpr double kDt = 0.0;
 
-    if (event.type() == ET::eMouseScrolled) {
-        const auto& e = static_cast<const vne::events::MouseScrolledEvent&>(event);
+    if (event.type() == events::EventType::eMouseScrolled) {
+        const auto& e = static_cast<const events::MouseScrolledEvent&>(event);
         impl_->mapper.onMouseScroll(static_cast<float>(e.xOffset()),
                                     static_cast<float>(e.yOffset()),
                                     static_cast<float>(impl_->last_x),

@@ -139,7 +139,8 @@ vne::math::Vec3f OrbitArcballBehavior::computeRight(const vne::math::Vec3f& fron
     return (len < kEpsilon) ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : (r / len);
 }
 
-vne::math::Vec3f OrbitArcballBehavior::computeUp(const vne::math::Vec3f& front, const vne::math::Vec3f& right) const noexcept {
+vne::math::Vec3f OrbitArcballBehavior::computeUp(const vne::math::Vec3f& front,
+                                                 const vne::math::Vec3f& right) const noexcept {
     const vne::math::Vec3f up = front.cross(right);
     const float len = up.length();
     return (len < kEpsilon) ? world_up_ : (up / len);
@@ -381,7 +382,8 @@ void OrbitArcballBehavior::beginPan(float x_px, float y_px) noexcept {
     inertia_pan_velocity_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
 }
 
-void OrbitArcballBehavior::dragPan(float /*x*/, float /*y*/, float delta_x_px, float delta_y_px, double delta_time) noexcept {
+void OrbitArcballBehavior::dragPan(
+    float /*x*/, float /*y*/, float delta_x_px, float delta_y_px, double delta_time) noexcept {
     if (!camera_) {
         return;
     }
@@ -848,7 +850,9 @@ void OrbitArcballBehavior::onUpdate(double delta_time) noexcept {
 // onAction
 // ---------------------------------------------------------------------------
 
-bool OrbitArcballBehavior::onAction(CameraActionType action, const CameraCommandPayload& payload, double delta_time) noexcept {
+bool OrbitArcballBehavior::onAction(CameraActionType action,
+                                    const CameraCommandPayload& payload,
+                                    double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return false;
     }

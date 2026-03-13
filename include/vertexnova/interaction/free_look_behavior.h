@@ -100,9 +100,7 @@ class FreeLookBehavior final : public ICameraBehavior {
      * @brief Convenience: set mode from bool (true = eFps, false = eFly).
      * @param constrain true = FPS; false = Fly
      */
-    void setConstrainWorldUp(bool constrain) noexcept {
-        mode_ = constrain ? FreeLookMode::eFps : FreeLookMode::eFly;
-    }
+    void setConstrainWorldUp(bool constrain) noexcept { mode_ = constrain ? FreeLookMode::eFps : FreeLookMode::eFly; }
     [[nodiscard]] bool getConstrainWorldUp() const noexcept { return mode_ == FreeLookMode::eFps; }
 
     /** Set the world-space up vector used in FPS mode (default: +Y). */

@@ -9,11 +9,15 @@
 
 #include "vertexnova/interaction/input_mapper.h"
 
+#include <vertexnova/events/types.h>
+
 #include <algorithm>
 #include <cassert>
 #include <cstring>
 
 namespace vne::interaction {
+
+using namespace vne;
 
 // ---------------------------------------------------------------------------
 // Construction helpers
@@ -41,9 +45,10 @@ static InputRule makeKeyRule(int key, CameraActionType press, CameraActionType r
     return r;
 }
 
-static InputRule makeScrollRule(CameraActionType delta) {
+static InputRule makeScrollRule(CameraActionType delta, int modifier = kModNone) {
     InputRule r;
     r.trigger = InputRule::Trigger::eScroll;
+    r.modifier_mask = modifier;
     r.on_delta = delta;
     return r;
 }
@@ -85,6 +90,124 @@ void InputMapper::addRule(InputRule rule) {
 
 void InputMapper::clearRules() {
     rules_.clear();
+    resetState();
+}
+
+// ---------------------------------------------------------------------------
+// Gesture binding API
+// ---------------------------------------------------------------------------
+
+namespace {
+
+bool isRotateRule(const InputRule& r) {
+    return r.trigger == InputRule::Trigger::eMouseButton && r.on_press == CameraActionType::eBeginRotate
+           && r.on_release == CameraActionType::eEndRotate && r.on_delta == CameraActionType::eRotateDelta;
+}
+bool isPanRule(const InputRule& r) {
+    return r.trigger == InputRule::Trigger::eMouseButton && r.on_press == CameraActionType::eBeginPan
+           && r.on_release == CameraActionType::eEndPan && r.on_delta == CameraActionType::ePanDelta;
+}
+bool isLookRule(const InputRule& r) {
+    return r.trigger == InputRule::Trigger::eMouseButton && r.on_press == CameraActionType::eBeginLook
+           && r.on_release == CameraActionType::eEndLook && r.on_delta == CameraActionType::eLookDelta;
+}
+bool isSetPivotRule(const InputRule& r) {
+    return r.trigger == InputRule::Trigger::eMouseDblClick && r.on_press == CameraActionType::eSetPivotAtCursor;
+}
+bool isZoomScrollRule(const InputRule& r) {
+    return r.trigger == InputRule::Trigger::eScroll && r.on_delta == CameraActionType::eZoomAtCursor;
+}
+
+template<typename Pred>
+void eraseRules(std::vector<InputRule>& rules, Pred pred) {
+    rules.erase(std::remove_if(rules.begin(), rules.end(), pred), rules.end());
+}
+
+void eraseButtonRuleAt(std::vector<InputRule>& rules, int button, int modifier) {
+    eraseRules(rules, [button, modifier](const InputRule& r) {
+        return r.trigger == InputRule::Trigger::eMouseButton && r.code == button && r.modifier_mask == modifier;
+    });
+}
+
+}  // namespace
+
+void InputMapper::bindGesture(GestureAction action, MouseBinding binding) {
+    const int btn = static_cast<int>(binding.button);
+    const int mod = static_cast<int>(binding.modifier_mask);
+
+    switch (action) {
+        case GestureAction::eRotate:
+            eraseRules(rules_, isRotateRule);
+            eraseButtonRuleAt(rules_, btn, mod);  // clear slot for new binding
+            rules_.push_back(makeButtonRule(btn,
+                                            mod,
+                                            CameraActionType::eBeginRotate,
+                                            CameraActionType::eEndRotate,
+                                            CameraActionType::eRotateDelta));
+            break;
+        case GestureAction::ePan:
+            eraseRules(rules_, isPanRule);
+            eraseButtonRuleAt(rules_, btn, mod);
+            rules_.push_back(makeButtonRule(btn,
+                                            mod,
+                                            CameraActionType::eBeginPan,
+                                            CameraActionType::eEndPan,
+                                            CameraActionType::ePanDelta));
+            break;
+        case GestureAction::eLook:
+            eraseRules(rules_, isLookRule);
+            eraseButtonRuleAt(rules_, btn, mod);
+            rules_.push_back(makeButtonRule(btn,
+                                            mod,
+                                            CameraActionType::eBeginLook,
+                                            CameraActionType::eEndLook,
+                                            CameraActionType::eLookDelta));
+            break;
+        case GestureAction::eZoom:
+        case GestureAction::eSetPivot:
+            // bindGesture only handles button+drag; use bindScroll/bindDoubleClick for those
+            break;
+    }
+    resetState();
+}
+
+void InputMapper::bindScroll(GestureAction action, vne::events::ModifierKey modifier) {
+    if (action != GestureAction::eZoom)
+        return;
+    eraseRules(rules_, isZoomScrollRule);
+    rules_.push_back(makeScrollRule(CameraActionType::eZoomAtCursor, static_cast<int>(modifier)));
+    resetState();
+}
+
+void InputMapper::bindDoubleClick(GestureAction action, MouseButton button, vne::events::ModifierKey modifier) {
+    if (action != GestureAction::eSetPivot)
+        return;
+    eraseRules(rules_, isSetPivotRule);
+    rules_.push_back(makeDblClickRule(static_cast<int>(button), CameraActionType::eSetPivotAtCursor));
+    if (!rules_.empty()) {
+        rules_.back().modifier_mask = static_cast<int>(modifier);
+    }
+    resetState();
+}
+
+void InputMapper::unbindGesture(GestureAction action) {
+    switch (action) {
+        case GestureAction::eRotate:
+            eraseRules(rules_, isRotateRule);
+            break;
+        case GestureAction::ePan:
+            eraseRules(rules_, isPanRule);
+            break;
+        case GestureAction::eLook:
+            eraseRules(rules_, isLookRule);
+            break;
+        case GestureAction::eZoom:
+            eraseRules(rules_, isZoomScrollRule);
+            break;
+        case GestureAction::eSetPivot:
+            eraseRules(rules_, isSetPivotRule);
+            break;
+    }
     resetState();
 }
 
@@ -203,14 +326,12 @@ void InputMapper::onKey(int key, bool pressed, double dt) noexcept {
         return;
 
     // Update modifier state
-    constexpr int kShiftL = 340, kShiftR = 344;
-    constexpr int kCtrlL = 341, kCtrlR = 345;
-    constexpr int kAltL = 342, kAltR = 346;
-    if (key == kShiftL || key == kShiftR)
+    if (key == static_cast<int>(events::KeyCode::eLeftShift) || key == static_cast<int>(events::KeyCode::eRightShift))
         mod_shift_ = pressed;
-    if (key == kCtrlL || key == kCtrlR)
+    if (key == static_cast<int>(events::KeyCode::eLeftControl)
+        || key == static_cast<int>(events::KeyCode::eRightControl))
         mod_ctrl_ = pressed;
-    if (key == kAltL || key == kAltR)
+    if (key == static_cast<int>(events::KeyCode::eLeftAlt) || key == static_cast<int>(events::KeyCode::eRightAlt))
         mod_alt_ = pressed;
 
     // Track active key state
@@ -274,123 +395,182 @@ std::vector<InputRule> InputMapper::orbitPreset() {
     const int kLeft = static_cast<int>(MouseButton::eLeft);
     const int kRight = static_cast<int>(MouseButton::eRight);
     const int kMiddle = static_cast<int>(MouseButton::eMiddle);
-    using AT = CameraActionType;
 
     return {
         // LMB: rotate
-        makeButtonRule(kLeft, kModNone, AT::eBeginRotate, AT::eEndRotate, AT::eRotateDelta),
+        makeButtonRule(kLeft,
+                       kModNone,
+                       CameraActionType::eBeginRotate,
+                       CameraActionType::eEndRotate,
+                       CameraActionType::eRotateDelta),
         // Shift+LMB: pan alias
-        makeButtonRule(kLeft, kModShift, AT::eBeginPan, AT::eEndPan, AT::ePanDelta),
+        makeButtonRule(kLeft,
+                       kModShift,
+                       CameraActionType::eBeginPan,
+                       CameraActionType::eEndPan,
+                       CameraActionType::ePanDelta),
         // RMB: pan
-        makeButtonRule(kRight, kModNone, AT::eBeginPan, AT::eEndPan, AT::ePanDelta),
+        makeButtonRule(kRight,
+                       kModNone,
+                       CameraActionType::eBeginPan,
+                       CameraActionType::eEndPan,
+                       CameraActionType::ePanDelta),
         // MMB: pan
-        makeButtonRule(kMiddle, kModNone, AT::eBeginPan, AT::eEndPan, AT::ePanDelta),
+        makeButtonRule(kMiddle,
+                       kModNone,
+                       CameraActionType::eBeginPan,
+                       CameraActionType::eEndPan,
+                       CameraActionType::ePanDelta),
         // Scroll: zoom
-        makeScrollRule(AT::eZoomAtCursor),
+        makeScrollRule(CameraActionType::eZoomAtCursor),
         // Touch pan: rotate
-        makeTouchPanRule(AT::eRotateDelta),
+        makeTouchPanRule(CameraActionType::eRotateDelta),
         // Touch pinch: zoom
-        makeTouchPinchRule(AT::eZoomAtCursor),
+        makeTouchPinchRule(CameraActionType::eZoomAtCursor),
         // Double-click LMB: set pivot at cursor
-        makeDblClickRule(kLeft, AT::eSetPivotAtCursor),
+        makeDblClickRule(kLeft, CameraActionType::eSetPivotAtCursor),
     };
 }
 
 std::vector<InputRule> InputMapper::fpsPreset() {
     const int kRight = static_cast<int>(MouseButton::eRight);
-    using AT = CameraActionType;
 
     return {
         // RMB: look (mouse look while held)
-        makeButtonRule(kRight, kModNone, AT::eBeginLook, AT::eEndLook, AT::eLookDelta),
+        makeButtonRule(kRight,
+                       kModNone,
+                       CameraActionType::eBeginLook,
+                       CameraActionType::eEndLook,
+                       CameraActionType::eLookDelta),
         // WASD + QE
-        makeKeyRule(87, AT::eMoveForward, AT::eMoveForward),    // W
-        makeKeyRule(83, AT::eMoveBackward, AT::eMoveBackward),  // S
-        makeKeyRule(65, AT::eMoveLeft, AT::eMoveLeft),          // A
-        makeKeyRule(68, AT::eMoveRight, AT::eMoveRight),        // D
-        makeKeyRule(69, AT::eMoveUp, AT::eMoveUp),              // E
-        makeKeyRule(81, AT::eMoveDown, AT::eMoveDown),          // Q
+        makeKeyRule(static_cast<int>(events::KeyCode::eW),
+                    CameraActionType::eMoveForward,
+                    CameraActionType::eMoveForward),
+        makeKeyRule(static_cast<int>(events::KeyCode::eS),
+                    CameraActionType::eMoveBackward,
+                    CameraActionType::eMoveBackward),
+        makeKeyRule(static_cast<int>(events::KeyCode::eA), CameraActionType::eMoveLeft, CameraActionType::eMoveLeft),
+        makeKeyRule(static_cast<int>(events::KeyCode::eD), CameraActionType::eMoveRight, CameraActionType::eMoveRight),
+        makeKeyRule(static_cast<int>(events::KeyCode::eE), CameraActionType::eMoveUp, CameraActionType::eMoveUp),
+        makeKeyRule(static_cast<int>(events::KeyCode::eQ), CameraActionType::eMoveDown, CameraActionType::eMoveDown),
         // Shift: sprint, Ctrl: slow
-        makeKeyRule(340, AT::eSprintModifier, AT::eSprintModifier),  // Left Shift
-        makeKeyRule(344, AT::eSprintModifier, AT::eSprintModifier),  // Right Shift
-        makeKeyRule(341, AT::eSlowModifier, AT::eSlowModifier),      // Left Ctrl
-        makeKeyRule(345, AT::eSlowModifier, AT::eSlowModifier),      // Right Ctrl
+        makeKeyRule(static_cast<int>(events::KeyCode::eLeftShift),
+                    CameraActionType::eSprintModifier,
+                    CameraActionType::eSprintModifier),
+        makeKeyRule(static_cast<int>(events::KeyCode::eRightShift),
+                    CameraActionType::eSprintModifier,
+                    CameraActionType::eSprintModifier),
+        makeKeyRule(static_cast<int>(events::KeyCode::eLeftControl),
+                    CameraActionType::eSlowModifier,
+                    CameraActionType::eSlowModifier),
+        makeKeyRule(static_cast<int>(events::KeyCode::eRightControl),
+                    CameraActionType::eSlowModifier,
+                    CameraActionType::eSlowModifier),
         // Scroll: zoom
-        makeScrollRule(AT::eZoomAtCursor),
+        makeScrollRule(CameraActionType::eZoomAtCursor),
         // Touch pan: look
-        makeTouchPanRule(AT::eLookDelta),
+        makeTouchPanRule(CameraActionType::eLookDelta),
         // Touch pinch: zoom
-        makeTouchPinchRule(AT::eZoomAtCursor),
+        makeTouchPinchRule(CameraActionType::eZoomAtCursor),
     };
 }
 
 std::vector<InputRule> InputMapper::gamePreset() {
     const int kLeft = static_cast<int>(MouseButton::eLeft);
     const int kRight = static_cast<int>(MouseButton::eRight);
-    using AT = CameraActionType;
 
     return {
         // LMB: orbit rotate
-        makeButtonRule(kLeft, kModNone, AT::eBeginRotate, AT::eEndRotate, AT::eRotateDelta),
+        makeButtonRule(kLeft,
+                       kModNone,
+                       CameraActionType::eBeginRotate,
+                       CameraActionType::eEndRotate,
+                       CameraActionType::eRotateDelta),
         // RMB: free look
-        makeButtonRule(kRight, kModNone, AT::eBeginLook, AT::eEndLook, AT::eLookDelta),
+        makeButtonRule(kRight,
+                       kModNone,
+                       CameraActionType::eBeginLook,
+                       CameraActionType::eEndLook,
+                       CameraActionType::eLookDelta),
         // WASD + QE
-        makeKeyRule(87, AT::eMoveForward, AT::eMoveForward),
-        makeKeyRule(83, AT::eMoveBackward, AT::eMoveBackward),
-        makeKeyRule(65, AT::eMoveLeft, AT::eMoveLeft),
-        makeKeyRule(68, AT::eMoveRight, AT::eMoveRight),
-        makeKeyRule(69, AT::eMoveUp, AT::eMoveUp),
-        makeKeyRule(81, AT::eMoveDown, AT::eMoveDown),
+        makeKeyRule(static_cast<int>(events::KeyCode::eW),
+                    CameraActionType::eMoveForward,
+                    CameraActionType::eMoveForward),
+        makeKeyRule(static_cast<int>(events::KeyCode::eS),
+                    CameraActionType::eMoveBackward,
+                    CameraActionType::eMoveBackward),
+        makeKeyRule(static_cast<int>(events::KeyCode::eA), CameraActionType::eMoveLeft, CameraActionType::eMoveLeft),
+        makeKeyRule(static_cast<int>(events::KeyCode::eD), CameraActionType::eMoveRight, CameraActionType::eMoveRight),
+        makeKeyRule(static_cast<int>(events::KeyCode::eE), CameraActionType::eMoveUp, CameraActionType::eMoveUp),
+        makeKeyRule(static_cast<int>(events::KeyCode::eQ), CameraActionType::eMoveDown, CameraActionType::eMoveDown),
         // Shift: sprint
-        makeKeyRule(340, AT::eSprintModifier, AT::eSprintModifier),
-        makeKeyRule(344, AT::eSprintModifier, AT::eSprintModifier),
+        makeKeyRule(static_cast<int>(events::KeyCode::eLeftShift),
+                    CameraActionType::eSprintModifier,
+                    CameraActionType::eSprintModifier),
+        makeKeyRule(static_cast<int>(events::KeyCode::eRightShift),
+                    CameraActionType::eSprintModifier,
+                    CameraActionType::eSprintModifier),
         // Scroll: zoom
-        makeScrollRule(AT::eZoomAtCursor),
+        makeScrollRule(CameraActionType::eZoomAtCursor),
         // Touch pan: rotate
-        makeTouchPanRule(AT::eRotateDelta),
+        makeTouchPanRule(CameraActionType::eRotateDelta),
         // Touch pinch: zoom
-        makeTouchPinchRule(AT::eZoomAtCursor),
+        makeTouchPinchRule(CameraActionType::eZoomAtCursor),
         // Double-click LMB: set pivot
-        makeDblClickRule(kLeft, AT::eSetPivotAtCursor),
+        makeDblClickRule(kLeft, CameraActionType::eSetPivotAtCursor),
     };
 }
 
 std::vector<InputRule> InputMapper::cadPreset() {
     const int kMiddle = static_cast<int>(MouseButton::eMiddle);
-    using AT = CameraActionType;
 
     return {
         // MMB: pan
-        makeButtonRule(kMiddle, kModNone, AT::eBeginPan, AT::eEndPan, AT::ePanDelta),
+        makeButtonRule(kMiddle,
+                       kModNone,
+                       CameraActionType::eBeginPan,
+                       CameraActionType::eEndPan,
+                       CameraActionType::ePanDelta),
         // Shift+MMB: rotate
-        makeButtonRule(kMiddle, kModShift, AT::eBeginRotate, AT::eEndRotate, AT::eRotateDelta),
+        makeButtonRule(kMiddle,
+                       kModShift,
+                       CameraActionType::eBeginRotate,
+                       CameraActionType::eEndRotate,
+                       CameraActionType::eRotateDelta),
         // Scroll: zoom
-        makeScrollRule(AT::eZoomAtCursor),
+        makeScrollRule(CameraActionType::eZoomAtCursor),
         // Touch pan: pan
-        makeTouchPanRule(AT::ePanDelta),
+        makeTouchPanRule(CameraActionType::ePanDelta),
         // Touch pinch: zoom
-        makeTouchPinchRule(AT::eZoomAtCursor),
+        makeTouchPinchRule(CameraActionType::eZoomAtCursor),
         // Double-click MMB: set pivot
-        makeDblClickRule(kMiddle, AT::eSetPivotAtCursor),
+        makeDblClickRule(kMiddle, CameraActionType::eSetPivotAtCursor),
     };
 }
 
 std::vector<InputRule> InputMapper::orthoPreset() {
     const int kRight = static_cast<int>(MouseButton::eRight);
     const int kMiddle = static_cast<int>(MouseButton::eMiddle);
-    using AT = CameraActionType;
 
     return {
         // RMB: pan
-        makeButtonRule(kRight, kModNone, AT::eBeginPan, AT::eEndPan, AT::ePanDelta),
+        makeButtonRule(kRight,
+                       kModNone,
+                       CameraActionType::eBeginPan,
+                       CameraActionType::eEndPan,
+                       CameraActionType::ePanDelta),
         // MMB: pan
-        makeButtonRule(kMiddle, kModNone, AT::eBeginPan, AT::eEndPan, AT::ePanDelta),
+        makeButtonRule(kMiddle,
+                       kModNone,
+                       CameraActionType::eBeginPan,
+                       CameraActionType::eEndPan,
+                       CameraActionType::ePanDelta),
         // Scroll: zoom
-        makeScrollRule(AT::eZoomAtCursor),
+        makeScrollRule(CameraActionType::eZoomAtCursor),
         // Touch pan: pan
-        makeTouchPanRule(AT::ePanDelta),
+        makeTouchPanRule(CameraActionType::ePanDelta),
         // Touch pinch: zoom
-        makeTouchPinchRule(AT::eZoomAtCursor),
+        makeTouchPinchRule(CameraActionType::eZoomAtCursor),
         // No rotation rules — DOF gating via omission
     };
 }
