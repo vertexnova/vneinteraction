@@ -18,7 +18,7 @@
  * Handles eZoomAtCursor and eResetView actions.
  */
 
-#include "vertexnova/interaction/camera_behavior.h"
+#include "vertexnova/interaction/camera_behavior_base.h"
 #include "vertexnova/interaction/interaction_types.h"
 
 #include "vertexnova/scene/camera/perspective_camera.h"
@@ -49,7 +49,7 @@ namespace vne::interaction {
  *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
  */
-class VNE_INTERACTION_API FollowBehavior final : public ICameraBehavior {
+class VNE_INTERACTION_API FollowBehavior final : public CameraBehaviorBase {
    public:
     FollowBehavior() noexcept = default;
     ~FollowBehavior() noexcept override = default;
@@ -81,8 +81,7 @@ class VNE_INTERACTION_API FollowBehavior final : public ICameraBehavior {
     /** No stateful interaction to reset; no-op. */
     void resetState() noexcept override {}
 
-    [[nodiscard]] bool isEnabled() const noexcept override { return enabled_; }
-    void setEnabled(bool enabled) noexcept override { enabled_ = enabled; }
+    // isEnabled / setEnabled inherited from CameraBehaviorBase
 
     // -------------------------------------------------------------------------
     // Follow-specific API
@@ -147,12 +146,7 @@ class VNE_INTERACTION_API FollowBehavior final : public ICameraBehavior {
     [[nodiscard]] std::shared_ptr<vne::scene::PerspectiveCamera> perspCamera() const noexcept;
     [[nodiscard]] std::shared_ptr<vne::scene::OrthographicCamera> orthoCamera() const noexcept;
 
-    std::shared_ptr<vne::scene::ICamera> camera_;
-    bool enabled_ = true;
-
-    float viewport_width_ = 1280.0f;
-    float viewport_height_ = 720.0f;
-    float scene_scale_ = 1.0f;
+    // camera_, enabled_, viewport_width_, viewport_height_, scene_scale_ inherited from CameraBehaviorBase
 
     vne::math::Vec3f target_world_{0.0f, 0.0f, 0.0f};
     vne::math::Vec3f offset_world_{0.0f, 2.0f, 5.0f};

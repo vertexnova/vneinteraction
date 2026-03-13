@@ -18,7 +18,7 @@
  * inertia, and fitToAABB.
  */
 
-#include "vertexnova/interaction/camera_behavior.h"
+#include "vertexnova/interaction/camera_behavior_base.h"
 #include "vertexnova/interaction/interaction_types.h"
 
 #include "vertexnova/scene/camera/orthographic_camera.h"
@@ -49,7 +49,7 @@ namespace vne::interaction {
  *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
  */
-class VNE_INTERACTION_API OrbitArcballBehavior final : public ICameraBehavior {
+class VNE_INTERACTION_API OrbitArcballBehavior final : public CameraBehaviorBase {
    public:
     /** Construct with default settings (eOrbit mode, eCoi pivot, Y-up). */
     OrbitArcballBehavior() noexcept;
@@ -83,11 +83,7 @@ class VNE_INTERACTION_API OrbitArcballBehavior final : public ICameraBehavior {
     /** Reset all interaction state (velocities, drag tracking). */
     void resetState() noexcept override;
 
-    /** @return true if this behavior is enabled. */
-    [[nodiscard]] bool isEnabled() const noexcept override { return enabled_; }
-
-    /** Enable or disable this behavior. */
-    void setEnabled(bool enabled) noexcept override { enabled_ = enabled; }
+    // isEnabled / setEnabled inherited from CameraBehaviorBase
 
     // -------------------------------------------------------------------------
     // Orbit/arcball-specific API
@@ -211,12 +207,7 @@ class VNE_INTERACTION_API OrbitArcballBehavior final : public ICameraBehavior {
     [[nodiscard]] bool isOrthographic() const noexcept;
 
     // ---- state ------------------------------------------------------------------
-    std::shared_ptr<vne::scene::ICamera> camera_;
-    bool enabled_ = true;
-
-    float viewport_width_ = 1280.0f;
-    float viewport_height_ = 720.0f;
-    float scene_scale_ = 1.0f;
+    // camera_, enabled_, viewport_width_, viewport_height_, scene_scale_ inherited from CameraBehaviorBase
 
     OrbitRotationMode rotation_mode_ = OrbitRotationMode::eOrbit;
     OrbitPivotMode pivot_mode_ = OrbitPivotMode::eCoi;

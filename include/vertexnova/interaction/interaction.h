@@ -16,6 +16,7 @@
  */
 
 #include "vertexnova/interaction/camera_behavior.h"
+#include "vertexnova/interaction/camera_behavior_base.h"
 #include "vertexnova/interaction/camera_rig.h"
 #include "vertexnova/interaction/follow_controller.h"
 #include "vertexnova/interaction/free_look_behavior.h"

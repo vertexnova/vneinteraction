@@ -20,6 +20,7 @@ set(SOURCE_FILES
     vertexnova/interaction/navigation_3d_controller.cpp
     vertexnova/interaction/ortho_2d_controller.cpp
     vertexnova/interaction/follow_controller.cpp
+    vertexnova/interaction/controller_event_dispatch.cpp
 )
 
 set(HEADER_FILES
@@ -27,6 +28,7 @@ set(HEADER_FILES
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/version.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/interaction_types.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_behavior.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_behavior_base.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_rig.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/orbit_arcball_behavior.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/free_look_behavior.h
