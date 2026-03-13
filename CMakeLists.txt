@@ -29,6 +29,9 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Required when linking static libs (e.g. vnelogging) into this project's shared library (Linux/Unix)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 # CMake modules from vnecmake submodule (cmake/vnecmake)
 set(VNE_DEPS_INTERNAL_DIR ${PROJECT_SOURCE_DIR}/deps/internal)
 set(VNE_DEPS_EXTERNAL_DIR ${PROJECT_SOURCE_DIR}/deps/external)
@@ -435,8 +438,10 @@ install(TARGETS vneinteraction InteractionWarnings InteractionBuildSettings
 install(DIRECTORY include/vertexnova/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/vertexnova
     COMPONENT vneinteraction
     FILES_MATCHING PATTERN "*.h")
-install(DIRECTORY src/vertexnova/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/vertexnova
-    COMPONENT vneinteraction
-    FILES_MATCHING PATTERN "*.h")
 install(FILES ${CMAKE_BINARY_DIR}/config.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/vertexnova/interaction
     COMPONENT vneinteraction)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/CHANGELOG.md")
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/CHANGELOG.md"
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/vneinteraction
+        COMPONENT vneinteraction)
+endif()

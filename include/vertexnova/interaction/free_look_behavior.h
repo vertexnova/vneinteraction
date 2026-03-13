@@ -18,7 +18,7 @@
  * - FreeLookMode::eFly  — unconstrained, up follows camera
  */
 
-#include "vertexnova/interaction/camera_behavior.h"
+#include "vertexnova/interaction/camera_behavior_base.h"
 #include "vertexnova/interaction/interaction_types.h"
 
 #include "vertexnova/scene/camera/perspective_camera.h"
@@ -51,7 +51,7 @@ enum class FreeLookMode : std::uint8_t {
  *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
  */
-class VNE_INTERACTION_API FreeLookBehavior final : public ICameraBehavior {
+class VNE_INTERACTION_API FreeLookBehavior final : public CameraBehaviorBase {
    public:
     /** Construct with default FPS settings (FreeLookMode::eFps, Y-up). */
     FreeLookBehavior() noexcept = default;
@@ -85,8 +85,7 @@ class VNE_INTERACTION_API FreeLookBehavior final : public ICameraBehavior {
     /** Reset all input state (keys, looking flag). */
     void resetState() noexcept override;
 
-    [[nodiscard]] bool isEnabled() const noexcept override { return enabled_; }
-    void setEnabled(bool enabled) noexcept override { enabled_ = enabled; }
+    // isEnabled / setEnabled inherited from CameraBehaviorBase
 
     // -------------------------------------------------------------------------
     // FreeLook-specific API
@@ -169,12 +168,7 @@ class VNE_INTERACTION_API FreeLookBehavior final : public ICameraBehavior {
     [[nodiscard]] std::shared_ptr<vne::scene::PerspectiveCamera> perspCamera() const noexcept;
 
     // ---- state ---------------------------------------------------------------
-    std::shared_ptr<vne::scene::ICamera> camera_;
-    bool enabled_ = true;
-
-    float viewport_width_ = 1280.0f;
-    float viewport_height_ = 720.0f;
-    float scene_scale_ = 1.0f;
+    // camera_, enabled_, viewport_width_, viewport_height_, scene_scale_ inherited from CameraBehaviorBase
 
     FreeLookMode mode_ = FreeLookMode::eFps;
     vne::math::Vec3f world_up_{0.0f, 1.0f, 0.0f};

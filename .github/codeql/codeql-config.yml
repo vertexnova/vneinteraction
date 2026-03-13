@@ -1,0 +1,10 @@
+# ----------------------------------------------------------------------
+# CodeQL configuration for vneinteraction
+# Excludes third-party code under deps/external from analysis/reporting
+# so CodeQL findings in e.g. googletest do not appear in code scanning.
+# ----------------------------------------------------------------------
+
+name: vneinteraction CodeQL config
+
+paths-ignore:
+  - "deps/external/**"

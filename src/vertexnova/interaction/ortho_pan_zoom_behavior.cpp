@@ -12,6 +12,8 @@
 #include <vertexnova/math/core/core.h>
 #include <vertexnova/math/core/math_utils.h>
 
+#include <vertexnova/logging/logging.h>
+
 #include <algorithm>
 #include <cmath>
 
@@ -21,6 +23,7 @@ namespace vne::interaction {
 // Constants (mirrors ortho_pan_zoom_manipulator.cpp)
 // ---------------------------------------------------------------------------
 namespace {
+CREATE_VNE_LOGGER_CATEGORY("vne.interaction.ortho_pan_zoom");
 constexpr float kEpsilon = 1e-6f;
 constexpr float kZoomFactorMin = 0.01f;
 constexpr float kZoomFactorMax = 100.0f;
@@ -47,6 +50,9 @@ std::shared_ptr<vne::scene::OrthographicCamera> OrthoPanZoomBehavior::orthoCamer
 
 void OrthoPanZoomBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
     camera_ = std::move(camera);
+    if (!camera_) {
+        VNE_LOG_DEBUG << "OrthoPanZoomBehavior: camera detached (null camera)";
+    }
 }
 
 void OrthoPanZoomBehavior::setViewportSize(float width_px, float height_px) noexcept {
@@ -61,6 +67,7 @@ void OrthoPanZoomBehavior::setViewportSize(float width_px, float height_px) noex
 void OrthoPanZoomBehavior::pan(float delta_x_px, float delta_y_px, double delta_time) noexcept {
     auto ortho = orthoCamera();
     if (!ortho) {
+        VNE_LOG_WARN << "OrthoPanZoomBehavior: pan called without orthographic camera";
         return;
     }
     const vne::math::Vec3f eye = ortho->getPosition();

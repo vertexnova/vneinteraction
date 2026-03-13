@@ -141,7 +141,20 @@ jobs:
 
       - name: Install to staging directory
         shell: bash
-        run: cmake --install build/shared --config Release --component vneinteraction
+        run: |
+          cmake --install build/shared --config Release --component vneinteraction
+          # Verify the library was actually installed; fail fast if the install is headers-only.
+          shopt -s nullglob
+          libs=("${{ github.workspace }}"/install/lib/libvneinteraction* \
+                "${{ github.workspace }}"/install/lib/vneinteraction*   \
+                "${{ github.workspace }}"/install/bin/vneinteraction*   \
+                "${{ github.workspace }}"/install/bin/libvneinteraction*)
+          if [[ ${#libs[@]} -eq 0 ]]; then
+            echo "::error::Library binary not found under install/lib or install/bin — cmake install may have failed."
+            find "${{ github.workspace }}/install" -type f | sort
+            exit 1
+          fi
+          echo "Installed library artifacts: ${libs[*]}"
 
       - name: Package artifact
         shell: bash

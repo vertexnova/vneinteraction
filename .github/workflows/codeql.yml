@@ -23,8 +23,11 @@ on:
       - ".github/release-please-config.json"
       - "docs/**"
       - "**/*.md"
+      - "deps/external/**"
   pull_request:
     branches: ["main"]
+    paths-ignore:
+      - "deps/external/**"
   schedule:
     - cron: "0 2 * * 1"   # Weekly Monday 02:00 UTC
 
@@ -62,6 +65,7 @@ jobs:
         with:
           languages: cpp
           queries: security-extended
+          config-file: .github/codeql/codeql-config.yml
 
       - name: Build (traced by CodeQL)
         run: |

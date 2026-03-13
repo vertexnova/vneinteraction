@@ -27,7 +27,7 @@ using namespace vne;
 struct FollowController::Impl {
     CameraRig rig;
     InputMapper mapper;
-    FollowBehavior* follow = nullptr;  // non-owning alias into rig
+    std::shared_ptr<FollowBehavior> follow;
 
     std::shared_ptr<vne::scene::ICamera> camera;
     float viewport_w = 1280.0f;
@@ -45,9 +45,8 @@ struct FollowController::Impl {
 
 FollowController::FollowController()
     : impl_(std::make_unique<Impl>()) {
-    auto behavior = std::make_shared<FollowBehavior>();
-    impl_->follow = behavior.get();
-    impl_->rig.addBehavior(std::move(behavior));
+    impl_->follow = std::make_shared<FollowBehavior>();
+    impl_->rig.addBehavior(impl_->follow);
 
     // Scroll = zoom (optional, user may want to adjust distance)
     impl_->mapper.addRule({

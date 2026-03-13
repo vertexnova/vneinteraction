@@ -13,6 +13,8 @@
 #include <vertexnova/math/core/core.h>
 #include <vertexnova/math/core/math_utils.h>
 
+#include <vertexnova/logging/logging.h>
+
 #include <algorithm>
 #include <cmath>
 
@@ -22,6 +24,7 @@ namespace vne::interaction {
 // Anonymous constants (mirrors free_camera_base.cpp)
 // ---------------------------------------------------------------------------
 namespace {
+CREATE_VNE_LOGGER_CATEGORY("vne.interaction.free_look");
 constexpr float kEpsilon = 1e-6f;
 constexpr float kPitchMinDeg = -89.0f;
 constexpr float kPitchMaxDeg = 89.0f;
@@ -81,6 +84,9 @@ vne::math::Vec3f FreeLookBehavior::upVector() const noexcept {
 
 void FreeLookBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
     camera_ = std::move(camera);
+    if (!camera_) {
+        VNE_LOG_DEBUG << "FreeLookBehavior: camera detached (null camera)";
+    }
     syncAnglesFromCamera();
 }
 
@@ -208,6 +214,8 @@ void FreeLookBehavior::applyZoom(float zoom_step_or_factor) noexcept {
 void FreeLookBehavior::setWorldUp(const vne::math::Vec3f& up) noexcept {
     if (up.length() > kEpsilon) {
         world_up_ = up.normalized();
+    } else {
+        VNE_LOG_WARN << "FreeLookBehavior: setWorldUp called with zero-length vector, ignoring";
     }
 }
 

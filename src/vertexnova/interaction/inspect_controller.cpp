@@ -12,11 +12,15 @@
 #include "vertexnova/interaction/input_mapper.h"
 #include "vertexnova/interaction/orbit_arcball_behavior.h"
 
-#include "vertexnova/events/key_event.h"
-#include "vertexnova/events/mouse_event.h"
-#include "vertexnova/events/touch_event.h"
+#include "controller_event_dispatch.h"
+
+#include <vertexnova/logging/logging.h>
 
 #include <algorithm>
+
+namespace {
+CREATE_VNE_LOGGER_CATEGORY("vne.interaction.inspect");
+}  // namespace
 
 namespace vne::interaction {
 
@@ -40,9 +44,7 @@ struct InspectController::Impl {
     bool pan_enabled = true;
     bool zoom_enabled = true;
 
-    bool first_mouse = true;
-    double last_x = 0.0;
-    double last_y = 0.0;
+    CursorState cursor;
 };
 
 // ---------------------------------------------------------------------------
@@ -146,6 +148,9 @@ InspectController& InspectController::operator=(InspectController&&) noexcept = 
 
 void InspectController::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
     impl_->camera = camera;
+    if (!camera) {
+        VNE_LOG_DEBUG << "InspectController: camera detached (null camera)";
+    }
     impl_->rig.setCamera(camera);
 }
 
@@ -160,91 +165,7 @@ void InspectController::setViewportSize(float w, float h) noexcept {
 // ---------------------------------------------------------------------------
 
 void InspectController::onEvent(const events::Event& event, double delta_time) noexcept {
-    switch (event.type()) {
-        case events::EventType::eMouseMoved: {
-            const auto& e = static_cast<const events::MouseMovedEvent&>(event);
-            const float x = static_cast<float>(e.x());
-            const float y = static_cast<float>(e.y());
-            const float dx = impl_->first_mouse ? 0.0f : static_cast<float>(e.x() - impl_->last_x);
-            const float dy = impl_->first_mouse ? 0.0f : static_cast<float>(e.y() - impl_->last_y);
-            impl_->last_x = e.x();
-            impl_->last_y = e.y();
-            impl_->first_mouse = false;
-            impl_->mapper.onMouseMove(x, y, dx, dy, delta_time);
-            break;
-        }
-        case events::EventType::eMouseButtonPressed: {
-            const auto& e = static_cast<const events::MouseButtonEvent&>(event);
-            if (e.hasPosition()) {
-                impl_->last_x = e.x();
-                impl_->last_y = e.y();
-            }
-            impl_->first_mouse = false;
-            impl_->mapper.onMouseButton(static_cast<int>(e.button()),
-                                        true,
-                                        static_cast<float>(impl_->last_x),
-                                        static_cast<float>(impl_->last_y),
-                                        delta_time);
-            break;
-        }
-        case events::EventType::eMouseButtonReleased: {
-            const auto& e = static_cast<const events::MouseButtonEvent&>(event);
-            if (e.hasPosition()) {
-                impl_->last_x = e.x();
-                impl_->last_y = e.y();
-            }
-            impl_->mapper.onMouseButton(static_cast<int>(e.button()),
-                                        false,
-                                        static_cast<float>(impl_->last_x),
-                                        static_cast<float>(impl_->last_y),
-                                        delta_time);
-            break;
-        }
-        case events::EventType::eMouseButtonDoubleClicked: {
-            const auto& e = static_cast<const events::MouseButtonEvent&>(event);
-            if (e.hasPosition()) {
-                impl_->last_x = e.x();
-                impl_->last_y = e.y();
-            }
-            impl_->first_mouse = false;
-            impl_->mapper.onMouseDoubleClick(static_cast<int>(e.button()),
-                                             static_cast<float>(impl_->last_x),
-                                             static_cast<float>(impl_->last_y),
-                                             delta_time);
-            break;
-        }
-        case events::EventType::eMouseScrolled: {
-            const auto& e = static_cast<const events::MouseScrolledEvent&>(event);
-            impl_->mapper.onMouseScroll(static_cast<float>(e.xOffset()),
-                                        static_cast<float>(e.yOffset()),
-                                        static_cast<float>(impl_->last_x),
-                                        static_cast<float>(impl_->last_y),
-                                        delta_time);
-            break;
-        }
-        case events::EventType::eTouchPress: {
-            const auto& e = static_cast<const events::TouchPressEvent&>(event);
-            impl_->last_x = e.x();
-            impl_->last_y = e.y();
-            impl_->first_mouse = false;
-            break;
-        }
-        case events::EventType::eTouchMove: {
-            const auto& e = static_cast<const events::TouchMoveEvent&>(event);
-            const float dx = impl_->first_mouse ? 0.0f : static_cast<float>(e.x() - impl_->last_x);
-            const float dy = impl_->first_mouse ? 0.0f : static_cast<float>(e.y() - impl_->last_y);
-            impl_->last_x = e.x();
-            impl_->last_y = e.y();
-            impl_->first_mouse = false;
-            impl_->mapper.onTouchPan(TouchPan{dx, dy}, delta_time);
-            break;
-        }
-        case events::EventType::eTouchRelease:
-            impl_->first_mouse = true;
-            break;
-        default:
-            break;
-    }
+    dispatchMouseEvents(impl_->mapper, impl_->cursor, event, delta_time);
 }
 
 void InspectController::onUpdate(double dt) noexcept {
@@ -318,7 +239,7 @@ void InspectController::fitToAABB(const vne::math::Vec3f& mn, const vne::math::V
 }
 
 void InspectController::reset() noexcept {
-    impl_->first_mouse = true;
+    impl_->cursor = {};
     impl_->rig.resetState();
     impl_->mapper.resetState();
 }

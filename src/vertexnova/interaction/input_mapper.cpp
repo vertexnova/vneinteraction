@@ -10,6 +10,7 @@
 #include "vertexnova/interaction/input_mapper.h"
 
 #include <vertexnova/events/types.h>
+#include <vertexnova/logging/logging.h>
 
 #include <algorithm>
 #include <cassert>
@@ -98,6 +99,7 @@ void InputMapper::clearRules() {
 // ---------------------------------------------------------------------------
 
 namespace {
+CREATE_VNE_LOGGER_CATEGORY("vne.interaction.input_mapper");
 
 bool isRotateRule(const InputRule& r) {
     return r.trigger == InputRule::Trigger::eMouseButton && r.on_press == CameraActionType::eBeginRotate
@@ -225,6 +227,8 @@ void InputMapper::emit(CameraActionType action, const CameraCommandPayload& payl
     }
     if (callback_) {
         callback_(action, payload, dt);
+    } else {
+        VNE_LOG_DEBUG << "InputMapper: action emitted but no callback registered";
     }
 }
 
@@ -321,9 +325,10 @@ void InputMapper::onMouseScroll(float /*scroll_x*/, float scroll_y, float mouse_
 }
 
 void InputMapper::onKey(int key, bool pressed, double dt) noexcept {
-    assert(key >= 0 && key < kMaxKeys && "key code out of range");
-    if (key < 0 || key >= kMaxKeys)
+    if (key < 0 || key >= kMaxKeys) {
+        VNE_LOG_WARN << "InputMapper: key code " << key << " out of range [0, " << kMaxKeys << ")";
         return;
+    }
 
     // Update modifier state
     if (key == static_cast<int>(events::KeyCode::eLeftShift) || key == static_cast<int>(events::KeyCode::eRightShift))
@@ -335,9 +340,7 @@ void InputMapper::onKey(int key, bool pressed, double dt) noexcept {
         mod_alt_ = pressed;
 
     // Track active key state
-    if (key >= 0 && key < kMaxKeys) {
-        active_key_[key] = pressed;
-    }
+    active_key_[key] = pressed;
 
     CameraCommandPayload payload;
     payload.pressed = pressed;
