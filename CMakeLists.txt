@@ -435,8 +435,10 @@ install(TARGETS vneinteraction InteractionWarnings InteractionBuildSettings
 install(DIRECTORY include/vertexnova/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/vertexnova
     COMPONENT vneinteraction
     FILES_MATCHING PATTERN "*.h")
-install(DIRECTORY src/vertexnova/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/vertexnova
-    COMPONENT vneinteraction
-    FILES_MATCHING PATTERN "*.h")
 install(FILES ${CMAKE_BINARY_DIR}/config.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/vertexnova/interaction
     COMPONENT vneinteraction)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/CHANGELOG.md")
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/CHANGELOG.md"
+        DESTINATION ${CMAKE_INSTALL_DATADIR}/vneinteraction
+        COMPONENT vneinteraction)
+endif()

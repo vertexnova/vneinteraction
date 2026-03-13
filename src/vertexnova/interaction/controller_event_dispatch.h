@@ -15,7 +15,7 @@
  *
  * Eliminates the verbatim copy of the mouse/touch switch-case that appeared
  * in InspectController, Navigation3DController, and Ortho2DController.
- * Internal header; not installed.
+ * Internal header — explicitly excluded from the CMake install rule.
  */
 
 #include "vertexnova/interaction/input_mapper.h"
