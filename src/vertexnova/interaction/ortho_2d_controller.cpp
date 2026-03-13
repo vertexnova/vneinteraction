@@ -49,33 +49,17 @@ Ortho2DController::Ortho2DController()
     impl_->ortho_pan_zoom = std::make_shared<OrthoPanZoomBehavior>();
     impl_->rig.addBehavior(impl_->ortho_pan_zoom);
 
-    impl_->mapper.setActionCallback(
-        [this](CameraActionType a, const CameraCommandPayload& p, double dt) { impl_->rig.onAction(a, p, dt); });
+    // Capture raw Impl* so the callback stays valid across moves.
+    impl_->mapper.setActionCallback([impl = impl_.get()](CameraActionType a, const CameraCommandPayload& p, double dt) {
+        impl->rig.onAction(a, p, dt);
+    });
 
     rebuildRules();
 }
 
 Ortho2DController::~Ortho2DController() = default;
-
-Ortho2DController::Ortho2DController(Ortho2DController&& other) noexcept
-    : impl_(std::move(other.impl_)) {
-    if (impl_) {
-        impl_->mapper.setActionCallback(
-            [this](CameraActionType a, const CameraCommandPayload& p, double dt) { impl_->rig.onAction(a, p, dt); });
-    }
-}
-
-Ortho2DController& Ortho2DController::operator=(Ortho2DController&& other) noexcept {
-    if (this != &other) {
-        impl_ = std::move(other.impl_);
-        if (impl_) {
-            impl_->mapper.setActionCallback([this](CameraActionType a, const CameraCommandPayload& p, double dt) {
-                impl_->rig.onAction(a, p, dt);
-            });
-        }
-    }
-    return *this;
-}
+Ortho2DController::Ortho2DController(Ortho2DController&&) noexcept = default;
+Ortho2DController& Ortho2DController::operator=(Ortho2DController&&) noexcept = default;
 
 // ---------------------------------------------------------------------------
 // Core setup

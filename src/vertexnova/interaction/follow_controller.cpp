@@ -54,31 +54,15 @@ FollowController::FollowController()
         .on_delta = CameraActionType::eZoomAtCursor,
     });
 
-    impl_->mapper.setActionCallback(
-        [this](CameraActionType a, const CameraCommandPayload& p, double dt) { impl_->rig.onAction(a, p, dt); });
+    // Capture raw Impl* so the callback stays valid across moves.
+    impl_->mapper.setActionCallback([impl = impl_.get()](CameraActionType a, const CameraCommandPayload& p, double dt) {
+        impl->rig.onAction(a, p, dt);
+    });
 }
 
 FollowController::~FollowController() = default;
-
-FollowController::FollowController(FollowController&& other) noexcept
-    : impl_(std::move(other.impl_)) {
-    if (impl_) {
-        impl_->mapper.setActionCallback(
-            [this](CameraActionType a, const CameraCommandPayload& p, double dt) { impl_->rig.onAction(a, p, dt); });
-    }
-}
-
-FollowController& FollowController::operator=(FollowController&& other) noexcept {
-    if (this != &other) {
-        impl_ = std::move(other.impl_);
-        if (impl_) {
-            impl_->mapper.setActionCallback([this](CameraActionType a, const CameraCommandPayload& p, double dt) {
-                impl_->rig.onAction(a, p, dt);
-            });
-        }
-    }
-    return *this;
-}
+FollowController::FollowController(FollowController&&) noexcept = default;
+FollowController& FollowController::operator=(FollowController&&) noexcept = default;
 
 // ---------------------------------------------------------------------------
 // Core setup

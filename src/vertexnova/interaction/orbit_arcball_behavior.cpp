@@ -123,9 +123,6 @@ void OrbitArcballBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera
 void OrbitArcballBehavior::setViewportSize(float width_px, float height_px) noexcept {
     viewport_width_ = std::max(1.0f, width_px);
     viewport_height_ = std::max(1.0f, height_px);
-    if (auto persp = perspCamera()) {
-        persp->setViewport(viewport_width_, viewport_height_);
-    }
 }
 
 // ---------------------------------------------------------------------------

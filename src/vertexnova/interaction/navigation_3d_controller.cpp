@@ -55,26 +55,8 @@ Navigation3DController::Navigation3DController()
 }
 
 Navigation3DController::~Navigation3DController() = default;
-
-Navigation3DController::Navigation3DController(Navigation3DController&& other) noexcept
-    : impl_(std::move(other.impl_)) {
-    if (impl_) {
-        impl_->mapper.setActionCallback(
-            [this](CameraActionType a, const CameraCommandPayload& p, double dt) { impl_->rig.onAction(a, p, dt); });
-    }
-}
-
-Navigation3DController& Navigation3DController::operator=(Navigation3DController&& other) noexcept {
-    if (this != &other) {
-        impl_ = std::move(other.impl_);
-        if (impl_) {
-            impl_->mapper.setActionCallback([this](CameraActionType a, const CameraCommandPayload& p, double dt) {
-                impl_->rig.onAction(a, p, dt);
-            });
-        }
-    }
-    return *this;
-}
+Navigation3DController::Navigation3DController(Navigation3DController&&) noexcept = default;
+Navigation3DController& Navigation3DController::operator=(Navigation3DController&&) noexcept = default;
 
 // ---------------------------------------------------------------------------
 // Core setup
@@ -263,8 +245,10 @@ void Navigation3DController::rebuild() noexcept {
             break;
     }
     impl_->mapper.setRules(rules);
-    impl_->mapper.setActionCallback(
-        [this](CameraActionType a, const CameraCommandPayload& p, double dt) { impl_->rig.onAction(a, p, dt); });
+    // Capture raw Impl* so the callback stays valid across moves.
+    impl_->mapper.setActionCallback([impl = impl_.get()](CameraActionType a, const CameraCommandPayload& p, double dt) {
+        impl->rig.onAction(a, p, dt);
+    });
 }
 
 }  // namespace vne::interaction

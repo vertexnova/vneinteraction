@@ -131,34 +131,17 @@ InspectController::InspectController()
     impl_->orbit->setRotationMode(OrbitRotationMode::eArcball);
     impl_->rig.addBehavior(impl_->orbit);
 
-    // Wire mapper ->rig
-    impl_->mapper.setActionCallback(
-        [this](CameraActionType a, const CameraCommandPayload& p, double dt) { impl_->rig.onAction(a, p, dt); });
+    // Wire mapper ->rig. Capture raw Impl* so the callback stays valid across moves.
+    impl_->mapper.setActionCallback([impl = impl_.get()](CameraActionType a, const CameraCommandPayload& p, double dt) {
+        impl->rig.onAction(a, p, dt);
+    });
 
     rebuildRules();
 }
 
 InspectController::~InspectController() = default;
-
-InspectController::InspectController(InspectController&& other) noexcept
-    : impl_(std::move(other.impl_)) {
-    if (impl_) {
-        impl_->mapper.setActionCallback(
-            [this](CameraActionType a, const CameraCommandPayload& p, double dt) { impl_->rig.onAction(a, p, dt); });
-    }
-}
-
-InspectController& InspectController::operator=(InspectController&& other) noexcept {
-    if (this != &other) {
-        impl_ = std::move(other.impl_);
-        if (impl_) {
-            impl_->mapper.setActionCallback([this](CameraActionType a, const CameraCommandPayload& p, double dt) {
-                impl_->rig.onAction(a, p, dt);
-            });
-        }
-    }
-    return *this;
-}
+InspectController::InspectController(InspectController&&) noexcept = default;
+InspectController& InspectController::operator=(InspectController&&) noexcept = default;
 
 // ---------------------------------------------------------------------------
 // Core setup
