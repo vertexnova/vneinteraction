@@ -56,8 +56,26 @@ Ortho2DController::Ortho2DController()
 }
 
 Ortho2DController::~Ortho2DController() = default;
-Ortho2DController::Ortho2DController(Ortho2DController&&) noexcept = default;
-Ortho2DController& Ortho2DController::operator=(Ortho2DController&&) noexcept = default;
+
+Ortho2DController::Ortho2DController(Ortho2DController&& other) noexcept
+    : impl_(std::move(other.impl_)) {
+    if (impl_) {
+        impl_->mapper.setActionCallback(
+            [this](CameraActionType a, const CameraCommandPayload& p, double dt) { impl_->rig.onAction(a, p, dt); });
+    }
+}
+
+Ortho2DController& Ortho2DController::operator=(Ortho2DController&& other) noexcept {
+    if (this != &other) {
+        impl_ = std::move(other.impl_);
+        if (impl_) {
+            impl_->mapper.setActionCallback([this](CameraActionType a, const CameraCommandPayload& p, double dt) {
+                impl_->rig.onAction(a, p, dt);
+            });
+        }
+    }
+    return *this;
+}
 
 // ---------------------------------------------------------------------------
 // Core setup

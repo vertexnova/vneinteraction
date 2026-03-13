@@ -139,8 +139,26 @@ InspectController::InspectController()
 }
 
 InspectController::~InspectController() = default;
-InspectController::InspectController(InspectController&&) noexcept = default;
-InspectController& InspectController::operator=(InspectController&&) noexcept = default;
+
+InspectController::InspectController(InspectController&& other) noexcept
+    : impl_(std::move(other.impl_)) {
+    if (impl_) {
+        impl_->mapper.setActionCallback(
+            [this](CameraActionType a, const CameraCommandPayload& p, double dt) { impl_->rig.onAction(a, p, dt); });
+    }
+}
+
+InspectController& InspectController::operator=(InspectController&& other) noexcept {
+    if (this != &other) {
+        impl_ = std::move(other.impl_);
+        if (impl_) {
+            impl_->mapper.setActionCallback([this](CameraActionType a, const CameraCommandPayload& p, double dt) {
+                impl_->rig.onAction(a, p, dt);
+            });
+        }
+    }
+    return *this;
+}
 
 // ---------------------------------------------------------------------------
 // Core setup

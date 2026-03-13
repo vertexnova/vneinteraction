@@ -55,8 +55,26 @@ Navigation3DController::Navigation3DController()
 }
 
 Navigation3DController::~Navigation3DController() = default;
-Navigation3DController::Navigation3DController(Navigation3DController&&) noexcept = default;
-Navigation3DController& Navigation3DController::operator=(Navigation3DController&&) noexcept = default;
+
+Navigation3DController::Navigation3DController(Navigation3DController&& other) noexcept
+    : impl_(std::move(other.impl_)) {
+    if (impl_) {
+        impl_->mapper.setActionCallback(
+            [this](CameraActionType a, const CameraCommandPayload& p, double dt) { impl_->rig.onAction(a, p, dt); });
+    }
+}
+
+Navigation3DController& Navigation3DController::operator=(Navigation3DController&& other) noexcept {
+    if (this != &other) {
+        impl_ = std::move(other.impl_);
+        if (impl_) {
+            impl_->mapper.setActionCallback([this](CameraActionType a, const CameraCommandPayload& p, double dt) {
+                impl_->rig.onAction(a, p, dt);
+            });
+        }
+    }
+    return *this;
+}
 
 // ---------------------------------------------------------------------------
 // Core setup
