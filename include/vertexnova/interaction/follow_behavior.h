@@ -49,7 +49,7 @@ namespace vne::interaction {
  *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
  */
-class FollowBehavior final : public ICameraBehavior {
+class VNE_INTERACTION_API FollowBehavior final : public ICameraBehavior {
    public:
     FollowBehavior() noexcept = default;
     ~FollowBehavior() noexcept override = default;

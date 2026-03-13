@@ -51,7 +51,7 @@ enum class FreeLookMode : std::uint8_t {
  *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
  */
-class FreeLookBehavior final : public ICameraBehavior {
+class VNE_INTERACTION_API FreeLookBehavior final : public ICameraBehavior {
    public:
     /** Construct with default FPS settings (FreeLookMode::eFps, Y-up). */
     FreeLookBehavior() noexcept = default;

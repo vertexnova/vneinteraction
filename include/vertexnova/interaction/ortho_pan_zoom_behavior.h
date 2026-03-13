@@ -42,7 +42,7 @@ namespace vne::interaction {
  *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
  */
-class OrthoPanZoomBehavior final : public ICameraBehavior {
+class VNE_INTERACTION_API OrthoPanZoomBehavior final : public ICameraBehavior {
    public:
     OrthoPanZoomBehavior() noexcept = default;
     ~OrthoPanZoomBehavior() noexcept override = default;

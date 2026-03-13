@@ -18,6 +18,7 @@
  * evaluate rules and emit actions to the registered callback.
  */
 
+#include "vertexnova/interaction/export.h"
 #include "vertexnova/interaction/interaction_types.h"
 
 #include <functional>
@@ -42,7 +43,7 @@ using ActionCallback = std::function<void(CameraActionType, const CameraCommandP
  * The mapper tracks which button/key rules are currently "active" (pressed) so that
  * on_delta actions are only emitted for rules whose trigger button/key is held down.
  */
-class InputMapper {
+class VNE_INTERACTION_API InputMapper {
    public:
     InputMapper() = default;
 

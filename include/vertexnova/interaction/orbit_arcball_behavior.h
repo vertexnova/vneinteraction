@@ -49,7 +49,7 @@ namespace vne::interaction {
  *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
  */
-class OrbitArcballBehavior final : public ICameraBehavior {
+class VNE_INTERACTION_API OrbitArcballBehavior final : public ICameraBehavior {
    public:
     /** Construct with default settings (eOrbit mode, eCoi pivot, Y-up). */
     OrbitArcballBehavior() noexcept;
