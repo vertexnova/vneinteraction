@@ -79,6 +79,47 @@ TEST(ApiRobustness, SetViewportSizeZeroClamped) {
     EXPECT_TRUE(std::isfinite(b.getWorldUnitsPerPixel()));
 }
 
+// setCamera(nullptr) is documented as valid (detach). After detach, onUpdate/onAction must not crash.
+TEST(ApiRobustness, DetachThenUpdateAndActionSafe) {
+    auto cam = makePerspCamera();
+    vne::interaction::CameraCommandPayload p;
+    p.x_px = 640.0f;
+    p.y_px = 360.0f;
+    p.delta_x_px = 10.0f;
+    p.zoom_factor = 1.1f;
+
+    vne::interaction::OrbitArcballBehavior b;
+    b.setCamera(cam);
+    b.setViewportSize(1280.0f, 720.0f);
+    b.setCamera(nullptr);  // detach
+
+    EXPECT_NO_THROW({
+        b.setViewportSize(100.0f, 100.0f);
+        b.onUpdate(0.016);
+        b.onAction(vne::interaction::CameraActionType::eBeginRotate, p, 0.016);
+        b.onAction(vne::interaction::CameraActionType::eRotateDelta, p, 0.016);
+        b.onAction(vne::interaction::CameraActionType::eZoomAtCursor, p, 0.016);
+        b.onUpdate(0.016);
+    });
+}
+
+TEST(ApiRobustness, ControllerDetachThenEventAndUpdateSafe) {
+    auto cam = makePerspCamera();
+    vne::interaction::InspectController ctrl;
+    ctrl.setCamera(cam);
+    ctrl.setViewportSize(1280.0f, 720.0f);
+    ctrl.setCamera(nullptr);  // detach
+
+    EXPECT_NO_THROW({
+        ctrl.setViewportSize(100.0f, 100.0f);
+        vne::events::MouseMovedEvent move(50.0, 50.0);
+        ctrl.onEvent(move, 0.016);
+        vne::events::MouseScrolledEvent scroll(0.0, 1.0);
+        ctrl.onEvent(scroll, 0.016);
+        ctrl.onUpdate(0.016);
+    });
+}
+
 TEST(ApiRobustness, InspectControllerScrollZoom) {
     auto cam = makePerspCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 10.0f));
