@@ -100,7 +100,7 @@ bool OrbitArcballBehavior::isOrthographic() const noexcept {
 // ---------------------------------------------------------------------------
 
 void OrbitArcballBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
-    camera_ = std::move(camera);
+    CameraBehaviorBase::setCamera(std::move(camera));
     if (!camera_) {
         VNE_LOG_DEBUG << "OrbitArcballBehavior: camera detached (null camera)";
     }
@@ -108,8 +108,7 @@ void OrbitArcballBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera
 }
 
 void OrbitArcballBehavior::setViewportSize(float width_px, float height_px) noexcept {
-    viewport_width_ = std::max(1.0f, width_px);
-    viewport_height_ = std::max(1.0f, height_px);
+    CameraBehaviorBase::setViewportSize(width_px, height_px);
     if (auto persp = perspCamera()) {
         persp->resize(viewport_width_, viewport_height_);
     }

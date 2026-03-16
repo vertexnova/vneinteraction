@@ -23,6 +23,17 @@ constexpr float kZoomOrthoHalfMax = 1e6f;
 }  // namespace
 
 // ---------------------------------------------------------------------------
+// ICameraBehavior — overrides that need implementation
+// ---------------------------------------------------------------------------
+
+void CameraBehaviorBase::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
+    camera_ = std::move(camera);
+    if (camera_) {
+        zoom_scale_ = vne::math::clamp(camera_->getSceneScale(), kSceneScaleMin, kSceneScaleMax);
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
 
@@ -47,7 +58,7 @@ std::shared_ptr<vne::scene::OrthographicCamera> CameraBehaviorBase::orthoCamera(
 // ---------------------------------------------------------------------------
 
 void CameraBehaviorBase::dispatchZoom(float factor, float mx, float my) noexcept {
-    if (!camera_ || factor <= 0.0f) {
+    if (!camera_ || factor <= 0.0f || !std::isfinite(factor)) {
         return;
     }
     switch (zoom_method_) {
@@ -116,7 +127,7 @@ void CameraBehaviorBase::applySceneScaleZoom(float factor) noexcept {
 
 void CameraBehaviorBase::applyOrthoZoomToCursor(float factor, float mx, float my) noexcept {
     auto ortho = orthoCamera();
-    if (!ortho) {
+    if (!ortho || viewport_width_ <= 0.0f || viewport_height_ <= 0.0f) {
         return;
     }
     const float ndc_x = (2.0f * mx / viewport_width_) - 1.0f;

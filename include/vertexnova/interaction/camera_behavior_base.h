@@ -60,11 +60,11 @@ class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
     // ICameraBehavior — implemented here so concrete classes don't repeat them
     // -------------------------------------------------------------------------
 
-    void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override { camera_ = std::move(camera); }
+    void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;
 
     void setViewportSize(float width_px, float height_px) noexcept override {
-        viewport_width_ = width_px;
-        viewport_height_ = height_px;
+        viewport_width_ = std::max(1.0f, width_px);
+        viewport_height_ = std::max(1.0f, height_px);
     }
 
     [[nodiscard]] bool isEnabled() const noexcept override { return enabled_; }

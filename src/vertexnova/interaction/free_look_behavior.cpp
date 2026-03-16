@@ -71,7 +71,7 @@ vne::math::Vec3f FreeLookBehavior::upVector() const noexcept {
 // ---------------------------------------------------------------------------
 
 void FreeLookBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
-    camera_ = std::move(camera);
+    CameraBehaviorBase::setCamera(std::move(camera));
     if (!camera_) {
         VNE_LOG_DEBUG << "FreeLookBehavior: camera detached (null camera)";
     }
@@ -79,8 +79,7 @@ void FreeLookBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) no
 }
 
 void FreeLookBehavior::setViewportSize(float width_px, float height_px) noexcept {
-    viewport_width_ = std::max(1.0f, width_px);
-    viewport_height_ = std::max(1.0f, height_px);
+    CameraBehaviorBase::setViewportSize(width_px, height_px);
 }
 
 // ---------------------------------------------------------------------------

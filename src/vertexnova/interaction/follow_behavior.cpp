@@ -34,15 +34,14 @@ constexpr float kOffsetMaxLength = 1e4f;
 // ---------------------------------------------------------------------------
 
 void FollowBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
-    camera_ = std::move(camera);
+    CameraBehaviorBase::setCamera(std::move(camera));
     if (!camera_) {
         VNE_LOG_DEBUG << "FollowBehavior: camera detached (null camera)";
     }
 }
 
 void FollowBehavior::setViewportSize(float width_px, float height_px) noexcept {
-    viewport_width_ = std::max(1.0f, width_px);
-    viewport_height_ = std::max(1.0f, height_px);
+    CameraBehaviorBase::setViewportSize(width_px, height_px);
 }
 
 void FollowBehavior::setOffset(const vne::math::Vec3f& offset) noexcept {
