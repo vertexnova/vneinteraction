@@ -30,7 +30,7 @@ constexpr float kOffsetMaxLength = 1e4f;
 }  // namespace
 
 // ---------------------------------------------------------------------------
-// ICameraBehavior: setCamera / setViewportSize
+// ICameraBehavior: setCamera / onResize
 // ---------------------------------------------------------------------------
 
 void FollowBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
@@ -40,8 +40,8 @@ void FollowBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noex
     }
 }
 
-void FollowBehavior::setViewportSize(float width_px, float height_px) noexcept {
-    CameraBehaviorBase::setViewportSize(width_px, height_px);
+void FollowBehavior::onResize(float width_px, float height_px) noexcept {
+    CameraBehaviorBase::onResize(width_px, height_px);
 }
 
 void FollowBehavior::setOffset(const vne::math::Vec3f& offset) noexcept {

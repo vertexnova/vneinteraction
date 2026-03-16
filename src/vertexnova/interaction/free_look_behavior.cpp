@@ -67,7 +67,7 @@ vne::math::Vec3f FreeLookBehavior::upVector() const noexcept {
 }
 
 // ---------------------------------------------------------------------------
-// ICameraBehavior: setCamera / setViewportSize
+// ICameraBehavior: setCamera / onResize
 // ---------------------------------------------------------------------------
 
 void FreeLookBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
@@ -78,8 +78,8 @@ void FreeLookBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) no
     syncAnglesFromCamera();
 }
 
-void FreeLookBehavior::setViewportSize(float width_px, float height_px) noexcept {
-    CameraBehaviorBase::setViewportSize(width_px, height_px);
+void FreeLookBehavior::onResize(float width_px, float height_px) noexcept {
+    CameraBehaviorBase::onResize(width_px, height_px);
 }
 
 // ---------------------------------------------------------------------------

@@ -40,7 +40,7 @@ namespace vne::interaction {
  *
  * Concrete behaviors inherit from this instead of ICameraBehavior directly.
  * They still override the remaining pure-virtual methods (onAction, onUpdate,
- * resetState) and may override setCamera / setViewportSize when extra sync work
+ * resetState) and may override setCamera / onResize when extra sync work
  * is needed (calling the base version first).
  *
  * ## Zoom dispatch
@@ -62,7 +62,7 @@ class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
 
     void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;
 
-    void setViewportSize(float width_px, float height_px) noexcept override {
+    void onResize(float width_px, float height_px) noexcept override {
         viewport_width_ = std::max(1.0f, width_px);
         viewport_height_ = std::max(1.0f, height_px);
     }

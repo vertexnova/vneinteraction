@@ -19,7 +19,7 @@
  * @code
  * auto ctrl = vne::interaction::Ortho2DController{};
  * ctrl.setCamera(orthoCamera);
- * ctrl.setViewportSize(512, 512);
+ * ctrl.onResize(512, 512);
  * // Scroll = zoom-at-cursor, LMB/MMB drag = pan. Done.
  * @endcode
  *
@@ -71,7 +71,7 @@ class VNE_INTERACTION_API Ortho2DController {
     // -------------------------------------------------------------------------
 
     void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept;
-    void setViewportSize(float width_px, float height_px) noexcept;
+    void onResize(float width_px, float height_px) noexcept;
 
     // -------------------------------------------------------------------------
     // Per-frame

@@ -69,7 +69,7 @@ class VNE_INTERACTION_API OrthoPanZoomBehavior final : public CameraBehaviorBase
     void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;
 
     /** Set viewport size in pixels. */
-    void setViewportSize(float width_px, float height_px) noexcept override;
+    void onResize(float width_px, float height_px) noexcept override;
 
     /** Reset pan inertia. */
     void resetState() noexcept override;

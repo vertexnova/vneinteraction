@@ -19,7 +19,7 @@
  * @code
  * auto ctrl = vne::interaction::InspectController{};
  * ctrl.setCamera(camera);
- * ctrl.setViewportSize(1920, 1080);
+ * ctrl.onResize(1920, 1080);
  * // In your loop:
  * ctrl.onEvent(event);
  * ctrl.onUpdate(dt);
@@ -96,7 +96,7 @@ class VNE_INTERACTION_API InspectController {
     void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept;
 
     /** Notify the controller of the viewport dimensions (pixels). */
-    void setViewportSize(float width_px, float height_px) noexcept;
+    void onResize(float width_px, float height_px) noexcept;
 
     // -------------------------------------------------------------------------
     // Per-frame

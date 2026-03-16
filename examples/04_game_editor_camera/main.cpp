@@ -26,7 +26,7 @@ int main() {
 
     vne::interaction::Navigation3DController ctrl;
     ctrl.setCamera(camera);
-    ctrl.setViewportSize(1280.0f, 720.0f);
+    ctrl.onResize(1280.0f, 720.0f);
     ctrl.setMoveSpeed(5.0f);
     ctrl.setSprintMultiplier(3.0f);
 

@@ -70,10 +70,10 @@ void Navigation3DController::setCamera(std::shared_ptr<vne::scene::ICamera> came
     impl_->rig.setCamera(camera);
 }
 
-void Navigation3DController::setViewportSize(float w, float h) noexcept {
+void Navigation3DController::onResize(float w, float h) noexcept {
     impl_->viewport_w = w;
     impl_->viewport_h = h;
-    impl_->rig.setViewportSize(w, h);
+    impl_->rig.onResize(w, h);
 }
 
 // ---------------------------------------------------------------------------
@@ -231,7 +231,7 @@ void Navigation3DController::rebuild() noexcept {
     // Re-attach camera and viewport
     if (impl_->camera)
         impl_->rig.setCamera(impl_->camera);
-    impl_->rig.setViewportSize(impl_->viewport_w, impl_->viewport_h);
+    impl_->rig.onResize(impl_->viewport_w, impl_->viewport_h);
 
     // Load input preset
     std::vector<InputRule> rules;

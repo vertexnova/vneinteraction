@@ -30,7 +30,7 @@ constexpr float kPanVelocityThreshold = 1e-4f;
 }  // namespace
 
 // ---------------------------------------------------------------------------
-// ICameraBehavior: setCamera / setViewportSize
+// ICameraBehavior: setCamera / onResize
 // ---------------------------------------------------------------------------
 
 void OrthoPanZoomBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
@@ -40,8 +40,8 @@ void OrthoPanZoomBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera
     }
 }
 
-void OrthoPanZoomBehavior::setViewportSize(float width_px, float height_px) noexcept {
-    CameraBehaviorBase::setViewportSize(width_px, height_px);
+void OrthoPanZoomBehavior::onResize(float width_px, float height_px) noexcept {
+    CameraBehaviorBase::onResize(width_px, height_px);
 }
 
 // ---------------------------------------------------------------------------

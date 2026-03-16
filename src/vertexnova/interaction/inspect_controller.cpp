@@ -154,10 +154,10 @@ void InspectController::setCamera(std::shared_ptr<vne::scene::ICamera> camera) n
     impl_->rig.setCamera(camera);
 }
 
-void InspectController::setViewportSize(float w, float h) noexcept {
+void InspectController::onResize(float w, float h) noexcept {
     impl_->viewport_w = w;
     impl_->viewport_h = h;
-    impl_->rig.setViewportSize(w, h);
+    impl_->rig.onResize(w, h);
 }
 
 // ---------------------------------------------------------------------------

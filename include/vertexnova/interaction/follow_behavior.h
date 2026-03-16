@@ -76,7 +76,7 @@ class VNE_INTERACTION_API FollowBehavior final : public CameraBehaviorBase {
     void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;
 
     /** Set viewport dimensions in pixels. */
-    void setViewportSize(float width_px, float height_px) noexcept override;
+    void onResize(float width_px, float height_px) noexcept override;
 
     /** No stateful interaction to reset; no-op. */
     void resetState() noexcept override {}

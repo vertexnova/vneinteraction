@@ -78,7 +78,7 @@ class VNE_INTERACTION_API OrbitArcballBehavior final : public CameraBehaviorBase
     void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;
 
     /** Set viewport size in pixels for screen-to-world projection. */
-    void setViewportSize(float width_px, float height_px) noexcept override;
+    void onResize(float width_px, float height_px) noexcept override;
 
     /** Reset all interaction state (velocities, drag tracking). */
     void resetState() noexcept override;

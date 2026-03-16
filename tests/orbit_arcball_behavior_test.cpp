@@ -50,7 +50,7 @@ TEST(OrbitArcballBehavior, CameraIntegration) {
 
     vne::interaction::OrbitArcballBehavior b;
     b.setCamera(cam);
-    b.setViewportSize(1280.0f, 720.0f);
+    b.onResize(1280.0f, 720.0f);
 
     vne::interaction::CameraCommandPayload p;
     p.x_px = 640.0f;
@@ -70,7 +70,7 @@ TEST(OrbitArcballBehavior, FitToAABB) {
     auto cam = makePerspCamera();
     vne::interaction::OrbitArcballBehavior b;
     b.setCamera(cam);
-    b.setViewportSize(1280.0f, 720.0f);
+    b.onResize(1280.0f, 720.0f);
 
     b.fitToAABB(vne::math::Vec3f(-1.0f, -1.0f, -1.0f), vne::math::Vec3f(1.0f, 1.0f, 1.0f));
 

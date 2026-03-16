@@ -39,7 +39,7 @@ TEST(FollowBehavior, CameraMovesTowardTarget) {
 
     vne::interaction::FollowBehavior b;
     b.setCamera(cam);
-    b.setViewportSize(1280.0f, 720.0f);
+    b.onResize(1280.0f, 720.0f);
     b.setTargetWorld(vne::math::Vec3f(100.0f, 0.0f, 0.0f));
     b.setOffset(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
     b.setDamping(50.0f);
