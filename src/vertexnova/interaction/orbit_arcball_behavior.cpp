@@ -237,20 +237,13 @@ void OrbitArcballBehavior::applyToCamera() noexcept {
         return;
     }
     if (rotation_mode_ == OrbitRotationMode::eArcball) {
-        // Arcball: eye direction and up come from orientation_
         const vne::math::Vec3f eye_dir = orientation_.rotate(vne::math::Vec3f(0.0f, 0.0f, 1.0f));
         const vne::math::Vec3f up = orientation_.rotate(vne::math::Vec3f(0.0f, 1.0f, 0.0f));
-        camera_->setPosition(coi_world_ + eye_dir * orbit_distance_);
-        camera_->setTarget(coi_world_);
-        camera_->setUp(up);
+        camera_->lookAt(coi_world_ + eye_dir * orbit_distance_, coi_world_, up);
     } else {
-        // Euler
         const vne::math::Vec3f front = computeFront();
-        const vne::math::Vec3f right = computeRight(front);
-        const vne::math::Vec3f up = computeUp(front, right);
-        camera_->setPosition(coi_world_ - front * orbit_distance_);
-        camera_->setTarget(coi_world_);
-        camera_->setUp(up);
+        const vne::math::Vec3f up = computeUp(front, computeRight(front));
+        camera_->lookAt(coi_world_ - front * orbit_distance_, coi_world_, up);
     }
     camera_->updateMatrices();
 }

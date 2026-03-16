@@ -142,29 +142,20 @@ void FreeLookBehavior::applyAnglesToCamera() noexcept {
     }
     const vne::math::Vec3f eye = camera_->getPosition();
     const vne::math::Vec3f f = front();
-    camera_->setTarget(eye + f);
-
+    vne::math::Vec3f up;
     if (mode_ == FreeLookMode::eFly) {
-        // Derive an orthogonal up from front + current camera up (as a hint).
-        // This lets the up vector evolve with roll in Fly mode instead of
-        // reading back the stale value that was never actually updated.
         const vne::math::Vec3f up_hint = upVector();
         vne::math::Vec3f r = f.cross(up_hint);
         float r_len = r.length();
         if (r_len < kEpsilon) {
-            // front is parallel to the hint — fall back to world up
             r = f.cross(world_up_);
             r_len = r.length();
         }
-        if (r_len > kEpsilon) {
-            r /= r_len;
-            camera_->setUp(r.cross(f).normalized());
-        }
-        // if still degenerate, leave up unchanged
+        up = (r_len > kEpsilon) ? r.cross(f).normalized() : upVector();
     } else {
-        camera_->setUp(upVector());
+        up = upVector();
     }
-
+    camera_->lookAt(eye, eye + f, up);
     camera_->updateMatrices();
 }
 
@@ -219,17 +210,16 @@ void FreeLookBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::m
         radius = kMinRadiusFallback;
     }
     const vne::math::Vec3f f = front();
+    vne::math::Vec3f eye;
     if (auto persp = perspCamera()) {
         const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
         const float dist = (radius / vne::math::tan(fov_y_rad * 0.5f)) * kFitToAabbMargin;
-        camera_->setPosition(center - f * dist);
+        eye = center - f * dist;
     } else {
-        camera_->setPosition(center - f * (radius * kFitToAabbDistFactor));
+        eye = center - f * (radius * kFitToAabbDistFactor);
     }
-    camera_->setTarget(center);
-    if (mode_ == FreeLookMode::eFps) {
-        camera_->setUp(world_up_);
-    }
+    const vne::math::Vec3f up = (mode_ == FreeLookMode::eFps) ? world_up_ : upVector();
+    camera_->lookAt(eye, center, up);
     camera_->updateMatrices();
 }
 

@@ -115,17 +115,11 @@ void FollowBehavior::onUpdate(double delta_time) noexcept {
     const float alpha = 1.0f - std::exp(-damping_ * dt);
     const vne::math::Vec3f new_eye = eye + (desired_eye - eye) * alpha;
 
-    camera_->setPosition(new_eye);
-    camera_->setTarget(target);
-
-    // Choose up vector; fall back to -Z when view direction is nearly parallel to Y
-    // (e.g. top-down follow) to avoid a degenerate look-at matrix.
     const vne::math::Vec3f view_dir = (target - new_eye).normalized();
     const vne::math::Vec3f up_hint = (std::abs(view_dir.dot(vne::math::Vec3f(0.0f, 1.0f, 0.0f))) > 0.99f)
                                          ? vne::math::Vec3f(0.0f, 0.0f, -1.0f)
                                          : vne::math::Vec3f(0.0f, 1.0f, 0.0f);
-    camera_->setUp(up_hint);
-
+    camera_->lookAt(new_eye, target, up_hint);
     camera_->updateMatrices();
 }
 
