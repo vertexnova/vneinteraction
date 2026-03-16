@@ -80,13 +80,12 @@ class VNE_INTERACTION_API OrthoPanZoomBehavior final : public CameraBehaviorBase
     // OrthoPanZoom-specific API
     // -------------------------------------------------------------------------
 
-    /** Set zoom method (eDollyToCoi and eChangeFov both use zoom-to-cursor for ortho). */
-    void setZoomMethod(ZoomMethod method) noexcept { zoom_method_ = method; }
-    [[nodiscard]] ZoomMethod getZoomMethod() const noexcept { return zoom_method_; }
-
     /** Set scroll/pinch zoom speed (>= 0.01). */
     void setZoomSpeed(float speed) noexcept { zoom_speed_ = std::max(0.01f, speed); }
     [[nodiscard]] float getZoomSpeed() const noexcept { return zoom_speed_; }
+
+    // setZoomMethod / getZoomMethod / setFovZoomSpeed / getFovZoomSpeed / getZoomScale
+    // are inherited from CameraBehaviorBase.
 
     /** Set pan inertia damping (>= 0). */
     void setPanDamping(float damping) noexcept { pan_damping_ = std::max(0.0f, damping); }
@@ -104,15 +103,14 @@ class VNE_INTERACTION_API OrthoPanZoomBehavior final : public CameraBehaviorBase
 
    private:
     void pan(float delta_x_px, float delta_y_px, double delta_time) noexcept;
-    void zoomToCursor(float zoom_factor, float mouse_x_px, float mouse_y_px) noexcept;
-    void applyZoom(float zoom_factor, float mouse_x_px, float mouse_y_px) noexcept;
     void applyInertia(double delta_time) noexcept;
 
-    [[nodiscard]] std::shared_ptr<vne::scene::OrthographicCamera> orthoCamera() const noexcept;
+    // orthoCamera() inherited from CameraBehaviorBase
+    // onZoomDolly() default in CameraBehaviorBase handles ortho zoom-to-cursor
 
-    // camera_, enabled_, viewport_width_, viewport_height_, scene_scale_ inherited from CameraBehaviorBase
+    // camera_, enabled_, viewport_width_, viewport_height_ inherited from CameraBehaviorBase
+    // zoom_method_, zoom_scale_, fov_zoom_speed_ inherited from CameraBehaviorBase
 
-    ZoomMethod zoom_method_ = ZoomMethod::eDollyToCoi;
     float zoom_speed_ = 1.1f;
     float pan_damping_ = 10.0f;
 

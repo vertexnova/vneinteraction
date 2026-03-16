@@ -122,13 +122,12 @@ class VNE_INTERACTION_API FollowBehavior final : public CameraBehaviorBase {
     void setDamping(float damping) noexcept { damping_ = std::max(0.0f, damping); }
     [[nodiscard]] float getDamping() const noexcept { return damping_; }
 
-    /** Set zoom method. */
-    void setZoomMethod(ZoomMethod method) noexcept { zoom_method_ = method; }
-    [[nodiscard]] ZoomMethod getZoomMethod() const noexcept { return zoom_method_; }
-
     /** Set zoom speed (>= 0.01). */
     void setZoomSpeed(float speed) noexcept { zoom_speed_ = std::max(0.01f, speed); }
     [[nodiscard]] float getZoomSpeed() const noexcept { return zoom_speed_; }
+
+    // setZoomMethod / getZoomMethod / setFovZoomSpeed / getFovZoomSpeed / getZoomScale
+    // are inherited from CameraBehaviorBase.
 
     /** Get world units per pixel. */
     [[nodiscard]] float getWorldUnitsPerPixel() const noexcept;
@@ -141,18 +140,17 @@ class VNE_INTERACTION_API FollowBehavior final : public CameraBehaviorBase {
     void fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept;
 
    private:
-    void applyZoom(float zoom_factor) noexcept;
+    void onZoomDolly(float factor, float mx, float my) noexcept override;
 
-    [[nodiscard]] std::shared_ptr<vne::scene::PerspectiveCamera> perspCamera() const noexcept;
-    [[nodiscard]] std::shared_ptr<vne::scene::OrthographicCamera> orthoCamera() const noexcept;
+    // perspCamera() / orthoCamera() inherited from CameraBehaviorBase
 
-    // camera_, enabled_, viewport_width_, viewport_height_, scene_scale_ inherited from CameraBehaviorBase
+    // camera_, enabled_, viewport_width_, viewport_height_ inherited from CameraBehaviorBase
+    // zoom_method_, zoom_scale_, fov_zoom_speed_ inherited from CameraBehaviorBase
 
     vne::math::Vec3f target_world_{0.0f, 0.0f, 0.0f};
     vne::math::Vec3f offset_world_{0.0f, 2.0f, 5.0f};
     float damping_ = 5.0f;
 
-    ZoomMethod zoom_method_ = ZoomMethod::eDollyToCoi;
     float zoom_speed_ = 1.1f;
 
     std::function<vne::math::Vec3f()> target_provider_;

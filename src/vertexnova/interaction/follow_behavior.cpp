@@ -25,25 +25,9 @@ namespace vne::interaction {
 // ---------------------------------------------------------------------------
 namespace {
 CREATE_VNE_LOGGER_CATEGORY("vne.interaction.follow");
-constexpr float kFovMinDeg = 5.0f;
-constexpr float kFovMaxDeg = 120.0f;
-constexpr float kSceneScaleMin = 1e-4f;
-constexpr float kSceneScaleMax = 1e4f;
 constexpr float kOffsetMinLength = 0.1f;
 constexpr float kOffsetMaxLength = 1e4f;
 }  // namespace
-
-// ---------------------------------------------------------------------------
-// Camera helpers
-// ---------------------------------------------------------------------------
-
-std::shared_ptr<vne::scene::PerspectiveCamera> FollowBehavior::perspCamera() const noexcept {
-    return std::dynamic_pointer_cast<vne::scene::PerspectiveCamera>(camera_);
-}
-
-std::shared_ptr<vne::scene::OrthographicCamera> FollowBehavior::orthoCamera() const noexcept {
-    return std::dynamic_pointer_cast<vne::scene::OrthographicCamera>(camera_);
-}
 
 // ---------------------------------------------------------------------------
 // ICameraBehavior: setCamera / setViewportSize
@@ -99,39 +83,17 @@ float FollowBehavior::getWorldUnitsPerPixel() const noexcept {
 }
 
 // ---------------------------------------------------------------------------
-// Zoom
+// Zoom (onZoomDolly: offset scaling for eDollyToCoi; eSceneScale / eChangeFov via base dispatchZoom)
 // ---------------------------------------------------------------------------
 
-void FollowBehavior::applyZoom(float zoom_factor) noexcept {
-    if (!camera_) {
+void FollowBehavior::onZoomDolly(float factor, float /*mx*/, float /*my*/) noexcept {
+    if (!camera_ || factor <= 0.0f) {
         return;
     }
-    switch (zoom_method_) {
-        case ZoomMethod::eSceneScale:
-            scene_scale_ = vne::math::clamp(scene_scale_ * zoom_factor, kSceneScaleMin, kSceneScaleMax);
-            return;
-        case ZoomMethod::eDollyToCoi: {
-            const vne::math::Vec3f new_offset = offset_world_ * zoom_factor;
-            const float len = new_offset.length();
-            if (len > kOffsetMinLength && len < kOffsetMaxLength) {
-                offset_world_ = new_offset;
-            }
-            return;
-        }
-        case ZoomMethod::eChangeFov:
-            if (auto persp = perspCamera()) {
-                const float fov = persp->getFieldOfView();
-                persp->setFieldOfView(vne::math::clamp(fov * zoom_factor, kFovMinDeg, kFovMaxDeg));
-                persp->updateMatrices();
-            } else {
-                // No perspective camera: fall back to dolly offset
-                const vne::math::Vec3f new_offset = offset_world_ * zoom_factor;
-                const float len = new_offset.length();
-                if (len > kOffsetMinLength && len < kOffsetMaxLength) {
-                    offset_world_ = new_offset;
-                }
-            }
-            return;
+    const vne::math::Vec3f new_offset = offset_world_ * factor;
+    const float len = new_offset.length();
+    if (len > kOffsetMinLength && len < kOffsetMaxLength) {
+        offset_world_ = new_offset;
     }
 }
 
@@ -180,7 +142,7 @@ bool FollowBehavior::onAction(CameraActionType action,
     switch (action) {
         case CameraActionType::eZoomAtCursor:
             if (payload.zoom_factor > 0.0f && payload.zoom_factor != 1.0f) {
-                applyZoom(payload.zoom_factor);
+                dispatchZoom(payload.zoom_factor, payload.x_px, payload.y_px);
                 return true;
             }
             VNE_LOG_DEBUG << "FollowBehavior: ignoring zoom with factor=" << payload.zoom_factor;
