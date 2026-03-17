@@ -65,8 +65,8 @@ void OrthoPanZoomBehavior::pan(float delta_x_px, float delta_y_px, double delta_
     len = r.length();
     r = (len < kEpsilon) ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : (r / len);
 
-    const float wppx = ortho->getWidth() / viewport_.width;
-    const float wppy = ortho->getHeight() / viewport_.height;
+    const float wppx = ortho->getWidth() / viewport().width;
+    const float wppy = ortho->getHeight() / viewport().height;
     const vne::math::Vec3f delta_world = r * (-delta_x_px * wppx) + up * (-delta_y_px * wppy);
 
     ortho->setPosition(eye + delta_world);
@@ -142,7 +142,7 @@ void OrthoPanZoomBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vn
     max_r = std::max(max_r * kFitToAabbMargin, kMinOrthoExtent);
     max_u = std::max(max_u * kFitToAabbMargin, kMinOrthoExtent);
 
-    const float aspect = viewport_.width / viewport_.height;
+    const float aspect = viewport().width / viewport().height;
     if (max_r / max_u < aspect) {
         max_r = max_u * aspect;
     } else {
@@ -158,7 +158,7 @@ void OrthoPanZoomBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vn
 
 float OrthoPanZoomBehavior::getWorldUnitsPerPixel() const noexcept {
     auto ortho = orthoCamera();
-    return ortho ? (ortho->getHeight() / viewport_.height) : 0.0f;
+    return ortho ? (ortho->getHeight() / viewport().height) : 0.0f;
 }
 
 void OrthoPanZoomBehavior::resetState() noexcept {

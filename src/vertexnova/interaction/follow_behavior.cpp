@@ -80,12 +80,12 @@ void FollowBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::mat
 
 float FollowBehavior::getWorldUnitsPerPixel() const noexcept {
     if (auto ortho = orthoCamera()) {
-        return ortho->getHeight() / viewport_.height;
+        return ortho->getHeight() / viewport().height;
     }
     if (auto persp = perspCamera()) {
         const float dist = offset_world_.length();
         const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
-        return 2.0f * dist * vne::math::tan(fov_y_rad * 0.5f) / viewport_.height;
+        return 2.0f * dist * vne::math::tan(fov_y_rad * 0.5f) / viewport().height;
     }
     return 1.0f;
 }

@@ -5,7 +5,7 @@
  */
 
 #include "vertexnova/interaction/free_look_behavior.h"
-#include "vertexnova/interaction/behavior_utils.h"
+#include "vertexnova/interaction/behavior_math.h"
 
 #include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/perspective_camera.h"
@@ -179,7 +179,7 @@ void FreeLookBehavior::setWorldUp(const vne::math::Vec3f& up) noexcept {
 float FreeLookBehavior::getWorldUnitsPerPixel() const noexcept {
     if (auto persp = perspCamera()) {
         const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
-        return 2.0f * vne::math::tan(fov_y_rad * 0.5f) / viewport_.height;
+        return 2.0f * vne::math::tan(fov_y_rad * 0.5f) / viewport().height;
     }
     return 1.0f;
 }

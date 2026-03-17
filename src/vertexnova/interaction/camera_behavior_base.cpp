@@ -5,8 +5,9 @@
  */
 
 #include "vertexnova/interaction/camera_behavior_base.h"
-#include "vertexnova/interaction/behavior_utils.h"
+#include "vertexnova/interaction/behavior_math.h"
 
+#include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/orthographic_camera.h"
 #include "vertexnova/scene/camera/perspective_camera.h"
 
@@ -52,6 +53,10 @@ std::shared_ptr<vne::scene::PerspectiveCamera> CameraBehaviorBase::perspCamera()
 
 std::shared_ptr<vne::scene::OrthographicCamera> CameraBehaviorBase::orthoCamera() const noexcept {
     return std::dynamic_pointer_cast<vne::scene::OrthographicCamera>(camera_);
+}
+
+vne::math::GraphicsApi CameraBehaviorBase::graphicsApi() const noexcept {
+    return camera_ ? camera_->getGraphicsApi() : vne::math::GraphicsApi::eOpenGL;
 }
 
 // ---------------------------------------------------------------------------
@@ -128,10 +133,10 @@ void CameraBehaviorBase::applySceneScaleZoom(float factor) noexcept {
 
 void CameraBehaviorBase::applyOrthoZoomToCursor(float factor, float mx, float my) noexcept {
     auto ortho = orthoCamera();
-    if (!ortho || viewport_.width <= 0.0f || viewport_.height <= 0.0f) {
+    if (!ortho || viewport().width <= 0.0f || viewport().height <= 0.0f) {
         return;
     }
-    const vne::math::Vec2f ndc = mouseToNDC(mx, my, viewport_.width, viewport_.height);
+    const vne::math::Vec2f ndc = mouseToNDC(mx, my, viewport().width, viewport().height);
     const float ndc_x = ndc.x();
     const float ndc_y = ndc.y();
     const float half_w = ortho->getWidth() * 0.5f;

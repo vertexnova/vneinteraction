@@ -25,6 +25,7 @@
 
 #include "vertexnova/interaction/camera_behavior.h"
 
+#include <vertexnova/math/core/types.h>
 #include <vertexnova/math/viewport.h>
 
 #include <memory>
@@ -121,6 +122,8 @@ class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
     [[nodiscard]] const vne::math::Viewport& viewport() const noexcept { return viewport_; }
     [[nodiscard]] float viewportWidth() const noexcept { return viewport_.width; }
     [[nodiscard]] float viewportHeight() const noexcept { return viewport_.height; }
+    /** @brief Graphics API for screen/NDC conventions (from camera, or eOpenGL if none). */
+    [[nodiscard]] vne::math::GraphicsApi graphicsApi() const noexcept;
 
     // -------------------------------------------------------------------------
     // Zoom dispatch (template method pattern)

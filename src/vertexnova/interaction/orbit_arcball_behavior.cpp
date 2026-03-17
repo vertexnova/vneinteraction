@@ -5,7 +5,7 @@
  */
 
 #include "vertexnova/interaction/orbit_arcball_behavior.h"
-#include "vertexnova/interaction/behavior_utils.h"
+#include "vertexnova/interaction/behavior_math.h"
 
 #include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/perspective_camera.h"
@@ -92,7 +92,7 @@ void OrbitArcballBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera
 void OrbitArcballBehavior::onResize(float width_px, float height_px) noexcept {
     CameraBehaviorBase::onResize(width_px, height_px);
     if (auto persp = perspCamera()) {
-        persp->resize(viewport_.width, viewport_.height);
+        persp->resize(viewport().width, viewport().height);
     }
 }
 
@@ -260,9 +260,9 @@ void OrbitArcballBehavior::dragRotateEuler(float delta_x_px, float delta_y_px, d
 }
 
 vne::math::Vec3f OrbitArcballBehavior::projectToArcball(float x_px, float y_px) const noexcept {
-    const float half_size = 0.5f * std::min(viewport_.width, viewport_.height);
-    const float cx = viewport_.width * 0.5f;
-    const float cy = viewport_.height * 0.5f;
+    const float half_size = 0.5f * std::min(viewport().width, viewport().height);
+    const float cx = viewport().width * 0.5f;
+    const float cy = viewport().height * 0.5f;
     const float sx = (x_px - cx) / half_size;
     const float sy = (cy - y_px) / half_size;
     const float r2 = sx * sx + sy * sy;
@@ -366,8 +366,8 @@ void OrbitArcballBehavior::dragPan(
     } else {
         auto ortho = orthoCamera();
         if (ortho) {
-            const float wppx = ortho->getWidth() / viewport_.width;
-            const float wppy = ortho->getHeight() / viewport_.height;
+            const float wppx = ortho->getWidth() / viewport().width;
+            const float wppy = ortho->getHeight() / viewport().height;
             delta_world = r * (-delta_x_px * wppx * pan_speed_) + u * (-delta_y_px * wppy * pan_speed_);
         }
     }
@@ -419,18 +419,14 @@ void OrbitArcballBehavior::onZoomDolly(float factor, float mouse_x_px, float mou
     const vne::math::Vec3f front = computeFront();
     const vne::math::Vec3f r = computeRight(front);
     const vne::math::Vec3f u = computeUp(front, r);
-    if (auto persp = perspCamera()) {
-        if (viewport_.width > 0.0f && viewport_.height > 0.0f) {
-            const vne::math::Vec2f ndc = mouseToNDC(mouse_x_px, mouse_y_px, viewport_.width, viewport_.height);
-            const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
-            const float old_half_h = old_dist * vne::math::tan(fov_y_rad * 0.5f);
-            const float old_half_w = old_half_h * (viewport_.width / viewport_.height);
-            const vne::math::Vec3f cursor_world =
-                camera_->getPosition() + front * old_dist + r * (ndc.x() * old_half_w) + u * (ndc.y() * old_half_h);
-            const float new_half_h = orbit_distance_ * vne::math::tan(fov_y_rad * 0.5f);
-            const float new_half_w = new_half_h * (viewport_.width / viewport_.height);
-            coi_world_ = cursor_world - r * (ndc.x() * new_half_w) - u * (ndc.y() * new_half_h);
-        }
+    if (perspCamera() && viewport().width > 0.0f && viewport().height > 0.0f) {
+        const vne::math::Vec3f cursor_world =
+            worldUnderCursor(*camera_, mouse_x_px, mouse_y_px, old_dist, viewport());
+        const vne::math::Vec2f ndc = mouseToNDC(mouse_x_px, mouse_y_px, viewport().width, viewport().height);
+        const float fov_y_rad = vne::math::degToRad(perspCamera()->getFieldOfView());
+        const float new_half_h = orbit_distance_ * vne::math::tan(fov_y_rad * 0.5f);
+        const float new_half_w = new_half_h * (viewport().width / viewport().height);
+        coi_world_ = cursor_world - r * (ndc.x() * new_half_w) - u * (ndc.y() * new_half_h);
     }
     applyToCamera();
     if (pivot_mode_ == OrbitPivotMode::eViewCenter) {
@@ -537,7 +533,7 @@ void OrbitArcballBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vn
 
     if (auto persp = perspCamera()) {
         const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
-        const float aspect = std::max(viewport_.width / viewport_.height, kMinOrthoExtent);
+        const float aspect = std::max(viewport().width / viewport().height, kMinOrthoExtent);
         const float fov_x_rad = 2.0f * vne::math::atan(vne::math::tan(fov_y_rad * 0.5f) * aspect);
         const float dist_y = radius / vne::math::tan(fov_y_rad * 0.5f);
         const float dist_x = radius / vne::math::tan(fov_x_rad * 0.5f);
@@ -569,7 +565,7 @@ void OrbitArcballBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vn
         }
         max_r = std::max(max_r * kFitToAabbMargin, kMinOrthoExtent);
         max_u = std::max(max_u * kFitToAabbMargin, kMinOrthoExtent);
-        const float aspect = viewport_.width / viewport_.height;
+        const float aspect = viewport().width / viewport().height;
         if (max_r / max_u < aspect) {
             max_r = max_u * aspect;
         } else {
@@ -589,11 +585,11 @@ void OrbitArcballBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vn
 
 float OrbitArcballBehavior::getWorldUnitsPerPixel() const noexcept {
     if (auto ortho = orthoCamera()) {
-        return ortho->getHeight() / viewport_.height;
+        return ortho->getHeight() / viewport().height;
     }
     if (auto persp = perspCamera()) {
         const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
-        return 2.0f * orbit_distance_ * vne::math::tan(fov_y_rad * 0.5f) / viewport_.height;
+        return 2.0f * orbit_distance_ * vne::math::tan(fov_y_rad * 0.5f) / viewport().height;
     }
     return 0.0f;
 }
