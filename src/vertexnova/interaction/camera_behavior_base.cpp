@@ -5,6 +5,7 @@
  */
 
 #include "vertexnova/interaction/camera_behavior_base.h"
+#include "vertexnova/interaction/behavior_utils.h"
 
 #include "vertexnova/scene/camera/orthographic_camera.h"
 #include "vertexnova/scene/camera/perspective_camera.h"
@@ -127,11 +128,12 @@ void CameraBehaviorBase::applySceneScaleZoom(float factor) noexcept {
 
 void CameraBehaviorBase::applyOrthoZoomToCursor(float factor, float mx, float my) noexcept {
     auto ortho = orthoCamera();
-    if (!ortho || viewport_width_ <= 0.0f || viewport_height_ <= 0.0f) {
+    if (!ortho || viewport_.width <= 0.0f || viewport_.height <= 0.0f) {
         return;
     }
-    const float ndc_x = (2.0f * mx / viewport_width_) - 1.0f;
-    const float ndc_y = 1.0f - (2.0f * my / viewport_height_);
+    const vne::math::Vec2f ndc = mouseToNDC(mx, my, viewport_.width, viewport_.height);
+    const float ndc_x = ndc.x();
+    const float ndc_y = ndc.y();
     const float half_w = ortho->getWidth() * 0.5f;
     const float half_h = ortho->getHeight() * 0.5f;
 

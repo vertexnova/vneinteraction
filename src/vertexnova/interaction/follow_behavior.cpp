@@ -27,6 +27,7 @@ namespace {
 CREATE_VNE_LOGGER_CATEGORY("vne.interaction.follow");
 constexpr float kOffsetMinLength = 0.1f;
 constexpr float kOffsetMaxLength = 1e4f;
+constexpr float kEpsilon = 1e-6f;
 }  // namespace
 
 // ---------------------------------------------------------------------------
@@ -53,6 +54,14 @@ void FollowBehavior::setOffset(const vne::math::Vec3f& offset) noexcept {
     }
 }
 
+void FollowBehavior::setWorldUp(const vne::math::Vec3f& up) noexcept {
+    if (up.length() > kEpsilon) {
+        world_up_ = up.normalized();
+    } else {
+        VNE_LOG_WARN << "FollowBehavior: setWorldUp called with zero-length vector, ignoring";
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Target
 // ---------------------------------------------------------------------------
@@ -71,12 +80,12 @@ void FollowBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::mat
 
 float FollowBehavior::getWorldUnitsPerPixel() const noexcept {
     if (auto ortho = orthoCamera()) {
-        return ortho->getHeight() / viewport_height_;
+        return ortho->getHeight() / viewport_.height;
     }
     if (auto persp = perspCamera()) {
         const float dist = offset_world_.length();
         const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
-        return 2.0f * dist * vne::math::tan(fov_y_rad * 0.5f) / viewport_height_;
+        return 2.0f * dist * vne::math::tan(fov_y_rad * 0.5f) / viewport_.height;
     }
     return 1.0f;
 }
@@ -115,9 +124,8 @@ void FollowBehavior::onUpdate(double delta_time) noexcept {
     const vne::math::Vec3f new_eye = eye + (desired_eye - eye) * alpha;
 
     const vne::math::Vec3f view_dir = (target - new_eye).normalized();
-    const vne::math::Vec3f up_hint = (std::abs(view_dir.dot(vne::math::Vec3f(0.0f, 1.0f, 0.0f))) > 0.99f)
-                                         ? vne::math::Vec3f(0.0f, 0.0f, -1.0f)
-                                         : vne::math::Vec3f(0.0f, 1.0f, 0.0f);
+    const vne::math::Vec3f up_hint =
+        (std::abs(view_dir.dot(world_up_)) > 0.99f) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : world_up_;
     camera_->lookAt(new_eye, target, up_hint);
     camera_->updateMatrices();
 }

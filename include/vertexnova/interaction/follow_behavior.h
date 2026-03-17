@@ -133,6 +133,13 @@ class VNE_INTERACTION_API FollowBehavior final : public CameraBehaviorBase {
     [[nodiscard]] float getWorldUnitsPerPixel() const noexcept;
 
     /**
+     * @brief Set world up vector for look-at (default Y-up).
+     * Used when building the view matrix; fallback when view is parallel to up.
+     */
+    void setWorldUp(const vne::math::Vec3f& up) noexcept;
+    [[nodiscard]] const vne::math::Vec3f& getWorldUp() const noexcept { return world_up_; }
+
+    /**
      * @brief Move target to AABB center.
      * @param min_world AABB min corner
      * @param max_world AABB max corner
@@ -144,11 +151,12 @@ class VNE_INTERACTION_API FollowBehavior final : public CameraBehaviorBase {
 
     // perspCamera() / orthoCamera() inherited from CameraBehaviorBase
 
-    // camera_, enabled_, viewport_width_, viewport_height_ inherited from CameraBehaviorBase
+    // camera_, enabled_, viewport_ inherited from CameraBehaviorBase
     // zoom_method_, zoom_scale_, fov_zoom_speed_ inherited from CameraBehaviorBase
 
     vne::math::Vec3f target_world_{0.0f, 0.0f, 0.0f};
     vne::math::Vec3f offset_world_{0.0f, 2.0f, 5.0f};
+    vne::math::Vec3f world_up_{0.0f, 1.0f, 0.0f};
     float damping_ = 5.0f;
 
     float zoom_speed_ = 1.1f;

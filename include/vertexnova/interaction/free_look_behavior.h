@@ -162,7 +162,7 @@ class VNE_INTERACTION_API FreeLookBehavior final : public CameraBehaviorBase {
     // perspCamera() / orthoCamera() inherited from CameraBehaviorBase
 
     // ---- state ---------------------------------------------------------------
-    // camera_, enabled_, viewport_width_, viewport_height_ inherited from CameraBehaviorBase
+    // camera_, enabled_, viewport_ inherited from CameraBehaviorBase
     // zoom_method_, zoom_scale_, fov_zoom_speed_ inherited from CameraBehaviorBase
 
     FreeLookMode mode_ = FreeLookMode::eFps;

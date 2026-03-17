@@ -25,6 +25,8 @@
 
 #include "vertexnova/interaction/camera_behavior.h"
 
+#include <vertexnova/math/viewport.h>
+
 #include <memory>
 
 namespace vne::scene {
@@ -63,8 +65,8 @@ class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
     void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;
 
     void onResize(float width_px, float height_px) noexcept override {
-        viewport_width_ = std::max(1.0f, width_px);
-        viewport_height_ = std::max(1.0f, height_px);
+        viewport_.width = std::max(1.0f, width_px);
+        viewport_.height = std::max(1.0f, height_px);
     }
 
     [[nodiscard]] bool isEnabled() const noexcept override { return enabled_; }
@@ -114,6 +116,11 @@ class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
     [[nodiscard]] std::shared_ptr<vne::scene::PerspectiveCamera> perspCamera() const noexcept;
     /** @brief Return camera cast to OrthographicCamera, or nullptr. */
     [[nodiscard]] std::shared_ptr<vne::scene::OrthographicCamera> orthoCamera() const noexcept;
+
+    /** @brief Viewport dimensions (updated by onResize). */
+    [[nodiscard]] const vne::math::Viewport& viewport() const noexcept { return viewport_; }
+    [[nodiscard]] float viewportWidth() const noexcept { return viewport_.width; }
+    [[nodiscard]] float viewportHeight() const noexcept { return viewport_.height; }
 
     // -------------------------------------------------------------------------
     // Zoom dispatch (template method pattern)
@@ -204,8 +211,7 @@ class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
     std::shared_ptr<vne::scene::ICamera> camera_;
     bool enabled_ = true;
 
-    float viewport_width_ = 1280.0f;
-    float viewport_height_ = 720.0f;
+    vne::math::Viewport viewport_{1280.0f, 720.0f};
 
     ZoomMethod zoom_method_ = ZoomMethod::eDollyToCoi;
     float zoom_scale_ = 1.0f;       //!< Accumulated zoom scale (eSceneScale)

@@ -108,7 +108,7 @@ class VNE_INTERACTION_API OrthoPanZoomBehavior final : public CameraBehaviorBase
     // orthoCamera() inherited from CameraBehaviorBase
     // onZoomDolly() default in CameraBehaviorBase handles ortho zoom-to-cursor
 
-    // camera_, enabled_, viewport_width_, viewport_height_ inherited from CameraBehaviorBase
+    // camera_, enabled_, viewport_ inherited from CameraBehaviorBase
     // zoom_method_, zoom_scale_, fov_zoom_speed_ inherited from CameraBehaviorBase
 
     float zoom_speed_ = 1.1f;
