@@ -78,7 +78,7 @@ class VNE_INTERACTION_API OrbitArcballBehavior final : public CameraBehaviorBase
     void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;
 
     /** Set viewport size in pixels for screen-to-world projection. */
-    void setViewportSize(float width_px, float height_px) noexcept override;
+    void onResize(float width_px, float height_px) noexcept override;
 
     /** Reset all interaction state (velocities, drag tracking). */
     void resetState() noexcept override;
@@ -126,20 +126,12 @@ class VNE_INTERACTION_API OrbitArcballBehavior final : public CameraBehaviorBase
     /** Get current orbit distance. */
     [[nodiscard]] float getOrbitDistance() const noexcept { return orbit_distance_; }
 
-    /** Get current scene scale (only meaningful when ZoomMethod::eSceneScale). */
-    [[nodiscard]] float getSceneScale() const noexcept { return scene_scale_; }
-
-    /** Set zoom method (dolly, scene scale, or FOV). */
-    void setZoomMethod(ZoomMethod method) noexcept { zoom_method_ = method; }
-    [[nodiscard]] ZoomMethod getZoomMethod() const noexcept { return zoom_method_; }
-
     /** Set scroll/pinch zoom speed (>= 0.01). */
     void setZoomSpeed(float speed) noexcept { zoom_speed_ = std::max(0.01f, speed); }
     [[nodiscard]] float getZoomSpeed() const noexcept { return zoom_speed_; }
 
-    /** Set FOV zoom speed (>= 0.01, perspective only). */
-    void setFovZoomSpeed(float speed) noexcept { fov_zoom_speed_ = std::max(0.01f, speed); }
-    [[nodiscard]] float getFovZoomSpeed() const noexcept { return fov_zoom_speed_; }
+    // setZoomMethod / getZoomMethod / setFovZoomSpeed / getFovZoomSpeed / getZoomScale
+    // are inherited from CameraBehaviorBase.
 
     /** Set rotation speed multiplier (>= 0). */
     void setRotationSpeed(float speed) noexcept { rotation_speed_ = std::max(0.0f, speed); }
@@ -193,21 +185,19 @@ class VNE_INTERACTION_API OrbitArcballBehavior final : public CameraBehaviorBase
     void endPan(double delta_time) noexcept;
 
     // ---- zoom -------------------------------------------------------------------
-    void zoom(float zoom_factor, float mouse_x_px, float mouse_y_px) noexcept;
-    void zoomOrthoToCursor(float zoom_factor, float mouse_x_px, float mouse_y_px) noexcept;
+    void onZoomDolly(float factor, float mx, float my) noexcept override;
 
     // ---- inertia ----------------------------------------------------------------
     void applyInertia(double delta_time) noexcept;
     void doPanInertia(double delta_time) noexcept;
 
     // ---- camera helpers ---------------------------------------------------------
-    [[nodiscard]] std::shared_ptr<vne::scene::PerspectiveCamera> perspCamera() const noexcept;
-    [[nodiscard]] std::shared_ptr<vne::scene::OrthographicCamera> orthoCamera() const noexcept;
     [[nodiscard]] bool isPerspective() const noexcept;
     [[nodiscard]] bool isOrthographic() const noexcept;
 
     // ---- state ------------------------------------------------------------------
-    // camera_, enabled_, viewport_width_, viewport_height_, scene_scale_ inherited from CameraBehaviorBase
+    // camera_, enabled_, viewport_width_, viewport_height_ inherited from CameraBehaviorBase
+    // zoom_method_, zoom_scale_, fov_zoom_speed_ inherited from CameraBehaviorBase
 
     OrbitRotationMode rotation_mode_ = OrbitRotationMode::eOrbit;
     OrbitPivotMode pivot_mode_ = OrbitPivotMode::eCoi;
@@ -243,8 +233,6 @@ class VNE_INTERACTION_API OrbitArcballBehavior final : public CameraBehaviorBase
     float rot_damping_ = 8.0f;
     float pan_damping_ = 10.0f;
     float zoom_speed_ = 1.1f;
-    float fov_zoom_speed_ = 1.05f;
-    ZoomMethod zoom_method_ = ZoomMethod::eDollyToCoi;
 
     // fitToAABB smooth animation
     float target_orbit_distance_ = 5.0f;

@@ -32,7 +32,7 @@ TEST(Ortho2DController, FitToAABB) {
     vne::interaction::Ortho2DController ctrl;
     auto cam = makeOrthoCamera();
     ctrl.setCamera(cam);
-    ctrl.setViewportSize(512.0f, 512.0f);
+    ctrl.onResize(512.0f, 512.0f);
 
     EXPECT_NO_FATAL_FAILURE(ctrl.fitToAABB(vne::math::Vec3f(-2.0f, -2.0f, 0.0f), vne::math::Vec3f(2.0f, 2.0f, 0.0f)));
 }
@@ -41,7 +41,7 @@ TEST(Ortho2DController, OnEventNoCrash) {
     vne::interaction::Ortho2DController ctrl;
     auto cam = makeOrthoCamera();
     ctrl.setCamera(cam);
-    ctrl.setViewportSize(512.0f, 512.0f);
+    ctrl.onResize(512.0f, 512.0f);
 
     vne::events::MouseMovedEvent move(256.0, 256.0);
     vne::events::MouseScrolledEvent scroll(0.0, 1.0);

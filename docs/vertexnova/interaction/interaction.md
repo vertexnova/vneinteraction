@@ -21,7 +21,7 @@ The Interaction module provides composable camera behaviors and high-level contr
 
 ### Behaviors (ICameraBehavior)
 
-- **camera_behavior.h**: `ICameraBehavior` — interface: `onAction`, `onUpdate`, `setCamera`, `setViewportSize`, `resetState`, `isEnabled`, `setEnabled`.
+- **camera_behavior.h**: `ICameraBehavior` — interface: `onAction`, `onUpdate`, `setCamera`, `onResize`, `resetState`, `isEnabled`, `setEnabled`.
 - **orbit_arcball_behavior.h**: `OrbitArcballBehavior` — orbit around a center of interest; Euler or Quaternion rotation; pivot modes (COI, ViewCenter, Fixed); pan, zoom, inertia, fitToAABB.
 - **free_look_behavior.h**: `FreeLookBehavior` — FPS or Fly mode; WASD movement, mouse look, sprint/slow modifiers.
 - **ortho_pan_zoom_behavior.h**: `OrthoPanZoomBehavior` — orthographic camera only; pan and zoom-to-cursor; inertia.
@@ -37,7 +37,7 @@ The Interaction module provides composable camera behaviors and high-level contr
 ### Input and Rig
 
 - **input_mapper.h**: `InputMapper` — maps mouse/keyboard/touch events to `CameraActionType` via `InputRule`; presets: `orbitPreset`, `fpsPreset`, `gamePreset`, `cadPreset`, `orthoPreset`.
-- **camera_rig.h**: `CameraRig` — multi-behavior container; `onAction`, `onUpdate`, `setCamera`, `setViewportSize`, `resetState`; factory methods: `makeOrbit`, `makeArcball`, `makeFps`, `makeFly`, `makeOrthoPanZoom`, `makeFollow`, `makeGameCamera`, `make2D`.
+- **camera_rig.h**: `CameraRig` — multi-behavior container; `onAction`, `onUpdate`, `setCamera`, `onResize`, `resetState`; factory methods: `makeOrbit`, `makeArcball`, `makeFps`, `makeFly`, `makeOrthoPanZoom`, `makeFollow`, `makeGameCamera`, `make2D`.
 
 ### Types
 
@@ -67,7 +67,7 @@ int main() {
 
     InspectController ctrl;
     ctrl.setCamera(camera);
-    ctrl.setViewportSize(1280.0f, 720.0f);
+    ctrl.onResize(1280.0f, 720.0f);
 
     // Game loop: feed events then update
     vne::events::MouseMovedEvent move(640.0, 360.0);

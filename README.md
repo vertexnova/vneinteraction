@@ -142,7 +142,7 @@ int main() {
 
     InspectController ctrl;
     ctrl.setCamera(camera);
-    ctrl.setViewportSize(1280.0f, 720.0f);
+    ctrl.onResize(1280.0f, 720.0f);
 
     // Each frame: feed events from your window/event system, then:
     // ctrl.onEvent(mouse_event, dt);

@@ -43,7 +43,7 @@ TEST(CameraRig, OnActionDispatchesToBehaviors) {
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
     rig.setCamera(cam);
-    rig.setViewportSize(1280.0f, 720.0f);
+    rig.onResize(1280.0f, 720.0f);
 
     vne::interaction::CameraCommandPayload p;
     p.x_px = 640.0f;

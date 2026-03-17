@@ -22,7 +22,7 @@ TEST(FollowController, SetTargetStatic) {
     vne::interaction::FollowController ctrl;
     auto cam = makePerspCamera();
     ctrl.setCamera(cam);
-    ctrl.setViewportSize(1280.0f, 720.0f);
+    ctrl.onResize(1280.0f, 720.0f);
 
     vne::math::Mat4f target = vne::math::Mat4f::translate(vne::math::Vec3f(1.0f, 2.0f, 3.0f));
     ctrl.setTarget(target);
@@ -37,7 +37,7 @@ TEST(FollowController, SetTargetCallback) {
     vne::interaction::FollowController ctrl;
     auto cam = makePerspCamera();
     ctrl.setCamera(cam);
-    ctrl.setViewportSize(1280.0f, 720.0f);
+    ctrl.onResize(1280.0f, 720.0f);
 
     vne::math::Vec3f dynamic_pos(0.0f, 0.0f, 0.0f);
     ctrl.setTarget([&dynamic_pos]() { return vne::math::Mat4f::translate(dynamic_pos); });

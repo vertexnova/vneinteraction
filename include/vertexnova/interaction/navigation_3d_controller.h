@@ -18,7 +18,7 @@
  * @code
  * auto ctrl = vne::interaction::Navigation3DController{};
  * ctrl.setCamera(camera);
- * ctrl.setViewportSize(1280, 720);
+ * ctrl.onResize(1280, 720);
  * // In your loop:
  * ctrl.onEvent(event);
  * ctrl.onUpdate(dt);
@@ -89,7 +89,7 @@ class VNE_INTERACTION_API Navigation3DController {
     // -------------------------------------------------------------------------
 
     void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept;
-    void setViewportSize(float width_px, float height_px) noexcept;
+    void onResize(float width_px, float height_px) noexcept;
 
     // -------------------------------------------------------------------------
     // Per-frame

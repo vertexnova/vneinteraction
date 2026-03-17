@@ -27,7 +27,7 @@ int main() {
     // 1. InspectController — inspect robot arm / tool / anatomy
     vne::interaction::InspectController inspect;
     inspect.setCamera(camera);
-    inspect.setViewportSize(1280.0f, 720.0f);
+    inspect.onResize(1280.0f, 720.0f);
     inspect.setPivot(vne::math::Vec3f(0.0f, 0.5f, 0.0f));  // robot base
     inspect.setPivotMode(vne::interaction::OrbitPivotMode::eFixed);
 
@@ -50,13 +50,13 @@ int main() {
     // 2. Navigation3DController — move through environment
     vne::interaction::Navigation3DController navigate;
     navigate.setCamera(camera);
-    navigate.setViewportSize(1280.0f, 720.0f);
+    navigate.onResize(1280.0f, 720.0f);
     navigate.setMode(vne::interaction::NavigateMode::eFps);
 
     // 3. FollowController — end-effector follow-cam (FollowBehavior)
     vne::interaction::FollowController follow;
     follow.setCamera(camera);
-    follow.setViewportSize(1280.0f, 720.0f);
+    follow.onResize(1280.0f, 720.0f);
     vne::math::Mat4f target_xform = vne::math::Mat4f::translate(vne::math::Vec3f(0.5f, 0.8f, 0.2f));
     follow.setTarget(target_xform);
     follow.setLag(0.15f);

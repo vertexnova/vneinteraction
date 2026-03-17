@@ -26,7 +26,7 @@ TEST(InspectController, SetPivotMode) {
     vne::interaction::InspectController ctrl;
     auto cam = makePerspCamera();
     ctrl.setCamera(cam);
-    ctrl.setViewportSize(1280.0f, 720.0f);
+    ctrl.onResize(1280.0f, 720.0f);
 
     ctrl.setPivot(vne::math::Vec3f(1.0f, 2.0f, 3.0f));
     EXPECT_EQ(ctrl.getPivotMode(), vne::interaction::OrbitPivotMode::eFixed);
@@ -44,7 +44,7 @@ TEST(InspectController, FitToAABB) {
     vne::interaction::InspectController ctrl;
     auto cam = makePerspCamera();
     ctrl.setCamera(cam);
-    ctrl.setViewportSize(1280.0f, 720.0f);
+    ctrl.onResize(1280.0f, 720.0f);
 
     EXPECT_NO_FATAL_FAILURE(ctrl.fitToAABB(vne::math::Vec3f(-1.0f, -1.0f, -1.0f), vne::math::Vec3f(1.0f, 1.0f, 1.0f)));
 }
@@ -53,7 +53,7 @@ TEST(InspectController, OnEventNoCrash) {
     vne::interaction::InspectController ctrl;
     auto cam = makePerspCamera();
     ctrl.setCamera(cam);
-    ctrl.setViewportSize(1280.0f, 720.0f);
+    ctrl.onResize(1280.0f, 720.0f);
 
     vne::events::MouseMovedEvent move(640.0, 360.0);
     vne::events::MouseButtonPressedEvent press(vne::events::MouseButton::eLeft, 0, 640.0, 360.0);
