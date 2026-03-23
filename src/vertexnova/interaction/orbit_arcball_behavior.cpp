@@ -420,8 +420,7 @@ void OrbitArcballBehavior::onZoomDolly(float factor, float mouse_x_px, float mou
     const vne::math::Vec3f r = computeRight(front);
     const vne::math::Vec3f u = computeUp(front, r);
     if (perspCamera() && viewport().width > 0.0f && viewport().height > 0.0f) {
-        const vne::math::Vec3f cursor_world =
-            worldUnderCursor(*camera_, mouse_x_px, mouse_y_px, old_dist, viewport());
+        const vne::math::Vec3f cursor_world = worldUnderCursor(*camera_, mouse_x_px, mouse_y_px, old_dist, viewport());
         const vne::math::Vec2f ndc = mouseToNDC(mouse_x_px, mouse_y_px, viewport().width, viewport().height);
         const float fov_y_rad = vne::math::degToRad(perspCamera()->getFieldOfView());
         const float new_half_h = orbit_distance_ * vne::math::tan(fov_y_rad * 0.5f);

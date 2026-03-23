@@ -38,12 +38,10 @@ inline void buildReferenceFrame(const vne::math::Vec3f& world_up,
                                 vne::math::Vec3f& ref_fwd,
                                 vne::math::Vec3f& ref_right) noexcept {
     vne::math::Vec3f candidate =
-        (std::abs(world_up.y()) > 0.9f) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f)
-                                        : vne::math::Vec3f(0.0f, -1.0f, 0.0f);
+        (std::abs(world_up.y()) > 0.9f) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : vne::math::Vec3f(0.0f, -1.0f, 0.0f);
     ref_fwd = (candidate - world_up * candidate.dot(world_up));
     const float fwd_len = ref_fwd.length();
-    ref_fwd = (fwd_len < detail::kBehaviorMathEpsilon) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f)
-                                                       : (ref_fwd / fwd_len);
+    ref_fwd = (fwd_len < detail::kBehaviorMathEpsilon) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : (ref_fwd / fwd_len);
     ref_right = ref_fwd.cross(world_up);
     const float right_len = ref_right.length();
     if (right_len > detail::kBehaviorMathEpsilon) {
@@ -89,16 +87,12 @@ inline void buildReferenceFrame(const vne::math::Vec3f& world_up,
 /**
  * @brief API-aware unproject from mouse coords (mouse -> API screen -> unproject).
  */
-[[nodiscard]] inline vne::math::Vec3f mouseUnproject(const vne::scene::ICamera& camera,
-                                                     float mx,
-                                                     float my,
-                                                     float depth,
-                                                     const vne::math::Viewport& vp) noexcept {
+[[nodiscard]] inline vne::math::Vec3f mouseUnproject(
+    const vne::scene::ICamera& camera, float mx, float my, float depth, const vne::math::Viewport& vp) noexcept {
     vne::math::GraphicsApi api = camera.getGraphicsApi();
     vne::math::Vec2f screen = mouseToApiScreen(mx, my, vp, api);
     vne::math::Mat4f inv_vp = camera.getViewProjectionMatrix().inverse();
-    return vne::math::unproject(
-        vne::math::Vec3f(screen.x(), screen.y(), depth), inv_vp, vp, api);
+    return vne::math::unproject(vne::math::Vec3f(screen.x(), screen.y(), depth), inv_vp, vp, api);
 }
 
 /**
@@ -119,11 +113,8 @@ inline void buildReferenceFrame(const vne::math::Vec3f& world_up,
  * For perspective: ray origin + direction * distance. Ortho: parallel projection
  * so same formula gives point at distance along view direction.
  */
-[[nodiscard]] inline vne::math::Vec3f worldUnderCursor(const vne::scene::ICamera& camera,
-                                                       float mx,
-                                                       float my,
-                                                       float distance,
-                                                       const vne::math::Viewport& vp) noexcept {
+[[nodiscard]] inline vne::math::Vec3f worldUnderCursor(
+    const vne::scene::ICamera& camera, float mx, float my, float distance, const vne::math::Viewport& vp) noexcept {
     vne::math::Ray ray = mouseToWorldRay(camera, mx, my, vp);
     return ray.origin() + ray.direction() * distance;
 }
