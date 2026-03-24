@@ -128,11 +128,12 @@ void FollowBehavior::onUpdate(double delta_time) noexcept {
     vne::math::Vec3f up_hint = world_up_;
     if (std::abs(view_dir.dot(world_up_)) > 0.99f) {
         // world_up_ is collinear with view_dir — pick the first non-collinear candidate
-        const vne::math::Vec3f candidates[3] = {
-            {0.0f, 0.0f, -1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}
-        };
+        const vne::math::Vec3f candidates[3] = {{0.0f, 0.0f, -1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}};
         for (const auto& c : candidates) {
-            if (std::abs(view_dir.dot(c)) < 0.99f) { up_hint = c; break; }
+            if (std::abs(view_dir.dot(c)) < 0.99f) {
+                up_hint = c;
+                break;
+            }
         }
     }
     setCameraLookAt(camera_, new_eye, target, up_hint);

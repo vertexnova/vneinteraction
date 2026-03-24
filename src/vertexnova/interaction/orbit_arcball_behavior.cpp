@@ -308,11 +308,13 @@ void OrbitArcballBehavior::dragRotateArcball(float x_px, float y_px, double delt
     }
     // Anti-parallel: cross product is near-zero but a π rotation is needed.
     if (dot <= -(1.0f - kEpsilon)) {
-        const vne::math::Vec3f arb = (std::abs(prev_world.x()) < 0.9f)
-            ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : vne::math::Vec3f(0.0f, 1.0f, 0.0f);
+        const vne::math::Vec3f arb =
+            (std::abs(prev_world.x()) < 0.9f) ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : vne::math::Vec3f(0.0f, 1.0f, 0.0f);
         vne::math::Vec3f flip_axis = prev_world.cross(arb);
         const float flip_len = flip_axis.length();
-        if (flip_len < kEpsilon) { return; }
+        if (flip_len < kEpsilon) {
+            return;
+        }
         flip_axis /= flip_len;
         const vne::math::Quatf delta_q = vne::math::Quatf::fromAxisAngle(flip_axis, vne::math::kPi * rotation_speed_);
         orientation_ = (delta_q * orientation_).normalized();
