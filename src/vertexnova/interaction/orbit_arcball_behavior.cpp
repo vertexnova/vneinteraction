@@ -34,7 +34,7 @@ constexpr float kMaxOrbitDistance = 1e6f;
 constexpr float kMinRadiusFallback = 1.0f;
 constexpr float kFitToAabbMargin = 1.1f;
 constexpr float kInertiaPanThreshold = 1e-4f;
-constexpr float kPanVelocityBlend = 0.35f;
+constexpr float kPanVelocityBlendRate = 25.0f;  // EMA time-constant reciprocal (1/s) — frame-rate independent
 constexpr float kFitAnimationSpeed = 10.0f;
 constexpr float kFitConvergeThreshold = 1e-3f;
 constexpr double kMinDeltaTimeForInertia = 0.001;
@@ -306,6 +306,19 @@ void OrbitArcballBehavior::dragRotateArcball(float x_px, float y_px, double delt
     if (dot >= 1.0f - kEpsilon) {
         return;
     }
+    // Anti-parallel: cross product is near-zero but a π rotation is needed.
+    if (dot <= -(1.0f - kEpsilon)) {
+        const vne::math::Vec3f arb = (std::abs(prev_world.x()) < 0.9f)
+            ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : vne::math::Vec3f(0.0f, 1.0f, 0.0f);
+        vne::math::Vec3f flip_axis = prev_world.cross(arb);
+        const float flip_len = flip_axis.length();
+        if (flip_len < kEpsilon) { return; }
+        flip_axis /= flip_len;
+        const vne::math::Quatf delta_q = vne::math::Quatf::fromAxisAngle(flip_axis, vne::math::kPi * rotation_speed_);
+        orientation_ = (delta_q * orientation_).normalized();
+        applyToCamera();
+        return;
+    }
     vne::math::Vec3f axis = prev_world.cross(curr_world);
     const float axis_len = axis.length();
     if (axis_len < kEpsilon) {
@@ -381,7 +394,8 @@ void OrbitArcballBehavior::dragPan(
 
     if (delta_time >= kMinDeltaTimeForInertia) {
         const vne::math::Vec3f sample = delta_world / static_cast<float>(delta_time);
-        inertia_pan_velocity_ = inertia_pan_velocity_ + (sample - inertia_pan_velocity_) * kPanVelocityBlend;
+        const float blend = 1.0f - std::exp(-kPanVelocityBlendRate * static_cast<float>(delta_time));
+        inertia_pan_velocity_ = inertia_pan_velocity_ + (sample - inertia_pan_velocity_) * blend;
     }
 }
 

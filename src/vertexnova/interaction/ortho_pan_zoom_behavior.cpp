@@ -27,6 +27,7 @@ CREATE_VNE_LOGGER_CATEGORY("vne.interaction.ortho_pan_zoom");
 constexpr float kEpsilon = 1e-6f;
 constexpr float kFitToAabbMargin = 1.1f;
 constexpr float kPanVelocityThreshold = 1e-4f;
+constexpr float kPanVelocityBlendRate = 25.0f;  // EMA time-constant reciprocal (1/s)
 }  // namespace
 
 // ---------------------------------------------------------------------------
@@ -74,7 +75,9 @@ void OrthoPanZoomBehavior::pan(float delta_x_px, float delta_y_px, double delta_
     ortho->updateMatrices();
 
     if (delta_time > 0.0) {
-        pan_velocity_ = delta_world / static_cast<float>(delta_time);
+        const vne::math::Vec3f sample = delta_world / static_cast<float>(delta_time);
+        const float blend = 1.0f - std::exp(-kPanVelocityBlendRate * static_cast<float>(delta_time));
+        pan_velocity_ = pan_velocity_ + (sample - pan_velocity_) * blend;
     }
 }
 
