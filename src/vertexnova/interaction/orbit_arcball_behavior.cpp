@@ -432,14 +432,11 @@ void OrbitArcballBehavior::onZoomDolly(float factor, float mouse_x_px, float mou
             {
                 const float old_dist = orbit_distance_;
                 orbit_distance_ = vne::math::clamp(orbit_distance_ * factor, kMinOrbitDistance, kMaxOrbitDistance);
-                // Use orientation_ axes directly (same as dragRotateArcball/applyToCamera) so
-                // cursor_world is computed in the correct frame for both arcball and Euler modes.
-                const vne::math::Vec3f eye_dir =
-                    (rotation_mode_ == OrbitRotationMode::eArcball)
-                        ? orientation_.rotate(vne::math::Vec3f(0.0f, 0.0f, 1.0f)).normalized()
-                        : -computeFront();
-                const vne::math::Vec3f r = computeRight(eye_dir);
-                const vne::math::Vec3f u = computeUp(eye_dir, r);
+                // computeRight/computeUp expect the view/front direction (not camera-back / +Z).
+                // computeFront() matches applyToCamera (Euler yaw/pitch or arcball -orientation_.getZAxis()).
+                const vne::math::Vec3f front_dir = computeFront();
+                const vne::math::Vec3f r = computeRight(front_dir);
+                const vne::math::Vec3f u = computeUp(front_dir, r);
                 auto persp = perspCamera();
                 const float vw = viewportWidth();
                 const float vh = viewportHeight();
@@ -449,7 +446,7 @@ void OrbitArcballBehavior::onZoomDolly(float factor, float mouse_x_px, float mou
                     const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
                     const float half_h = old_dist * vne::math::tan(fov_y_rad * 0.5f);
                     const float half_w = half_h * (vw / vh);
-                    // camera position is coi + eye_dir * old_dist, so cursor at coi + screen offset
+                    // Camera is along -front from COI at old_dist; cursor offset in the view plane (r, u).
                     const vne::math::Vec3f cursor_world = coi_world_ + r * (ndc_x * half_w) + u * (ndc_y * half_h);
                     const vne::math::Vec3f to_cursor = cursor_world - coi_world_;
                     const float shift_t = (1.0f - factor) * kZoomToCursorStrength;
