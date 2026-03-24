@@ -293,9 +293,9 @@ void OrbitArcballBehavior::dragRotateArcball(float x_px, float y_px, double delt
     // Build camera basis directly from orientation_ axes — identical to what applyToCamera uses.
     // This guarantees the arcball sphere (x=right, y=up, z=eye_dir) lives in exactly the same
     // frame as orientation_, so delta_q * orientation_ produces the correct world-space rotation.
-    const vne::math::Vec3f r        = orientation_.rotate(vne::math::Vec3f(1.0f, 0.0f, 0.0f));  // camera right
-    const vne::math::Vec3f u        = orientation_.rotate(vne::math::Vec3f(0.0f, 1.0f, 0.0f));  // camera up
-    const vne::math::Vec3f eye_dir  = orientation_.rotate(vne::math::Vec3f(0.0f, 0.0f, 1.0f));  // eye/back
+    const vne::math::Vec3f r = orientation_.rotate(vne::math::Vec3f(1.0f, 0.0f, 0.0f));        // camera right
+    const vne::math::Vec3f u = orientation_.rotate(vne::math::Vec3f(0.0f, 1.0f, 0.0f));        // camera up
+    const vne::math::Vec3f eye_dir = orientation_.rotate(vne::math::Vec3f(0.0f, 0.0f, 1.0f));  // eye/back
 
     const vne::math::Vec3f prev_world = (r * prev_cam.x() + u * prev_cam.y() + eye_dir * prev_cam.z()).normalized();
     const vne::math::Vec3f curr_world = (r * curr_cam.x() + u * curr_cam.y() + eye_dir * curr_cam.z()).normalized();
@@ -410,10 +410,10 @@ void OrbitArcballBehavior::onZoomDolly(float factor, float mouse_x_px, float mou
             auto persp = perspCamera();
             if (persp) {
                 const float fov = persp->getFieldOfView();
-                const float new_fov = vne::math::clamp(
-                    fov * ((factor < 1.0f) ? (1.0f / fov_zoom_speed_) : fov_zoom_speed_),
-                    kFovMinDeg,
-                    kFovMaxDeg);
+                const float new_fov =
+                    vne::math::clamp(fov * ((factor < 1.0f) ? (1.0f / fov_zoom_speed_) : fov_zoom_speed_),
+                                     kFovMinDeg,
+                                     kFovMaxDeg);
                 persp->setFieldOfView(new_fov);
                 persp->updateMatrices();
                 // If FOV has not changed (limit reached), fall through to dolly so zoom doesn't feel stuck
@@ -433,9 +433,10 @@ void OrbitArcballBehavior::onZoomDolly(float factor, float mouse_x_px, float mou
                 orbit_distance_ = vne::math::clamp(orbit_distance_ * factor, kMinOrbitDistance, kMaxOrbitDistance);
                 // Use orientation_ axes directly (same as dragRotateArcball/applyToCamera) so
                 // cursor_world is computed in the correct frame for both arcball and Euler modes.
-                const vne::math::Vec3f eye_dir = (rotation_mode_ == OrbitRotationMode::eArcball)
-                    ? orientation_.rotate(vne::math::Vec3f(0.0f, 0.0f, 1.0f)).normalized()
-                    : -computeFront();
+                const vne::math::Vec3f eye_dir =
+                    (rotation_mode_ == OrbitRotationMode::eArcball)
+                        ? orientation_.rotate(vne::math::Vec3f(0.0f, 0.0f, 1.0f)).normalized()
+                        : -computeFront();
                 const vne::math::Vec3f r = computeRight(eye_dir);
                 const vne::math::Vec3f u = computeUp(eye_dir, r);
                 auto persp = perspCamera();
@@ -448,8 +449,7 @@ void OrbitArcballBehavior::onZoomDolly(float factor, float mouse_x_px, float mou
                     const float half_h = old_dist * vne::math::tan(fov_y_rad * 0.5f);
                     const float half_w = half_h * (vw / vh);
                     // camera position is coi + eye_dir * old_dist, so cursor at coi + screen offset
-                    const vne::math::Vec3f cursor_world =
-                        coi_world_ + r * (ndc_x * half_w) + u * (ndc_y * half_h);
+                    const vne::math::Vec3f cursor_world = coi_world_ + r * (ndc_x * half_w) + u * (ndc_y * half_h);
                     const vne::math::Vec3f to_cursor = cursor_world - coi_world_;
                     const float shift_t = (1.0f - factor) * kZoomToCursorStrength;
                     if (to_cursor.length() < old_dist * 2.0f) {
