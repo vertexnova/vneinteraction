@@ -5,7 +5,7 @@
  */
 
 #include "vertexnova/interaction/free_look_behavior.h"
-#include "vertexnova/interaction/behavior_math.h"
+#include "vertexnova/interaction/behavior_utils.h"
 
 #include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/perspective_camera.h"
@@ -135,7 +135,14 @@ void FreeLookBehavior::applyAnglesToCamera() noexcept {
             r = f.cross(world_up_);
             r_len = r.length();
         }
-        up = (r_len > kEpsilon) ? r.cross(f).normalized() : upVector();
+        if (r_len < kEpsilon) {
+            // Both up_hint and world_up_ are collinear with f (e.g. looking straight up in fly mode).
+            // Derive a deterministic right from the yaw-based reference frame instead of stale camera up.
+            vne::math::Vec3f ref_fwd, ref_right;
+            buildReferenceFrame(world_up_, ref_fwd, ref_right);
+            r = ref_right;
+        }
+        up = r.cross(f).normalized();
     } else {
         up = upVector();
     }

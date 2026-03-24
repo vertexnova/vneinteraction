@@ -85,4 +85,37 @@ TEST(OrbitArcballBehavior, ResetState) {
     EXPECT_NO_FATAL_FAILURE(b.resetState());
 }
 
+// kFovMaxDeg in CameraBehaviorBase is 120 — must match OrbitArcballBehavior::onZoomDolly clamp.
+// Use max FOV so 120 * fov_zoom_speed_ clamps back to 120 with exact float equality (new_fov == fov),
+// deterministically exercising fallthrough to dolly. At min FOV, tiny float drift can make
+// new_fov != fov and return early before dolly.
+TEST(OrbitArcballBehavior, ChangeFovZoomFallsThroughToDollyWhenFovClamped) {
+    auto cam = makePerspCamera();
+    cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
+    cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
+
+    vne::interaction::OrbitArcballBehavior b;
+    b.setZoomMethod(vne::interaction::ZoomMethod::eChangeFov);
+    b.setFovZoomSpeed(1.05f);
+    b.setCamera(cam);
+    b.onResize(1280.0f, 720.0f);
+
+    // Pin FOV at kFovMaxDeg so zoom-out multiplies past 120° and clamps to 120° unchanged → dolly.
+    constexpr float kFovMaxDeg = 120.0f;
+    cam->setFieldOfView(kFovMaxDeg);
+    cam->updateMatrices();
+
+    const float orbit_before = b.getOrbitDistance();
+
+    vne::interaction::CameraCommandPayload p;
+    p.x_px = 640.0f;
+    p.y_px = 360.0f;
+    p.zoom_factor = 1.1f;  // zoom out (> 1): 120*1.05 clamps to 120 → fallthrough to dolly
+    b.onAction(vne::interaction::CameraActionType::eZoomAtCursor, p, 0.0);
+
+    EXPECT_FLOAT_EQ(cam->getFieldOfView(), kFovMaxDeg);
+    EXPECT_GT(b.getOrbitDistance(), orbit_before)
+        << "At max FOV, eChangeFov should fall through to dolly (orbit_distance changes)";
+}
+
 }  // namespace vne_interaction_test

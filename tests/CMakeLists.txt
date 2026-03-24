@@ -62,6 +62,7 @@ set(TEST_SOURCES
     navigation_3d_controller_test.cpp
     ortho_2d_controller_test.cpp
     follow_controller_test.cpp
+    controller_move_safety_test.cpp
     api_robustness_test.cpp
 )
 

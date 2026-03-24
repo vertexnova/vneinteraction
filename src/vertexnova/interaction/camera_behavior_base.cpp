@@ -5,7 +5,7 @@
  */
 
 #include "vertexnova/interaction/camera_behavior_base.h"
-#include "vertexnova/interaction/behavior_math.h"
+#include "vertexnova/interaction/behavior_utils.h"
 
 #include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/orthographic_camera.h"
@@ -123,7 +123,7 @@ void CameraBehaviorBase::applySceneScaleZoom(float factor) noexcept {
         return;
     }
     zoom_scale_ = vne::math::clamp(zoom_scale_ * factor, kSceneScaleMin, kSceneScaleMax);
-    camera_->setSceneScale(zoom_scale_);
+    // ICamera no longer exposes scene scale; zoom_scale_ is tracked for getZoomScale() and app use.
     camera_->updateMatrices();
 }
 

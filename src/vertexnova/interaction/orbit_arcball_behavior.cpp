@@ -5,7 +5,7 @@
  */
 
 #include "vertexnova/interaction/orbit_arcball_behavior.h"
-#include "vertexnova/interaction/behavior_math.h"
+#include "vertexnova/interaction/behavior_utils.h"
 
 #include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/perspective_camera.h"
@@ -14,7 +14,6 @@
 #include <vertexnova/math/core/core.h>
 #include <vertexnova/math/core/math_utils.h>
 #include <vertexnova/math/easing.h>
-
 #include <vertexnova/logging/logging.h>
 
 #include <algorithm>
@@ -34,7 +33,7 @@ constexpr float kMaxOrbitDistance = 1e6f;
 constexpr float kMinRadiusFallback = 1.0f;
 constexpr float kFitToAabbMargin = 1.1f;
 constexpr float kInertiaPanThreshold = 1e-4f;
-constexpr float kPanVelocityBlend = 0.35f;
+constexpr float kPanVelocityBlendRate = 25.0f;  // EMA time-constant reciprocal (1/s) — frame-rate independent
 constexpr float kFitAnimationSpeed = 10.0f;
 constexpr float kFitConvergeThreshold = 1e-3f;
 constexpr double kMinDeltaTimeForInertia = 0.001;
@@ -47,6 +46,8 @@ constexpr float kInertiaRotAngleThreshold = 1e-6f;
 constexpr float kInertiaRotSpeedThreshold = 1e-4f;
 constexpr float kInertiaPanSpeedThreshold = 1e-4f;
 constexpr uint32_t kNormalizeEveryNFrames = 60u;
+/** Strength of COI shift toward cursor on perspective zoom-to-cursor (0..1). */
+constexpr float kZoomToCursorStrength = 0.5f;
 
 float safeSqrt(float x) noexcept {
     return std::sqrt(std::max(0.0f, x));
@@ -91,9 +92,6 @@ void OrbitArcballBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera
 
 void OrbitArcballBehavior::onResize(float width_px, float height_px) noexcept {
     CameraBehaviorBase::onResize(width_px, height_px);
-    if (auto persp = perspCamera()) {
-        persp->resize(viewport().width, viewport().height);
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -292,16 +290,14 @@ void OrbitArcballBehavior::dragRotateArcball(float x_px, float y_px, double delt
     const vne::math::Vec3f prev_cam = projectToArcball(arcball_start_x_, arcball_start_y_);
     const vne::math::Vec3f curr_cam = projectToArcball(x_px, y_px);
 
-    // Transform to world-space using quaternion-derived basis (pole-safe, no world_up cross)
+    // Transform to world-space using quaternion-derived basis (pole-safe, no world_up cross).
+    // Arcball sphere z-axis uses camera-back (eye direction), i.e. +Z basis.
     const vne::math::Vec3f r = orientation_.getXAxis();
     const vne::math::Vec3f u = orientation_.getYAxis();
-    const vne::math::Vec3f front = -orientation_.getZAxis();
+    const vne::math::Vec3f eye_dir = orientation_.getZAxis();
 
-    // Map screen-space arcball vectors into world space.
-    // With computeRight returning the true +right vector, the natural prev→curr
-    // direction already implements drag-the-world — no swap needed.
-    const vne::math::Vec3f prev_world = (r * prev_cam.x() + u * prev_cam.y() + front * prev_cam.z()).normalized();
-    const vne::math::Vec3f curr_world = (r * curr_cam.x() + u * curr_cam.y() + front * curr_cam.z()).normalized();
+    const vne::math::Vec3f prev_world = (r * prev_cam.x() + u * prev_cam.y() + eye_dir * prev_cam.z()).normalized();
+    const vne::math::Vec3f curr_world = (r * curr_cam.x() + u * curr_cam.y() + eye_dir * curr_cam.z()).normalized();
 
     arcball_start_x_ = x_px;
     arcball_start_y_ = y_px;
@@ -310,15 +306,31 @@ void OrbitArcballBehavior::dragRotateArcball(float x_px, float y_px, double delt
     if (dot >= 1.0f - kEpsilon) {
         return;
     }
+    // Anti-parallel: cross product is near-zero but a π rotation is needed.
+    if (dot <= -(1.0f - kEpsilon)) {
+        const vne::math::Vec3f arb =
+            (std::abs(prev_world.x()) < 0.9f) ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : vne::math::Vec3f(0.0f, 1.0f, 0.0f);
+        vne::math::Vec3f flip_axis = prev_world.cross(arb);
+        const float flip_len = flip_axis.length();
+        if (flip_len < kEpsilon) {
+            return;
+        }
+        flip_axis /= flip_len;
+        const vne::math::Quatf delta_q = vne::math::Quatf::fromAxisAngle(flip_axis, vne::math::kPi * rotation_speed_);
+        orientation_ = (delta_q * orientation_).normalized();
+        applyToCamera();
+        return;
+    }
     vne::math::Vec3f axis = prev_world.cross(curr_world);
     const float axis_len = axis.length();
     if (axis_len < kEpsilon) {
         return;
     }
     axis /= axis_len;
-    const float angle = vne::math::acos(dot) * rotation_speed_;
+    const float angle = vne::math::acos(dot);
+    const float scaled_angle = angle * rotation_speed_;
 
-    const vne::math::Quatf delta_q = vne::math::Quatf::fromAxisAngle(axis, angle);
+    const vne::math::Quatf delta_q = vne::math::Quatf::fromAxisAngle(axis, scaled_angle);
     orientation_ = delta_q * orientation_;
 
     if (++normalize_counter_ >= kNormalizeEveryNFrames) {
@@ -328,10 +340,10 @@ void OrbitArcballBehavior::dragRotateArcball(float x_px, float y_px, double delt
 
     applyToCamera();
 
-    if (delta_time >= kMinDeltaTimeForInertia && std::abs(angle) > kInertiaRotAngleThreshold) {
+    if (delta_time >= kMinDeltaTimeForInertia && std::abs(scaled_angle) > kInertiaRotAngleThreshold) {
         inertia_rot_axis_ = axis;
         inertia_rot_speed_ =
-            vne::math::clamp(angle / static_cast<float>(delta_time), -kInertiaRotSpeedMax, kInertiaRotSpeedMax);
+            vne::math::clamp(scaled_angle / static_cast<float>(delta_time), -kInertiaRotSpeedMax, kInertiaRotSpeedMax);
     }
 }
 
@@ -384,7 +396,8 @@ void OrbitArcballBehavior::dragPan(
 
     if (delta_time >= kMinDeltaTimeForInertia) {
         const vne::math::Vec3f sample = delta_world / static_cast<float>(delta_time);
-        inertia_pan_velocity_ = inertia_pan_velocity_ + (sample - inertia_pan_velocity_) * kPanVelocityBlend;
+        const float blend = 1.0f - std::exp(-kPanVelocityBlendRate * static_cast<float>(delta_time));
+        inertia_pan_velocity_ = inertia_pan_velocity_ + (sample - inertia_pan_velocity_) * blend;
     }
 }
 
@@ -401,35 +414,89 @@ void OrbitArcballBehavior::endPan(double) noexcept {
 // Zoom
 // ---------------------------------------------------------------------------
 
+void OrbitArcballBehavior::dispatchZoom(float factor, float mx, float my) noexcept {
+    if (!camera_ || factor <= 0.0f || !std::isfinite(factor)) {
+        return;
+    }
+    switch (zoom_method_) {
+        case ZoomMethod::eSceneScale:
+            CameraBehaviorBase::applySceneScaleZoom(factor);
+            return;
+        case ZoomMethod::eChangeFov:
+        case ZoomMethod::eDollyToCoi:
+            onZoomDolly(factor, mx, my);
+            return;
+    }
+}
+
 void OrbitArcballBehavior::onZoomDolly(float factor, float mouse_x_px, float mouse_y_px) noexcept {
     if (!camera_) {
         return;
     }
-    // Apply zoom_speed_ so setZoomSpeed() affects dolly (e.g. pow(factor, zoom_speed_) for perspective).
+    // Preserve user zoom direction while scaling step intensity with zoom_speed_.
+    // zoom_speed_ > 1.0f makes each zoom step stronger, < 1.0f makes it gentler.
     const float effective_factor = std::pow(factor, zoom_speed_);
-    // Ortho: delegate to shared cursor-anchored zoom, then sync pivot.
-    if (auto ortho = orthoCamera()) {
-        applyOrthoZoomToCursor(effective_factor, mouse_x_px, mouse_y_px);
-        coi_world_ = ortho->getTarget();
-        return;
-    }
-    // Perspective: dolly orbit distance + cursor shift.
-    const float old_dist = orbit_distance_;
-    orbit_distance_ = vne::math::clamp(orbit_distance_ * effective_factor, kMinOrbitDistance, kMaxOrbitDistance);
-    const vne::math::Vec3f front = computeFront();
-    const vne::math::Vec3f r = computeRight(front);
-    const vne::math::Vec3f u = computeUp(front, r);
-    if (perspCamera() && viewport().width > 0.0f && viewport().height > 0.0f) {
-        const vne::math::Vec3f cursor_world = worldUnderCursor(*camera_, mouse_x_px, mouse_y_px, old_dist, viewport());
-        const vne::math::Vec2f ndc = mouseToNDC(mouse_x_px, mouse_y_px, viewport().width, viewport().height);
-        const float fov_y_rad = vne::math::degToRad(perspCamera()->getFieldOfView());
-        const float new_half_h = orbit_distance_ * vne::math::tan(fov_y_rad * 0.5f);
-        const float new_half_w = new_half_h * (viewport().width / viewport().height);
-        coi_world_ = cursor_world - r * (ndc.x() * new_half_w) - u * (ndc.y() * new_half_h);
-    }
-    applyToCamera();
-    if (pivot_mode_ == OrbitPivotMode::eViewCenter) {
-        onPivotChanged();
+    switch (zoom_method_) {
+        case ZoomMethod::eSceneScale:
+            CameraBehaviorBase::applySceneScaleZoom(factor);
+            return;
+        case ZoomMethod::eChangeFov: {
+            auto persp = perspCamera();
+            if (persp) {
+                const float fov = persp->getFieldOfView();
+                const float new_fov =
+                    vne::math::clamp(fov * ((factor < 1.0f) ? (1.0f / fov_zoom_speed_) : fov_zoom_speed_),
+                                     kFovMinDeg,
+                                     kFovMaxDeg);
+                persp->setFieldOfView(new_fov);
+                persp->updateMatrices();
+                // If FOV has not changed (limit reached), fall through to dolly so zoom doesn't feel stuck
+                if (new_fov != fov) {
+                    return;
+                }
+            }
+            [[fallthrough]];
+        }
+        case ZoomMethod::eDollyToCoi:
+            if (orthoCamera()) {
+                CameraBehaviorBase::applyOrthoZoomToCursor(effective_factor, mouse_x_px, mouse_y_px);
+                return;
+            }
+            {
+                const float old_dist = orbit_distance_;
+                orbit_distance_ =
+                    vne::math::clamp(orbit_distance_ * effective_factor, kMinOrbitDistance, kMaxOrbitDistance);
+                // computeRight/computeUp expect the view/front direction (not camera-back / +Z).
+                // computeFront() matches applyToCamera (Euler yaw/pitch or arcball -orientation_.getZAxis()).
+                const vne::math::Vec3f front_dir = computeFront();
+                const vne::math::Vec3f r = computeRight(front_dir);
+                const vne::math::Vec3f u = computeUp(front_dir, r);
+                auto persp = perspCamera();
+                const float vw = viewportWidth();
+                const float vh = viewportHeight();
+                if (persp && vw > 0.0f && vh > 0.0f) {
+                    const float ndc_x = (2.0f * mouse_x_px / vw) - 1.0f;
+                    const float ndc_y = 1.0f - (2.0f * mouse_y_px / vh);
+                    const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
+                    const float half_h = old_dist * vne::math::tan(fov_y_rad * 0.5f);
+                    const float half_w = half_h * (vw / vh);
+                    // Camera is along -front from COI at old_dist; cursor offset in the view plane (r, u).
+                    const vne::math::Vec3f cursor_world = coi_world_ + r * (ndc_x * half_w) + u * (ndc_y * half_h);
+                    const vne::math::Vec3f to_cursor = cursor_world - coi_world_;
+                    const float shift_t = (1.0f - effective_factor) * kZoomToCursorStrength;
+                    if (to_cursor.length() < old_dist * 2.0f) {
+                        coi_world_ += to_cursor * shift_t;
+                    }
+                }
+                applyToCamera();
+                if (pivot_mode_ == OrbitPivotMode::eViewCenter) {
+                    onPivotChanged();
+                } else if (rotation_mode_ == OrbitRotationMode::eArcball) {
+                    // Re-sync orientation_ after COI shift so rotation basis stays valid
+                    syncFromCamera();
+                }
+            }
+            return;
     }
 }
 

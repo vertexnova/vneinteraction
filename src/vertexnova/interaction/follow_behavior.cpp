@@ -5,6 +5,7 @@
  */
 
 #include "vertexnova/interaction/follow_behavior.h"
+#include "vertexnova/interaction/behavior_utils.h"
 
 #include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/perspective_camera.h"
@@ -124,8 +125,17 @@ void FollowBehavior::onUpdate(double delta_time) noexcept {
     const vne::math::Vec3f new_eye = eye + (desired_eye - eye) * alpha;
 
     const vne::math::Vec3f view_dir = (target - new_eye).normalized();
-    const vne::math::Vec3f up_hint =
-        (std::abs(view_dir.dot(world_up_)) > 0.99f) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : world_up_;
+    vne::math::Vec3f up_hint = world_up_;
+    if (std::abs(view_dir.dot(world_up_)) > 0.99f) {
+        // world_up_ is collinear with view_dir — pick the first non-collinear candidate
+        const vne::math::Vec3f candidates[3] = {{0.0f, 0.0f, -1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}};
+        for (const auto& c : candidates) {
+            if (std::abs(view_dir.dot(c)) < 0.99f) {
+                up_hint = c;
+                break;
+            }
+        }
+    }
     camera_->lookAt(new_eye, target, up_hint);
     camera_->updateMatrices();
 }
