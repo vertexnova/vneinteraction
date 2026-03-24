@@ -14,6 +14,8 @@
  * Internal header — used by behaviors for zoom-to-cursor, picking, etc.
  */
 
+#include <cmath>
+
 #include <vertexnova/math/core/core.h>
 #include <vertexnova/math/core/types.h>
 #include <vertexnova/math/projection_utils.h>
