@@ -139,8 +139,7 @@ void FreeLookBehavior::applyAnglesToCamera() noexcept {
     } else {
         up = upVector();
     }
-    camera_->lookAt(eye, eye + f, up);
-    camera_->updateMatrices();
+    setCameraLookAt(camera_, eye, eye + f, up);
 }
 
 void FreeLookBehavior::onZoomDolly(float factor, float mx, float my) noexcept {
@@ -203,8 +202,7 @@ void FreeLookBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::m
         eye = center - f * (radius * kFitToAabbDistFactor);
     }
     const vne::math::Vec3f up = (mode_ == FreeLookMode::eFps) ? world_up_ : upVector();
-    camera_->lookAt(eye, center, up);
-    camera_->updateMatrices();
+    setCameraLookAt(camera_, eye, center, up);
 }
 
 // ---------------------------------------------------------------------------

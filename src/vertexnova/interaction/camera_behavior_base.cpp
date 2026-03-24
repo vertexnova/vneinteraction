@@ -31,7 +31,7 @@ constexpr float kZoomOrthoHalfMax = 1e6f;
 void CameraBehaviorBase::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
     camera_ = std::move(camera);
     if (camera_) {
-        zoom_scale_ = vne::math::clamp(camera_->getSceneScale(), kSceneScaleMin, kSceneScaleMax);
+        zoom_scale_ = 1.0f;
     }
 }
 
@@ -123,7 +123,7 @@ void CameraBehaviorBase::applySceneScaleZoom(float factor) noexcept {
         return;
     }
     zoom_scale_ = vne::math::clamp(zoom_scale_ * factor, kSceneScaleMin, kSceneScaleMax);
-    camera_->setSceneScale(zoom_scale_);
+    // ICamera no longer exposes scene scale; zoom_scale_ is tracked for getZoomScale() and app use.
     camera_->updateMatrices();
 }
 

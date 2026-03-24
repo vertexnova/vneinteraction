@@ -15,6 +15,7 @@
  */
 
 #include <cmath>
+#include <memory>
 
 #include <vertexnova/math/core/core.h>
 #include <vertexnova/math/core/types.h>
@@ -119,6 +120,22 @@ inline void buildReferenceFrame(const vne::math::Vec3f& world_up,
     const vne::scene::ICamera& camera, float mx, float my, float distance, const vne::math::Viewport& vp) noexcept {
     vne::math::Ray ray = mouseToWorldRay(camera, mx, my, vp);
     return ray.origin() + ray.direction() * distance;
+}
+
+/**
+ * @brief Set camera pose from eye, look-at target, and up (ICamera has no lookAt).
+ */
+inline void setCameraLookAt(const std::shared_ptr<vne::scene::ICamera>& camera,
+                            const vne::math::Vec3f& eye,
+                            const vne::math::Vec3f& target,
+                            const vne::math::Vec3f& up) noexcept {
+    if (!camera) {
+        return;
+    }
+    camera->setPosition(eye);
+    camera->setTarget(target);
+    camera->setUp(up);
+    camera->updateMatrices();
 }
 
 }  // namespace vne::interaction

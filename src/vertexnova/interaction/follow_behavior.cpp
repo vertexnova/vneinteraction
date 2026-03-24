@@ -5,6 +5,7 @@
  */
 
 #include "vertexnova/interaction/follow_behavior.h"
+#include "vertexnova/interaction/behavior_math.h"
 
 #include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/perspective_camera.h"
@@ -126,8 +127,7 @@ void FollowBehavior::onUpdate(double delta_time) noexcept {
     const vne::math::Vec3f view_dir = (target - new_eye).normalized();
     const vne::math::Vec3f up_hint =
         (std::abs(view_dir.dot(world_up_)) > 0.99f) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : world_up_;
-    camera_->lookAt(new_eye, target, up_hint);
-    camera_->updateMatrices();
+    setCameraLookAt(camera_, new_eye, target, up_hint);
 }
 
 // ---------------------------------------------------------------------------

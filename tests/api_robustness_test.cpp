@@ -90,11 +90,11 @@ TEST(ApiRobustness, DetachThenUpdateAndActionSafe) {
 
     vne::interaction::OrbitArcballBehavior b;
     b.setCamera(cam);
-    b.setViewportSize(1280.0f, 720.0f);
+    b.onResize(1280.0f, 720.0f);
     b.setCamera(nullptr);  // detach
 
     EXPECT_NO_THROW({
-        b.setViewportSize(100.0f, 100.0f);
+        b.onResize(100.0f, 100.0f);
         b.onUpdate(0.016);
         b.onAction(vne::interaction::CameraActionType::eBeginRotate, p, 0.016);
         b.onAction(vne::interaction::CameraActionType::eRotateDelta, p, 0.016);
@@ -107,11 +107,11 @@ TEST(ApiRobustness, ControllerDetachThenEventAndUpdateSafe) {
     auto cam = makePerspCamera();
     vne::interaction::InspectController ctrl;
     ctrl.setCamera(cam);
-    ctrl.setViewportSize(1280.0f, 720.0f);
+    ctrl.onResize(1280.0f, 720.0f);
     ctrl.setCamera(nullptr);  // detach
 
     EXPECT_NO_THROW({
-        ctrl.setViewportSize(100.0f, 100.0f);
+        ctrl.onResize(100.0f, 100.0f);
         vne::events::MouseMovedEvent move(50.0, 50.0);
         ctrl.onEvent(move, 0.016);
         vne::events::MouseScrolledEvent scroll(0.0, 1.0);

@@ -75,8 +75,10 @@ TEST(BehaviorRegression, BuildReferenceFrame_RightVector) {
 TEST(BehaviorRegression, OrthoPan_DragRightMovesSceneRight) {
     auto ortho = vne::scene::CameraFactory::createOrthographic(
         vne::scene::OrthographicCameraParameters(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 1000.0f));
-    ortho->setPosition(vne::math::Vec3f(0.0f, 0.0f, 10.0f));
-    ortho->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
+    vne::interaction::setCameraLookAt(ortho,
+                                      vne::math::Vec3f(0.0f, 0.0f, 10.0f),
+                                      vne::math::Vec3f(0.0f, 0.0f, 0.0f),
+                                      vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
     vne::interaction::OrthoPanZoomBehavior b;
     b.setCamera(ortho);
@@ -131,8 +133,10 @@ TEST(BehaviorRegression, FreeLook_MouseUpLooksUp) {
 TEST(BehaviorRegression, OrthoZoomToCursor_KeepsPointUnderCursor) {
     auto ortho = vne::scene::CameraFactory::createOrthographic(
         vne::scene::OrthographicCameraParameters(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 1000.0f));
-    ortho->setPosition(vne::math::Vec3f(0.0f, 0.0f, 10.0f));
-    ortho->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
+    vne::interaction::setCameraLookAt(ortho,
+                                      vne::math::Vec3f(0.0f, 0.0f, 10.0f),
+                                      vne::math::Vec3f(0.0f, 0.0f, 0.0f),
+                                      vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
     vne::interaction::OrthoPanZoomBehavior b;
     b.setCamera(ortho);

@@ -186,11 +186,11 @@ class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
     void applyFovZoom(float factor) noexcept;
 
     /**
-     * @brief Scene-scale zoom — bakes a uniform scale into the camera view matrix.
+     * @brief Scene-scale zoom — accumulates zoom_scale_ for getZoomScale() / app use.
      *
      * Accumulates zoom_scale_ by multiplying with factor (clamped to
-     * [kSceneScaleMin, kSceneScaleMax]), then calls ICamera::setSceneScale().
-     * Works for both camera types — no downcast needed.
+     * [kSceneScaleMin, kSceneScaleMax]). ICamera does not expose scene scale; callers
+     * may read getZoomScale() and apply scale in their pipeline if needed.
      *
      * @param factor Multiplier applied to accumulated zoom_scale_.
      */

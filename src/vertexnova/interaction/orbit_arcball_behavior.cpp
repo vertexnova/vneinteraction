@@ -47,6 +47,8 @@ constexpr float kInertiaRotAngleThreshold = 1e-6f;
 constexpr float kInertiaRotSpeedThreshold = 1e-4f;
 constexpr float kInertiaPanSpeedThreshold = 1e-4f;
 constexpr uint32_t kNormalizeEveryNFrames = 60u;
+/** Strength of COI shift toward cursor on perspective zoom-to-cursor (0..1). */
+constexpr float kZoomToCursorStrength = 0.5f;
 
 float safeSqrt(float x) noexcept {
     return std::sqrt(std::max(0.0f, x));
@@ -89,9 +91,8 @@ void OrbitArcballBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera
     syncFromCamera();
 }
 
-void OrbitArcballBehavior::setViewportSize(float width_px, float height_px) noexcept {
-    viewport_width_ = std::max(1.0f, width_px);
-    viewport_height_ = std::max(1.0f, height_px);
+void OrbitArcballBehavior::onResize(float width_px, float height_px) noexcept {
+    CameraBehaviorBase::onResize(width_px, height_px);
 }
 
 // ---------------------------------------------------------------------------
@@ -214,13 +215,12 @@ void OrbitArcballBehavior::applyToCamera() noexcept {
     if (rotation_mode_ == OrbitRotationMode::eArcball) {
         const vne::math::Vec3f back = orientation_.getZAxis();
         const vne::math::Vec3f up = orientation_.getYAxis();
-        camera_->lookAt(coi_world_ + back * orbit_distance_, coi_world_, up);
+        setCameraLookAt(camera_, coi_world_ + back * orbit_distance_, coi_world_, up);
     } else {
         const vne::math::Vec3f front = computeFront();
         const vne::math::Vec3f up = computeUp(front, computeRight(front));
-        camera_->lookAt(coi_world_ - front * orbit_distance_, coi_world_, up);
+        setCameraLookAt(camera_, coi_world_ - front * orbit_distance_, coi_world_, up);
     }
-    camera_->updateMatrices();
 }
 
 void OrbitArcballBehavior::onPivotChanged() noexcept {
@@ -404,17 +404,14 @@ void OrbitArcballBehavior::onZoomDolly(float factor, float mouse_x_px, float mou
     }
     switch (zoom_method_) {
         case ZoomMethod::eSceneScale:
-            scene_scale_ = vne::math::clamp(scene_scale_ * zoom_factor, kSceneScaleMin, kSceneScaleMax);
-            // Camera position/target/up are unchanged; call updateMatrices so any
-            // change-listener or dirty-flag system still gets notified.
-            applyToCamera();
+            CameraBehaviorBase::applySceneScaleZoom(factor);
             return;
         case ZoomMethod::eChangeFov: {
             auto persp = perspCamera();
             if (persp) {
                 const float fov = persp->getFieldOfView();
                 const float new_fov = vne::math::clamp(
-                    fov * ((zoom_factor < 1.0f) ? (1.0f / fov_zoom_speed_) : fov_zoom_speed_),
+                    fov * ((factor < 1.0f) ? (1.0f / fov_zoom_speed_) : fov_zoom_speed_),
                     kFovMinDeg,
                     kFovMaxDeg);
                 persp->setFieldOfView(new_fov);
@@ -428,12 +425,12 @@ void OrbitArcballBehavior::onZoomDolly(float factor, float mouse_x_px, float mou
         }
         case ZoomMethod::eDollyToCoi:
             if (orthoCamera()) {
-                zoomOrthoToCursor(zoom_factor, mouse_x_px, mouse_y_px);
+                CameraBehaviorBase::applyOrthoZoomToCursor(factor, mouse_x_px, mouse_y_px);
                 return;
             }
             {
                 const float old_dist = orbit_distance_;
-                orbit_distance_ = vne::math::clamp(orbit_distance_ * zoom_factor, kMinOrbitDistance, kMaxOrbitDistance);
+                orbit_distance_ = vne::math::clamp(orbit_distance_ * factor, kMinOrbitDistance, kMaxOrbitDistance);
                 // Use orientation_ axes directly (same as dragRotateArcball/applyToCamera) so
                 // cursor_world is computed in the correct frame for both arcball and Euler modes.
                 const vne::math::Vec3f eye_dir = (rotation_mode_ == OrbitRotationMode::eArcball)
@@ -442,17 +439,19 @@ void OrbitArcballBehavior::onZoomDolly(float factor, float mouse_x_px, float mou
                 const vne::math::Vec3f r = computeRight(eye_dir);
                 const vne::math::Vec3f u = computeUp(eye_dir, r);
                 auto persp = perspCamera();
-                if (persp && viewport_width_ > 0.0f && viewport_height_ > 0.0f) {
-                    const float ndc_x = (2.0f * mouse_x_px / viewport_width_) - 1.0f;
-                    const float ndc_y = 1.0f - (2.0f * mouse_y_px / viewport_height_);
+                const float vw = viewportWidth();
+                const float vh = viewportHeight();
+                if (persp && vw > 0.0f && vh > 0.0f) {
+                    const float ndc_x = (2.0f * mouse_x_px / vw) - 1.0f;
+                    const float ndc_y = 1.0f - (2.0f * mouse_y_px / vh);
                     const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
                     const float half_h = old_dist * vne::math::tan(fov_y_rad * 0.5f);
-                    const float half_w = half_h * (viewport_width_ / viewport_height_);
+                    const float half_w = half_h * (vw / vh);
                     // camera position is coi + eye_dir * old_dist, so cursor at coi + screen offset
                     const vne::math::Vec3f cursor_world =
                         coi_world_ + r * (ndc_x * half_w) + u * (ndc_y * half_h);
                     const vne::math::Vec3f to_cursor = cursor_world - coi_world_;
-                    const float shift_t = (1.0f - zoom_factor) * kZoomToCursorStrength;
+                    const float shift_t = (1.0f - factor) * kZoomToCursorStrength;
                     if (to_cursor.length() < old_dist * 2.0f) {
                         coi_world_ += to_cursor * shift_t;
                     }
@@ -529,8 +528,7 @@ void OrbitArcballBehavior::applyInertia(double delta_time) noexcept {
         if (pan_delta_fixed.length() > kEpsilon) {
             const vne::math::Vec3f new_eye = camera_->getPosition() + pan_delta_fixed;
             const vne::math::Vec3f new_target = camera_->getTarget() + pan_delta_fixed;
-            camera_->lookAt(new_eye, new_target, camera_->getUp());
-            camera_->updateMatrices();
+            setCameraLookAt(camera_, new_eye, new_target, camera_->getUp());
             orbit_distance_ = std::max((camera_->getPosition() - coi_world_).length(), kMinOrbitDistance);
         }
     } else {
