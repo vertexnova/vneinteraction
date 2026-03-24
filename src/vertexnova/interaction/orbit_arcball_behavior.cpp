@@ -290,10 +290,11 @@ void OrbitArcballBehavior::dragRotateArcball(float x_px, float y_px, double delt
     const vne::math::Vec3f prev_cam = projectToArcball(arcball_start_x_, arcball_start_y_);
     const vne::math::Vec3f curr_cam = projectToArcball(x_px, y_px);
 
-    // Transform to world-space using quaternion-derived basis (pole-safe, no world_up cross)
+    // Transform to world-space using quaternion-derived basis (pole-safe, no world_up cross).
+    // Arcball sphere z-axis uses camera-back (eye direction), i.e. +Z basis.
     const vne::math::Vec3f r = orientation_.getXAxis();
     const vne::math::Vec3f u = orientation_.getYAxis();
-    const vne::math::Vec3f front = -orientation_.getZAxis();
+    const vne::math::Vec3f eye_dir = orientation_.getZAxis();
 
     const vne::math::Vec3f prev_world = (r * prev_cam.x() + u * prev_cam.y() + eye_dir * prev_cam.z()).normalized();
     const vne::math::Vec3f curr_world = (r * curr_cam.x() + u * curr_cam.y() + eye_dir * curr_cam.z()).normalized();
