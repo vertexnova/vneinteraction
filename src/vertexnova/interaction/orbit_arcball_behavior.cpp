@@ -431,6 +431,9 @@ void OrbitArcballBehavior::onZoomDolly(float factor, float mouse_x_px, float mou
     if (!camera_) {
         return;
     }
+    // Preserve user zoom direction while scaling step intensity with zoom_speed_.
+    // zoom_speed_ > 1.0f makes each zoom step stronger, < 1.0f makes it gentler.
+    const float effective_factor = std::pow(factor, zoom_speed_);
     switch (zoom_method_) {
         case ZoomMethod::eSceneScale:
             CameraBehaviorBase::applySceneScaleZoom(factor);
@@ -454,12 +457,13 @@ void OrbitArcballBehavior::onZoomDolly(float factor, float mouse_x_px, float mou
         }
         case ZoomMethod::eDollyToCoi:
             if (orthoCamera()) {
-                CameraBehaviorBase::applyOrthoZoomToCursor(factor, mouse_x_px, mouse_y_px);
+                CameraBehaviorBase::applyOrthoZoomToCursor(effective_factor, mouse_x_px, mouse_y_px);
                 return;
             }
             {
                 const float old_dist = orbit_distance_;
-                orbit_distance_ = vne::math::clamp(orbit_distance_ * factor, kMinOrbitDistance, kMaxOrbitDistance);
+                orbit_distance_ =
+                    vne::math::clamp(orbit_distance_ * effective_factor, kMinOrbitDistance, kMaxOrbitDistance);
                 // computeRight/computeUp expect the view/front direction (not camera-back / +Z).
                 // computeFront() matches applyToCamera (Euler yaw/pitch or arcball -orientation_.getZAxis()).
                 const vne::math::Vec3f front_dir = computeFront();
@@ -477,7 +481,7 @@ void OrbitArcballBehavior::onZoomDolly(float factor, float mouse_x_px, float mou
                     // Camera is along -front from COI at old_dist; cursor offset in the view plane (r, u).
                     const vne::math::Vec3f cursor_world = coi_world_ + r * (ndc_x * half_w) + u * (ndc_y * half_h);
                     const vne::math::Vec3f to_cursor = cursor_world - coi_world_;
-                    const float shift_t = (1.0f - factor) * kZoomToCursorStrength;
+                    const float shift_t = (1.0f - effective_factor) * kZoomToCursorStrength;
                     if (to_cursor.length() < old_dist * 2.0f) {
                         coi_world_ += to_cursor * shift_t;
                     }
