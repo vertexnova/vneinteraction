@@ -11,6 +11,7 @@
 set(SOURCE_FILES
     vertexnova/interaction/version.cpp
     vertexnova/interaction/input_mapper.cpp
+    vertexnova/interaction/behavior_utils.cpp
     vertexnova/interaction/camera_behavior_base.cpp
     vertexnova/interaction/orbit_arcball_behavior.cpp
     vertexnova/interaction/free_look_behavior.cpp

@@ -5,7 +5,7 @@
  */
 
 #include "vertexnova/interaction/orbit_arcball_behavior.h"
-#include "vertexnova/interaction/behavior_math.h"
+#include "vertexnova/interaction/behavior_utils.h"
 
 #include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/perspective_camera.h"
@@ -14,7 +14,6 @@
 #include <vertexnova/math/core/core.h>
 #include <vertexnova/math/core/math_utils.h>
 #include <vertexnova/math/easing.h>
-
 #include <vertexnova/logging/logging.h>
 
 #include <algorithm>
@@ -215,12 +214,13 @@ void OrbitArcballBehavior::applyToCamera() noexcept {
     if (rotation_mode_ == OrbitRotationMode::eArcball) {
         const vne::math::Vec3f back = orientation_.getZAxis();
         const vne::math::Vec3f up = orientation_.getYAxis();
-        setCameraLookAt(camera_, coi_world_ + back * orbit_distance_, coi_world_, up);
+        camera_->lookAt(coi_world_ + back * orbit_distance_, coi_world_, up);
     } else {
         const vne::math::Vec3f front = computeFront();
         const vne::math::Vec3f up = computeUp(front, computeRight(front));
-        setCameraLookAt(camera_, coi_world_ - front * orbit_distance_, coi_world_, up);
+        camera_->lookAt(coi_world_ - front * orbit_distance_, coi_world_, up);
     }
+    camera_->updateMatrices();
 }
 
 void OrbitArcballBehavior::onPivotChanged() noexcept {
@@ -560,7 +560,8 @@ void OrbitArcballBehavior::applyInertia(double delta_time) noexcept {
         if (pan_delta_fixed.length() > kEpsilon) {
             const vne::math::Vec3f new_eye = camera_->getPosition() + pan_delta_fixed;
             const vne::math::Vec3f new_target = camera_->getTarget() + pan_delta_fixed;
-            setCameraLookAt(camera_, new_eye, new_target, camera_->getUp());
+            camera_->lookAt(new_eye, new_target, camera_->getUp());
+            camera_->updateMatrices();
             orbit_distance_ = std::max((camera_->getPosition() - coi_world_).length(), kMinOrbitDistance);
         }
     } else {

@@ -8,7 +8,6 @@
  * zoom-to-cursor, mouseToNDC, and buildReferenceFrame / arcball pole safety.
  */
 
-#include "vertexnova/interaction/behavior_math.h"
 #include "vertexnova/interaction/behavior_utils.h"
 #include "vertexnova/interaction/free_look_behavior.h"
 #include "vertexnova/interaction/ortho_pan_zoom_behavior.h"
@@ -75,10 +74,10 @@ TEST(BehaviorRegression, BuildReferenceFrame_RightVector) {
 TEST(BehaviorRegression, OrthoPan_DragRightMovesSceneRight) {
     auto ortho = vne::scene::CameraFactory::createOrthographic(
         vne::scene::OrthographicCameraParameters(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 1000.0f));
-    vne::interaction::setCameraLookAt(ortho,
-                                      vne::math::Vec3f(0.0f, 0.0f, 10.0f),
-                                      vne::math::Vec3f(0.0f, 0.0f, 0.0f),
-                                      vne::math::Vec3f(0.0f, 1.0f, 0.0f));
+    ortho->lookAt(vne::math::Vec3f(0.0f, 0.0f, 10.0f),
+                  vne::math::Vec3f(0.0f, 0.0f, 0.0f),
+                  vne::math::Vec3f(0.0f, 1.0f, 0.0f));
+    ortho->updateMatrices();
 
     vne::interaction::OrthoPanZoomBehavior b;
     b.setCamera(ortho);
@@ -133,10 +132,10 @@ TEST(BehaviorRegression, FreeLook_MouseUpLooksUp) {
 TEST(BehaviorRegression, OrthoZoomToCursor_KeepsPointUnderCursor) {
     auto ortho = vne::scene::CameraFactory::createOrthographic(
         vne::scene::OrthographicCameraParameters(-5.0f, 5.0f, -5.0f, 5.0f, 0.1f, 1000.0f));
-    vne::interaction::setCameraLookAt(ortho,
-                                      vne::math::Vec3f(0.0f, 0.0f, 10.0f),
-                                      vne::math::Vec3f(0.0f, 0.0f, 0.0f),
-                                      vne::math::Vec3f(0.0f, 1.0f, 0.0f));
+    ortho->lookAt(vne::math::Vec3f(0.0f, 0.0f, 10.0f),
+                  vne::math::Vec3f(0.0f, 0.0f, 0.0f),
+                  vne::math::Vec3f(0.0f, 1.0f, 0.0f));
+    ortho->updateMatrices();
 
     vne::interaction::OrthoPanZoomBehavior b;
     b.setCamera(ortho);

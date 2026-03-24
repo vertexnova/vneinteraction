@@ -5,7 +5,7 @@
  */
 
 #include "vertexnova/interaction/free_look_behavior.h"
-#include "vertexnova/interaction/behavior_math.h"
+#include "vertexnova/interaction/behavior_utils.h"
 
 #include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/perspective_camera.h"
@@ -146,7 +146,8 @@ void FreeLookBehavior::applyAnglesToCamera() noexcept {
     } else {
         up = upVector();
     }
-    setCameraLookAt(camera_, eye, eye + f, up);
+    camera_->lookAt(eye, eye + f, up);
+    camera_->updateMatrices();
 }
 
 void FreeLookBehavior::onZoomDolly(float factor, float mx, float my) noexcept {
@@ -209,7 +210,8 @@ void FreeLookBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::m
         eye = center - f * (radius * kFitToAabbDistFactor);
     }
     const vne::math::Vec3f up = (mode_ == FreeLookMode::eFps) ? world_up_ : upVector();
-    setCameraLookAt(camera_, eye, center, up);
+    camera_->lookAt(eye, center, up);
+    camera_->updateMatrices();
 }
 
 // ---------------------------------------------------------------------------

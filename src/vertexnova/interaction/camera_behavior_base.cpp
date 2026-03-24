@@ -5,7 +5,7 @@
  */
 
 #include "vertexnova/interaction/camera_behavior_base.h"
-#include "vertexnova/interaction/behavior_math.h"
+#include "vertexnova/interaction/behavior_utils.h"
 
 #include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/orthographic_camera.h"

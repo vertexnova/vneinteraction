@@ -5,7 +5,7 @@
  */
 
 #include "vertexnova/interaction/follow_behavior.h"
-#include "vertexnova/interaction/behavior_math.h"
+#include "vertexnova/interaction/behavior_utils.h"
 
 #include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/perspective_camera.h"
@@ -136,7 +136,8 @@ void FollowBehavior::onUpdate(double delta_time) noexcept {
             }
         }
     }
-    setCameraLookAt(camera_, new_eye, target, up_hint);
+    camera_->lookAt(new_eye, target, up_hint);
+    camera_->updateMatrices();
 }
 
 // ---------------------------------------------------------------------------
