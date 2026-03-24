@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1](https://github.com/vertexnova/vneinteraction/compare/v1.3.0...v1.3.1) (2026-03-24)
+
+
+### Bug Fixes
+
+* Fixing the arcball and zoom bugs ([#9](https://github.com/vertexnova/vneinteraction/issues/9)) ([dae4009](https://github.com/vertexnova/vneinteraction/commit/dae4009ec47a7d9eba0aebc7e8df22bf19693b61))
+
 ## [1.3.0](https://github.com/vertexnova/vneinteraction/compare/v1.2.0...v1.3.0) (2026-03-24)
 
 
