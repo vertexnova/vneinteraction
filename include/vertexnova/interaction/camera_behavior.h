@@ -73,11 +73,11 @@ class VNE_INTERACTION_API ICameraBehavior {
     virtual void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept = 0;
 
     /**
-     * @brief Notify the behavior of the current viewport dimensions.
-     * @param width_px  Viewport width in pixels (>= 1)
-     * @param height_px Viewport height in pixels (>= 1)
+     * @brief Notify the behavior that the viewport was resized (e.g. window or canvas size changed).
+     * @param width_px  New viewport width in pixels (>= 1)
+     * @param height_px New viewport height in pixels (>= 1)
      */
-    virtual void setViewportSize(float width_px, float height_px) noexcept = 0;
+    virtual void onResize(float width_px, float height_px) noexcept = 0;
 
     /** @brief Reset all interaction state (velocities, inertia, drag tracking). */
     virtual void resetState() noexcept = 0;

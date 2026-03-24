@@ -80,12 +80,8 @@ enum class UpAxis : std::uint8_t {
     return (axis == UpAxis::eZ) ? vne::math::Vec3f(0.0f, 0.0f, 1.0f) : vne::math::Vec3f(0.0f, 1.0f, 0.0f);
 }
 
-/** Mouse button enumeration. */
-enum class MouseButton : int {
-    eLeft = 0,    //!< Left mouse button
-    eRight = 1,   //!< Right mouse button
-    eMiddle = 2,  //!< Middle/wheel mouse button
-};
+/** Mouse button: use vne::events::MouseButton (eLeft, eRight, eMiddle) for compatibility. */
+using MouseButton = vne::events::MouseButton;
 
 /**
  * @brief High-level gesture actions for remappable bindings.

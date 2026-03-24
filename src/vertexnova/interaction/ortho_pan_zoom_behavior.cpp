@@ -25,39 +25,23 @@ namespace vne::interaction {
 namespace {
 CREATE_VNE_LOGGER_CATEGORY("vne.interaction.ortho_pan_zoom");
 constexpr float kEpsilon = 1e-6f;
-constexpr float kZoomFactorMin = 0.01f;
-constexpr float kZoomFactorMax = 100.0f;
-constexpr float kSceneScaleMin = 1e-4f;
-constexpr float kSceneScaleMax = 1e4f;
-constexpr float kZoomToCursorHalfMin = 1e-3f;
-constexpr float kZoomToCursorHalfMax = 1e6f;
 constexpr float kFitToAabbMargin = 1.1f;
-constexpr float kMinOrthoExtent = 1e-3f;
 constexpr float kPanVelocityThreshold = 1e-4f;
 }  // namespace
 
 // ---------------------------------------------------------------------------
-// Camera helper
-// ---------------------------------------------------------------------------
-
-std::shared_ptr<vne::scene::OrthographicCamera> OrthoPanZoomBehavior::orthoCamera() const noexcept {
-    return std::dynamic_pointer_cast<vne::scene::OrthographicCamera>(camera_);
-}
-
-// ---------------------------------------------------------------------------
-// ICameraBehavior: setCamera / setViewportSize
+// ICameraBehavior: setCamera / onResize
 // ---------------------------------------------------------------------------
 
 void OrthoPanZoomBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
-    camera_ = std::move(camera);
+    CameraBehaviorBase::setCamera(std::move(camera));
     if (!camera_) {
         VNE_LOG_DEBUG << "OrthoPanZoomBehavior: camera detached (null camera)";
     }
 }
 
-void OrthoPanZoomBehavior::setViewportSize(float width_px, float height_px) noexcept {
-    viewport_width_ = std::max(1.0f, width_px);
-    viewport_height_ = std::max(1.0f, height_px);
+void OrthoPanZoomBehavior::onResize(float width_px, float height_px) noexcept {
+    CameraBehaviorBase::onResize(width_px, height_px);
 }
 
 // ---------------------------------------------------------------------------
@@ -81,9 +65,9 @@ void OrthoPanZoomBehavior::pan(float delta_x_px, float delta_y_px, double delta_
     len = r.length();
     r = (len < kEpsilon) ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : (r / len);
 
-    const float wppx = ortho->getWidth() / viewport_width_;
-    const float wppy = ortho->getHeight() / viewport_height_;
-    const vne::math::Vec3f delta_world = r * (delta_x_px * wppx) + up * (-delta_y_px * wppy);
+    const float wppx = ortho->getWidth() / viewport().width;
+    const float wppy = ortho->getHeight() / viewport().height;
+    const vne::math::Vec3f delta_world = r * (-delta_x_px * wppx) + up * (-delta_y_px * wppy);
 
     ortho->setPosition(eye + delta_world);
     ortho->setTarget(target + delta_world);
@@ -91,60 +75,6 @@ void OrthoPanZoomBehavior::pan(float delta_x_px, float delta_y_px, double delta_
 
     if (delta_time > 0.0) {
         pan_velocity_ = delta_world / static_cast<float>(delta_time);
-    }
-}
-
-// ---------------------------------------------------------------------------
-// Zoom
-// ---------------------------------------------------------------------------
-
-void OrthoPanZoomBehavior::zoomToCursor(float zoom_factor, float mouse_x_px, float mouse_y_px) noexcept {
-    auto ortho = orthoCamera();
-    if (!ortho) {
-        return;
-    }
-    zoom_factor = vne::math::clamp(zoom_factor, kZoomFactorMin, kZoomFactorMax);
-    const float ndc_x = (2.0f * mouse_x_px / viewport_width_) - 1.0f;
-    const float ndc_y = 1.0f - (2.0f * mouse_y_px / viewport_height_);
-    const float half_w = ortho->getWidth() * 0.5f;
-    const float half_h = ortho->getHeight() * 0.5f;
-
-    const vne::math::Vec3f eye = ortho->getPosition();
-    const vne::math::Vec3f target = ortho->getTarget();
-    vne::math::Vec3f front_vec = target - eye;
-    float len = front_vec.length();
-    front_vec = (len < kEpsilon) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : (front_vec / len);
-
-    const vne::math::Vec3f up = ortho->getUp().normalized();
-    vne::math::Vec3f r = front_vec.cross(up);
-    len = r.length();
-    r = (len < kEpsilon) ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : (r / len);
-
-    const vne::math::Vec3f world_at_cursor = target + r * (ndc_x * half_w) + up * (ndc_y * half_h);
-    const float new_half_w = vne::math::clamp(half_w * zoom_factor, kZoomToCursorHalfMin, kZoomToCursorHalfMax);
-    const float new_half_h = vne::math::clamp(half_h * zoom_factor, kZoomToCursorHalfMin, kZoomToCursorHalfMax);
-    const vne::math::Vec3f new_target = world_at_cursor - r * (ndc_x * new_half_w) - up * (ndc_y * new_half_h);
-    const vne::math::Vec3f eye_offset = eye - target;
-
-    ortho->setBounds(-new_half_w, new_half_w, -new_half_h, new_half_h, ortho->getNearPlane(), ortho->getFarPlane());
-    ortho->setTarget(new_target);
-    ortho->setPosition(new_target + eye_offset);
-    ortho->updateMatrices();
-}
-
-void OrthoPanZoomBehavior::applyZoom(float zoom_factor, float mouse_x_px, float mouse_y_px) noexcept {
-    auto ortho = orthoCamera();
-    if (!ortho) {
-        return;
-    }
-    switch (zoom_method_) {
-        case ZoomMethod::eSceneScale:
-            scene_scale_ = vne::math::clamp(scene_scale_ * zoom_factor, kSceneScaleMin, kSceneScaleMax);
-            return;
-        case ZoomMethod::eDollyToCoi:
-        case ZoomMethod::eChangeFov:
-            zoomToCursor(zoom_factor, mouse_x_px, mouse_y_px);
-            return;
     }
 }
 
@@ -212,7 +142,7 @@ void OrthoPanZoomBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vn
     max_r = std::max(max_r * kFitToAabbMargin, kMinOrthoExtent);
     max_u = std::max(max_u * kFitToAabbMargin, kMinOrthoExtent);
 
-    const float aspect = viewport_width_ / viewport_height_;
+    const float aspect = viewport().width / viewport().height;
     if (max_r / max_u < aspect) {
         max_r = max_u * aspect;
     } else {
@@ -228,7 +158,7 @@ void OrthoPanZoomBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vn
 
 float OrthoPanZoomBehavior::getWorldUnitsPerPixel() const noexcept {
     auto ortho = orthoCamera();
-    return ortho ? (ortho->getHeight() / viewport_height_) : 0.0f;
+    return ortho ? (ortho->getHeight() / viewport().height) : 0.0f;
 }
 
 void OrthoPanZoomBehavior::resetState() noexcept {
@@ -275,8 +205,8 @@ bool OrthoPanZoomBehavior::onAction(CameraActionType action,
             return true;
 
         case CameraActionType::eZoomAtCursor:
-            if (payload.zoom_factor > 0.0f) {
-                applyZoom(payload.zoom_factor, payload.x_px, payload.y_px);
+            if (payload.zoom_factor > 0.0f && payload.zoom_factor != 1.0f) {
+                dispatchZoom(payload.zoom_factor, payload.x_px, payload.y_px);
                 return true;
             }
             return false;

@@ -28,7 +28,7 @@ TEST(OrthoPanZoomBehavior, CameraIntegration) {
 
     vne::interaction::OrthoPanZoomBehavior b;
     b.setCamera(cam);
-    b.setViewportSize(512.0f, 512.0f);
+    b.onResize(512.0f, 512.0f);
 
     vne::interaction::CameraCommandPayload p;
     p.x_px = 256.0f;
@@ -51,7 +51,7 @@ TEST(OrthoPanZoomBehavior, ZoomAtCursor) {
 
     vne::interaction::OrthoPanZoomBehavior b;
     b.setCamera(cam);
-    b.setViewportSize(512.0f, 512.0f);
+    b.onResize(512.0f, 512.0f);
 
     vne::interaction::CameraCommandPayload p;
     p.x_px = 256.0f;
