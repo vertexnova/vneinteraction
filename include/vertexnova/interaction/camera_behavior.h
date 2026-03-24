@@ -78,6 +78,16 @@ class VNE_INTERACTION_API ICameraBehavior {
      * @param height_px New viewport height in pixels (>= 1)
      */
     virtual void onResize(float width_px, float height_px) noexcept = 0;
+    /**
+     * @brief Backward-compatible alias for onResize.
+     *
+     * This helper exists to ease migration from the older setViewportSize(...)
+     * API name. New code should call onResize(...) directly.
+     */
+    [[deprecated("ICameraBehavior::setViewportSize() is deprecated, use onResize() instead")]]
+    void setViewportSize(float width_px, float height_px) noexcept {
+        onResize(width_px, height_px);
+    }
 
     /** @brief Reset all interaction state (velocities, inertia, drag tracking). */
     virtual void resetState() noexcept = 0;

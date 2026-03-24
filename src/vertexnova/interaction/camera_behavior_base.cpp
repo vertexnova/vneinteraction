@@ -95,7 +95,7 @@ void CameraBehaviorBase::applyFovZoom(float factor) noexcept {
     if (!camera_) {
         return;
     }
-    const float mult = (factor > 1.0f) ? (1.0f / fov_zoom_speed_) : fov_zoom_speed_;
+    const float mult = (factor < 1.0f) ? (1.0f / fov_zoom_speed_) : fov_zoom_speed_;
 
     if (auto persp = perspCamera()) {
         persp->setFieldOfView(vne::math::clamp(persp->getFieldOfView() * mult, kFovMinDeg, kFovMaxDeg));

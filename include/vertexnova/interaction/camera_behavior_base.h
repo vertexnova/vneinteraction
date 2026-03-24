@@ -85,7 +85,7 @@ class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
     /**
      * @brief Set the step rate for FOV and scene-scale zoom (>= 0.01).
      *
-     * For eChangeFov: FOV is multiplied by this value on zoom-in and divided
+     * For eChangeFov: FOV is divided by this value on zoom-in and multiplied
      * by it on zoom-out.
      * For eSceneScale: the accumulated scale is multiplied/divided by this value.
      */
@@ -142,7 +142,7 @@ class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
      *  - eSceneScale → applySceneScaleZoom(factor)
      *  - eDollyToCoi → onZoomDolly(factor, mx, my)
      *
-     * @param factor  Zoom factor (> 1 = zoom in, < 1 = zoom out, must be > 0)
+     * @param factor  Zoom factor (< 1 = zoom in, > 1 = zoom out, must be > 0)
      * @param mx      Mouse X in pixels (for cursor-anchored zoom)
      * @param my      Mouse Y in pixels (for cursor-anchored zoom)
      */
@@ -180,7 +180,7 @@ class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
      * Orthographic: vertical half-extent scaled by fov_zoom_speed_, aspect
      *   ratio preserved, clamped to kMinOrthoExtent.
      *
-     * @param factor Direction: > 1 = zoom in (reduce FOV), < 1 = zoom out.
+     * @param factor Direction: < 1 = zoom in (reduce FOV), > 1 = zoom out.
      */
     void applyFovZoom(float factor) noexcept;
 
