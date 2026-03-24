@@ -290,12 +290,10 @@ void OrbitArcballBehavior::dragRotateArcball(float x_px, float y_px, double delt
     const vne::math::Vec3f prev_cam = projectToArcball(arcball_start_x_, arcball_start_y_);
     const vne::math::Vec3f curr_cam = projectToArcball(x_px, y_px);
 
-    // Build camera basis directly from orientation_ axes — identical to what applyToCamera uses.
-    // This guarantees the arcball sphere (x=right, y=up, z=eye_dir) lives in exactly the same
-    // frame as orientation_, so delta_q * orientation_ produces the correct world-space rotation.
-    const vne::math::Vec3f r = orientation_.rotate(vne::math::Vec3f(1.0f, 0.0f, 0.0f));        // camera right
-    const vne::math::Vec3f u = orientation_.rotate(vne::math::Vec3f(0.0f, 1.0f, 0.0f));        // camera up
-    const vne::math::Vec3f eye_dir = orientation_.rotate(vne::math::Vec3f(0.0f, 0.0f, 1.0f));  // eye/back
+    // Transform to world-space using quaternion-derived basis (pole-safe, no world_up cross)
+    const vne::math::Vec3f r = orientation_.getXAxis();
+    const vne::math::Vec3f u = orientation_.getYAxis();
+    const vne::math::Vec3f front = -orientation_.getZAxis();
 
     const vne::math::Vec3f prev_world = (r * prev_cam.x() + u * prev_cam.y() + eye_dir * prev_cam.z()).normalized();
     const vne::math::Vec3f curr_world = (r * curr_cam.x() + u * curr_cam.y() + eye_dir * curr_cam.z()).normalized();

@@ -31,7 +31,7 @@ constexpr float kZoomOrthoHalfMax = 1e6f;
 void CameraBehaviorBase::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
     camera_ = std::move(camera);
     if (camera_) {
-        zoom_scale_ = 1.0f;
+        zoom_scale_ = vne::math::clamp(camera_->getSceneScale(), kSceneScaleMin, kSceneScaleMax);
     }
 }
 
