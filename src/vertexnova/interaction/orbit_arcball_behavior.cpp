@@ -397,6 +397,21 @@ void OrbitArcballBehavior::endPan(double) noexcept {
 // Zoom
 // ---------------------------------------------------------------------------
 
+void OrbitArcballBehavior::dispatchZoom(float factor, float mx, float my) noexcept {
+    if (!camera_ || factor <= 0.0f || !std::isfinite(factor)) {
+        return;
+    }
+    switch (zoom_method_) {
+        case ZoomMethod::eSceneScale:
+            CameraBehaviorBase::applySceneScaleZoom(factor);
+            return;
+        case ZoomMethod::eChangeFov:
+        case ZoomMethod::eDollyToCoi:
+            onZoomDolly(factor, mx, my);
+            return;
+    }
+}
+
 void OrbitArcballBehavior::onZoomDolly(float factor, float mouse_x_px, float mouse_y_px) noexcept {
     if (!camera_) {
         return;

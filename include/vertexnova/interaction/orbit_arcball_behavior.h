@@ -159,6 +159,14 @@ class VNE_INTERACTION_API OrbitArcballBehavior final : public CameraBehaviorBase
     /** Get world units per pixel (useful for screen-to-world conversions). */
     [[nodiscard]] float getWorldUnitsPerPixel() const noexcept;
 
+   protected:
+    /**
+     * @brief Zoom dispatch: eChangeFov and eDollyToCoi both route through onZoomDolly so FOV can
+     * fall through to dolly when FOV is clamped (CameraBehaviorBase::dispatchZoom only calls
+     * applyFovZoom for eChangeFov and never reaches onZoomDolly).
+     */
+    void dispatchZoom(float factor, float mx, float my) noexcept;
+
    private:
     // ---- helpers shared by both rotation modes --------------------------------
     [[nodiscard]] vne::math::Vec3f computeFront() const noexcept;
