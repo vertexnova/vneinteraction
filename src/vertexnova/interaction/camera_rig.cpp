@@ -64,10 +64,10 @@ void CameraRig::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept 
     }
 }
 
-void CameraRig::setViewportSize(float width_px, float height_px) noexcept {
+void CameraRig::onResize(float width_px, float height_px) noexcept {
     for (auto& b : behaviors_) {
         if (b) {
-            b->setViewportSize(width_px, height_px);
+            b->onResize(width_px, height_px);
         }
     }
 }

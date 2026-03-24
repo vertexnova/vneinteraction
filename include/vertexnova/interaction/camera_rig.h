@@ -110,7 +110,7 @@ class VNE_INTERACTION_API CameraRig {
      * @param width_px  Viewport width in pixels
      * @param height_px Viewport height in pixels
      */
-    void setViewportSize(float width_px, float height_px) noexcept;
+    void onResize(float width_px, float height_px) noexcept;
 
     /** Reset all behavior states. */
     void resetState() noexcept;

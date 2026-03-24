@@ -24,7 +24,7 @@ int main() {
 
     vne::interaction::InspectController ctrl;
     ctrl.setCamera(camera);
-    ctrl.setViewportSize(1280.0f, 720.0f);
+    ctrl.onResize(1280.0f, 720.0f);
 
     // Default: arcball (quaternion), eCoi pivot
     VNE_LOG_INFO << "Rotation mode: "

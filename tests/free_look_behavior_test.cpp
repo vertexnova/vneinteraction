@@ -55,7 +55,7 @@ TEST(FreeLookBehavior, CameraIntegration) {
 
     vne::interaction::FreeLookBehavior b;
     b.setCamera(cam);
-    b.setViewportSize(1280.0f, 720.0f);
+    b.onResize(1280.0f, 720.0f);
     b.setMoveSpeed(5.0f);
 
     vne::interaction::CameraCommandPayload p;

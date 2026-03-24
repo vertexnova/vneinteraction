@@ -42,7 +42,7 @@ TEST(Navigation3DController, OrbitArcballBehaviorNonNullInGameMode) {
     vne::interaction::Navigation3DController ctrl;
     auto cam = makePerspCamera();
     ctrl.setCamera(cam);
-    ctrl.setViewportSize(1280.0f, 720.0f);
+    ctrl.onResize(1280.0f, 720.0f);
     ctrl.setMode(vne::interaction::NavigateMode::eGame);
     EXPECT_NE(ctrl.orbitArcballBehavior(), nullptr);
 }
@@ -51,7 +51,7 @@ TEST(Navigation3DController, OnEventNoCrash) {
     vne::interaction::Navigation3DController ctrl;
     auto cam = makePerspCamera();
     ctrl.setCamera(cam);
-    ctrl.setViewportSize(1280.0f, 720.0f);
+    ctrl.onResize(1280.0f, 720.0f);
 
     vne::events::KeyPressedEvent press(vne::events::KeyCode::eW);
     vne::events::MouseButtonPressedEvent look(vne::events::MouseButton::eRight, 0, 640.0, 360.0);

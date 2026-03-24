@@ -83,7 +83,7 @@ class VNE_INTERACTION_API FollowController {
     // -------------------------------------------------------------------------
 
     void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept;
-    void setViewportSize(float width_px, float height_px) noexcept;
+    void onResize(float width_px, float height_px) noexcept;
 
     // -------------------------------------------------------------------------
     // Per-frame

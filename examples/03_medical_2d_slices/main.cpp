@@ -23,7 +23,7 @@ int main() {
 
     vne::interaction::Ortho2DController ctrl;
     ctrl.setCamera(camera);
-    ctrl.setViewportSize(512.0f, 512.0f);
+    ctrl.onResize(512.0f, 512.0f);
 
     auto on_event = [&ctrl](const vne::events::Event& e, double) { ctrl.onEvent(e); };
 

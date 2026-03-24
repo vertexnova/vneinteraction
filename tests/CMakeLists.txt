@@ -51,6 +51,7 @@ endif()
 #==============================================================================
 set(TEST_SOURCES
     main.cpp
+    behavior_regression_test.cpp
     orbit_arcball_behavior_test.cpp
     free_look_behavior_test.cpp
     ortho_pan_zoom_behavior_test.cpp

@@ -80,7 +80,7 @@ class VNE_INTERACTION_API FreeLookBehavior final : public CameraBehaviorBase {
     void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;
 
     /** Set viewport size in pixels. */
-    void setViewportSize(float width_px, float height_px) noexcept override;
+    void onResize(float width_px, float height_px) noexcept override;
 
     /** Reset all input state (keys, looking flag). */
     void resetState() noexcept override;
@@ -122,17 +122,12 @@ class VNE_INTERACTION_API FreeLookBehavior final : public CameraBehaviorBase {
     void setSlowMultiplier(float mult) noexcept { slow_mult_ = std::max(0.0f, mult); }
     [[nodiscard]] float getSlowMultiplier() const noexcept { return slow_mult_; }
 
-    /** Set zoom method. */
-    void setZoomMethod(ZoomMethod method) noexcept { zoom_method_ = method; }
-    [[nodiscard]] ZoomMethod getZoomMethod() const noexcept { return zoom_method_; }
-
     /** Set zoom speed (>= 0.01). */
     void setZoomSpeed(float speed) noexcept { zoom_speed_ = std::max(0.01f, speed); }
     [[nodiscard]] float getZoomSpeed() const noexcept { return zoom_speed_; }
 
-    /** Set FOV zoom speed (>= 0.01, perspective only). */
-    void setFovZoomSpeed(float speed) noexcept { fov_zoom_speed_ = std::max(0.01f, speed); }
-    [[nodiscard]] float getFovZoomSpeed() const noexcept { return fov_zoom_speed_; }
+    // setZoomMethod / getZoomMethod / setFovZoomSpeed / getFovZoomSpeed / getZoomScale
+    // are inherited from CameraBehaviorBase.
 
     /**
      * @brief Enable or disable zoom handling for this behavior (default: true).
@@ -162,13 +157,13 @@ class VNE_INTERACTION_API FreeLookBehavior final : public CameraBehaviorBase {
 
     void syncAnglesFromCamera() noexcept;
     void applyAnglesToCamera() noexcept;
-    void applyZoom(float zoom_step_or_factor) noexcept;
+    void onZoomDolly(float factor, float mx, float my) noexcept override;
 
-    // ---- camera type helpers ------------------------------------------------
-    [[nodiscard]] std::shared_ptr<vne::scene::PerspectiveCamera> perspCamera() const noexcept;
+    // perspCamera() / orthoCamera() inherited from CameraBehaviorBase
 
     // ---- state ---------------------------------------------------------------
-    // camera_, enabled_, viewport_width_, viewport_height_, scene_scale_ inherited from CameraBehaviorBase
+    // camera_, enabled_, viewport_ inherited from CameraBehaviorBase
+    // zoom_method_, zoom_scale_, fov_zoom_speed_ inherited from CameraBehaviorBase
 
     FreeLookMode mode_ = FreeLookMode::eFps;
     vne::math::Vec3f world_up_{0.0f, 1.0f, 0.0f};
@@ -180,8 +175,6 @@ class VNE_INTERACTION_API FreeLookBehavior final : public CameraBehaviorBase {
     float sprint_mult_ = 4.0f;
     float slow_mult_ = 0.2f;
     float zoom_speed_ = 0.5f;
-    float fov_zoom_speed_ = 1.05f;
-    ZoomMethod zoom_method_ = ZoomMethod::eDollyToCoi;
     bool handle_zoom_ = true;
 
     FreeLookInputState input_state_;
