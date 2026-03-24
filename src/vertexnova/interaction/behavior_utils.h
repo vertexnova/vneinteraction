@@ -11,19 +11,25 @@
  * @brief Internal geometry utilities for camera behaviors.
  *
  * Provides:
- *   - buildReferenceFrame     — forward/right frame from world-up
+ *   - buildReferenceFrame     — forward/right frame from world-up (inline)
+ *   - mouseToNDC              — top-left mouse coords → NDC [-1, 1] (inline)
+ *   - worldUnderCursorOrtho   — cursor world position for orthographic camera (inline)
  *   - mouseToApiScreen        — top-left mouse coords → API-native screen
- *   - mouseToNDC              — top-left mouse coords → NDC [-1, 1]
  *   - mouseUnproject          — API-aware unproject from mouse coords
  *   - mouseToWorldRay         — API-aware world ray from mouse coords
  *   - worldUnderCursor        — world point at distance along view ray
- *   - worldUnderCursorOrtho   — cursor world position for orthographic camera
  *   - worldUnderCursorPersp   — cursor world position for perspective camera
  *
  * Internal header — not installed, not included from any public header.
+ * Inline functions are header-only (safe to call from test TUs without linking
+ * vneinteraction). Non-inline functions are defined in behavior_utils.cpp and
+ * compiled into the library.
  */
 
+#include <cmath>
+
 #include <vertexnova/math/core/core.h>
+#include <vertexnova/math/core/math_utils.h>
 #include <vertexnova/math/core/types.h>
 #include <vertexnova/math/projection_utils.h>
 #include <vertexnova/math/viewport.h>
@@ -33,20 +39,75 @@
 
 namespace vne::interaction {
 
+namespace detail {
+constexpr float kBehaviorUtilsEpsilon = 1e-6f;
+}
+
 // -----------------------------------------------------------------------------
-// buildReferenceFrame
+// buildReferenceFrame — inline (used by tests and behaviors)
 // -----------------------------------------------------------------------------
 
 /**
  * @brief Build reference forward and right vectors from an arbitrary world-up.
  * ref_right is the actual RIGHT vector (ref_fwd × world_up), not left.
  */
-void buildReferenceFrame(const vne::math::Vec3f& world_up,
-                         vne::math::Vec3f& ref_fwd,
-                         vne::math::Vec3f& ref_right) noexcept;
+inline void buildReferenceFrame(const vne::math::Vec3f& world_up,
+                                vne::math::Vec3f& ref_fwd,
+                                vne::math::Vec3f& ref_right) noexcept {
+    vne::math::Vec3f candidate =
+        (std::abs(world_up.y()) > 0.9f) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : vne::math::Vec3f(0.0f, -1.0f, 0.0f);
+    ref_fwd = candidate - world_up * candidate.dot(world_up);
+    const float fwd_len = ref_fwd.length();
+    ref_fwd = (fwd_len < detail::kBehaviorUtilsEpsilon) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : (ref_fwd / fwd_len);
+    ref_right = ref_fwd.cross(world_up);
+    const float right_len = ref_right.length();
+    if (right_len > detail::kBehaviorUtilsEpsilon) {
+        ref_right /= right_len;
+    } else {
+        ref_right = vne::math::Vec3f(1.0f, 0.0f, 0.0f);
+    }
+}
 
 // -----------------------------------------------------------------------------
-// Mouse coordinate conversions
+// mouseToNDC — inline (used by tests and behaviors)
+// -----------------------------------------------------------------------------
+
+/**
+ * @brief Convert top-left-origin mouse coords to NDC [-1, 1].
+ * API-independent; for manual frustum geometry (pan, arcball, zoom-to-cursor).
+ */
+[[nodiscard]] inline vne::math::Vec2f mouseToNDC(float mx, float my, float w, float h) noexcept {
+    if (w <= 0.0f || h <= 0.0f) {
+        return vne::math::Vec2f(0.0f, 0.0f);
+    }
+    return vne::math::Vec2f((2.0f * mx / w) - 1.0f, 1.0f - (2.0f * my / h));
+}
+
+// -----------------------------------------------------------------------------
+// worldUnderCursorOrtho — inline (used by tests and behaviors)
+// -----------------------------------------------------------------------------
+
+/**
+ * @brief World position under cursor for orthographic camera (target plane).
+ */
+[[nodiscard]] inline vne::math::Vec3f worldUnderCursorOrtho(const vne::scene::OrthographicCamera& ortho,
+                                                            float ndc_x,
+                                                            float ndc_y) noexcept {
+    const float half_w = ortho.getWidth() * 0.5f;
+    const float half_h = ortho.getHeight() * 0.5f;
+    const vne::math::Vec3f target = ortho.getTarget();
+    vne::math::Vec3f front = target - ortho.getPosition();
+    const float front_len = front.length();
+    front = (front_len < detail::kBehaviorUtilsEpsilon) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : (front / front_len);
+    const vne::math::Vec3f up = ortho.getUp().normalized();
+    vne::math::Vec3f r = front.cross(up);
+    const float r_len = r.length();
+    r = (r_len < detail::kBehaviorUtilsEpsilon) ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : (r / r_len);
+    return target + r * (ndc_x * half_w) + up * (ndc_y * half_h);
+}
+
+// -----------------------------------------------------------------------------
+// Camera-API-dependent functions — defined in behavior_utils.cpp
 // -----------------------------------------------------------------------------
 
 /**
@@ -57,16 +118,6 @@ void buildReferenceFrame(const vne::math::Vec3f& world_up,
                                                 float my,
                                                 const vne::math::Viewport& vp,
                                                 vne::math::GraphicsApi api) noexcept;
-
-/**
- * @brief Convert top-left-origin mouse coords to NDC [-1, 1].
- * API-independent; for manual frustum geometry (pan, arcball, zoom-to-cursor).
- */
-[[nodiscard]] vne::math::Vec2f mouseToNDC(float mx, float my, float w, float h) noexcept;
-
-// -----------------------------------------------------------------------------
-// API-aware unproject and ray from mouse
-// -----------------------------------------------------------------------------
 
 /**
  * @brief API-aware unproject from mouse coords (mouse -> API screen -> unproject).
@@ -87,17 +138,6 @@ void buildReferenceFrame(const vne::math::Vec3f& world_up,
  */
 [[nodiscard]] vne::math::Vec3f worldUnderCursor(
     const vne::scene::ICamera& camera, float mx, float my, float distance, const vne::math::Viewport& vp) noexcept;
-
-// -----------------------------------------------------------------------------
-// Cursor world position helpers (ortho / perspective)
-// -----------------------------------------------------------------------------
-
-/**
- * @brief World position under cursor for orthographic camera (target plane).
- */
-[[nodiscard]] vne::math::Vec3f worldUnderCursorOrtho(const vne::scene::OrthographicCamera& ortho,
-                                                     float ndc_x,
-                                                     float ndc_y) noexcept;
 
 /**
  * @brief World position under cursor at given distance along view (perspective).
