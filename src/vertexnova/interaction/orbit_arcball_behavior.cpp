@@ -314,8 +314,9 @@ void OrbitArcballBehavior::dragRotateArcball(float x_px, float y_px, double delt
     }
     axis /= axis_len;
     const float angle = vne::math::acos(dot);
+    const float scaled_angle = angle * rotation_speed_;
 
-    const vne::math::Quatf delta_q = vne::math::Quatf::fromAxisAngle(axis, angle);
+    const vne::math::Quatf delta_q = vne::math::Quatf::fromAxisAngle(axis, scaled_angle);
     orientation_ = delta_q * orientation_;
 
     if (++normalize_counter_ >= kNormalizeEveryNFrames) {
@@ -325,10 +326,10 @@ void OrbitArcballBehavior::dragRotateArcball(float x_px, float y_px, double delt
 
     applyToCamera();
 
-    if (delta_time >= kMinDeltaTimeForInertia && std::abs(angle) > kInertiaRotAngleThreshold) {
+    if (delta_time >= kMinDeltaTimeForInertia && std::abs(scaled_angle) > kInertiaRotAngleThreshold) {
         inertia_rot_axis_ = axis;
         inertia_rot_speed_ =
-            vne::math::clamp(angle / static_cast<float>(delta_time), -kInertiaRotSpeedMax, kInertiaRotSpeedMax);
+            vne::math::clamp(scaled_angle / static_cast<float>(delta_time), -kInertiaRotSpeedMax, kInertiaRotSpeedMax);
     }
 }
 
