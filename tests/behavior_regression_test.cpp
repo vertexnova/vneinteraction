@@ -8,6 +8,7 @@
  * zoom-to-cursor, mouseToNDC, and buildReferenceFrame / arcball pole safety.
  */
 
+#include "vertexnova/interaction/behavior_math.h"
 #include "vertexnova/interaction/behavior_utils.h"
 #include "vertexnova/interaction/free_look_behavior.h"
 #include "vertexnova/interaction/ortho_pan_zoom_behavior.h"

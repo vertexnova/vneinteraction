@@ -28,6 +28,7 @@
 #include <vertexnova/math/core/types.h>
 #include <vertexnova/math/viewport.h>
 
+#include <algorithm>
 #include <memory>
 
 namespace vne::scene {

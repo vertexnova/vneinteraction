@@ -8,12 +8,17 @@
 
 /**
  * @file behavior_utils.h
- * @brief Shared behavior utilities: buildReferenceFrame (actual RIGHT), mouseToNDC,
- *        worldUnderCursorOrtho / worldUnderCursorPersp for zoom-to-cursor.
- * Internal header — used by orbit_arcball, free_look, camera_behavior_base.
+ * @brief Extra behavior helpers layered on behavior_math.h (worldUnderCursorOrtho /
+ *        worldUnderCursorPersp for zoom-to-cursor).
+ *
+ * Shared buildReferenceFrame, mouseToNDC, and related math live in behavior_math.h
+ * only — include that header directly when you need those symbols without ortho/persp
+ * helpers.
+ * Internal header — used by tests and behaviors as needed.
  */
 
-#include <vertexnova/math/core/core.h>
+#include "vertexnova/interaction/behavior_math.h"
+
 #include <vertexnova/math/core/math_utils.h>
 #include <vertexnova/scene/camera/orthographic_camera.h>
 #include <vertexnova/scene/camera/perspective_camera.h>
@@ -22,38 +27,6 @@ namespace vne::interaction {
 
 namespace detail {
 constexpr float kBehaviorEpsilon = 1e-6f;
-}
-
-/**
- * @brief Build reference forward and right vectors from an arbitrary world-up.
- * ref_right is the actual RIGHT vector (ref_fwd × world_up), not left.
- */
-inline void buildReferenceFrame(const vne::math::Vec3f& world_up,
-                                vne::math::Vec3f& ref_fwd,
-                                vne::math::Vec3f& ref_right) noexcept {
-    vne::math::Vec3f candidate =
-        (std::abs(world_up.y()) > 0.9f) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : vne::math::Vec3f(0.0f, -1.0f, 0.0f);
-    ref_fwd = (candidate - world_up * candidate.dot(world_up));
-    const float fwd_len = ref_fwd.length();
-    ref_fwd = (fwd_len < detail::kBehaviorEpsilon) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : (ref_fwd / fwd_len);
-    ref_right = ref_fwd.cross(world_up);  // Actual RIGHT (was world_up.cross(ref_fwd) = left)
-    const float right_len = ref_right.length();
-    if (right_len > detail::kBehaviorEpsilon) {
-        ref_right /= right_len;
-    } else {
-        ref_right = vne::math::Vec3f(1.0f, 0.0f, 0.0f);
-    }
-}
-
-/**
- * @brief Convert top-left-origin mouse coordinates to NDC [-1,1].
- * Used for manual frustum geometry (zoom-to-cursor, etc.); API-independent.
- */
-[[nodiscard]] inline vne::math::Vec2f mouseToNDC(float mx, float my, float w, float h) noexcept {
-    if (w <= 0.0f || h <= 0.0f) {
-        return vne::math::Vec2f(0.0f, 0.0f);
-    }
-    return vne::math::Vec2f((2.0f * mx / w) - 1.0f, 1.0f - (2.0f * my / h));
 }
 
 /**
