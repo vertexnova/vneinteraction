@@ -429,11 +429,10 @@ endif()
 #==============================================================================
 include(GNUInstallDirs)
 install(TARGETS vneinteraction InteractionWarnings InteractionBuildSettings
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT vneinteraction
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT vneinteraction
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT vneinteraction
     INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-    COMPONENT vneinteraction
 )
 install(DIRECTORY include/vertexnova/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/vertexnova
     COMPONENT vneinteraction
