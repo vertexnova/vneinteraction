@@ -84,7 +84,7 @@ class VNE_INTERACTION_API ICameraBehavior {
      * This helper exists to ease migration from the older setViewportSize(...)
      * API name. New code should call onResize(...) directly.
      */
-    [[deprecated("ICameraBehavior::setViewportSize() is deprecated, use onResize() instead")]]
+    [[deprecated("Use onResize() instead of setViewportSize()")]]
     void setViewportSize(float width_px, float height_px) noexcept {
         onResize(width_px, height_px);
     }
