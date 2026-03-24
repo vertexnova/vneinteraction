@@ -11,7 +11,7 @@
 
 /**
  * @file camera_behavior_base.h
- * @brief CameraBehaviorBase — non-virtual base for ICameraBehavior implementations.
+ * @brief CameraBehaviorBase — base implementation of ICameraBehavior with shared zoom-dispatch logic.
  *
  * Provides common fields, trivial method bodies, and shared zoom dispatch
  * logic used by every concrete behavior. The zoom dispatch uses the template
@@ -39,7 +39,7 @@ class OrthographicCamera;
 namespace vne::interaction {
 
 /**
- * @brief Non-virtual base class for ICameraBehavior implementations.
+ * @brief Base class for ICameraBehavior implementations with shared zoom logic and a virtual dolly-zoom hook.
  *
  * Concrete behaviors inherit from this instead of ICameraBehavior directly.
  * They still override the remaining pure-virtual methods (onAction, onUpdate,
@@ -50,10 +50,10 @@ namespace vne::interaction {
  *
  * Call `dispatchZoom(payload.zoom_factor, payload.x_px, payload.y_px)` from
  * the `eZoomAtCursor` case of `onAction`. The base class handles eChangeFov and
- * eSceneScale centrally. For eDollyToCoi it calls `onZoomDolly()` — override
- * that to implement behavior-specific perspective dolly. The default onZoomDolly
- * handles orthographic zoom-to-cursor automatically, so OrthoPanZoomBehavior
- * needs no override.
+ * eSceneScale centrally. For eDollyToCoi it calls the virtual `onZoomDolly()` —
+ * override that to implement behavior-specific perspective dolly. The default
+ * onZoomDolly handles orthographic zoom-to-cursor automatically, so
+ * OrthoPanZoomBehavior needs no override.
  */
 class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
    public:

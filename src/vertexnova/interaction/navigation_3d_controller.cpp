@@ -71,9 +71,11 @@ void Navigation3DController::setCamera(std::shared_ptr<vne::scene::ICamera> came
 }
 
 void Navigation3DController::onResize(float w, float h) noexcept {
-    impl_->viewport_w = w;
-    impl_->viewport_h = h;
-    impl_->rig.onResize(w, h);
+    const float clamped_w = (w < 1.0f) ? 1.0f : w;
+    const float clamped_h = (h < 1.0f) ? 1.0f : h;
+    impl_->viewport_w = clamped_w;
+    impl_->viewport_h = clamped_h;
+    impl_->rig.onResize(clamped_w, clamped_h);
 }
 
 // ---------------------------------------------------------------------------
