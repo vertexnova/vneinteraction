@@ -37,6 +37,8 @@ constexpr float kPanVelocityBlendRate = 25.0f;  // EMA time-constant reciprocal 
 constexpr float kFitAnimationSpeed = 10.0f;
 constexpr float kFitConvergeThreshold = 1e-3f;
 constexpr double kMinDeltaTimeForInertia = 0.001;
+/** Floor (seconds) for inertia sampling interval; avoids invalid compare when constants change. */
+constexpr double kMinDeltaTimeForInertiaFloor = 1e-9;
 constexpr float kInertiaRotThreshold = 1e-3f;
 constexpr float kDefaultOrbitDistance = 5.0f;
 constexpr float kInertiaRotSpeedMax = 10.0f;
@@ -343,6 +345,45 @@ void OrbitArcballBehavior::beginPan(float x_px, float y_px) noexcept {
     inertia_pan_velocity_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
 }
 
+void OrbitArcballBehavior::applyPanDeltaWorld(const vne::math::Vec3f& delta_world) noexcept {
+    if (!camera_) {
+        return;
+    }
+    if (pivot_mode_ == OrbitPivotMode::eFixed) {
+        camera_->setPosition(camera_->getPosition() + delta_world);
+        camera_->setTarget(camera_->getTarget() + delta_world);
+        camera_->updateMatrices();
+        orbit_distance_ = std::max((camera_->getPosition() - coi_world_).length(), kMinOrbitDistance);
+    } else {
+        coi_world_ += delta_world;
+        applyToCamera();
+    }
+}
+
+void OrbitArcballBehavior::updatePanInertiaFromDragSample(const vne::math::Vec3f& delta_world,
+                                                          double delta_time) noexcept {
+    double min_inertia_dt = kMinDeltaTimeForInertia;
+    if (!std::isfinite(min_inertia_dt)) {
+        min_inertia_dt = kMinDeltaTimeForInertiaFloor;
+    } else if (min_inertia_dt <= 0.0) {
+        min_inertia_dt = kMinDeltaTimeForInertiaFloor;
+    } else {
+        min_inertia_dt = std::max(min_inertia_dt, kMinDeltaTimeForInertiaFloor);
+    }
+
+    const double dt = delta_time;
+    if (!std::isfinite(dt) || dt <= 0.0 || dt < min_inertia_dt) {
+        return;
+    }
+    const double inv = 1.0 / dt;
+    if (!std::isfinite(inv)) {
+        return;
+    }
+    const vne::math::Vec3f sample = delta_world * static_cast<float>(inv);
+    const float blend = 1.0f - std::exp(-kPanVelocityBlendRate * static_cast<float>(dt));
+    inertia_pan_velocity_ = inertia_pan_velocity_ + (sample - inertia_pan_velocity_) * blend;
+}
+
 void OrbitArcballBehavior::dragPan(
     float /*x*/, float /*y*/, float delta_x_px, float delta_y_px, double delta_time) noexcept {
     if (!camera_) {
@@ -365,21 +406,8 @@ void OrbitArcballBehavior::dragPan(
         }
     }
 
-    if (pivot_mode_ == OrbitPivotMode::eFixed) {
-        camera_->setPosition(camera_->getPosition() + delta_world);
-        camera_->setTarget(camera_->getTarget() + delta_world);
-        camera_->updateMatrices();
-        orbit_distance_ = std::max((camera_->getPosition() - coi_world_).length(), kMinOrbitDistance);
-    } else {
-        coi_world_ += delta_world;
-        applyToCamera();
-    }
-
-    if (delta_time >= kMinDeltaTimeForInertia) {
-        const vne::math::Vec3f sample = delta_world / static_cast<float>(delta_time);
-        const float blend = 1.0f - std::exp(-kPanVelocityBlendRate * static_cast<float>(delta_time));
-        inertia_pan_velocity_ = inertia_pan_velocity_ + (sample - inertia_pan_velocity_) * blend;
-    }
+    applyPanDeltaWorld(delta_world);
+    updatePanInertiaFromDragSample(delta_world, delta_time);
 }
 
 void OrbitArcballBehavior::endPan(double) noexcept {
@@ -486,7 +514,7 @@ void OrbitArcballBehavior::onZoomDolly(float factor, float mouse_x_px, float mou
 // ---------------------------------------------------------------------------
 
 void OrbitArcballBehavior::doPanInertia(double delta_time) noexcept {
-    if (delta_time <= 0.0 || !camera_) {
+    if (!std::isfinite(delta_time) || delta_time <= 0.0 || !camera_) {
         return;
     }
     if (inertia_pan_velocity_.length() <= kInertiaPanThreshold) {
@@ -496,15 +524,7 @@ void OrbitArcballBehavior::doPanInertia(double delta_time) noexcept {
     const vne::math::Vec3f delta = inertia_pan_velocity_ * dt;
     inertia_pan_velocity_ *= std::exp(-pan_damping_ * dt);
 
-    if (pivot_mode_ == OrbitPivotMode::eFixed) {
-        camera_->setPosition(camera_->getPosition() + delta);
-        camera_->setTarget(camera_->getTarget() + delta);
-        camera_->updateMatrices();
-        orbit_distance_ = std::max((camera_->getPosition() - coi_world_).length(), kMinOrbitDistance);
-    } else {
-        coi_world_ += delta;
-        applyToCamera();
-    }
+    applyPanDeltaWorld(delta);
 }
 
 void OrbitArcballBehavior::applyInertia(double delta_time) noexcept {

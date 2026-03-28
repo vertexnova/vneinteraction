@@ -212,6 +212,12 @@ class VNE_INTERACTION_API OrbitArcballBehavior final : public CameraBehaviorBase
     void dragPan(float x_px, float y_px, float delta_x_px, float delta_y_px, double delta_time) noexcept;
     void endPan(double delta_time) noexcept;
 
+    /** Apply a world-space pan delta (eFixed vs COI/ViewCenter paths). */
+    void applyPanDeltaWorld(const vne::math::Vec3f& delta_world) noexcept;
+
+    /** EMA pan velocity from drag; skips update if @a delta_time is invalid for sampling. */
+    void updatePanInertiaFromDragSample(const vne::math::Vec3f& delta_world, double delta_time) noexcept;
+
     // ---- zoom -------------------------------------------------------------------
     void onZoomDolly(float factor, float mx, float my) noexcept override;
 
