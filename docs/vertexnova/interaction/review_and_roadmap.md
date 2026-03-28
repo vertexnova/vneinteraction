@@ -4,13 +4,13 @@
 
 This document reviews the vneinteraction camera manipulation library against modern game engines (Unity/Cinemachine, Unreal Engine, Godot, O3DE) and medical visualization toolkits (3D Slicer, VTK, MITK). It identifies missing features, potential code issues, and provides a prioritized roadmap for both game and medical visualization use cases.
 
-> **Note (2026)**: The library has been refactored to a behavior-based architecture. Legacy manipulators (`ICameraManipulator`, `OrbitManipulator`, etc.) have been removed. The current design uses `ICameraBehavior` (OrbitalCameraBehavior, FreeLookBehavior, OrthoPanZoomBehavior, FollowBehavior) and high-level controllers (Inspect3DController, Navigation3DController, Ortho2DController, FollowController). Many items below remain relevant for future enhancements; some references to removed classes are historical.
+> **Note (2026)**: The library has been refactored to a behavior-based architecture. Legacy manipulators (`ICameraManipulator`, `OrbitManipulator`, etc.) have been removed. The current design uses `ICameraBehavior` (OrbitalCameraBehavior, FreeLookBehavior, Ortho2DBehavior, FollowBehavior) and high-level controllers (Inspect3DController, Navigation3DController, Ortho2DController, FollowController). Many items below remain relevant for future enhancements; some references to removed classes are historical.
 
 ---
 
 ## Current Strengths
 
-- Clean interface hierarchy: `ICameraBehavior` -> `OrbitalCameraBehavior`, `FreeLookBehavior`, `OrthoPanZoomBehavior`, `FollowBehavior`
+- Clean interface hierarchy: `ICameraBehavior` -> `OrbitalCameraBehavior`, `FreeLookBehavior`, `Ortho2DBehavior`, `FollowBehavior`
 - Command/action layer (`CameraInputAdapter` + `CameraActionType`) decouples input bindings from manipulation logic
 - Both perspective and orthographic camera support across orbit-style behaviors
 - Inertia with exponential decay on pan and rotation

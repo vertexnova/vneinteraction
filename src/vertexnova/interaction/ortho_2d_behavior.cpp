@@ -4,13 +4,12 @@
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/interaction/ortho_pan_zoom_behavior.h"
+#include "vertexnova/interaction/ortho_2d_behavior.h"
 
 #include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/orthographic_camera.h"
 
 #include <vertexnova/math/core/core.h>
-#include <vertexnova/math/core/math_utils.h>
 
 #include <vertexnova/logging/logging.h>
 
@@ -23,25 +22,28 @@ namespace vne::interaction {
 // Constants (mirrors ortho_pan_zoom_manipulator.cpp)
 // ---------------------------------------------------------------------------
 namespace {
-CREATE_VNE_LOGGER_CATEGORY("vne.interaction.ortho_pan_zoom");
+CREATE_VNE_LOGGER_CATEGORY("vne.interaction.ortho_2d");
 constexpr float kEpsilon = 1e-6f;
 constexpr float kFitToAabbMargin = 1.1f;
 constexpr float kPanVelocityThreshold = 1e-4f;
 constexpr float kPanVelocityBlendRate = 25.0f;  // EMA time-constant reciprocal (1/s)
+constexpr float kDegToRad = 3.14159265358979323846f / 180.0f;
+/** Skip in-plane rotation when |angle| is below this (radians); avoids no-op quaternion work. */
+constexpr float kMinRotationAngleRad = 1e-8f;
 }  // namespace
 
 // ---------------------------------------------------------------------------
 // ICameraBehavior: setCamera / onResize
 // ---------------------------------------------------------------------------
 
-void OrthoPanZoomBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
+void Ortho2DBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
     CameraBehaviorBase::setCamera(std::move(camera));
     if (!camera_) {
-        VNE_LOG_DEBUG << "OrthoPanZoomBehavior: camera detached (null camera)";
+        VNE_LOG_DEBUG << "Ortho2DBehavior: camera detached (null camera)";
     }
 }
 
-void OrthoPanZoomBehavior::onResize(float width_px, float height_px) noexcept {
+void Ortho2DBehavior::onResize(float width_px, float height_px) noexcept {
     CameraBehaviorBase::onResize(width_px, height_px);
 }
 
@@ -49,10 +51,10 @@ void OrthoPanZoomBehavior::onResize(float width_px, float height_px) noexcept {
 // Pan
 // ---------------------------------------------------------------------------
 
-void OrthoPanZoomBehavior::pan(float delta_x_px, float delta_y_px, double delta_time) noexcept {
+void Ortho2DBehavior::pan(float delta_x_px, float delta_y_px, double delta_time) noexcept {
     auto ortho = orthoCamera();
     if (!ortho) {
-        VNE_LOG_WARN << "OrthoPanZoomBehavior: pan called without orthographic camera";
+        VNE_LOG_WARN << "Ortho2DBehavior: pan called without orthographic camera";
         return;
     }
     const vne::math::Vec3f eye = ortho->getPosition();
@@ -68,7 +70,7 @@ void OrthoPanZoomBehavior::pan(float delta_x_px, float delta_y_px, double delta_
 
     const float wppx = ortho->getWidth() / viewport().width;
     const float wppy = ortho->getHeight() / viewport().height;
-    const vne::math::Vec3f delta_world = r * (-delta_x_px * wppx) + up * (-delta_y_px * wppy);
+    const vne::math::Vec3f delta_world = r * (-delta_x_px * wppx) + up * (delta_y_px * wppy);
 
     ortho->setPosition(eye + delta_world);
     ortho->setTarget(target + delta_world);
@@ -82,12 +84,61 @@ void OrthoPanZoomBehavior::pan(float delta_x_px, float delta_y_px, double delta_
 }
 
 // ---------------------------------------------------------------------------
+// In-plane rotation (slice spin about view axis through target)
+// ---------------------------------------------------------------------------
+
+void Ortho2DBehavior::rotateInPlane(float delta_x_px, float /*delta_y_px*/) noexcept {
+    auto ortho = orthoCamera();
+    if (!ortho) {
+        VNE_LOG_WARN << "Ortho2DBehavior: rotateInPlane called without orthographic camera";
+        return;
+    }
+    const float angle_rad = delta_x_px * rotation_deg_per_px_ * kDegToRad;
+    if (!std::isfinite(angle_rad)) {
+        VNE_LOG_ERROR << "Ortho2DBehavior: rotateInPlane non-finite angle (delta_x_px=" << delta_x_px
+                      << ", rotation_deg_per_px=" << rotation_deg_per_px_ << ")";
+        return;
+    }
+    if (std::abs(angle_rad) < kMinRotationAngleRad) {
+        return;
+    }
+
+    const vne::math::Vec3f eye = ortho->getPosition();
+    const vne::math::Vec3f target = ortho->getTarget();
+    vne::math::Vec3f axis = target - eye;
+    const float axis_len = axis.length();
+    if (axis_len < kEpsilon) {
+        VNE_LOG_WARN << "Ortho2DBehavior: rotateInPlane degenerate view axis (eye coincident with target)";
+        return;
+    }
+    axis = axis / axis_len;
+
+    vne::math::Vec3f offset = eye - target;
+    vne::math::Vec3f up = ortho->getUp().normalized();
+    const vne::math::Quatf q = vne::math::Quatf::fromAxisAngle(axis, angle_rad);
+    offset = q.rotate(offset);
+    up = q.rotate(up).normalized();
+
+    const vne::math::Vec3f new_position = target + offset;
+    ortho->lookAt(new_position, target, up);
+    ortho->updateMatrices();
+}
+
+// ---------------------------------------------------------------------------
 // Inertia
 // ---------------------------------------------------------------------------
 
-void OrthoPanZoomBehavior::applyInertia(double delta_time) noexcept {
+void Ortho2DBehavior::applyInertia(double delta_time) noexcept {
     auto ortho = orthoCamera();
-    if (!ortho || delta_time <= 0.0) {
+    if (!ortho) {
+        VNE_LOG_DEBUG << "Ortho2DBehavior: applyInertia skipped (no orthographic camera)";
+        return;
+    }
+    if (delta_time <= 0.0) {
+        return;
+    }
+    if (!std::isfinite(static_cast<double>(delta_time))) {
+        VNE_LOG_ERROR << "Ortho2DBehavior: applyInertia non-finite delta_time";
         return;
     }
     if (pan_velocity_.length() < kPanVelocityThreshold) {
@@ -106,9 +157,10 @@ void OrthoPanZoomBehavior::applyInertia(double delta_time) noexcept {
 // fitToAABB / getWorldUnitsPerPixel / resetState
 // ---------------------------------------------------------------------------
 
-void OrthoPanZoomBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept {
+void Ortho2DBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept {
     auto ortho = orthoCamera();
     if (!ortho) {
+        VNE_LOG_WARN << "Ortho2DBehavior: fitToAABB called without orthographic camera";
         return;
     }
     const vne::math::Vec3f center = (min_world + max_world) * 0.5f;
@@ -159,13 +211,14 @@ void OrthoPanZoomBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vn
     ortho->updateMatrices();
 }
 
-float OrthoPanZoomBehavior::getWorldUnitsPerPixel() const noexcept {
+float Ortho2DBehavior::getWorldUnitsPerPixel() const noexcept {
     auto ortho = orthoCamera();
     return ortho ? (ortho->getHeight() / viewport().height) : 0.0f;
 }
 
-void OrthoPanZoomBehavior::resetState() noexcept {
+void Ortho2DBehavior::resetState() noexcept {
     panning_ = false;
+    rotating_ = false;
     pan_velocity_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
 }
 
@@ -173,11 +226,11 @@ void OrthoPanZoomBehavior::resetState() noexcept {
 // onUpdate
 // ---------------------------------------------------------------------------
 
-void OrthoPanZoomBehavior::onUpdate(double delta_time) noexcept {
+void Ortho2DBehavior::onUpdate(double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }
-    if (!panning_) {
+    if (!panning_ && !rotating_) {
         applyInertia(delta_time);
     }
 }
@@ -186,9 +239,9 @@ void OrthoPanZoomBehavior::onUpdate(double delta_time) noexcept {
 // onAction
 // ---------------------------------------------------------------------------
 
-bool OrthoPanZoomBehavior::onAction(CameraActionType action,
-                                    const CameraCommandPayload& payload,
-                                    double delta_time) noexcept {
+bool Ortho2DBehavior::onAction(CameraActionType action,
+                               const CameraCommandPayload& payload,
+                               double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return false;
     }
@@ -205,6 +258,19 @@ bool OrthoPanZoomBehavior::onAction(CameraActionType action,
 
         case CameraActionType::eEndPan:
             panning_ = false;
+            return true;
+
+        case CameraActionType::eBeginRotate:
+            rotating_ = true;
+            pan_velocity_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
+            return true;
+
+        case CameraActionType::eRotateDelta:
+            rotateInPlane(payload.delta_x_px, payload.delta_y_px);
+            return true;
+
+        case CameraActionType::eEndRotate:
+            rotating_ = false;
             return true;
 
         case CameraActionType::eZoomAtCursor:

@@ -131,8 +131,11 @@ class VNE_INTERACTION_API CameraRig {
     /** Fly rig: FreeLookBehavior unconstrained (no world-up, allows barrel roll). */
     static CameraRig makeFly();
 
-    /** Ortho pan+zoom rig: OrthoPanZoomBehavior. */
-    static CameraRig makeOrthoPanZoom();
+    /** 2D orthographic rig: Ortho2DBehavior (pan, zoom, optional in-plane rotation). */
+    static CameraRig makeOrtho2D();
+
+    /** @deprecated Use makeOrtho2D(). */
+    [[deprecated("Use makeOrtho2D()")]] static CameraRig makeOrthoPanZoom();
 
     /** Follow rig: FollowBehavior (autonomous smooth target following). */
     static CameraRig makeFollow();
@@ -143,7 +146,7 @@ class VNE_INTERACTION_API CameraRig {
      */
     static CameraRig makeGameCamera();
 
-    /** 2D rig: OrthoPanZoomBehavior (alias for makeOrthoPanZoom). */
+    /** 2D rig: Ortho2DBehavior (alias for makeOrtho2D). */
     static CameraRig make2D();
 
    private:

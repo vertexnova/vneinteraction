@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License")
  * --------------------------------------------------------------------- */
 
-#include "vertexnova/interaction/ortho_pan_zoom_behavior.h"
+#include "vertexnova/interaction/ortho_2d_behavior.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
 
@@ -16,17 +16,17 @@ static std::shared_ptr<vne::scene::OrthographicCamera> makeOrthoCamera() {
         vne::scene::OrthographicCameraParameters(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 1000.0f));
 }
 
-TEST(OrthoPanZoomBehavior, DefaultValues) {
-    vne::interaction::OrthoPanZoomBehavior b;
+TEST(Ortho2DBehavior, DefaultValues) {
+    vne::interaction::Ortho2DBehavior b;
     EXPECT_GT(b.getZoomSpeed(), 0.0f);
 }
 
-TEST(OrthoPanZoomBehavior, CameraIntegration) {
+TEST(Ortho2DBehavior, CameraIntegration) {
     auto cam = makeOrthoCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
     cam->setTarget(vne::math::Vec3f(0.0f, 0.0f, 0.0f));
 
-    vne::interaction::OrthoPanZoomBehavior b;
+    vne::interaction::Ortho2DBehavior b;
     b.setCamera(cam);
     b.onResize(512.0f, 512.0f);
 
@@ -44,12 +44,12 @@ TEST(OrthoPanZoomBehavior, CameraIntegration) {
     EXPECT_GT((cam->getPosition() - vne::math::Vec3f(0.0f, 0.0f, 5.0f)).length(), 0.001f);
 }
 
-TEST(OrthoPanZoomBehavior, ZoomAtCursor) {
+TEST(Ortho2DBehavior, ZoomAtCursor) {
     auto cam = makeOrthoCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
     cam->setTarget(vne::math::Vec3f(0.0f, 0.0f, 0.0f));
 
-    vne::interaction::OrthoPanZoomBehavior b;
+    vne::interaction::Ortho2DBehavior b;
     b.setCamera(cam);
     b.onResize(512.0f, 512.0f);
 
@@ -62,6 +62,33 @@ TEST(OrthoPanZoomBehavior, ZoomAtCursor) {
     b.onUpdate(0.016);
 
     EXPECT_GT(b.getWorldUnitsPerPixel(), 0.0f);
+}
+
+TEST(Ortho2DBehavior, InPlaneRotatePreservesEyeTargetDistance) {
+    auto cam = makeOrthoCamera();
+    cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 10.0f),
+                vne::math::Vec3f(0.0f, 0.0f, 0.0f),
+                vne::math::Vec3f(0.0f, 1.0f, 0.0f));
+    cam->updateMatrices();
+
+    vne::interaction::Ortho2DBehavior b;
+    b.setCamera(cam);
+    b.onResize(512.0f, 512.0f);
+
+    const float dist_before = (cam->getPosition() - cam->getTarget()).length();
+    const vne::math::Vec3f up_before = cam->getUp();
+
+    vne::interaction::CameraCommandPayload p;
+    p.delta_x_px = 80.0f;
+    p.delta_y_px = 0.0f;
+
+    b.onAction(vne::interaction::CameraActionType::eBeginRotate, p, 0.0);
+    b.onAction(vne::interaction::CameraActionType::eRotateDelta, p, 0.016);
+    b.onAction(vne::interaction::CameraActionType::eEndRotate, p, 0.0);
+
+    const float dist_after = (cam->getPosition() - cam->getTarget()).length();
+    EXPECT_NEAR(dist_before, dist_after, 1e-4f);
+    EXPECT_GT((cam->getUp() - up_before).length(), 0.01f);
 }
 
 }  // namespace vne_interaction_test

@@ -13,7 +13,7 @@ The Interaction module provides composable camera behaviors and high-level contr
 
 ## Architecture
 
-- **Public API** (`include/vertexnova/interaction/`): `camera_behavior.h`, `camera_rig.h`, `orbital_camera_behavior.h`, `free_look_behavior.h`, `ortho_pan_zoom_behavior.h`, `follow_behavior.h`, `input_mapper.h`, `inspect_3d_controller.h`, `navigation_3d_controller.h`, `ortho_2d_controller.h`, `follow_controller.h`, `interaction_types.h`, `interaction.h` (umbrella), `version.h`.
+- **Public API** (`include/vertexnova/interaction/`): `camera_behavior.h`, `camera_rig.h`, `orbital_camera_behavior.h`, `free_look_behavior.h`, `ortho_2d_behavior.h`, `follow_behavior.h`, `input_mapper.h`, `inspect_3d_controller.h`, `navigation_3d_controller.h`, `ortho_2d_controller.h`, `follow_controller.h`, `interaction_types.h`, `interaction.h` (umbrella), `version.h`.
 - **Implementation** (`src/vertexnova/interaction/`): One `.cpp` per behavior and controller plus `input_mapper.cpp`, `camera_rig.cpp`, and `version.cpp`.
 - **Dependencies**: **vnescene** (cameras, `ICamera`, `PerspectiveCamera`, `OrthographicCamera`, `CameraFactory`), **vneevents** (event types), **vnemath** (vectors, quaternions, matrices; pulled in via vnescene).
 
@@ -24,20 +24,20 @@ The Interaction module provides composable camera behaviors and high-level contr
 - **camera_behavior.h**: `ICameraBehavior` — interface: `onAction`, `onUpdate`, `setCamera`, `onResize`, `resetState`, `isEnabled`, `setEnabled`.
 - **orbital_camera_behavior.h**: `OrbitalCameraBehavior` — orbit around a center of interest; Euler or Quaternion rotation; pivot modes (COI, ViewCenter, Fixed); pan, zoom, inertia, fitToAABB.
 - **free_look_behavior.h**: `FreeLookBehavior` — FPS or Fly mode; WASD movement, mouse look, sprint/slow modifiers.
-- **ortho_pan_zoom_behavior.h**: `OrthoPanZoomBehavior` — orthographic camera only; pan and zoom-to-cursor; inertia.
+- **ortho_2d_behavior.h**: `Ortho2DBehavior` — orthographic camera only; pan, zoom-to-cursor, optional in-plane rotation; inertia.
 - **follow_behavior.h**: `FollowBehavior` — follow a target (static or from provider); smooth damping; offset.
 
 ### Controllers
 
 - **inspect_3d_controller.h**: `Inspect3DController` — 3D inspection (medical, CAD); wraps `OrbitalCameraBehavior` + `InputMapper` with orbit preset; pivot, DOF toggles, fitToAABB.
 - **navigation_3d_controller.h**: `Navigation3DController` — 3D environment traversal; FPS, Fly, or Game mode; wraps `FreeLookBehavior` (+ optional `OrbitalCameraBehavior` in Game mode) + `InputMapper`.
-- **ortho_2d_controller.h**: `Ortho2DController` — 2D orthographic viewports (slices, maps); wraps `OrthoPanZoomBehavior` + `InputMapper` with ortho preset.
+- **ortho_2d_controller.h**: `Ortho2DController` — 2D orthographic viewports (slices, maps); wraps `Ortho2DBehavior` + `InputMapper` with ortho preset.
 - **follow_controller.h**: `FollowController` — target-follow camera; wraps `FollowBehavior`; no user input required.
 
 ### Input and Rig
 
 - **input_mapper.h**: `InputMapper` — maps mouse/keyboard/touch events to `CameraActionType` via `InputRule`; presets: `orbitPreset`, `fpsPreset`, `gamePreset`, `cadPreset`, `orthoPreset`.
-- **camera_rig.h**: `CameraRig` — multi-behavior container; `onAction`, `onUpdate`, `setCamera`, `onResize`, `resetState`; factory methods: `makeOrbit`, `makeTrackball`, `makeFps`, `makeFly`, `makeOrthoPanZoom`, `makeFollow`, `makeGameCamera`, `make2D`.
+- **camera_rig.h**: `CameraRig` — multi-behavior container; `onAction`, `onUpdate`, `setCamera`, `onResize`, `resetState`; factory methods: `makeOrbit`, `makeTrackball`, `makeFps`, `makeFly`, `makeOrtho2D` (deprecated: `makeOrthoPanZoom`), `makeFollow`, `makeGameCamera`, `make2D`.
 
 ### Types
 
