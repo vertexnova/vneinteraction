@@ -140,7 +140,7 @@ class VNE_INTERACTION_API OrbitArcballBehavior final : public CameraBehaviorBase
     // setZoomMethod / getZoomMethod / setFovZoomSpeed / getFovZoomSpeed / getZoomScale
     // are inherited from CameraBehaviorBase.
 
-    /** Set rotation speed multiplier (>= 0). */
+    /** Set rotation speed multiplier (>= 0). Scales Euler yaw/pitch (deg/pixel) and arcball delta angle. */
     void setRotationSpeed(float speed) noexcept { rotation_speed_ = std::max(0.0f, speed); }
     [[nodiscard]] float getRotationSpeed() const noexcept { return rotation_speed_; }
 
