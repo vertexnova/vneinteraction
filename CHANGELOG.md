@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0](https://github.com/vertexnova/vneinteraction/compare/v1.3.3...v1.4.0) (2026-03-28)
+
+
+### Features
+
+* Introduce EulerOrbit class for yaw/pitch camera control ([#18](https://github.com/vertexnova/vneinteraction/issues/18)) ([ddf0746](https://github.com/vertexnova/vneinteraction/commit/ddf0746f72f3ad18530d111465c3c79d23c8fa8d))
+
 ## [1.3.3](https://github.com/vertexnova/vneinteraction/compare/v1.3.2...v1.3.3) (2026-03-28)
 
 
