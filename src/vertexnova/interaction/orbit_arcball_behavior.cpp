@@ -267,11 +267,15 @@ void OrbitArcballBehavior::applyToCamera() noexcept {
     }
     if (rotation_mode_ == OrbitRotationMode::eArcball) {
         const vne::math::Vec3f back = orientation_.getZAxis();
-        const vne::math::Vec3f up = orientation_.getYAxis();
+        const vne::math::Vec3f view_dir_unit = (-back).normalized();
+        const vne::math::Vec3f up_hint = orientation_.getYAxis();
+        const vne::math::Vec3f up = stableCameraUpForLookAt(up_hint, view_dir_unit, world_up_);
         camera_->lookAt(coi_world_ + back * orbit_distance_, coi_world_, up);
     } else {
         const vne::math::Vec3f front = computeFront();
-        const vne::math::Vec3f up = computeUp(front, computeRight(front));
+        const vne::math::Vec3f view_dir_unit = front.normalized();
+        const vne::math::Vec3f up_hint = computeUp(front, computeRight(front));
+        const vne::math::Vec3f up = stableCameraUpForLookAt(up_hint, view_dir_unit, world_up_);
         camera_->lookAt(coi_world_ - front * orbit_distance_, coi_world_, up);
     }
     camera_->updateMatrices();
