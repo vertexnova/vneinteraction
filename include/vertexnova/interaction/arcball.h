@@ -41,14 +41,15 @@ namespace vne::interaction {
  */
 class VNE_INTERACTION_API Arcball {
    public:
-    /** Screen-to-sphere mapping. Default: @ref eHyperbolic. */
+    /**
+     * @brief Screen-to-sphere mapping. Default: @ref eHyperbolic.
+     * @enum eHyperbolic: Spherical cap, then hyperbolic continuation outside the cap.
+     * @enum eRim: Hemisphere inside the unit disk; equatorial rim (z = 0) beyond it.
+     */
     enum class ProjectionMode {
-        /** Spherical cap, then hyperbolic continuation outside the cap. */
-        eHyperbolic,
-        /** Hemisphere inside the unit disk; equatorial rim (z = 0) beyond it. */
-        eRim
+        eHyperbolic = 0,  //!< Spherical cap, then hyperbolic continuation outside the cap.
+        eRim = 1          //!< Hemisphere inside the unit disk; equatorial rim (z = 0) beyond it.
     };
-
     Arcball() noexcept = default;
 
     /**

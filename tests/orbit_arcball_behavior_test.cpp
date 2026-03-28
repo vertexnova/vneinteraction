@@ -16,7 +16,7 @@ namespace vne_interaction_test {
 TEST(Arcball, HyperbolicCenterIsUnitAndFrontHemisphere) {
     vne::interaction::Arcball a;
     a.setViewport(vne::math::Vec2f(800.0f, 600.0f));
-    ASSERT_EQ(a.projectionMode(), vne::interaction::Arcball::ProjectionMode::eHyperbolic);
+    ASSERT_EQ(a.getProjectionMode(), vne::interaction::Arcball::ProjectionMode::eHyperbolic);
     const auto v = a.project(vne::math::Vec2f(400.0f, 300.0f));
     EXPECT_NEAR(v.length(), 1.0f, 1e-5f);
     EXPECT_GT(v.z(), 0.0f);
