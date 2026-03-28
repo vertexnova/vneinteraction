@@ -443,67 +443,60 @@ void OrbitalCameraBehavior::onZoomDolly(float factor, float mouse_x_px, float mo
     if (!camera_) {
         return;
     }
-    // Preserve user zoom direction while scaling step intensity with zoom_speed_.
-    // zoom_speed_ > 1.0f makes each zoom step stronger, < 1.0f makes it gentler.
+    // dispatchZoom() handles eSceneScale; we only receive eChangeFov | eDollyToCoi here.
+    // Do not delegate the perspective path to CameraBehaviorBase::onZoomDolly — base only does
+    // ortho applyOrthoZoomToCursor(raw factor); orbit needs orbit_distance_, COI shift, and
+    // applyOrthoZoomToCursor(effective_factor) for ortho (zoom_speed_ applied).
     const float effective_factor = std::pow(factor, zoom_speed_);
-    switch (zoom_method_) {
-        case ZoomMethod::eSceneScale:
-            CameraBehaviorBase::applySceneScaleZoom(factor);
-            return;
-        case ZoomMethod::eChangeFov: {
-            auto persp = perspCamera();
-            if (persp) {
-                const float fov = persp->getFieldOfView();
-                const float new_fov = vne::math::clamp(fov * factor, kFovMinDeg, kFovMaxDeg);
+
+    if (zoom_method_ == ZoomMethod::eChangeFov) {
+        if (auto persp = perspCamera()) {
+            const float fov = persp->getFieldOfView();
+            const float new_fov = vne::math::clamp(fov * factor, kFovMinDeg, kFovMaxDeg);
+            if (new_fov != fov) {
                 persp->setFieldOfView(new_fov);
                 persp->updateMatrices();
-                // If FOV has not changed (limit reached), fall through to dolly so zoom doesn't feel stuck
-                if (new_fov != fov) {
-                    return;
-                }
-            }
-            [[fallthrough]];
-        }
-        case ZoomMethod::eDollyToCoi:
-            if (orthoCamera()) {
-                CameraBehaviorBase::applyOrthoZoomToCursor(effective_factor, mouse_x_px, mouse_y_px);
                 return;
             }
-            {
-                const float old_dist = orbit_distance_;
-                orbit_distance_ =
-                    vne::math::clamp(orbit_distance_ * effective_factor, kMinOrbitDistance, kMaxOrbitDistance);
-                // computeRight/computeUp expect the view/front direction (not camera-back / +Z).
-                // computeFront() matches applyToCamera (Euler yaw/pitch or trackball -orientation_.getZAxis()).
-                const vne::math::Vec3f front_dir = computeFront();
-                const vne::math::Vec3f r = computeRight(front_dir);
-                const vne::math::Vec3f u = computeUp(front_dir, r);
-                auto persp = perspCamera();
-                const float vw = viewportWidth();
-                const float vh = viewportHeight();
-                if (persp && vw > 0.0f && vh > 0.0f) {
-                    const float ndc_x = (2.0f * mouse_x_px / vw) - 1.0f;
-                    const float ndc_y = 1.0f - (2.0f * mouse_y_px / vh);
-                    const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
-                    const float half_h = old_dist * vne::math::tan(fov_y_rad * 0.5f);
-                    const float half_w = half_h * (vw / vh);
-                    // Camera is along -front from COI at old_dist; cursor offset in the view plane (r, u).
-                    const vne::math::Vec3f cursor_world = coi_world_ + r * (ndc_x * half_w) + u * (ndc_y * half_h);
-                    const vne::math::Vec3f to_cursor = cursor_world - coi_world_;
-                    const float shift_t = (1.0f - effective_factor) * kZoomToCursorStrength;
-                    if (to_cursor.length() < old_dist * 2.0f) {
-                        coi_world_ += to_cursor * shift_t;
-                    }
-                }
-                applyToCamera();
-                if (pivot_mode_ == OrbitPivotMode::eViewCenter) {
-                    onPivotChanged();
-                } else if (rotation_mode_ == OrbitRotationMode::eTrackball) {
-                    // Re-sync orientation_ after COI shift so rotation basis stays valid
-                    syncFromCamera();
-                }
-            }
-            return;
+            // FOV at clamp limit: continue to dolly-style zoom so scroll still has effect.
+        }
+    }
+
+    if (orthoCamera()) {
+        CameraBehaviorBase::applyOrthoZoomToCursor(effective_factor, mouse_x_px, mouse_y_px);
+        return;
+    }
+
+    const float old_dist = orbit_distance_;
+    orbit_distance_ = vne::math::clamp(orbit_distance_ * effective_factor, kMinOrbitDistance, kMaxOrbitDistance);
+    // computeRight/computeUp expect the view/front direction (not camera-back / +Z).
+    // computeFront() matches applyToCamera (Euler yaw/pitch or trackball -orientation_.getZAxis()).
+    const vne::math::Vec3f front_dir = computeFront();
+    const vne::math::Vec3f r = computeRight(front_dir);
+    const vne::math::Vec3f u = computeUp(front_dir, r);
+    auto persp = perspCamera();
+    const float vw = viewportWidth();
+    const float vh = viewportHeight();
+    if (persp && vw > 0.0f && vh > 0.0f) {
+        const float ndc_x = (2.0f * mouse_x_px / vw) - 1.0f;
+        const float ndc_y = 1.0f - (2.0f * mouse_y_px / vh);
+        const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
+        const float half_h = old_dist * vne::math::tan(fov_y_rad * 0.5f);
+        const float half_w = half_h * (vw / vh);
+        // Camera is along -front from COI at old_dist; cursor offset in the view plane (r, u).
+        const vne::math::Vec3f cursor_world = coi_world_ + r * (ndc_x * half_w) + u * (ndc_y * half_h);
+        const vne::math::Vec3f to_cursor = cursor_world - coi_world_;
+        const float shift_t = (1.0f - effective_factor) * kZoomToCursorStrength;
+        if (to_cursor.length() < old_dist * 2.0f) {
+            coi_world_ += to_cursor * shift_t;
+        }
+    }
+    applyToCamera();
+    if (pivot_mode_ == OrbitPivotMode::eViewCenter) {
+        onPivotChanged();
+    } else if (rotation_mode_ == OrbitRotationMode::eTrackball) {
+        // Re-sync orientation_ after COI shift so rotation basis stays valid
+        syncFromCamera();
     }
 }
 

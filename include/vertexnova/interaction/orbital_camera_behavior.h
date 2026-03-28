@@ -186,9 +186,9 @@ class VNE_INTERACTION_API OrbitalCameraBehavior final : public CameraBehaviorBas
 
    protected:
     /**
-     * @brief Zoom dispatch: eChangeFov and eDollyToCoi both route through onZoomDolly so FOV can
-     * fall through to dolly when FOV is clamped (CameraBehaviorBase::dispatchZoom only calls
-     * applyFovZoom for eChangeFov and never reaches onZoomDolly).
+     * @brief Zoom dispatch: eSceneScale uses applySceneScaleZoom; eChangeFov and eDollyToCoi call
+     * onZoomDolly so FOV can fall back to orbit dolly when FOV is clamped (unlike base dispatchZoom,
+     * which only calls applyFovZoom for eChangeFov).
      */
     void dispatchZoom(float factor, float mx, float my) noexcept;
 
