@@ -45,13 +45,8 @@ constexpr float kInertiaRotSpeedMax = 10.0f;
 constexpr float kInertiaRotAngleThreshold = 1e-6f;
 constexpr float kInertiaRotSpeedThreshold = 1e-4f;
 constexpr float kInertiaPanSpeedThreshold = 1e-4f;
-constexpr uint32_t kNormalizeEveryNFrames = 60u;
 /** Strength of COI shift toward cursor on perspective zoom-to-cursor (0..1). */
 constexpr float kZoomToCursorStrength = 0.5f;
-
-float safeSqrt(float x) noexcept {
-    return std::sqrt(std::max(0.0f, x));
-}
 }  // namespace
 
 // ---------------------------------------------------------------------------
