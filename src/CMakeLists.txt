@@ -14,6 +14,7 @@ set(SOURCE_FILES
     vertexnova/interaction/behavior_utils.cpp
     vertexnova/interaction/camera_behavior_base.cpp
     vertexnova/interaction/arcball.cpp
+    vertexnova/interaction/euler_orbit.cpp
     vertexnova/interaction/orbit_arcball_behavior.cpp
     vertexnova/interaction/free_look_behavior.cpp
     vertexnova/interaction/ortho_pan_zoom_behavior.cpp
@@ -33,6 +34,7 @@ set(HEADER_FILES
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_behavior.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_behavior_base.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/arcball.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/euler_orbit.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_rig.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/orbit_arcball_behavior.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/free_look_behavior.h

@@ -11,16 +11,20 @@
 
 #include "vertexnova/interaction/arcball.h"
 
+#include <vertexnova/logging/logging.h>
+
 #include <algorithm>
 #include <cmath>
 
-namespace vne::interaction {
-
 namespace {
+CREATE_VNE_LOGGER_CATEGORY("vne.interaction.arcball");
+
 constexpr float kMinViewportAxis = 1e-6f;
 /** Radius in normalized trackball coordinates (unit ball). */
 constexpr float kTrackballRadius = 1.0f;
 constexpr float kEpsilonLen = 1e-6f;
+constexpr float kCrossLenSqEps = 1e-14f;
+constexpr float kAntiParallelDot = 1e-5f;  //!< dot <= -1 + this → treat as 180° for axis fallback
 
 [[nodiscard]] vne::math::Vec3f normalizeOrDefaultZ(const vne::math::Vec3f& v) noexcept {
     const float len = v.length();
@@ -30,6 +34,8 @@ constexpr float kEpsilonLen = 1e-6f;
     return v / len;
 }
 }  // namespace
+
+namespace vne::interaction {
 
 void Arcball::setViewport(const vne::math::Vec2f& size_px) noexcept {
     viewport_px_ = size_px;
@@ -64,9 +70,15 @@ vne::math::Vec3f Arcball::projectRim(float rx, float ry) const noexcept {
 vne::math::Vec3f Arcball::project(const vne::math::Vec2f& cursor_px) const noexcept {
     const float w = viewport_px_.x();
     const float h = viewport_px_.y();
+    if (w <= 0.0f || h <= 0.0f) {
+        VNE_LOG_WARN << "Arcball::project: invalid viewport size (" << w << ", " << h << "), using +Z fallback";
+        return vne::math::Vec3f(0.0f, 0.0f, 1.0f);
+    }
     const float size_min = std::min(w, h);
     const float half_size = 0.5f * size_min;
     if (half_size < kMinViewportAxis) {
+        VNE_LOG_WARN << "Arcball::project: viewport too small for trackball (min axis " << size_min
+                     << " px), using +Z fallback";
         return vne::math::Vec3f(0.0f, 0.0f, 1.0f);
     }
     const float cx = w * 0.5f;
@@ -83,7 +95,8 @@ vne::math::Vec3f Arcball::project(const vne::math::Vec2f& cursor_px) const noexc
         case ProjectionMode::eRim:
             return projectRim(rx, ry);
         default:
-            // Unknown enumerator (bad cast / storage): safe +Z in ball space. (MSVC C4715: default inside switch)
+            VNE_LOG_WARN << "Arcball::project: unknown ProjectionMode value " << static_cast<int>(projection_mode_)
+                         << ", using +Z fallback";
             return vne::math::Vec3f(0.0f, 0.0f, 1.0f);
     }
 }
@@ -93,8 +106,36 @@ void Arcball::beginDrag(const vne::math::Vec2f& cursor_px) noexcept {
     last_cursor_px_ = cursor_px;
 }
 
+BallFrameDelta Arcball::ballFrameDeltaFromSpheres(const vne::math::Vec3f& prev_sphere_unit,
+                                                  const vne::math::Vec3f& curr_sphere_unit) noexcept {
+    BallFrameDelta out{};
+    const float dot_pc = vne::math::clamp(prev_sphere_unit.dot(curr_sphere_unit), -1.0f, 1.0f);
+    out.angle_rad = std::acos(dot_pc);
+    const vne::math::Vec3f frame_cross = prev_sphere_unit.cross(curr_sphere_unit);
+    const float cross_len_sq = frame_cross.lengthSquared();
+
+    if (cross_len_sq > kCrossLenSqEps) {
+        out.axis_ball = frame_cross * (1.0f / std::sqrt(cross_len_sq));
+        out.valid = true;
+        return out;
+    }
+    if (dot_pc <= -1.0f + kAntiParallelDot) {
+        vne::math::Vec3f a = vne::math::Vec3f(1.0f, 0.0f, 0.0f).cross(prev_sphere_unit);
+        if (a.lengthSquared() < kCrossLenSqEps) {
+            a = vne::math::Vec3f(0.0f, 1.0f, 0.0f).cross(prev_sphere_unit);
+        }
+        out.axis_ball = a.normalized();
+        out.valid = true;
+    }
+    return out;
+}
+
 vne::math::Quatf Arcball::rotationBetween(const vne::math::Vec3f& from, const vne::math::Vec3f& to) noexcept {
     // Shortest arc: same as unnormalized (1 + dot, from×to) with anti-parallel fallback — see Quatf::fromToRotation.
+    if (from.lengthSquared() < kEpsilonLen * kEpsilonLen || to.lengthSquared() < kEpsilonLen * kEpsilonLen) {
+        VNE_LOG_WARN << "Arcball::rotationBetween: zero-length endpoint, returning identity";
+        return vne::math::Quatf::identity();
+    }
     const vne::math::Vec3f a = from.normalized();
     const vne::math::Vec3f b = to.normalized();
     return vne::math::Quatf::fromToRotation(a, b);
