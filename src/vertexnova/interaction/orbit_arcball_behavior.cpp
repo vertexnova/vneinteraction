@@ -45,6 +45,9 @@ constexpr float kInertiaRotSpeedMax = 10.0f;
 constexpr float kInertiaRotAngleThreshold = 1e-6f;
 constexpr float kInertiaRotSpeedThreshold = 1e-4f;
 constexpr float kInertiaPanSpeedThreshold = 1e-4f;
+/** Arcball drag inertia: axis from curr×prev; near-parallel / anti-parallel thresholds. */
+constexpr float kCrossLenSqEps = 1e-14f;
+constexpr float kAntiParallelDot = 1e-5f;  // dot <= -1 + this → treat as 180° for axis fallback
 /** Strength of COI shift toward cursor on perspective zoom-to-cursor (0..1). */
 constexpr float kZoomToCursorStrength = 0.5f;
 
@@ -322,9 +325,6 @@ void OrbitArcballBehavior::updateArcballDragInertiaFromFrame(const vne::math::Ve
                                                              const float arcball_rot,
                                                              const double delta_time) noexcept {
     // Frame-to-frame movement (not cumulative). |prev×curr| = sin(θ); angle from acos(prev·curr).
-    constexpr float kCrossLenSqEps = 1e-14f;
-    constexpr float kAntiParallelDot = 1e-5f;  // dot <= -1 + this → treat as 180° for axis fallback
-
     const float dot_pc = vne::math::clamp(prev_sphere.dot(curr_sphere), -1.0f, 1.0f);
     const float frame_angle_rad = std::acos(dot_pc);
     const vne::math::Vec3f frame_cross = curr_sphere.cross(prev_sphere);

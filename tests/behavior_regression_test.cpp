@@ -210,8 +210,7 @@ TEST(BehaviorRegression, OrbitArcball_HorizontalDragMatchesEulerSign) {
     b.onAction(vne::interaction::CameraActionType::eEndRotate, p, 0.0);
 
     vne::math::Vec3f pos_after = persp->getPosition();
-    EXPECT_LT(pos_after.x(), pos_before.x())
-        << "Arcball drag right should match Euler: camera X decreases";
+    EXPECT_LT(pos_after.x(), pos_before.x()) << "Arcball drag right should match Euler: camera X decreases";
 }
 
 }  // namespace vne_interaction_regression_test
