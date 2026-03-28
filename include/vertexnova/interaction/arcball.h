@@ -93,9 +93,9 @@ class VNE_INTERACTION_API Arcball {
     [[nodiscard]] vne::math::Quatf cumulativeDeltaQuaternion(const vne::math::Vec2f& cursor_px) const noexcept;
 
     /**
-     * @brief Shortest-arc rotation quaternion from unit vectors @a from to @a to.
-     * @param from: The starting unit vector.
-     * @param to: The ending unit vector.
+     * @brief Shortest-arc rotation quaternion taking @a from to @a to (same construction as @c Quatf::fromToRotation).
+     * @param from: The starting direction (normalized if non-zero).
+     * @param to: The target direction (normalized if non-zero).
      * @return The quaternion.
      */
     [[nodiscard]] static vne::math::Quatf rotationBetween(const vne::math::Vec3f& from,

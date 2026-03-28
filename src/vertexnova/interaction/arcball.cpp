@@ -91,9 +91,10 @@ void Arcball::beginDrag(const vne::math::Vec2f& cursor_px) noexcept {
 }
 
 vne::math::Quatf Arcball::rotationBetween(const vne::math::Vec3f& from, const vne::math::Vec3f& to) noexcept {
-    const vne::math::Vec3f cross_vec = to.cross(from);
-    const float dot_val = to.dot(from);
-    return vne::math::Quatf(dot_val, cross_vec).normalized();
+    // Shortest arc: same as unnormalized (1 + dot, from×to) with anti-parallel fallback — see Quatf::fromToRotation.
+    const vne::math::Vec3f a = from.normalized();
+    const vne::math::Vec3f b = to.normalized();
+    return vne::math::Quatf::fromToRotation(a, b);
 }
 
 vne::math::Quatf Arcball::cumulativeDeltaQuaternion(const vne::math::Vec2f& cursor_px) const noexcept {

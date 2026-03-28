@@ -275,18 +275,38 @@ void OrbitArcballBehavior::dragRotateArcball(float x_px, float y_px, double delt
     applyToCamera();
 
     // Track inertia from frame-to-frame movement (not cumulative).
-    // Axis follows right-hand rule for rotation from prev → curr on the sphere; ball +y is screen-down.
+    // For unit sphere points, |prev×curr| = sin(θ), not θ — use acos(prev·curr) for the frame angle (rad).
+    // Axis: normalize(prev×curr); anti-parallel fallback (same idea as Quatf::fromToRotation).
+    const float dot_pc = vne::math::clamp(prev_sphere.dot(curr_sphere), -1.0f, 1.0f);
+    const float frame_angle_rad = std::acos(dot_pc);
+
     const vne::math::Vec3f frame_cross = prev_sphere.cross(curr_sphere);
-    const float frame_angle = frame_cross.length();
-    if (delta_time >= kMinDeltaTimeForInertia && frame_angle > kInertiaRotAngleThreshold) {
+    const float cross_len_sq = frame_cross.lengthSquared();
+    constexpr float kCrossLenSqEps = 1e-14f;
+    constexpr float kAntiParallelDot = 1e-5f;  // dot <= -1 + this → treat as 180° for axis fallback
+
+    bool have_inertia_axis = false;
+    vne::math::Vec3f axis_ball;
+    if (cross_len_sq > kCrossLenSqEps) {
+        axis_ball = frame_cross * (1.0f / std::sqrt(cross_len_sq));
+        have_inertia_axis = true;
+    } else if (dot_pc <= -1.0f + kAntiParallelDot) {
+        vne::math::Vec3f a = vne::math::Vec3f(1.0f, 0.0f, 0.0f).cross(prev_sphere);
+        if (a.lengthSquared() < kCrossLenSqEps) {
+            a = vne::math::Vec3f(0.0f, 1.0f, 0.0f).cross(prev_sphere);
+        }
+        axis_ball = a.normalized();
+        have_inertia_axis = true;
+    }
+
+    if (delta_time >= kMinDeltaTimeForInertia && frame_angle_rad > kInertiaRotAngleThreshold && have_inertia_axis) {
         // Map trackball axes (right, screen-down, toward eye) to camera basis (r, u, back): screen-down = -u.
         const vne::math::Vec3f r = orientation_.getXAxis();
         const vne::math::Vec3f u = orientation_.getYAxis();
         const vne::math::Vec3f b = orientation_.getZAxis();
-        const vne::math::Vec3f axis_ball = frame_cross / frame_angle;
         inertia_rot_axis_ = (r * axis_ball.x() - u * axis_ball.y() + b * axis_ball.z()).normalized();
-        inertia_rot_speed_ =
-            vne::math::clamp(frame_angle / static_cast<float>(delta_time), -kInertiaRotSpeedMax, kInertiaRotSpeedMax);
+        inertia_rot_speed_ = vne::math::clamp(frame_angle_rad / static_cast<float>(delta_time), -kInertiaRotSpeedMax,
+                                              kInertiaRotSpeedMax);
     }
 
     arcball_.endFrame(cursor);

@@ -30,7 +30,7 @@ void expectRotatesFromTo(const vne::math::Quatf& q,
                          float cos_tol) {
     expectUnitQuat(q);
     const vne::math::Vec3f rotated = (q * from_unit).normalized();
-    EXPECT_GE(rotated.dot(to_unit), cos_tol) << "q*from should align with to (compact arcball quaternion)";
+    EXPECT_GE(rotated.dot(to_unit), cos_tol) << "q*from should align with to";
 }
 
 }  // namespace
@@ -84,7 +84,7 @@ TEST(Arcball, RotationBetweenSmallAngle) {
 }
 
 TEST(Arcball, RotationBetweenSwappedEndpointsAreInverseRotations) {
-    // q(a,b) uses (dot, b×a); q(b,a) uses (dot, a×b) = -(b×a) → conjugate pair for the same dot.
+    // q(a,b) and q(b,a) compose to identity for proper shortest-arc rotations.
     const vne::math::Vec3f from = vne::math::Vec3f(0.3f, -0.4f, 0.7f).normalized();
     const vne::math::Vec3f to = vne::math::Vec3f(-0.2f, 0.5f, 0.75f).normalized();
     const auto q_ab = vne::interaction::Arcball::rotationBetween(from, to);
@@ -96,25 +96,23 @@ TEST(Arcball, RotationBetweenSwappedEndpointsAreInverseRotations) {
     EXPECT_NEAR(prod.z, 0.0f, 1e-4f);
 }
 
-TEST(Arcball, RotationBetweenOppositeVectorsDegeneratesToIdentity) {
-    // Compact (dot, to×from) has zero cross when from ∥ to; opposite gives (-1,0,0,0) ≡ identity.
+TEST(Arcball, RotationBetweenOppositeVectorsIs180Degrees) {
     const vne::math::Vec3f from(0.0f, 0.0f, 1.0f);
     const vne::math::Vec3f to(0.0f, 0.0f, -1.0f);
     const auto q = vne::interaction::Arcball::rotationBetween(from, to);
     expectUnitQuat(q);
-    EXPECT_NEAR(std::abs(q.w), 1.0f, 1e-5f);
     const vne::math::Vec3f rotated = (q * from).normalized();
-    EXPECT_GT(rotated.dot(from), 0.99f);
+    EXPECT_GT(rotated.dot(to), 0.99f);
+    EXPECT_NEAR(quatAngleRad(q), 3.14159265f, 0.02f);
 }
 
-TEST(Arcball, RotationBetweenNearSameAsFromToRotationForSmallAngle) {
+TEST(Arcball, RotationBetweenMatchesFromToRotation) {
     const vne::math::Vec3f a = vne::math::Vec3f(0.2f, -0.3f, 0.9f).normalized();
-    const vne::math::Vec3f b = (a + vne::math::Vec3f(0.02f, 0.01f, -0.01f)).normalized();
+    const vne::math::Vec3f b = vne::math::Vec3f(-0.1f, 0.55f, 0.72f).normalized();
     const auto q_arc = vne::interaction::Arcball::rotationBetween(a, b);
     const auto q_ref = vne::math::Quatf::fromToRotation(a, b);
-    const vne::math::Vec3f ra = (q_arc * a).normalized();
-    const vne::math::Vec3f rb = (q_ref * a).normalized();
-    EXPECT_GT(ra.dot(rb), 0.99f);
+    const float d = std::abs(vne::math::Quatf::dot(q_arc, q_ref));
+    EXPECT_GT(d, 0.999f);
 }
 
 // ---------------------------------------------------------------------------
@@ -130,7 +128,7 @@ TEST(Arcball, CumulativeDeltaSmallDragSmallAngle) {
     const auto q = a.cumulativeDeltaQuaternion(end_small);
     expectUnitQuat(q);
     const vne::math::Vec3f end_sphere = a.project(end_small);
-    expectRotatesFromTo(q, start, end_sphere, 0.92f);
+    expectRotatesFromTo(q, start, end_sphere, 0.98f);
     EXPECT_LT(quatAngleRad(q), 0.35f);
 }
 
