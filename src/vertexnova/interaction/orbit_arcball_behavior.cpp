@@ -327,7 +327,7 @@ void OrbitArcballBehavior::updateArcballDragInertiaFromFrame(const vne::math::Ve
     // Frame-to-frame movement (not cumulative). |prev×curr| = sin(θ); angle from acos(prev·curr).
     const float dot_pc = vne::math::clamp(prev_sphere.dot(curr_sphere), -1.0f, 1.0f);
     const float frame_angle_rad = std::acos(dot_pc);
-    const vne::math::Vec3f frame_cross = curr_sphere.cross(prev_sphere);
+    const vne::math::Vec3f frame_cross = prev_sphere.cross(curr_sphere);
     const float cross_len_sq = frame_cross.lengthSquared();
 
     bool have_inertia_axis = false;
