@@ -38,6 +38,13 @@ TEST(OrbitArcballBehavior, SetRotationMode) {
     EXPECT_EQ(b.getRotationMode(), vne::interaction::OrbitRotationMode::eArcball);
 }
 
+TEST(OrbitArcballBehavior, SetArcballRotationScale) {
+    vne::interaction::OrbitArcballBehavior b;
+    EXPECT_FLOAT_EQ(b.getArcballRotationScale(), 2.5f);
+    b.setArcballRotationScale(1.0f);
+    EXPECT_FLOAT_EQ(b.getArcballRotationScale(), 1.0f);
+}
+
 TEST(OrbitArcballBehavior, SetPivotMode) {
     vne::interaction::OrbitArcballBehavior b;
     b.setPivotMode(vne::interaction::OrbitPivotMode::eFixed);
