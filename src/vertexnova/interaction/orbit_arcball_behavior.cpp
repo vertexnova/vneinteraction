@@ -269,8 +269,7 @@ void OrbitArcballBehavior::applyToCamera() noexcept {
     }
     if (rotation_mode_ == OrbitRotationMode::eArcball) {
         const vne::math::Vec3f back = orientation_.getZAxis();
-        const vne::math::Vec3f view_dir = (-back).normalized();
-        const vne::math::Vec3f up = stableCameraUpForLookAt(orientation_.getYAxis(), view_dir, world_up_);
+        const vne::math::Vec3f up = orientation_.getYAxis();
         camera_->lookAt(coi_world_ + back * orbit_distance_, coi_world_, up);
     } else {
         const vne::math::Vec3f front = computeFront();
