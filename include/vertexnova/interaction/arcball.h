@@ -50,6 +50,8 @@ class VNE_INTERACTION_API Arcball {
         eHyperbolic = 0,  //!< Spherical cap, then hyperbolic continuation outside the cap.
         eRim = 1          //!< Hemisphere inside the unit disk; equatorial rim (z = 0) beyond it.
     };
+
+   public:
     Arcball() noexcept = default;
 
     /**

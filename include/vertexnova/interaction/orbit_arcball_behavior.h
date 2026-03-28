@@ -97,7 +97,9 @@ class VNE_INTERACTION_API OrbitArcballBehavior final : public CameraBehaviorBase
 
     /** Arcball screen-to-sphere mapping (default: @ref Arcball::ProjectionMode::eHyperbolic). */
     void setArcballProjectionMode(Arcball::ProjectionMode mode) noexcept { arcball_.setProjectionMode(mode); }
-    [[nodiscard]] Arcball::ProjectionMode getArcballProjectionMode() const noexcept { return arcball_.getProjectionMode(); }
+    [[nodiscard]] Arcball::ProjectionMode getArcballProjectionMode() const noexcept {
+        return arcball_.getProjectionMode();
+    }
 
     /** Set the pivot control mode. */
     void setPivotMode(OrbitPivotMode mode) noexcept { pivot_mode_ = mode; }
