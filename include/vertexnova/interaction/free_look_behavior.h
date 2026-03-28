@@ -13,6 +13,10 @@
  * @file free_look_behavior.h
  * @brief FreeLookBehavior — FPS / Fly camera behavior (ICameraBehavior implementation).
  *
+ * Orientation is stored as **Euler yaw/pitch** (degrees) and converted to a view via @c lookAt;
+ * there is no quaternion look mode (unlike @ref OrbitalCameraBehavior, which offers Euler orbit or
+ * trackball quaternion rotation).
+ *
  * WASD movement + mouse look. Two modes:
  * - FreeLookMode::eFps — world up fixed, pitch clamped [-89°, 89°]
  * - FreeLookMode::eFly  — unconstrained, up follows camera
