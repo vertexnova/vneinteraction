@@ -68,7 +68,7 @@ vne::math::Vec3f OrbitBehavior::computeFrontDirection(const vne::math::Vec3f& wo
 }
 
 void OrbitBehavior::syncFromViewDirection(const vne::math::Vec3f& world_up,
-                                       const vne::math::Vec3f& view_direction_unit) noexcept {
+                                          const vne::math::Vec3f& view_direction_unit) noexcept {
     if (view_direction_unit.lengthSquared() < kEpsilon * kEpsilon) {
         VNE_LOG_WARN << "OrbitBehavior::syncFromViewDirection: view_direction near zero, ignoring";
         return;
@@ -102,10 +102,10 @@ void OrbitBehavior::beginDrag() noexcept {
 }
 
 void OrbitBehavior::applyDrag(const float delta_x_px,
-                           const float delta_y_px,
-                           const float rotation_speed_deg_per_px,
-                           const double delta_time,
-                           const double min_delta_time_for_inertia) noexcept {
+                              const float delta_y_px,
+                              const float rotation_speed_deg_per_px,
+                              const double delta_time,
+                              const double min_delta_time_for_inertia) noexcept {
     if (rotation_speed_deg_per_px < 0.0f) {
         VNE_LOG_WARN << "OrbitBehavior::applyDrag: negative rotation_speed_deg_per_px, clamping to 0";
     }
@@ -136,8 +136,8 @@ void OrbitBehavior::applyDrag(const float delta_x_px,
 }
 
 bool OrbitBehavior::stepInertia(const float delta_time_sec,
-                             const float rot_damping,
-                             const float inertia_threshold) noexcept {
+                                const float rot_damping,
+                                const float inertia_threshold) noexcept {
     if (delta_time_sec <= 0.0f) {
         return false;
     }

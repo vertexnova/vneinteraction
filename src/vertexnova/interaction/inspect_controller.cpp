@@ -10,7 +10,7 @@
 #include "vertexnova/interaction/inspect_controller.h"
 
 #include "vertexnova/interaction/input_mapper.h"
-#include "vertexnova/interaction/orbit_arcball_behavior.h"
+#include "vertexnova/interaction/orbit_trackball_behavior.h"
 
 #include "controller_event_dispatch.h"
 
@@ -33,7 +33,7 @@ using namespace vne;
 struct InspectController::Impl {
     CameraRig rig;
     InputMapper mapper;
-    std::shared_ptr<OrbitArcballBehavior> orbit;  // shared ownership; also in rig
+    std::shared_ptr<OrbitTrackballBehavior> orbit;  // shared ownership; also in rig
 
     std::shared_ptr<vne::scene::ICamera> camera;
     float viewport_w = 1280.0f;
@@ -127,7 +127,7 @@ static std::vector<InputRule> buildInspectRules(bool rotation, bool pan, bool zo
 InspectController::InspectController()
     : impl_(std::make_unique<Impl>()) {
     // Build rig with arcball orbit
-    impl_->orbit = std::make_shared<OrbitArcballBehavior>();
+    impl_->orbit = std::make_shared<OrbitTrackballBehavior>();
     impl_->orbit->setRotationMode(OrbitRotationMode::eArcball);
     impl_->rig.addBehavior(impl_->orbit);
 
@@ -253,7 +253,7 @@ InputMapper& InspectController::inputMapper() noexcept {
     return impl_->mapper;
 }
 
-OrbitArcballBehavior& InspectController::orbitArcballBehavior() noexcept {
+OrbitTrackballBehavior& InspectController::orbitTrackballBehavior() noexcept {
     return *impl_->orbit;
 }
 

@@ -32,19 +32,19 @@ TEST(Navigation3DController, SetMode) {
     EXPECT_EQ(ctrl.getMode(), vne::interaction::NavigateMode::eGame);
 }
 
-TEST(Navigation3DController, OrbitArcballBehaviorNullInFpsMode) {
+TEST(Navigation3DController, OrbitTrackballBehaviorNullInFpsMode) {
     vne::interaction::Navigation3DController ctrl;
     ctrl.setMode(vne::interaction::NavigateMode::eFps);
-    EXPECT_EQ(ctrl.orbitArcballBehavior(), nullptr);
+    EXPECT_EQ(ctrl.orbitTrackballBehavior(), nullptr);
 }
 
-TEST(Navigation3DController, OrbitArcballBehaviorNonNullInGameMode) {
+TEST(Navigation3DController, OrbitTrackballBehaviorNonNullInGameMode) {
     vne::interaction::Navigation3DController ctrl;
     auto cam = makePerspCamera();
     ctrl.setCamera(cam);
     ctrl.onResize(1280.0f, 720.0f);
     ctrl.setMode(vne::interaction::NavigateMode::eGame);
-    EXPECT_NE(ctrl.orbitArcballBehavior(), nullptr);
+    EXPECT_NE(ctrl.orbitTrackballBehavior(), nullptr);
 }
 
 TEST(Navigation3DController, OnEventNoCrash) {

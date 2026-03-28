@@ -51,8 +51,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking**: Renamed `OrbitArcballBehavior` to `OrbitTrackballBehavior`; header `orbit_arcball_behavior.h` → `orbit_trackball_behavior.h`; accessor `orbitArcballBehavior()` → `orbitTrackballBehavior()`.
 - **Breaking**: New behavior-based architecture. Removed legacy manipulators (`OrbitManipulator`, `ArcballManipulator`, `FpsManipulator`, `FlyManipulator`, `OrthoPanZoomManipulator`, `FollowManipulator`), `CameraManipulatorFactory`, and `CameraSystemController`.
-- **Added**: Behaviors — `OrbitArcballBehavior`, `FreeLookBehavior`, `OrthoPanZoomBehavior`, `FollowBehavior` (implement `ICameraBehavior`).
+- **Added**: Behaviors — `OrbitTrackballBehavior`, `FreeLookBehavior`, `OrthoPanZoomBehavior`, `FollowBehavior` (implement `ICameraBehavior`).
 - **Added**: Controllers — `InspectController`, `Navigation3DController`, `Ortho2DController`, `FollowController`.
 - **Added**: `InputMapper` with presets (`orbitPreset`, `fpsPreset`, `gamePreset`, `cadPreset`, `orthoPreset`).
 - **Added**: `CameraRig` — multi-behavior container with factory methods.

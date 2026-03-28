@@ -25,7 +25,7 @@ VneInteraction provides composable camera behaviors and high-level controllers f
 
 VneInteraction is a C++20 library offering:
 
-- **Behaviors**: `OrbitArcballBehavior`, `FreeLookBehavior`, `OrthoPanZoomBehavior`, `FollowBehavior` — each implements `ICameraBehavior` and works with `vne::scene::ICamera` (perspective or orthographic).
+- **Behaviors**: `OrbitTrackballBehavior`, `FreeLookBehavior`, `OrthoPanZoomBehavior`, `FollowBehavior` — each implements `ICameraBehavior` and works with `vne::scene::ICamera` (perspective or orthographic).
 - **Controllers**: `InspectController`, `Navigation3DController`, `Ortho2DController`, `FollowController` — high-level wrappers that combine behaviors with `InputMapper` and event handling.
 - **InputMapper**: Maps mouse, keyboard, and touch events to `CameraActionType` via configurable `InputRule` presets (orbit, FPS, game, CAD, ortho).
 - **CameraRig**: Multi-behavior container for custom compositions.
@@ -35,7 +35,7 @@ It depends on **vnescene** (and transitively **vnemath**) for cameras and math, 
 
 ## Features
 
-- **Behaviors**: `OrbitArcballBehavior`, `FreeLookBehavior`, `OrthoPanZoomBehavior`, `FollowBehavior` — rotation modes (Euler/Quaternion), pivot modes, zoom methods, inertia, fit-to-AABB.
+- **Behaviors**: `OrbitTrackballBehavior`, `FreeLookBehavior`, `OrthoPanZoomBehavior`, `FollowBehavior` — rotation modes (Euler/Quaternion), pivot modes, zoom methods, inertia, fit-to-AABB.
 - **Controllers**: `InspectController` (3D inspection), `Navigation3DController` (FPS/Fly/Game modes), `Ortho2DController` (2D slices, maps), `FollowController` (target following).
 - **InputMapper**: Presets (`orbitPreset`, `fpsPreset`, `gamePreset`, `cadPreset`, `orthoPreset`) and custom `InputRule` configuration.
 - **Types**: `CameraActionType`, `CameraCommandPayload`, `InputRule`, `ZoomMethod`, `OrbitPivotMode`, `NavigateMode`, etc. in `interaction_types.h`.

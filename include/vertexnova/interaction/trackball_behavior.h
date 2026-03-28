@@ -28,7 +28,7 @@
  * @ref OrbitBehavior owns yaw/pitch (degrees), pitch limits, and Euler drag inertia in one type.
  * @ref TrackballBehavior owns **sphere mapping** and **ball-space** frame deltas (@ref BallFrameDelta via
  * @ref TrackballBehavior::ballFrameDeltaFromSpheres). Integrating release inertia into the orbit
- * **orientation quaternion** (world-space axis, rad/s) stays in @c OrbitArcballBehavior because
+ * **orientation quaternion** (world-space axis, rad/s) stays in @c OrbitTrackballBehavior because
  * it requires the current camera/orientation basis — same split as mapping ball axes to world.
  */
 
@@ -51,7 +51,7 @@ struct BallFrameDelta {
 };
 
 /**
- * @brief Virtual trackball for quaternion orbit rotation (rotation only; pan lives on @c OrbitArcballBehavior).
+ * @brief Virtual trackball for quaternion orbit rotation (rotation only; pan lives on @c OrbitTrackballBehavior).
  *
  * Call @ref setViewport when the drawable size changes. For a drag, call @ref beginDrag at
  * pointer down, then each move: @ref cumulativeDeltaQuaternion for the rotation from drag start

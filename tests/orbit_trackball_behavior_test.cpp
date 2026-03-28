@@ -4,7 +4,7 @@
  * --------------------------------------------------------------------- */
 
 #include "vertexnova/interaction/interaction_types.h"
-#include "vertexnova/interaction/orbit_arcball_behavior.h"
+#include "vertexnova/interaction/orbit_trackball_behavior.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
 
@@ -14,8 +14,8 @@
 
 namespace vne_interaction_test {
 
-TEST(OrbitArcballBehavior, SetTrackballProjectionMode) {
-    vne::interaction::OrbitArcballBehavior b;
+TEST(OrbitTrackballBehavior, SetTrackballProjectionMode) {
+    vne::interaction::OrbitTrackballBehavior b;
     EXPECT_EQ(b.getTrackballProjectionMode(), vne::interaction::TrackballBehavior::ProjectionMode::eHyperbolic);
     b.setTrackballProjectionMode(vne::interaction::TrackballBehavior::ProjectionMode::eRim);
     EXPECT_EQ(b.getTrackballProjectionMode(), vne::interaction::TrackballBehavior::ProjectionMode::eRim);
@@ -26,53 +26,53 @@ static std::shared_ptr<vne::scene::PerspectiveCamera> makePerspCamera() {
         vne::scene::PerspectiveCameraParameters(45.0f, 16.0f / 9.0f, 0.1f, 1000.0f));
 }
 
-TEST(OrbitArcballBehavior, DefaultValues) {
-    vne::interaction::OrbitArcballBehavior b;
+TEST(OrbitTrackballBehavior, DefaultValues) {
+    vne::interaction::OrbitTrackballBehavior b;
     EXPECT_EQ(b.getRotationMode(), vne::interaction::OrbitRotationMode::eOrbit);
     EXPECT_EQ(b.getPivotMode(), vne::interaction::OrbitPivotMode::eCoi);
     EXPECT_GT(b.getOrbitDistance(), 0.0f);
     EXPECT_GT(b.getZoomSpeed(), 0.0f);
 }
 
-TEST(OrbitArcballBehavior, SetRotationMode) {
-    vne::interaction::OrbitArcballBehavior b;
+TEST(OrbitTrackballBehavior, SetRotationMode) {
+    vne::interaction::OrbitTrackballBehavior b;
     b.setRotationMode(vne::interaction::OrbitRotationMode::eArcball);
     EXPECT_EQ(b.getRotationMode(), vne::interaction::OrbitRotationMode::eArcball);
 }
 
-TEST(OrbitArcballBehavior, SetArcballRotationScale) {
-    vne::interaction::OrbitArcballBehavior b;
+TEST(OrbitTrackballBehavior, SetArcballRotationScale) {
+    vne::interaction::OrbitTrackballBehavior b;
     EXPECT_FLOAT_EQ(b.getTrackballRotationScale(), 2.5f);
     b.setTrackballRotationScale(1.0f);
     EXPECT_FLOAT_EQ(b.getTrackballRotationScale(), 1.0f);
 }
 
-TEST(OrbitArcballBehavior, SetPivotMode) {
-    vne::interaction::OrbitArcballBehavior b;
+TEST(OrbitTrackballBehavior, SetPivotMode) {
+    vne::interaction::OrbitTrackballBehavior b;
     b.setPivotMode(vne::interaction::OrbitPivotMode::eFixed);
     EXPECT_EQ(b.getPivotMode(), vne::interaction::OrbitPivotMode::eFixed);
 }
 
 /** Guard against accidental `OrbitPivotMode` enumerator reorder (ABI / persisted values). */
-TEST(OrbitArcballBehavior, OrbitPivotModeUnderlyingValues) {
+TEST(OrbitTrackballBehavior, OrbitPivotModeUnderlyingValues) {
     using vne::interaction::OrbitPivotMode;
     EXPECT_EQ(static_cast<std::uint8_t>(OrbitPivotMode::eCoi), 0u);
     EXPECT_EQ(static_cast<std::uint8_t>(OrbitPivotMode::eViewCenter), 1u);
     EXPECT_EQ(static_cast<std::uint8_t>(OrbitPivotMode::eFixed), 2u);
 }
 
-TEST(OrbitArcballBehavior, SetOrbitDistanceClamped) {
-    vne::interaction::OrbitArcballBehavior b;
+TEST(OrbitTrackballBehavior, SetOrbitDistanceClamped) {
+    vne::interaction::OrbitTrackballBehavior b;
     b.setOrbitDistance(0.001f);
     EXPECT_GE(b.getOrbitDistance(), 0.01f);
 }
 
-TEST(OrbitArcballBehavior, CameraIntegration) {
+TEST(OrbitTrackballBehavior, CameraIntegration) {
     auto cam = makePerspCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
-    vne::interaction::OrbitArcballBehavior b;
+    vne::interaction::OrbitTrackballBehavior b;
     b.setCamera(cam);
     b.onResize(1280.0f, 720.0f);
 
@@ -90,9 +90,9 @@ TEST(OrbitArcballBehavior, CameraIntegration) {
     EXPECT_GT((cam->getPosition() - vne::math::Vec3f(0.0f, 0.0f, 5.0f)).length(), 0.01f);
 }
 
-TEST(OrbitArcballBehavior, FitToAABB) {
+TEST(OrbitTrackballBehavior, FitToAABB) {
     auto cam = makePerspCamera();
-    vne::interaction::OrbitArcballBehavior b;
+    vne::interaction::OrbitTrackballBehavior b;
     b.setCamera(cam);
     b.onResize(1280.0f, 720.0f);
 
@@ -104,21 +104,21 @@ TEST(OrbitArcballBehavior, FitToAABB) {
     EXPECT_NEAR(coi.z(), 0.0f, 1e-3f);
 }
 
-TEST(OrbitArcballBehavior, ResetState) {
-    vne::interaction::OrbitArcballBehavior b;
+TEST(OrbitTrackballBehavior, ResetState) {
+    vne::interaction::OrbitTrackballBehavior b;
     EXPECT_NO_FATAL_FAILURE(b.resetState());
 }
 
-// kFovMaxDeg in CameraBehaviorBase is 120 — must match OrbitArcballBehavior::onZoomDolly clamp.
+// kFovMaxDeg in CameraBehaviorBase is 120 — must match OrbitTrackballBehavior::onZoomDolly clamp.
 // Use max FOV so 120 * fov_zoom_speed_ clamps back to 120 with exact float equality (new_fov == fov),
 // deterministically exercising fallthrough to dolly. At min FOV, tiny float drift can make
 // new_fov != fov and return early before dolly.
-TEST(OrbitArcballBehavior, ChangeFovZoomFallsThroughToDollyWhenFovClamped) {
+TEST(OrbitTrackballBehavior, ChangeFovZoomFallsThroughToDollyWhenFovClamped) {
     auto cam = makePerspCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
-    vne::interaction::OrbitArcballBehavior b;
+    vne::interaction::OrbitTrackballBehavior b;
     b.setZoomMethod(vne::interaction::ZoomMethod::eChangeFov);
     b.setFovZoomSpeed(1.05f);
     b.setCamera(cam);
@@ -151,7 +151,7 @@ TEST(OrbitArcballBehavior, ChangeFovZoomFallsThroughToDollyWhenFovClamped) {
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
-    vne::interaction::OrbitArcballBehavior b;
+    vne::interaction::OrbitTrackballBehavior b;
     b.setRotationMode(vne::interaction::OrbitRotationMode::eArcball);
     b.setCamera(cam);
     b.onResize(800.0f, 600.0f);
@@ -173,16 +173,16 @@ TEST(OrbitArcballBehavior, ChangeFovZoomFallsThroughToDollyWhenFovClamped) {
     return (cam->getPosition() - pos_after_drag).length();
 }
 
-TEST(OrbitArcballBehavior, ArcballInertiaMovesCameraAfterRotateEnds) {
+TEST(OrbitTrackballBehavior, ArcballInertiaMovesCameraAfterRotateEnds) {
     EXPECT_GT(arcballInertiaStepMagnitude(620.0f), 1e-4f);
 }
 
-TEST(OrbitArcballBehavior, ArcballInertiaNotUpdatedWhenDeltaTimeBelowInertiaThreshold) {
+TEST(OrbitTrackballBehavior, ArcballInertiaNotUpdatedWhenDeltaTimeBelowInertiaThreshold) {
     auto cam = makePerspCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
-    vne::interaction::OrbitArcballBehavior b;
+    vne::interaction::OrbitTrackballBehavior b;
     b.setRotationMode(vne::interaction::OrbitRotationMode::eArcball);
     b.setCamera(cam);
     b.onResize(800.0f, 600.0f);
@@ -194,7 +194,7 @@ TEST(OrbitArcballBehavior, ArcballInertiaNotUpdatedWhenDeltaTimeBelowInertiaThre
 
     p.x_px = 620.0f;
     p.y_px = 300.0f;
-    // OrbitArcballBehavior: inertia sampling requires delta_time >= kMinDeltaTimeForInertia (0.001).
+    // OrbitTrackballBehavior: inertia sampling requires delta_time >= kMinDeltaTimeForInertia (0.001).
     b.onAction(vne::interaction::CameraActionType::eRotateDelta, p, 1e-5);
 
     const vne::math::Vec3f pos_after_drag = cam->getPosition();
@@ -204,7 +204,7 @@ TEST(OrbitArcballBehavior, ArcballInertiaNotUpdatedWhenDeltaTimeBelowInertiaThre
     EXPECT_LT((cam->getPosition() - pos_after_drag).length(), 1e-3f);
 }
 
-TEST(OrbitArcballBehavior, ArcballLargeDragProducesStrongerInertiaThanSmallDrag) {
+TEST(OrbitTrackballBehavior, ArcballLargeDragProducesStrongerInertiaThanSmallDrag) {
     const float small_step = arcballInertiaStepMagnitude(430.0f);
     const float large_step = arcballInertiaStepMagnitude(650.0f);
     EXPECT_GT(large_step, small_step);

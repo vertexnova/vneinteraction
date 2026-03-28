@@ -25,7 +25,7 @@
 #include "vertexnova/interaction/input_mapper.h"
 #include "vertexnova/interaction/interaction_types.h"
 #include "vertexnova/interaction/navigation_3d_controller.h"
-#include "vertexnova/interaction/orbit_arcball_behavior.h"
+#include "vertexnova/interaction/orbit_trackball_behavior.h"
 #include "vertexnova/interaction/ortho_pan_zoom_behavior.h"
 #include "vertexnova/interaction/ortho_2d_controller.h"
 #include "vertexnova/interaction/follow_behavior.h"

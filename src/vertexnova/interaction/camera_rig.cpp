@@ -9,7 +9,7 @@
 
 #include "vertexnova/interaction/camera_rig.h"
 
-#include "vertexnova/interaction/orbit_arcball_behavior.h"
+#include "vertexnova/interaction/orbit_trackball_behavior.h"
 #include "vertexnova/interaction/free_look_behavior.h"
 #include "vertexnova/interaction/ortho_pan_zoom_behavior.h"
 #include "vertexnova/interaction/follow_behavior.h"
@@ -86,13 +86,13 @@ void CameraRig::resetState() noexcept {
 
 CameraRig CameraRig::makeOrbit() {
     CameraRig rig;
-    rig.addBehavior(std::make_shared<OrbitArcballBehavior>());
+    rig.addBehavior(std::make_shared<OrbitTrackballBehavior>());
     return rig;
 }
 
 CameraRig CameraRig::makeArcball() {
     CameraRig rig;
-    auto b = std::make_shared<OrbitArcballBehavior>();
+    auto b = std::make_shared<OrbitTrackballBehavior>();
     b->setRotationMode(OrbitRotationMode::eArcball);
     rig.addBehavior(std::move(b));
     return rig;
@@ -128,7 +128,7 @@ CameraRig CameraRig::makeFollow() {
 
 CameraRig CameraRig::makeGameCamera() {
     CameraRig rig;
-    rig.addBehavior(std::make_shared<OrbitArcballBehavior>());
+    rig.addBehavior(std::make_shared<OrbitTrackballBehavior>());
     auto fl = std::make_shared<FreeLookBehavior>();
     fl->setConstrainWorldUp(true);
     fl->setHandleZoom(false);  // orbit behavior owns eZoomAtCursor

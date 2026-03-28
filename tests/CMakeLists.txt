@@ -54,7 +54,7 @@ set(TEST_SOURCES
     trackball_behavior_test.cpp
     orbit_behavior_test.cpp
     behavior_regression_test.cpp
-    orbit_arcball_behavior_test.cpp
+    orbit_trackball_behavior_test.cpp
     free_look_behavior_test.cpp
     ortho_pan_zoom_behavior_test.cpp
     follow_behavior_test.cpp

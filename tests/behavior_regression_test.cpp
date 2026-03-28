@@ -11,7 +11,7 @@
 #include "vertexnova/interaction/behavior_utils.h"
 #include "vertexnova/interaction/free_look_behavior.h"
 #include "vertexnova/interaction/ortho_pan_zoom_behavior.h"
-#include "vertexnova/interaction/orbit_arcball_behavior.h"
+#include "vertexnova/interaction/orbit_trackball_behavior.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
 #include "vertexnova/scene/camera/orthographic_camera.h"
@@ -169,7 +169,7 @@ TEST(BehaviorRegression, OrbitEuler_PositiveYawTurnsRight) {
     persp->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
     persp->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
-    vne::interaction::OrbitArcballBehavior b;
+    vne::interaction::OrbitTrackballBehavior b;
     b.setRotationMode(vne::interaction::OrbitRotationMode::eOrbit);
     b.setCamera(persp);
     b.onResize(800.0f, 600.0f);
@@ -188,13 +188,13 @@ TEST(BehaviorRegression, OrbitEuler_PositiveYawTurnsRight) {
 }
 
 // Arcball uses absolute cursor in eRotateDelta; same horizontal drag should match Euler orbit sense.
-TEST(BehaviorRegression, OrbitArcball_HorizontalDragMatchesEulerSign) {
+TEST(BehaviorRegression, OrbitTrackball_HorizontalDragMatchesEulerSign) {
     auto persp = vne::scene::CameraFactory::createPerspective(
         vne::scene::PerspectiveCameraParameters(45.0f, 16.0f / 9.0f, 0.1f, 1000.0f));
     persp->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
     persp->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
-    vne::interaction::OrbitArcballBehavior b;
+    vne::interaction::OrbitTrackballBehavior b;
     b.setRotationMode(vne::interaction::OrbitRotationMode::eArcball);
     b.setCamera(persp);
     b.onResize(800.0f, 600.0f);

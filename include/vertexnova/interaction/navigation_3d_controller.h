@@ -54,7 +54,7 @@ namespace vne::interaction {
 
 class InputMapper;
 class FreeLookBehavior;
-class OrbitArcballBehavior;
+class OrbitTrackballBehavior;
 
 /** Navigation mode for Navigation3DController. */
 enum class NavigateMode : std::uint8_t {
@@ -66,7 +66,7 @@ enum class NavigateMode : std::uint8_t {
 /**
  * @brief High-level camera controller for 3D environment traversal.
  *
- * Wraps a CameraRig (FreeLookBehavior, optionally + OrbitArcballBehavior) and an
+ * Wraps a CameraRig (FreeLookBehavior, optionally + OrbitTrackballBehavior) and an
  * InputMapper with a sensible preset for each NavigateMode.
  *
  * Covers: FPS games, flight/space sims, architectural walkthroughs,
@@ -143,7 +143,7 @@ class VNE_INTERACTION_API Navigation3DController {
      * @warning The returned pointer is invalidated by setMode() when switching
      *          away from eGame. Do not hold the pointer across mode changes.
      */
-    [[nodiscard]] OrbitArcballBehavior* orbitArcballBehavior() noexcept;
+    [[nodiscard]] OrbitTrackballBehavior* orbitTrackballBehavior() noexcept;
 
    private:
     void rebuild() noexcept;

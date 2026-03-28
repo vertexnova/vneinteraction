@@ -71,7 +71,8 @@ vne::math::Vec3f TrackballBehavior::project(const vne::math::Vec2f& cursor_px) c
     const float w = viewport_px_.x();
     const float h = viewport_px_.y();
     if (w <= 0.0f || h <= 0.0f) {
-        VNE_LOG_WARN << "TrackballBehavior::project: invalid viewport size (" << w << ", " << h << "), using +Z fallback";
+        VNE_LOG_WARN << "TrackballBehavior::project: invalid viewport size (" << w << ", " << h
+                     << "), using +Z fallback";
         return vne::math::Vec3f(0.0f, 0.0f, 1.0f);
     }
     const float size_min = std::min(w, h);
@@ -95,8 +96,8 @@ vne::math::Vec3f TrackballBehavior::project(const vne::math::Vec2f& cursor_px) c
         case ProjectionMode::eRim:
             return projectRim(rx, ry);
         default:
-            VNE_LOG_WARN << "TrackballBehavior::project: unknown ProjectionMode value " << static_cast<int>(projection_mode_)
-                         << ", using +Z fallback";
+            VNE_LOG_WARN << "TrackballBehavior::project: unknown ProjectionMode value "
+                         << static_cast<int>(projection_mode_) << ", using +Z fallback";
             return vne::math::Vec3f(0.0f, 0.0f, 1.0f);
     }
 }
@@ -107,7 +108,7 @@ void TrackballBehavior::beginDrag(const vne::math::Vec2f& cursor_px) noexcept {
 }
 
 BallFrameDelta TrackballBehavior::ballFrameDeltaFromSpheres(const vne::math::Vec3f& prev_sphere_unit,
-                                                  const vne::math::Vec3f& curr_sphere_unit) noexcept {
+                                                            const vne::math::Vec3f& curr_sphere_unit) noexcept {
     BallFrameDelta out{};
     const float dot_pc = vne::math::clamp(prev_sphere_unit.dot(curr_sphere_unit), -1.0f, 1.0f);
     out.angle_rad = std::acos(dot_pc);

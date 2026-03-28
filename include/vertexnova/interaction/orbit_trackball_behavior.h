@@ -10,10 +10,10 @@
  */
 
 /**
- * @file orbit_arcball_behavior.h
- * @brief OrbitArcballBehavior — orbit/arcball camera behavior (ICameraBehavior implementation).
+ * @file orbit_trackball_behavior.h
+ * @brief OrbitTrackballBehavior — orbit camera behavior with Euler or virtual-trackball rotation (ICameraBehavior).
  *
- * Supports both Euler (classic orbit) and Quaternion (arcball) rotation modes,
+ * Supports both Euler (classic orbit) and Quaternion (arcball / trackball) rotation modes,
  * and three pivot modes (COI, ViewCenter, Fixed). Handles rotate, pan, zoom,
  * inertia, and fitToAABB.
  */
@@ -51,16 +51,16 @@ namespace vne::interaction {
  *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
  */
-class VNE_INTERACTION_API OrbitArcballBehavior final : public CameraBehaviorBase {
+class VNE_INTERACTION_API OrbitTrackballBehavior final : public CameraBehaviorBase {
    public:
     /** Construct with default settings (eOrbit mode, eCoi pivot, Y-up). */
-    OrbitArcballBehavior() noexcept;
-    ~OrbitArcballBehavior() noexcept override = default;
+    OrbitTrackballBehavior() noexcept;
+    ~OrbitTrackballBehavior() noexcept override = default;
 
-    OrbitArcballBehavior(const OrbitArcballBehavior&) = delete;
-    OrbitArcballBehavior& operator=(const OrbitArcballBehavior&) = delete;
-    OrbitArcballBehavior(OrbitArcballBehavior&&) noexcept = default;
-    OrbitArcballBehavior& operator=(OrbitArcballBehavior&&) noexcept = default;
+    OrbitTrackballBehavior(const OrbitTrackballBehavior&) = delete;
+    OrbitTrackballBehavior& operator=(const OrbitTrackballBehavior&) = delete;
+    OrbitTrackballBehavior(OrbitTrackballBehavior&&) noexcept = default;
+    OrbitTrackballBehavior& operator=(OrbitTrackballBehavior&&) noexcept = default;
 
     // -------------------------------------------------------------------------
     // ICameraBehavior
