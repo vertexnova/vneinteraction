@@ -3,11 +3,13 @@
  * Licensed under the Apache License, Version 2.0 (the "License")
  * --------------------------------------------------------------------- */
 
+#include "vertexnova/interaction/interaction_types.h"
 #include "vertexnova/interaction/orbit_arcball_behavior.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
 
 #include <gtest/gtest.h>
+#include <cstdint>
 #include <memory>
 
 namespace vne_interaction_test {
@@ -49,6 +51,14 @@ TEST(OrbitArcballBehavior, SetPivotMode) {
     vne::interaction::OrbitArcballBehavior b;
     b.setPivotMode(vne::interaction::OrbitPivotMode::eFixed);
     EXPECT_EQ(b.getPivotMode(), vne::interaction::OrbitPivotMode::eFixed);
+}
+
+/** Guard against accidental `OrbitPivotMode` enumerator reorder (ABI / persisted values). */
+TEST(OrbitArcballBehavior, OrbitPivotModeUnderlyingValues) {
+    using vne::interaction::OrbitPivotMode;
+    EXPECT_EQ(static_cast<std::uint8_t>(OrbitPivotMode::eCoi), 0u);
+    EXPECT_EQ(static_cast<std::uint8_t>(OrbitPivotMode::eViewCenter), 1u);
+    EXPECT_EQ(static_cast<std::uint8_t>(OrbitPivotMode::eFixed), 2u);
 }
 
 TEST(OrbitArcballBehavior, SetOrbitDistanceClamped) {

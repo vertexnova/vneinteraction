@@ -128,10 +128,10 @@ class VNE_INTERACTION_API InspectController {
     void setPivot(const vne::math::Vec3f& world_pos) noexcept;
 
     /**
-     * @brief Control how the pivot point behaves.
-     * - eCoi    — pivot follows panning (default)
-     * - eFixed  — pivot stays at the point set by setPivot()
-     * - eViewCenter — pivot moves to screen-center on pan end
+     * @brief Control how the pivot point behaves (see @ref OrbitPivotMode).
+     * - eCoi — orbit center follows pan in the view plane (default)
+     * - eFixed — world pivot fixed; pan trucks eye+target (e.g. after @ref setPivot)
+     * - eViewCenter — same as eCoi while panning; on pan end, COI syncs from the camera target
      */
     void setPivotMode(OrbitPivotMode mode) noexcept;
     [[nodiscard]] OrbitPivotMode getPivotMode() const noexcept;

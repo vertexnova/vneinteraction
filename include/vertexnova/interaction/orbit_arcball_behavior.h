@@ -45,9 +45,9 @@ namespace vne::interaction {
  *
  * - RotationMode::eOrbit   — classic yaw/pitch orbit, pitch clamped to [-89°, 89°]
  * - RotationMode::eArcball — arcball quaternion rotation (unconstrained)
- * - PivotMode::eCoi          ->orbit center follows panning (standard)
- * - PivotMode::eViewCenter   ->pivot snaps to view center on pan release
- * - PivotMode::eFixed        ->pivot stays fixed; pan translates eye+target
+ * - PivotMode::eCoi — orbit center follows pan in the view plane (see @ref OrbitPivotMode).
+ * - PivotMode::eViewCenter — same as eCoi while panning; on pan end, COI syncs from the camera target.
+ * - PivotMode::eFixed — world pivot fixed; pan trucks eye+target; after pan, target may not equal COI until rotate.
  *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
  */
@@ -102,7 +102,7 @@ class VNE_INTERACTION_API OrbitArcballBehavior final : public CameraBehaviorBase
         return arcball_.getProjectionMode();
     }
 
-    /** Set the pivot control mode. */
+    /** Set the pivot control mode (@ref OrbitPivotMode). */
     void setPivotMode(OrbitPivotMode mode) noexcept { pivot_mode_ = mode; }
     /** Get the current pivot mode. */
     [[nodiscard]] OrbitPivotMode getPivotMode() const noexcept { return pivot_mode_; }

@@ -60,9 +60,9 @@ enum class OrbitRotationMode : std::uint8_t {
  * Used by OrbitArcballBehavior and InspectController.
  */
 enum class OrbitPivotMode : std::uint8_t {
-    eCoi = 0,         //!< Rotate around the current center of interest (default; pan moves pivot)
-    eViewCenter = 1,  //!< On pan end, pivot updates to where the camera looks (panned-to point)
-    eFixed = 2,       //!< Pivot is fixed in world space; pan translates eye+target without moving pivot
+    eCoi = 0,         //!< Pan moves COI in the view plane; camera looks at COI (default).
+    eViewCenter = 1,  //!< Same as eCoi during pan; on pan end, sync COI from camera target.
+    eFixed = 2,       //!< Fixed world pivot; pan translates eye+target together; COI unchanged.
 };
 
 /** World up axis selection. */
