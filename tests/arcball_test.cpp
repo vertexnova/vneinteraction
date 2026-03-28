@@ -147,6 +147,24 @@ TEST(Arcball, CumulativeDeltaLargeDragLargerAngleThanSmall) {
     EXPECT_GT(ang_large, ang_small);
 }
 
+TEST(Arcball, BallFrameDeltaFromSpheresSmallRotation) {
+    const vne::math::Vec3f prev(0.0f, 0.0f, 1.0f);
+    const vne::math::Vec3f curr = (prev + vne::math::Vec3f(0.1f, 0.0f, 0.0f)).normalized();
+    const auto fd = vne::interaction::Arcball::ballFrameDeltaFromSpheres(prev, curr);
+    EXPECT_TRUE(fd.valid);
+    EXPECT_NEAR(fd.axis_ball.length(), 1.0f, 1e-5f);
+    EXPECT_GT(fd.angle_rad, 0.0f);
+    EXPECT_LT(fd.angle_rad, 0.5f);
+}
+
+TEST(Arcball, BallFrameDeltaFromSpheresOppositeHemisphere) {
+    const vne::math::Vec3f prev(0.0f, 0.0f, 1.0f);
+    const vne::math::Vec3f curr(0.0f, 0.0f, -1.0f);
+    const auto fd = vne::interaction::Arcball::ballFrameDeltaFromSpheres(prev, curr);
+    EXPECT_TRUE(fd.valid);
+    EXPECT_NEAR(fd.angle_rad, 3.14159265f, 0.01f);
+}
+
 TEST(Arcball, EndFrameUpdatesPreviousForInertiaPath) {
     vne::interaction::Arcball a;
     a.setViewport(vne::math::Vec2f(800.0f, 600.0f));

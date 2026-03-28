@@ -1,0 +1,84 @@
+/* ---------------------------------------------------------------------
+ * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
+ * Licensed under the Apache License, Version 2.0 (the "License")
+ * --------------------------------------------------------------------- */
+
+#include "vertexnova/interaction/euler_orbit.h"
+
+#include <vertexnova/math/core/core.h>
+
+#include <gtest/gtest.h>
+
+#include <cmath>
+
+namespace vne_interaction_test {
+
+namespace {
+
+const vne::math::Vec3f kWorldUp(0.0f, 1.0f, 0.0f);
+
+}  // namespace
+
+TEST(EulerOrbit, DefaultYawPitchZero) {
+    vne::interaction::EulerOrbit o;
+    EXPECT_FLOAT_EQ(o.getYawDeg(), 0.0f);
+    EXPECT_FLOAT_EQ(o.getPitchDeg(), 0.0f);
+}
+
+TEST(EulerOrbit, SetYawPitchClampsPitch) {
+    vne::interaction::EulerOrbit o;
+    o.setYawPitch(10.0f, 100.0f);
+    EXPECT_FLOAT_EQ(o.getYawDeg(), 10.0f);
+    EXPECT_FLOAT_EQ(o.getPitchDeg(), vne::interaction::EulerOrbit::kDefaultPitchMaxDeg);
+    o.setYawPitch(0.0f, -100.0f);
+    EXPECT_FLOAT_EQ(o.getPitchDeg(), vne::interaction::EulerOrbit::kDefaultPitchMinDeg);
+}
+
+TEST(EulerOrbit, SetPitchLimits) {
+    vne::interaction::EulerOrbit o;
+    o.setPitchLimits(-45.0f, 45.0f);
+    o.setYawPitch(0.0f, 60.0f);
+    EXPECT_FLOAT_EQ(o.getPitchDeg(), 45.0f);
+}
+
+TEST(EulerOrbit, ApplyDragClampsPitch) {
+    vne::interaction::EulerOrbit o;
+    o.applyDrag(0.0f, 10000.0f, 1.0f, 0.016, 0.001);
+    EXPECT_FLOAT_EQ(o.getPitchDeg(), vne::interaction::EulerOrbit::kDefaultPitchMaxDeg);
+}
+
+TEST(EulerOrbit, SyncFromViewDirectionRoundTrip) {
+    vne::interaction::EulerOrbit o;
+    o.setYawPitch(30.0f, -20.0f);
+    const vne::math::Vec3f dir = o.computeFrontDirection(kWorldUp);
+    EXPECT_NEAR(dir.length(), 1.0f, 1e-5f);
+
+    vne::interaction::EulerOrbit o2;
+    o2.syncFromViewDirection(kWorldUp, dir);
+    EXPECT_NEAR(o2.getYawDeg(), 30.0f, 0.05f);
+    EXPECT_NEAR(o2.getPitchDeg(), -20.0f, 0.05f);
+}
+
+TEST(EulerOrbit, StepInertiaDamps) {
+    vne::interaction::EulerOrbit o;
+    o.applyDrag(100.0f, 0.0f, 0.5f, 0.016, 0.001);
+    const float yaw_before = o.getYawDeg();
+    const float speed0 = std::abs(o.getInertiaSpeedXDegPerSec());
+    EXPECT_GT(speed0, 1.0f);
+    for (int i = 0; i < 240; ++i) {
+        o.stepInertia(1.0f / 60.0f, 8.0f, 1e-3f);
+    }
+    EXPECT_LT(std::abs(o.getInertiaSpeedXDegPerSec()), speed0 * 0.01f);
+    EXPECT_GT(o.getYawDeg(), yaw_before);
+}
+
+TEST(EulerOrbit, BeginDragClearsInertia) {
+    vne::interaction::EulerOrbit o;
+    o.applyDrag(50.0f, 0.0f, 1.0f, 0.016, 0.001);
+    EXPECT_GT(std::abs(o.getInertiaSpeedXDegPerSec()), 0.0f);
+    o.beginDrag();
+    EXPECT_FLOAT_EQ(o.getInertiaSpeedXDegPerSec(), 0.0f);
+    EXPECT_FLOAT_EQ(o.getInertiaSpeedYDegPerSec(), 0.0f);
+}
+
+}  // namespace vne_interaction_test

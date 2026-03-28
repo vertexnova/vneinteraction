@@ -23,6 +23,13 @@
  * @par ProjectionMode::eRim
  * Hemisphere `z = √(1 − x² − y²)` inside the unit disk; outside, points map to the
  * equatorial rim (`z = 0`) in normalized coordinates. Classic textbook arcball variant.
+ *
+ * @par Symmetry with @ref EulerOrbit
+ * @ref EulerOrbit owns yaw/pitch (degrees), pitch limits, and Euler drag inertia in one type.
+ * @ref Arcball owns **sphere mapping** and **ball-space** frame deltas (@ref BallFrameDelta via
+ * @ref Arcball::ballFrameDeltaFromSpheres). Integrating release inertia into the orbit
+ * **orientation quaternion** (world-space axis, rad/s) stays in @c OrbitArcballBehavior because
+ * it requires the current camera/orientation basis — same split as mapping ball axes to world.
  */
 
 #include "vertexnova/interaction/export.h"
@@ -32,12 +39,26 @@
 namespace vne::interaction {
 
 /**
+ * @brief One frame of motion on the unit sphere (trackball / camera space), for inertia.
+ *
+ * @a axis_ball is in the same space as @ref project (right, screen-down, toward eye). The behavior
+ * maps it to a world rotation axis using the orbit orientation basis.
+ */
+struct BallFrameDelta {
+    bool valid = false;            //!< @c true if @a axis_ball and @a angle_rad are usable.
+    vne::math::Vec3f axis_ball{};  //!< Unit rotation axis (ball space), if @a valid.
+    float angle_rad = 0.0f;        //!< Shortest rotation angle from previous to current sample.
+};
+
+/**
  * @brief Arcball / virtual trackball for quaternion orbit rotation.
  *
  * Call @ref setViewport when the drawable size changes. For a drag, call @ref beginDrag at
  * pointer down, then each move: @ref cumulativeDeltaQuaternion for the rotation from drag start
  * to the current point, @ref previousOnSphere and @ref project for frame-to-frame inertia, and
  * @ref endFrame with the current pointer position.
+ *
+ * For release inertia, use @ref ballFrameDeltaFromSpheres with consecutive @ref project samples.
  */
 class VNE_INTERACTION_API Arcball {
    public:
@@ -100,6 +121,15 @@ class VNE_INTERACTION_API Arcball {
      */
     [[nodiscard]] static vne::math::Quatf rotationBetween(const vne::math::Vec3f& from,
                                                           const vne::math::Vec3f& to) noexcept;
+
+    /**
+     * @brief Instantaneous rotation axis and angle between two consecutive unit sphere samples.
+     * @param prev_sphere_unit Previous sample (e.g. @ref previousOnSphere before @ref project(cursor)).
+     * @param curr_sphere_unit Current sample (e.g. @ref project(cursor)).
+     * @return Ball-space axis and angle; @c valid is false for a degenerate (near-zero) move.
+     */
+    [[nodiscard]] static BallFrameDelta ballFrameDeltaFromSpheres(const vne::math::Vec3f& prev_sphere_unit,
+                                                                  const vne::math::Vec3f& curr_sphere_unit) noexcept;
 
     /**
      * @brief Sphere points for inertia: previous frame cursor vs current (camera space).

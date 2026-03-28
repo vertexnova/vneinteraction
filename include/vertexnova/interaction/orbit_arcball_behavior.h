@@ -20,6 +20,7 @@
 
 #include "vertexnova/interaction/arcball.h"
 #include "vertexnova/interaction/camera_behavior_base.h"
+#include "vertexnova/interaction/euler_orbit.h"
 #include "vertexnova/interaction/interaction_types.h"
 
 #include "vertexnova/scene/camera/orthographic_camera.h"
@@ -234,11 +235,8 @@ class VNE_INTERACTION_API OrbitArcballBehavior final : public CameraBehaviorBase
     vne::math::Vec3f coi_world_{0.0f, 0.0f, 0.0f};
     float orbit_distance_ = 5.0f;
 
-    // Euler rotation state
-    float yaw_deg_ = 0.0f;
-    float pitch_deg_ = 0.0f;
-    float inertia_rot_speed_x_ = 0.0f;
-    float inertia_rot_speed_y_ = 0.0f;
+    // Euler rotation (classic yaw/pitch around world-up reference)
+    EulerOrbit euler_orbit_;
 
     // Arcball rotation state
     vne::math::Quatf orientation_;
