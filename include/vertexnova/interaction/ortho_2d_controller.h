@@ -25,7 +25,7 @@
  *
  * ### Enable rotation (e.g. for slice reorientation)
  * @code
- * ctrl.setRotationEnabled(true);  // adds constrained Z-rotation rules
+ * ctrl.setRotationEnabled(true);  // RMB drag: in-plane rotation (Ortho2DBehavior)
  * @endcode
  */
 
@@ -46,12 +46,12 @@ class ICamera;
 namespace vne::interaction {
 
 class InputMapper;
-class OrthoPanZoomBehavior;
+class Ortho2DBehavior;
 
 /**
  * @brief High-level camera controller for orthographic 2D viewports.
  *
- * Wraps a CameraRig (OrthoPanZoomBehavior) and an InputMapper with the ortho preset.
+ * Wraps a CameraRig (Ortho2DBehavior) and an InputMapper with the ortho preset.
  * Rotation is disabled by default; enable with setRotationEnabled(true).
  *
  * @threadsafe Not thread-safe. Call all methods from the same thread.
@@ -110,7 +110,7 @@ class VNE_INTERACTION_API Ortho2DController {
     // -------------------------------------------------------------------------
 
     [[nodiscard]] InputMapper& inputMapper() noexcept;
-    [[nodiscard]] OrthoPanZoomBehavior& orthoPanZoomBehavior() noexcept;
+    [[nodiscard]] Ortho2DBehavior& ortho2DBehavior() noexcept;
 
    private:
     void rebuildRules() noexcept;

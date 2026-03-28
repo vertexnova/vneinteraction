@@ -54,7 +54,7 @@ namespace vne::interaction {
  * eSceneScale centrally. For eDollyToCoi it calls the virtual `onZoomDolly()` —
  * override that to implement behavior-specific perspective dolly. The default
  * onZoomDolly handles orthographic zoom-to-cursor automatically, so
- * OrthoPanZoomBehavior needs no override.
+ * Ortho2DBehavior needs no override.
  */
 class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
    public:

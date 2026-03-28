@@ -26,6 +26,6 @@
 #include "vertexnova/interaction/interaction_types.h"
 #include "vertexnova/interaction/navigation_3d_controller.h"
 #include "vertexnova/interaction/orbital_camera_behavior.h"
-#include "vertexnova/interaction/ortho_pan_zoom_behavior.h"
+#include "vertexnova/interaction/ortho_2d_behavior.h"
 #include "vertexnova/interaction/ortho_2d_controller.h"
 #include "vertexnova/interaction/follow_behavior.h"

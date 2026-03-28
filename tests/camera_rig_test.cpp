@@ -27,6 +27,11 @@ TEST(CameraRig, Make2D) {
     EXPECT_NE(rig.behaviors().size(), 0u);
 }
 
+TEST(CameraRig, MakeOrtho2D) {
+    auto rig = vne::interaction::CameraRig::makeOrtho2D();
+    EXPECT_NE(rig.behaviors().size(), 0u);
+}
+
 TEST(CameraRig, AddRemoveBehavior) {
     vne::interaction::CameraRig rig;
     auto b = std::make_shared<vne::interaction::OrbitalCameraBehavior>();

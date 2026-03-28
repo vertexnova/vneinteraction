@@ -11,6 +11,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Bug Fixes
 
 * Fixed architecture for orbital camera and panning. ([#20](https://github.com/vertexnova/vneinteraction/issues/20)) ([32a662b](https://github.com/vertexnova/vneinteraction/commit/32a662b406f026615fa1056a5cbe42f2eb336828))
+* Orthographic pan: vertical drag direction now matches horizontal “drag the scene” behavior; orbital pan uses the same fix for perspective and orthographic modes.
+
+### Features
+
+* `Ortho2DBehavior` (renamed from `OrthoPanZoomBehavior`): in-plane slice rotation via `eBeginRotate` / `eRotateDelta` / `eEndRotate`, with `setRotationSensitivityDegreesPerPixel` (default 0.2°/px, aligned with orbit feel).
+* `CameraRig::makeOrtho2D()` replaces the primary factory name; `makeOrthoPanZoom()` is deprecated.
+* `Ortho2DController::ortho2DBehavior()` replaces `orthoPanZoomBehavior()`.
+
+### Breaking Changes
+
+* Rename: `OrthoPanZoomBehavior` → `Ortho2DBehavior`, headers `ortho_pan_zoom_behavior.*` → `ortho_2d_behavior.*`, `Ortho2DController::orthoPanZoomBehavior()` → `ortho2DBehavior()`.
 
 ## [1.4.0](https://github.com/vertexnova/vneinteraction/compare/v1.3.3...v1.4.0) (2026-03-28)
 

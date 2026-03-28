@@ -10,7 +10,7 @@
 
 #include "vertexnova/interaction/behavior_utils.h"
 #include "vertexnova/interaction/free_look_behavior.h"
-#include "vertexnova/interaction/ortho_pan_zoom_behavior.h"
+#include "vertexnova/interaction/ortho_2d_behavior.h"
 #include "vertexnova/interaction/orbital_camera_behavior.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
@@ -79,7 +79,7 @@ TEST(BehaviorRegression, OrthoPan_DragRightMovesSceneRight) {
                   vne::math::Vec3f(0.0f, 1.0f, 0.0f));
     ortho->updateMatrices();
 
-    vne::interaction::OrthoPanZoomBehavior b;
+    vne::interaction::Ortho2DBehavior b;
     b.setCamera(ortho);
     b.onResize(200.0f, 200.0f);
 
@@ -96,6 +96,33 @@ TEST(BehaviorRegression, OrthoPan_DragRightMovesSceneRight) {
     float delta_x_world = target_after.x() - target_before.x();
     EXPECT_LT(delta_x_world, 0.0f)
         << "Drag right (drag-the-scene) should move camera/target left (negative X) so scene appears to move right";
+}
+
+TEST(BehaviorRegression, OrthoPan_DragDownMovesSceneDown) {
+    auto ortho = vne::scene::CameraFactory::createOrthographic(
+        vne::scene::OrthographicCameraParameters(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 1000.0f));
+    ortho->lookAt(vne::math::Vec3f(0.0f, 0.0f, 10.0f),
+                  vne::math::Vec3f(0.0f, 0.0f, 0.0f),
+                  vne::math::Vec3f(0.0f, 1.0f, 0.0f));
+    ortho->updateMatrices();
+
+    vne::interaction::Ortho2DBehavior b;
+    b.setCamera(ortho);
+    b.onResize(200.0f, 200.0f);
+
+    vne::math::Vec3f target_before = ortho->getTarget();
+    vne::interaction::CameraCommandPayload p;
+    p.delta_x_px = 0.0f;
+    p.delta_y_px = 20.0f;
+
+    b.onAction(vne::interaction::CameraActionType::eBeginPan, p, 0.0);
+    b.onAction(vne::interaction::CameraActionType::ePanDelta, p, 0.016);
+    b.onAction(vne::interaction::CameraActionType::eEndPan, p, 0.0);
+
+    vne::math::Vec3f target_after = ortho->getTarget();
+    float delta_y_world = target_after.y() - target_before.y();
+    EXPECT_GT(delta_y_world, 0.0f)
+        << "Drag down should move camera/target along +up so scene appears to move down with the cursor";
 }
 
 // ---------------------------------------------------------------------------
@@ -137,7 +164,7 @@ TEST(BehaviorRegression, OrthoZoomToCursor_KeepsPointUnderCursor) {
                   vne::math::Vec3f(0.0f, 1.0f, 0.0f));
     ortho->updateMatrices();
 
-    vne::interaction::OrthoPanZoomBehavior b;
+    vne::interaction::Ortho2DBehavior b;
     b.setCamera(ortho);
     const float w = 100.0f;
     const float h = 100.0f;

@@ -397,13 +397,13 @@ void OrbitalCameraBehavior::dragPan(
 
     if (isPerspective()) {
         const float wpp = getWorldUnitsPerPixel();
-        delta_world = r * (-delta_x_px * wpp * pan_speed_) + u * (-delta_y_px * wpp * pan_speed_);
+        delta_world = r * (-delta_x_px * wpp * pan_speed_) + u * (delta_y_px * wpp * pan_speed_);
     } else {
         auto ortho = orthoCamera();
         if (ortho) {
             const float wppx = ortho->getWidth() / viewport().width;
             const float wppy = ortho->getHeight() / viewport().height;
-            delta_world = r * (-delta_x_px * wppx * pan_speed_) + u * (-delta_y_px * wppy * pan_speed_);
+            delta_world = r * (-delta_x_px * wppx * pan_speed_) + u * (delta_y_px * wppy * pan_speed_);
         }
     }
 

@@ -11,7 +11,7 @@
 
 #include "vertexnova/interaction/orbital_camera_behavior.h"
 #include "vertexnova/interaction/free_look_behavior.h"
-#include "vertexnova/interaction/ortho_pan_zoom_behavior.h"
+#include "vertexnova/interaction/ortho_2d_behavior.h"
 #include "vertexnova/interaction/follow_behavior.h"
 
 #include <vertexnova/logging/logging.h>
@@ -114,10 +114,14 @@ CameraRig CameraRig::makeFly() {
     return rig;
 }
 
-CameraRig CameraRig::makeOrthoPanZoom() {
+CameraRig CameraRig::makeOrtho2D() {
     CameraRig rig;
-    rig.addBehavior(std::make_shared<OrthoPanZoomBehavior>());
+    rig.addBehavior(std::make_shared<Ortho2DBehavior>());
     return rig;
+}
+
+CameraRig CameraRig::makeOrthoPanZoom() {
+    return makeOrtho2D();
 }
 
 CameraRig CameraRig::makeFollow() {
@@ -137,7 +141,7 @@ CameraRig CameraRig::makeGameCamera() {
 }
 
 CameraRig CameraRig::make2D() {
-    return makeOrthoPanZoom();
+    return makeOrtho2D();
 }
 
 }  // namespace vne::interaction

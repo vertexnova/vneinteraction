@@ -18,7 +18,7 @@ int main() {
     VNE_LOG_INFO << "VneInteraction " << vne::interaction::get_version();
 
     VNE_LOG_INFO << "Behaviors: OrbitalCameraBehavior (trackball / orbit), FreeLookBehavior (FPS / Fly), "
-                 << "OrthoPanZoomBehavior (orthographic 2D pan+zoom), FollowBehavior (smooth follow)";
+                 << "Ortho2DBehavior (orthographic 2D pan+zoom+rotate), FollowBehavior (smooth follow)";
 
     VNE_LOG_INFO << "InputMapper presets: orbitPreset(), fpsPreset(), gamePreset(), cadPreset(), orthoPreset()";
 
