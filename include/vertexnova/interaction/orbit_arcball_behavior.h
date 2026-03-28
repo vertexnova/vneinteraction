@@ -18,6 +18,7 @@
  * inertia, and fitToAABB.
  */
 
+#include "vertexnova/interaction/arcball.h"
 #include "vertexnova/interaction/camera_behavior_base.h"
 #include "vertexnova/interaction/interaction_types.h"
 
@@ -93,6 +94,12 @@ class VNE_INTERACTION_API OrbitArcballBehavior final : public CameraBehaviorBase
     void setRotationMode(OrbitRotationMode mode) noexcept { rotation_mode_ = mode; }
     /** Get the current rotation algorithm. */
     [[nodiscard]] OrbitRotationMode getRotationMode() const noexcept { return rotation_mode_; }
+
+    /** Arcball screen-to-sphere mapping (default: @ref Arcball::ProjectionMode::eHyperbolic). */
+    void setArcballProjectionMode(Arcball::ProjectionMode mode) noexcept { arcball_.setProjectionMode(mode); }
+    [[nodiscard]] Arcball::ProjectionMode getArcballProjectionMode() const noexcept {
+        return arcball_.projectionMode();
+    }
 
     /** Set the pivot control mode. */
     void setPivotMode(OrbitPivotMode mode) noexcept { pivot_mode_ = mode; }
@@ -184,9 +191,6 @@ class VNE_INTERACTION_API OrbitArcballBehavior final : public CameraBehaviorBase
     void dragRotateArcball(float x_px, float y_px, double delta_time) noexcept;
     void endRotate(double delta_time) noexcept;
 
-    // Arcball helpers
-    [[nodiscard]] vne::math::Vec3f projectToArcball(float x_px, float y_px) const noexcept;
-
     // ---- pan --------------------------------------------------------------------
     void beginPan(float x_px, float y_px) noexcept;
     void dragPan(float x_px, float y_px, float delta_x_px, float delta_y_px, double delta_time) noexcept;
@@ -223,9 +227,9 @@ class VNE_INTERACTION_API OrbitArcballBehavior final : public CameraBehaviorBase
 
     // Arcball rotation state
     vne::math::Quatf orientation_;
+    vne::math::Quatf orientation_at_drag_start_;
+    Arcball arcball_;
     uint32_t normalize_counter_ = 0;
-    float arcball_start_x_ = 0.0f;
-    float arcball_start_y_ = 0.0f;
     float inertia_rot_speed_ = 0.0f;  // arcball angular speed (rad/s)
     vne::math::Vec3f inertia_rot_axis_{0.0f, 1.0f, 0.0f};
 

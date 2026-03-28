@@ -3,6 +3,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License")
  * --------------------------------------------------------------------- */
 
+#include "vertexnova/interaction/arcball.h"
 #include "vertexnova/interaction/orbit_arcball_behavior.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
@@ -11,6 +12,34 @@
 #include <memory>
 
 namespace vne_interaction_test {
+
+TEST(Arcball, HyperbolicCenterIsUnitAndFrontHemisphere) {
+    vne::interaction::Arcball a;
+    a.setViewport(vne::math::Vec2f(800.0f, 600.0f));
+    ASSERT_EQ(a.projectionMode(), vne::interaction::Arcball::ProjectionMode::eHyperbolic);
+    const auto v = a.project(vne::math::Vec2f(400.0f, 300.0f));
+    EXPECT_NEAR(v.length(), 1.0f, 1e-5f);
+    EXPECT_GT(v.z(), 0.0f);
+    EXPECT_NEAR(v.x(), 0.0f, 1e-6f);
+    EXPECT_NEAR(v.y(), 0.0f, 1e-6f);
+    EXPECT_NEAR(v.z(), 1.0f, 1e-5f);
+}
+
+TEST(Arcball, RimCenterMatchesHyperbolicAtOrigin) {
+    vne::interaction::Arcball a;
+    a.setViewport(vne::math::Vec2f(800.0f, 600.0f));
+    a.setProjectionMode(vne::interaction::Arcball::ProjectionMode::eRim);
+    const auto v = a.project(vne::math::Vec2f(400.0f, 300.0f));
+    EXPECT_NEAR(v.length(), 1.0f, 1e-5f);
+    EXPECT_GT(v.z(), 0.0f);
+}
+
+TEST(OrbitArcballBehavior, ArcballProjectionModeForward) {
+    vne::interaction::OrbitArcballBehavior b;
+    EXPECT_EQ(b.getArcballProjectionMode(), vne::interaction::Arcball::ProjectionMode::eHyperbolic);
+    b.setArcballProjectionMode(vne::interaction::Arcball::ProjectionMode::eRim);
+    EXPECT_EQ(b.getArcballProjectionMode(), vne::interaction::Arcball::ProjectionMode::eRim);
+}
 
 static std::shared_ptr<vne::scene::PerspectiveCamera> makePerspCamera() {
     return vne::scene::CameraFactory::createPerspective(
