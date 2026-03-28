@@ -33,7 +33,7 @@ using namespace vne;
 struct Navigation3DController::Impl {
     CameraRig rig;
     InputMapper mapper;
-    std::shared_ptr<FreeLookBehavior> free_look;  // shared ownership; also in rig
+    std::shared_ptr<FreeLookBehavior> free_look;    // shared ownership; also in rig
     std::shared_ptr<OrbitTrackballBehavior> orbit;  // shared ownership; only in eGame mode
 
     NavigateMode mode = NavigateMode::eFps;
