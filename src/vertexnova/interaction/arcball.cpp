@@ -83,6 +83,8 @@ vne::math::Vec3f Arcball::project(const vne::math::Vec2f& cursor_px) const noexc
         case ProjectionMode::eRim:
             return projectRim(rx, ry);
     }
+    // Fallback if projection_mode_ is not a known enumerator (undefined cast / storage): +Z in ball space.
+    return vne::math::Vec3f(0.0f, 0.0f, 1.0f);
 }
 
 void Arcball::beginDrag(const vne::math::Vec2f& cursor_px) noexcept {
