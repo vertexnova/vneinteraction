@@ -15,8 +15,8 @@
  * Includes all public headers for camera behaviors, controllers, and input handling.
  */
 
-#include "vertexnova/interaction/arcball.h"
-#include "vertexnova/interaction/euler_orbit.h"
+#include "vertexnova/interaction/orbit_behavior.h"
+#include "vertexnova/interaction/trackball_behavior.h"
 #include "vertexnova/interaction/camera_behavior.h"
 #include "vertexnova/interaction/camera_rig.h"
 #include "vertexnova/interaction/follow_controller.h"

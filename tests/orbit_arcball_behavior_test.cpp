@@ -14,11 +14,11 @@
 
 namespace vne_interaction_test {
 
-TEST(OrbitArcballBehavior, SetArcballProjectionMode) {
+TEST(OrbitArcballBehavior, SetTrackballProjectionMode) {
     vne::interaction::OrbitArcballBehavior b;
-    EXPECT_EQ(b.getArcballProjectionMode(), vne::interaction::Arcball::ProjectionMode::eHyperbolic);
-    b.setArcballProjectionMode(vne::interaction::Arcball::ProjectionMode::eRim);
-    EXPECT_EQ(b.getArcballProjectionMode(), vne::interaction::Arcball::ProjectionMode::eRim);
+    EXPECT_EQ(b.getTrackballProjectionMode(), vne::interaction::TrackballBehavior::ProjectionMode::eHyperbolic);
+    b.setTrackballProjectionMode(vne::interaction::TrackballBehavior::ProjectionMode::eRim);
+    EXPECT_EQ(b.getTrackballProjectionMode(), vne::interaction::TrackballBehavior::ProjectionMode::eRim);
 }
 
 static std::shared_ptr<vne::scene::PerspectiveCamera> makePerspCamera() {
@@ -42,9 +42,9 @@ TEST(OrbitArcballBehavior, SetRotationMode) {
 
 TEST(OrbitArcballBehavior, SetArcballRotationScale) {
     vne::interaction::OrbitArcballBehavior b;
-    EXPECT_FLOAT_EQ(b.getArcballRotationScale(), 2.5f);
-    b.setArcballRotationScale(1.0f);
-    EXPECT_FLOAT_EQ(b.getArcballRotationScale(), 1.0f);
+    EXPECT_FLOAT_EQ(b.getTrackballRotationScale(), 2.5f);
+    b.setTrackballRotationScale(1.0f);
+    EXPECT_FLOAT_EQ(b.getTrackballRotationScale(), 1.0f);
 }
 
 TEST(OrbitArcballBehavior, SetPivotMode) {
@@ -143,7 +143,7 @@ TEST(OrbitArcballBehavior, ChangeFovZoomFallsThroughToDollyWhenFovClamped) {
 }
 
 // ---------------------------------------------------------------------------
-// Arcball rotation + inertia (integration; math details in arcball_test.cpp)
+// eArcball rotation + inertia (integration; math details in trackball_behavior_test.cpp)
 // ---------------------------------------------------------------------------
 
 [[nodiscard]] static float arcballInertiaStepMagnitude(float end_x_px) {

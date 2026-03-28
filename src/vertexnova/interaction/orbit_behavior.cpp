@@ -9,7 +9,7 @@
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/interaction/euler_orbit.h"
+#include "vertexnova/interaction/orbit_behavior.h"
 
 #include "behavior_utils.h"
 
@@ -21,7 +21,7 @@
 #include <cmath>
 
 namespace {
-CREATE_VNE_LOGGER_CATEGORY("vne.interaction.euler_orbit");
+CREATE_VNE_LOGGER_CATEGORY("vne.interaction.orbit_behavior");
 
 /** Near-zero threshold. */
 constexpr float kEpsilon = 1e-6f;
@@ -31,14 +31,14 @@ constexpr double kMinDeltaTimeForInertiaFloor = 1e-9;
 
 namespace vne::interaction {
 
-void EulerOrbit::setYawPitch(const float yaw_deg, const float pitch_deg) noexcept {
+void OrbitBehavior::setYawPitch(const float yaw_deg, const float pitch_deg) noexcept {
     yaw_deg_ = yaw_deg;
     pitch_deg_ = vne::math::clamp(pitch_deg, pitch_min_deg_, pitch_max_deg_);
 }
 
-void EulerOrbit::setPitchLimits(const float min_deg, const float max_deg) noexcept {
+void OrbitBehavior::setPitchLimits(const float min_deg, const float max_deg) noexcept {
     if (min_deg >= max_deg) {
-        VNE_LOG_WARN << "EulerOrbit::setPitchLimits: invalid range min_deg=" << min_deg << " max_deg=" << max_deg
+        VNE_LOG_WARN << "OrbitBehavior::setPitchLimits: invalid range min_deg=" << min_deg << " max_deg=" << max_deg
                      << " (need min < max), ignoring";
         return;
     }
@@ -47,10 +47,10 @@ void EulerOrbit::setPitchLimits(const float min_deg, const float max_deg) noexce
     pitch_deg_ = vne::math::clamp(pitch_deg_, pitch_min_deg_, pitch_max_deg_);
 }
 
-vne::math::Vec3f EulerOrbit::computeFrontDirection(const vne::math::Vec3f& world_up) const noexcept {
+vne::math::Vec3f OrbitBehavior::computeFrontDirection(const vne::math::Vec3f& world_up) const noexcept {
     vne::math::Vec3f up = world_up;
     if (up.length() < kEpsilon) {
-        VNE_LOG_WARN << "EulerOrbit::computeFrontDirection: world_up near zero, using (0, 1, 0)";
+        VNE_LOG_WARN << "OrbitBehavior::computeFrontDirection: world_up near zero, using (0, 1, 0)";
         up = vne::math::Vec3f(0.0f, 1.0f, 0.0f);
     } else {
         up = up.normalized();
@@ -67,14 +67,14 @@ vne::math::Vec3f EulerOrbit::computeFrontDirection(const vne::math::Vec3f& world
     return (len < kEpsilon) ? ref_fwd : (front / len);
 }
 
-void EulerOrbit::syncFromViewDirection(const vne::math::Vec3f& world_up,
+void OrbitBehavior::syncFromViewDirection(const vne::math::Vec3f& world_up,
                                        const vne::math::Vec3f& view_direction_unit) noexcept {
     if (view_direction_unit.lengthSquared() < kEpsilon * kEpsilon) {
-        VNE_LOG_WARN << "EulerOrbit::syncFromViewDirection: view_direction near zero, ignoring";
+        VNE_LOG_WARN << "OrbitBehavior::syncFromViewDirection: view_direction near zero, ignoring";
         return;
     }
     if (world_up.length() < kEpsilon) {
-        VNE_LOG_WARN << "EulerOrbit::syncFromViewDirection: world_up near zero, using (0, 1, 0)";
+        VNE_LOG_WARN << "OrbitBehavior::syncFromViewDirection: world_up near zero, using (0, 1, 0)";
     }
     const vne::math::Vec3f w_up =
         (world_up.length() < kEpsilon) ? vne::math::Vec3f(0.0f, 1.0f, 0.0f) : world_up.normalized();
@@ -96,18 +96,18 @@ void EulerOrbit::syncFromViewDirection(const vne::math::Vec3f& world_up,
     yaw_deg_ = vne::math::radToDeg(vne::math::atan2(horiz_n.dot(ref_right), horiz_n.dot(ref_fwd)));
 }
 
-void EulerOrbit::beginDrag() noexcept {
+void OrbitBehavior::beginDrag() noexcept {
     inertia_rot_speed_x_ = 0.0f;
     inertia_rot_speed_y_ = 0.0f;
 }
 
-void EulerOrbit::applyDrag(const float delta_x_px,
+void OrbitBehavior::applyDrag(const float delta_x_px,
                            const float delta_y_px,
                            const float rotation_speed_deg_per_px,
                            const double delta_time,
                            const double min_delta_time_for_inertia) noexcept {
     if (rotation_speed_deg_per_px < 0.0f) {
-        VNE_LOG_WARN << "EulerOrbit::applyDrag: negative rotation_speed_deg_per_px, clamping to 0";
+        VNE_LOG_WARN << "OrbitBehavior::applyDrag: negative rotation_speed_deg_per_px, clamping to 0";
     }
     const float speed = std::max(0.0f, rotation_speed_deg_per_px);
     yaw_deg_ += delta_x_px * speed;
@@ -116,7 +116,7 @@ void EulerOrbit::applyDrag(const float delta_x_px,
 
     double min_inertia_dt = min_delta_time_for_inertia;
     if (!std::isfinite(min_inertia_dt)) {
-        VNE_LOG_WARN << "EulerOrbit::applyDrag: min_delta_time_for_inertia not finite, using floor";
+        VNE_LOG_WARN << "OrbitBehavior::applyDrag: min_delta_time_for_inertia not finite, using floor";
         min_inertia_dt = kMinDeltaTimeForInertiaFloor;
     } else if (min_inertia_dt <= 0.0) {
         min_inertia_dt = kMinDeltaTimeForInertiaFloor;
@@ -135,14 +135,14 @@ void EulerOrbit::applyDrag(const float delta_x_px,
     }
 }
 
-bool EulerOrbit::stepInertia(const float delta_time_sec,
+bool OrbitBehavior::stepInertia(const float delta_time_sec,
                              const float rot_damping,
                              const float inertia_threshold) noexcept {
     if (delta_time_sec <= 0.0f) {
         return false;
     }
     if (rot_damping <= 0.0f) {
-        VNE_LOG_WARN << "EulerOrbit::stepInertia: rot_damping must be > 0, skipping step";
+        VNE_LOG_WARN << "OrbitBehavior::stepInertia: rot_damping must be > 0, skipping step";
         return false;
     }
     if (std::abs(inertia_rot_speed_x_) <= inertia_threshold && std::abs(inertia_rot_speed_y_) <= inertia_threshold) {
@@ -157,7 +157,7 @@ bool EulerOrbit::stepInertia(const float delta_time_sec,
     return true;
 }
 
-void EulerOrbit::clearInertia() noexcept {
+void OrbitBehavior::clearInertia() noexcept {
     beginDrag();
 }
 

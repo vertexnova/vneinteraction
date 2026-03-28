@@ -244,13 +244,13 @@ struct VNE_INTERACTION_API OrbitCameraState {
         , world_up(0.0f, 1.0f, 0.0f) {}
 };
 
-struct VNE_INTERACTION_API ArcballCameraState {
+struct VNE_INTERACTION_API TrackballCameraState {
     vne::math::Vec3f coi_world;
     float distance = 5.0f;
     vne::math::Quatf rotation;
     vne::math::Vec3f world_up;
 
-    ArcballCameraState() noexcept
+    TrackballCameraState() noexcept
         : coi_world(0.0f, 0.0f, 0.0f)
         , rotation(0.0f, 0.0f, 0.0f, 1.0f)
         , world_up(0.0f, 1.0f, 0.0f) {}

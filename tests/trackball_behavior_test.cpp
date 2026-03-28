@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License")
  * --------------------------------------------------------------------- */
 
-#include "vertexnova/interaction/arcball.h"
+#include "vertexnova/interaction/trackball_behavior.h"
 
 #include <vertexnova/math/core/core.h>
 
@@ -39,10 +39,10 @@ void expectRotatesFromTo(const vne::math::Quatf& q,
 // Projection (hyperbolic / rim)
 // ---------------------------------------------------------------------------
 
-TEST(Arcball, HyperbolicCenterIsUnitAndFrontHemisphere) {
-    vne::interaction::Arcball a;
+TEST(TrackballBehavior, HyperbolicCenterIsUnitAndFrontHemisphere) {
+    vne::interaction::TrackballBehavior a;
     a.setViewport(vne::math::Vec2f(800.0f, 600.0f));
-    ASSERT_EQ(a.getProjectionMode(), vne::interaction::Arcball::ProjectionMode::eHyperbolic);
+    ASSERT_EQ(a.getProjectionMode(), vne::interaction::TrackballBehavior::ProjectionMode::eHyperbolic);
     const auto v = a.project(vne::math::Vec2f(400.0f, 300.0f));
     EXPECT_NEAR(v.length(), 1.0f, 1e-5f);
     EXPECT_GT(v.z(), 0.0f);
@@ -51,10 +51,10 @@ TEST(Arcball, HyperbolicCenterIsUnitAndFrontHemisphere) {
     EXPECT_NEAR(v.z(), 1.0f, 1e-5f);
 }
 
-TEST(Arcball, RimCenterMatchesHyperbolicAtOrigin) {
-    vne::interaction::Arcball a;
+TEST(TrackballBehavior, RimCenterMatchesHyperbolicAtOrigin) {
+    vne::interaction::TrackballBehavior a;
     a.setViewport(vne::math::Vec2f(800.0f, 600.0f));
-    a.setProjectionMode(vne::interaction::Arcball::ProjectionMode::eRim);
+    a.setProjectionMode(vne::interaction::TrackballBehavior::ProjectionMode::eRim);
     const auto v = a.project(vne::math::Vec2f(400.0f, 300.0f));
     EXPECT_NEAR(v.length(), 1.0f, 1e-5f);
     EXPECT_GT(v.z(), 0.0f);
@@ -64,10 +64,10 @@ TEST(Arcball, RimCenterMatchesHyperbolicAtOrigin) {
 // rotationBetween (static helper used by cumulative delta)
 // ---------------------------------------------------------------------------
 
-TEST(Arcball, RotationBetweenIdentity) {
+TEST(TrackballBehavior, RotationBetweenIdentity) {
     const vne::math::Vec3f v(0.3f, -0.4f, 0.8f);
     const auto n = v.normalized();
-    const auto q = vne::interaction::Arcball::rotationBetween(n, n);
+    const auto q = vne::interaction::TrackballBehavior::rotationBetween(n, n);
     expectUnitQuat(q);
     EXPECT_NEAR(q.w, 1.0f, 1e-4f);
     EXPECT_NEAR(q.x, 0.0f, 1e-4f);
@@ -75,20 +75,20 @@ TEST(Arcball, RotationBetweenIdentity) {
     EXPECT_NEAR(q.z, 0.0f, 1e-4f);
 }
 
-TEST(Arcball, RotationBetweenSmallAngle) {
+TEST(TrackballBehavior, RotationBetweenSmallAngle) {
     const vne::math::Vec3f from(0.0f, 0.0f, 1.0f);
     const vne::math::Vec3f to = (from + vne::math::Vec3f(0.02f, -0.01f, 0.0f)).normalized();
-    const auto q = vne::interaction::Arcball::rotationBetween(from, to);
+    const auto q = vne::interaction::TrackballBehavior::rotationBetween(from, to);
     expectRotatesFromTo(q, from, to, 0.99f);
     EXPECT_LT(quatAngleRad(q), 0.15f);
 }
 
-TEST(Arcball, RotationBetweenSwappedEndpointsAreInverseRotations) {
+TEST(TrackballBehavior, RotationBetweenSwappedEndpointsAreInverseRotations) {
     // q(a,b) and q(b,a) compose to identity for proper shortest-arc rotations.
     const vne::math::Vec3f from = vne::math::Vec3f(0.3f, -0.4f, 0.7f).normalized();
     const vne::math::Vec3f to = vne::math::Vec3f(-0.2f, 0.5f, 0.75f).normalized();
-    const auto q_ab = vne::interaction::Arcball::rotationBetween(from, to);
-    const auto q_ba = vne::interaction::Arcball::rotationBetween(to, from);
+    const auto q_ab = vne::interaction::TrackballBehavior::rotationBetween(from, to);
+    const auto q_ba = vne::interaction::TrackballBehavior::rotationBetween(to, from);
     const vne::math::Quatf prod = (q_ab * q_ba).normalized();
     EXPECT_NEAR(prod.w, 1.0f, 1e-4f);
     EXPECT_NEAR(prod.x, 0.0f, 1e-4f);
@@ -96,20 +96,20 @@ TEST(Arcball, RotationBetweenSwappedEndpointsAreInverseRotations) {
     EXPECT_NEAR(prod.z, 0.0f, 1e-4f);
 }
 
-TEST(Arcball, RotationBetweenOppositeVectorsIs180Degrees) {
+TEST(TrackballBehavior, RotationBetweenOppositeVectorsIs180Degrees) {
     const vne::math::Vec3f from(0.0f, 0.0f, 1.0f);
     const vne::math::Vec3f to(0.0f, 0.0f, -1.0f);
-    const auto q = vne::interaction::Arcball::rotationBetween(from, to);
+    const auto q = vne::interaction::TrackballBehavior::rotationBetween(from, to);
     expectUnitQuat(q);
     const vne::math::Vec3f rotated = (q * from).normalized();
     EXPECT_GT(rotated.dot(to), 0.99f);
     EXPECT_NEAR(quatAngleRad(q), 3.14159265f, 0.02f);
 }
 
-TEST(Arcball, RotationBetweenMatchesFromToRotation) {
+TEST(TrackballBehavior, RotationBetweenMatchesFromToRotation) {
     const vne::math::Vec3f a = vne::math::Vec3f(0.2f, -0.3f, 0.9f).normalized();
     const vne::math::Vec3f b = vne::math::Vec3f(-0.1f, 0.55f, 0.72f).normalized();
-    const auto q_arc = vne::interaction::Arcball::rotationBetween(a, b);
+    const auto q_arc = vne::interaction::TrackballBehavior::rotationBetween(a, b);
     const auto q_ref = vne::math::Quatf::fromToRotation(a, b);
     const float d = std::abs(vne::math::Quatf::dot(q_arc, q_ref));
     EXPECT_GT(d, 0.999f);
@@ -119,8 +119,8 @@ TEST(Arcball, RotationBetweenMatchesFromToRotation) {
 // cumulativeDeltaQuaternion + drag lifecycle
 // ---------------------------------------------------------------------------
 
-TEST(Arcball, CumulativeDeltaSmallDragSmallAngle) {
-    vne::interaction::Arcball a;
+TEST(TrackballBehavior, CumulativeDeltaSmallDragSmallAngle) {
+    vne::interaction::TrackballBehavior a;
     a.setViewport(vne::math::Vec2f(800.0f, 600.0f));
     a.beginDrag(vne::math::Vec2f(400.0f, 300.0f));
     const vne::math::Vec3f start = a.project(vne::math::Vec2f(400.0f, 300.0f));
@@ -132,8 +132,8 @@ TEST(Arcball, CumulativeDeltaSmallDragSmallAngle) {
     EXPECT_LT(quatAngleRad(q), 0.35f);
 }
 
-TEST(Arcball, CumulativeDeltaLargeDragLargerAngleThanSmall) {
-    vne::interaction::Arcball a;
+TEST(TrackballBehavior, CumulativeDeltaLargeDragLargerAngleThanSmall) {
+    vne::interaction::TrackballBehavior a;
     a.setViewport(vne::math::Vec2f(800.0f, 600.0f));
     a.beginDrag(vne::math::Vec2f(400.0f, 300.0f));
 
@@ -147,26 +147,26 @@ TEST(Arcball, CumulativeDeltaLargeDragLargerAngleThanSmall) {
     EXPECT_GT(ang_large, ang_small);
 }
 
-TEST(Arcball, BallFrameDeltaFromSpheresSmallRotation) {
+TEST(TrackballBehavior, BallFrameDeltaFromSpheresSmallRotation) {
     const vne::math::Vec3f prev(0.0f, 0.0f, 1.0f);
     const vne::math::Vec3f curr = (prev + vne::math::Vec3f(0.1f, 0.0f, 0.0f)).normalized();
-    const auto fd = vne::interaction::Arcball::ballFrameDeltaFromSpheres(prev, curr);
+    const auto fd = vne::interaction::TrackballBehavior::ballFrameDeltaFromSpheres(prev, curr);
     EXPECT_TRUE(fd.valid);
     EXPECT_NEAR(fd.axis_ball.length(), 1.0f, 1e-5f);
     EXPECT_GT(fd.angle_rad, 0.0f);
     EXPECT_LT(fd.angle_rad, 0.5f);
 }
 
-TEST(Arcball, BallFrameDeltaFromSpheresOppositeHemisphere) {
+TEST(TrackballBehavior, BallFrameDeltaFromSpheresOppositeHemisphere) {
     const vne::math::Vec3f prev(0.0f, 0.0f, 1.0f);
     const vne::math::Vec3f curr(0.0f, 0.0f, -1.0f);
-    const auto fd = vne::interaction::Arcball::ballFrameDeltaFromSpheres(prev, curr);
+    const auto fd = vne::interaction::TrackballBehavior::ballFrameDeltaFromSpheres(prev, curr);
     EXPECT_TRUE(fd.valid);
     EXPECT_NEAR(fd.angle_rad, 3.14159265f, 0.01f);
 }
 
-TEST(Arcball, EndFrameUpdatesPreviousForInertiaPath) {
-    vne::interaction::Arcball a;
+TEST(TrackballBehavior, EndFrameUpdatesPreviousForInertiaPath) {
+    vne::interaction::TrackballBehavior a;
     a.setViewport(vne::math::Vec2f(800.0f, 600.0f));
     a.beginDrag(vne::math::Vec2f(400.0f, 300.0f));
     const vne::math::Vec2f p1(410.0f, 300.0f);

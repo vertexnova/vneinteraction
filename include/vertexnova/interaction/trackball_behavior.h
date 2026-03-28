@@ -11,8 +11,8 @@
  */
 
 /**
- * @file arcball.h
- * @brief Screen-space arcball: maps cursor positions to a unit sphere and derives rotations.
+ * @file trackball_behavior.h
+ * @brief Screen-space virtual trackball (arcball): maps cursor positions to a unit sphere and derives rotations.
  *
  * @par ProjectionMode::eHyperbolic (default)
  * Isotropic mapping using `min(viewport width, height)`, inner spherical cap
@@ -24,10 +24,10 @@
  * Hemisphere `z = √(1 − x² − y²)` inside the unit disk; outside, points map to the
  * equatorial rim (`z = 0`) in normalized coordinates. Classic textbook arcball variant.
  *
- * @par Symmetry with @ref EulerOrbit
- * @ref EulerOrbit owns yaw/pitch (degrees), pitch limits, and Euler drag inertia in one type.
- * @ref Arcball owns **sphere mapping** and **ball-space** frame deltas (@ref BallFrameDelta via
- * @ref Arcball::ballFrameDeltaFromSpheres). Integrating release inertia into the orbit
+ * @par Symmetry with @ref OrbitBehavior
+ * @ref OrbitBehavior owns yaw/pitch (degrees), pitch limits, and Euler drag inertia in one type.
+ * @ref TrackballBehavior owns **sphere mapping** and **ball-space** frame deltas (@ref BallFrameDelta via
+ * @ref TrackballBehavior::ballFrameDeltaFromSpheres). Integrating release inertia into the orbit
  * **orientation quaternion** (world-space axis, rad/s) stays in @c OrbitArcballBehavior because
  * it requires the current camera/orientation basis — same split as mapping ball axes to world.
  */
@@ -51,7 +51,7 @@ struct BallFrameDelta {
 };
 
 /**
- * @brief Arcball / virtual trackball for quaternion orbit rotation.
+ * @brief Virtual trackball for quaternion orbit rotation (rotation only; pan lives on @c OrbitArcballBehavior).
  *
  * Call @ref setViewport when the drawable size changes. For a drag, call @ref beginDrag at
  * pointer down, then each move: @ref cumulativeDeltaQuaternion for the rotation from drag start
@@ -60,7 +60,7 @@ struct BallFrameDelta {
  *
  * For release inertia, use @ref ballFrameDeltaFromSpheres with consecutive @ref project samples.
  */
-class VNE_INTERACTION_API Arcball {
+class VNE_INTERACTION_API TrackballBehavior {
    public:
     /**
      * @brief Screen-to-sphere mapping. Default: @ref eHyperbolic.
@@ -73,7 +73,7 @@ class VNE_INTERACTION_API Arcball {
     };
 
    public:
-    Arcball() noexcept = default;
+    TrackballBehavior() noexcept = default;
 
     /**
      * @brief Update pixel size (e.g. from @ref CameraBehaviorBase::onResize).
@@ -94,7 +94,7 @@ class VNE_INTERACTION_API Arcball {
     [[nodiscard]] ProjectionMode getProjectionMode() const noexcept { return projection_mode_; }
 
     /**
-     * @brief Map screen coordinates to a **unit** vector on the sphere (camera / arcball space).
+     * @brief Map screen coordinates to a **unit** vector on the sphere (camera / trackball space).
      * @param cursor_px: (x, y) in pixels.
      * @return The projected point on the sphere.
      */

@@ -51,8 +51,8 @@ endif()
 #==============================================================================
 set(TEST_SOURCES
     main.cpp
-    arcball_test.cpp
-    euler_orbit_test.cpp
+    trackball_behavior_test.cpp
+    orbit_behavior_test.cpp
     behavior_regression_test.cpp
     orbit_arcball_behavior_test.cpp
     free_look_behavior_test.cpp
