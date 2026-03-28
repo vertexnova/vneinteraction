@@ -28,6 +28,8 @@ constexpr float kFitToAabbMargin = 1.1f;
 constexpr float kPanVelocityThreshold = 1e-4f;
 constexpr float kPanVelocityBlendRate = 25.0f;  // EMA time-constant reciprocal (1/s)
 constexpr float kDegToRad = 3.14159265358979323846f / 180.0f;
+/** Skip in-plane rotation when |angle| is below this (radians); avoids no-op quaternion work. */
+constexpr float kMinRotationAngleRad = 1e-8f;
 }  // namespace
 
 // ---------------------------------------------------------------------------
@@ -88,10 +90,16 @@ void Ortho2DBehavior::pan(float delta_x_px, float delta_y_px, double delta_time)
 void Ortho2DBehavior::rotateInPlane(float delta_x_px, float /*delta_y_px*/) noexcept {
     auto ortho = orthoCamera();
     if (!ortho) {
+        VNE_LOG_WARN << "Ortho2DBehavior: rotateInPlane called without orthographic camera";
         return;
     }
     const float angle_rad = delta_x_px * rotation_deg_per_px_ * kDegToRad;
-    if (std::abs(angle_rad) < 1e-8f) {
+    if (!std::isfinite(angle_rad)) {
+        VNE_LOG_ERROR << "Ortho2DBehavior: rotateInPlane non-finite angle (delta_x_px=" << delta_x_px
+                      << ", rotation_deg_per_px=" << rotation_deg_per_px_ << ")";
+        return;
+    }
+    if (std::abs(angle_rad) < kMinRotationAngleRad) {
         return;
     }
 
@@ -100,6 +108,7 @@ void Ortho2DBehavior::rotateInPlane(float delta_x_px, float /*delta_y_px*/) noex
     vne::math::Vec3f axis = target - eye;
     const float axis_len = axis.length();
     if (axis_len < kEpsilon) {
+        VNE_LOG_WARN << "Ortho2DBehavior: rotateInPlane degenerate view axis (eye coincident with target)";
         return;
     }
     axis = axis / axis_len;
@@ -110,8 +119,8 @@ void Ortho2DBehavior::rotateInPlane(float delta_x_px, float /*delta_y_px*/) noex
     offset = q.rotate(offset);
     up = q.rotate(up).normalized();
 
-    ortho->setPosition(target + offset);
-    ortho->setUp(up);
+    const vne::math::Vec3f new_position = target + offset;
+    ortho->lookAt(new_position, target, up);
     ortho->updateMatrices();
 }
 
@@ -121,7 +130,15 @@ void Ortho2DBehavior::rotateInPlane(float delta_x_px, float /*delta_y_px*/) noex
 
 void Ortho2DBehavior::applyInertia(double delta_time) noexcept {
     auto ortho = orthoCamera();
-    if (!ortho || delta_time <= 0.0) {
+    if (!ortho) {
+        VNE_LOG_DEBUG << "Ortho2DBehavior: applyInertia skipped (no orthographic camera)";
+        return;
+    }
+    if (delta_time <= 0.0) {
+        return;
+    }
+    if (!std::isfinite(static_cast<double>(delta_time))) {
+        VNE_LOG_ERROR << "Ortho2DBehavior: applyInertia non-finite delta_time";
         return;
     }
     if (pan_velocity_.length() < kPanVelocityThreshold) {
@@ -143,6 +160,7 @@ void Ortho2DBehavior::applyInertia(double delta_time) noexcept {
 void Ortho2DBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept {
     auto ortho = orthoCamera();
     if (!ortho) {
+        VNE_LOG_WARN << "Ortho2DBehavior: fitToAABB called without orthographic camera";
         return;
     }
     const vne::math::Vec3f center = (min_world + max_world) * 0.5f;
