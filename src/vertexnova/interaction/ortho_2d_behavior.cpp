@@ -30,6 +30,30 @@ constexpr float kPanVelocityBlendRate = 25.0f;  // EMA time-constant reciprocal 
 constexpr float kDegToRad = 3.14159265358979323846f / 180.0f;
 /** Skip in-plane rotation when |angle| is below this (radians); avoids no-op quaternion work. */
 constexpr float kMinRotationAngleRad = 1e-8f;
+
+/**
+ * Pan inertia is stored in world units/s. Zoom that scales ortho half-extents by s also scales
+ * world-units-per-pixel by s, so screen-space speed ~ |v_world| / s. Scale v_world by s to keep
+ * on-screen coasting consistent (matches applyOrthoZoomToCursor / applyFovZoom ortho paths).
+ * eSceneScale does not change the ortho frustum here — leave velocity unchanged.
+ */
+void scalePanVelocityWithOrthoExtentChange(vne::math::Vec3f& pan_velocity,
+                                          ZoomMethod method,
+                                          float zoom_factor,
+                                          float fov_zoom_speed) noexcept {
+    float extent_scale = 1.0f;
+    switch (method) {
+        case ZoomMethod::eDollyToCoi:
+            extent_scale = zoom_factor;
+            break;
+        case ZoomMethod::eChangeFov:
+            extent_scale = (zoom_factor < 1.0f) ? (1.0f / fov_zoom_speed) : fov_zoom_speed;
+            break;
+        case ZoomMethod::eSceneScale:
+            return;
+    }
+    pan_velocity *= extent_scale;
+}
 }  // namespace
 
 // ---------------------------------------------------------------------------
@@ -275,6 +299,8 @@ bool Ortho2DBehavior::onAction(CameraActionType action,
 
         case CameraActionType::eZoomAtCursor:
             if (payload.zoom_factor > 0.0f && payload.zoom_factor != 1.0f) {
+                scalePanVelocityWithOrthoExtentChange(
+                    pan_velocity_, getZoomMethod(), payload.zoom_factor, getFovZoomSpeed());
                 dispatchZoom(payload.zoom_factor, payload.x_px, payload.y_px);
                 return true;
             }

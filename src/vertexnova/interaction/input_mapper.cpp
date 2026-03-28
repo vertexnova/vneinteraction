@@ -14,11 +14,24 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <cstring>
 
 namespace vne::interaction {
 
 using namespace vne;
+
+namespace {
+/**
+ * Wheel / trackpad scroll → multiplicative `zoom_factor` in onMouseScroll.
+ * factor = exp(-(-ln(kWheelZoomFactorPerLine)) * dy) = kWheelZoomFactorPerLine^dy (dy in "line" units).
+ * Small |dy| → small steps (smooth trackpads); dy ≈ ±1 matches legacy discrete ±10% step.
+ */
+constexpr float kWheelZoomFactorPerLine = 0.9f;
+constexpr float kWheelScrollYAbsMax = 25.0f;
+constexpr float kWheelZoomFactorMin = 0.5f;
+constexpr float kWheelZoomFactorMax = 2.0f;
+}  // namespace
 
 // ---------------------------------------------------------------------------
 // Construction helpers
@@ -310,9 +323,11 @@ void InputMapper::onMouseScroll(float /*scroll_x*/, float scroll_y, float mouse_
     CameraCommandPayload payload;
     payload.x_px = mouse_x;
     payload.y_px = mouse_y;
-    // zoom_factor: scroll up (<1) = zoom in, scroll down (>1) = zoom out
-    // The behavior's applyZoom uses this convention directly
-    payload.zoom_factor = (scroll_y > 0.0f) ? 0.9f : 1.1f;  // ~10% per notch; behaviors can scale
+    const float k_ln_per_line = -std::log(kWheelZoomFactorPerLine);
+    const float clamped_dy = std::clamp(scroll_y, -kWheelScrollYAbsMax, kWheelScrollYAbsMax);
+    float factor = std::exp(-k_ln_per_line * clamped_dy);
+    factor = std::clamp(factor, kWheelZoomFactorMin, kWheelZoomFactorMax);
+    payload.zoom_factor = factor;
 
     for (const auto& r : rules_) {
         if (r.trigger != InputRule::Trigger::eScroll)
