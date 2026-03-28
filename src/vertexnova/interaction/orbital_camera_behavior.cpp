@@ -168,7 +168,7 @@ vne::math::Vec3f OrbitalCameraBehavior::computeRight(const vne::math::Vec3f& fro
 }
 
 vne::math::Vec3f OrbitalCameraBehavior::computeUp(const vne::math::Vec3f& front,
-                                                   const vne::math::Vec3f& right) const noexcept {
+                                                  const vne::math::Vec3f& right) const noexcept {
     // right × front = up  (standard RH rule; replaces the old front × right = -up)
     const vne::math::Vec3f up = right.cross(front);
     const float len = up.length();
@@ -286,9 +286,9 @@ void OrbitalCameraBehavior::dragRotateEuler(float delta_x_px, float delta_y_px, 
 }
 
 void OrbitalCameraBehavior::updateTrackballDragInertiaFromFrame(const vne::math::Vec3f& prev_sphere,
-                                                                 const vne::math::Vec3f& curr_sphere,
-                                                                 const float trackball_rot,
-                                                                 const double delta_time) noexcept {
+                                                                const vne::math::Vec3f& curr_sphere,
+                                                                const float trackball_rot,
+                                                                const double delta_time) noexcept {
     const BallFrameDelta fd = TrackballBehavior::ballFrameDeltaFromSpheres(prev_sphere, curr_sphere);
     if (delta_time < kMinDeltaTimeForInertia || !fd.valid || fd.angle_rad <= kInertiaRotAngleThreshold) {
         return;
@@ -362,7 +362,7 @@ void OrbitalCameraBehavior::applyPanDeltaWorld(const vne::math::Vec3f& delta_wor
 }
 
 void OrbitalCameraBehavior::updatePanInertiaFromDragSample(const vne::math::Vec3f& delta_world,
-                                                            double delta_time) noexcept {
+                                                           double delta_time) noexcept {
     double min_inertia_dt = kMinDeltaTimeForInertia;
     if (!std::isfinite(min_inertia_dt)) {
         min_inertia_dt = kMinDeltaTimeForInertiaFloor;
@@ -807,8 +807,8 @@ void OrbitalCameraBehavior::onUpdate(double delta_time) noexcept {
 // ---------------------------------------------------------------------------
 
 bool OrbitalCameraBehavior::onAction(CameraActionType action,
-                                      const CameraCommandPayload& payload,
-                                      double delta_time) noexcept {
+                                     const CameraCommandPayload& payload,
+                                     double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return false;
     }
