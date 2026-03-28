@@ -45,6 +45,9 @@ constexpr float kInertiaRotSpeedMax = 10.0f;
 constexpr float kInertiaRotAngleThreshold = 1e-6f;
 constexpr float kInertiaRotSpeedThreshold = 1e-4f;
 constexpr float kInertiaPanSpeedThreshold = 1e-4f;
+/** Arcball drag inertia: axis from curr×prev; near-parallel / anti-parallel thresholds. */
+constexpr float kCrossLenSqEps = 1e-14f;
+constexpr float kAntiParallelDot = 1e-5f;  // dot <= -1 + this → treat as 180° for axis fallback
 /** Strength of COI shift toward cursor on perspective zoom-to-cursor (0..1). */
 constexpr float kZoomToCursorStrength = 0.5f;
 
@@ -317,36 +320,15 @@ void OrbitArcballBehavior::dragRotateEuler(float delta_x_px, float delta_y_px, d
     }
 }
 
-void OrbitArcballBehavior::dragRotateArcball(float x_px, float y_px, double delta_time) noexcept {
-    if (!camera_) {
-        return;
-    }
-
-    const vne::math::Vec2f vp(viewport().width, viewport().height);
-    arcball_.setViewport(vp);
-
-    const vne::math::Vec2f cursor(x_px, y_px);
-    const vne::math::Vec3f prev_sphere = arcball_.previousOnSphere();
-    const vne::math::Vec3f curr_sphere = arcball_.project(cursor);
-
-    // Same rotation_speed_ multiplier as Euler: scale arcball delta (see scaleArcballDeltaQuaternion).
-    vne::math::Quatf delta_q = scaleArcballDeltaQuaternion(arcball_.cumulativeDeltaQuaternion(cursor), rotation_speed_);
-
-    // Apply cumulative rotation: base orientation * camera-space delta (post-multiply)
-    orientation_ = (orientation_at_drag_start_ * delta_q).normalized();
-
-    applyToCamera();
-
-    // Track inertia from frame-to-frame movement (not cumulative).
-    // For unit sphere points, |prev×curr| = sin(θ), not θ — use acos(prev·curr) for the frame angle (rad).
-    // Axis: normalize(prev×curr); anti-parallel fallback (same idea as Quatf::fromToRotation).
+void OrbitArcballBehavior::updateArcballDragInertiaFromFrame(const vne::math::Vec3f& prev_sphere,
+                                                             const vne::math::Vec3f& curr_sphere,
+                                                             const float arcball_rot,
+                                                             const double delta_time) noexcept {
+    // Frame-to-frame movement (not cumulative). |prev×curr| = sin(θ); angle from acos(prev·curr).
     const float dot_pc = vne::math::clamp(prev_sphere.dot(curr_sphere), -1.0f, 1.0f);
     const float frame_angle_rad = std::acos(dot_pc);
-
     const vne::math::Vec3f frame_cross = prev_sphere.cross(curr_sphere);
     const float cross_len_sq = frame_cross.lengthSquared();
-    constexpr float kCrossLenSqEps = 1e-14f;
-    constexpr float kAntiParallelDot = 1e-5f;  // dot <= -1 + this → treat as 180° for axis fallback
 
     bool have_inertia_axis = false;
     vne::math::Vec3f axis_ball;
@@ -363,15 +345,40 @@ void OrbitArcballBehavior::dragRotateArcball(float x_px, float y_px, double delt
     }
 
     if (delta_time >= kMinDeltaTimeForInertia && frame_angle_rad > kInertiaRotAngleThreshold && have_inertia_axis) {
-        // Map trackball axes (right, screen-down, toward eye) to camera basis (r, u, back): screen-down = -u.
+        // Trackball (right, screen-down, toward eye) → camera basis (r, u, back); screen-down = -u.
         const vne::math::Vec3f r = orientation_.getXAxis();
         const vne::math::Vec3f u = orientation_.getYAxis();
         const vne::math::Vec3f b = orientation_.getZAxis();
         inertia_rot_axis_ = (r * axis_ball.x() - u * axis_ball.y() + b * axis_ball.z()).normalized();
-        inertia_rot_speed_ = vne::math::clamp((frame_angle_rad * rotation_speed_) / static_cast<float>(delta_time),
+        inertia_rot_speed_ = vne::math::clamp((frame_angle_rad * arcball_rot) / static_cast<float>(delta_time),
                                               -kInertiaRotSpeedMax,
                                               kInertiaRotSpeedMax);
     }
+}
+
+void OrbitArcballBehavior::dragRotateArcball(float x_px, float y_px, double delta_time) noexcept {
+    if (!camera_) {
+        return;
+    }
+
+    const vne::math::Vec2f vp(viewport().width, viewport().height);
+    arcball_.setViewport(vp);
+
+    const vne::math::Vec2f cursor(x_px, y_px);
+    const vne::math::Vec3f prev_sphere = arcball_.previousOnSphere();
+    const vne::math::Vec3f curr_sphere = arcball_.project(cursor);
+
+    // Arcball scales quaternion angle by rotation_speed_; Euler uses deg/pixel — multiply by
+    // arcball_rotation_scale_ so a single rotation_speed feels usable in both modes.
+    const float arcball_rot = rotation_speed_ * arcball_rotation_scale_;
+    vne::math::Quatf delta_q = scaleArcballDeltaQuaternion(arcball_.cumulativeDeltaQuaternion(cursor), arcball_rot);
+
+    // Conjugate inverts the shortest-arc delta so pointer motion matches the intended orbit direction.
+    orientation_ = (orientation_at_drag_start_ * delta_q.conjugate()).normalized();
+
+    applyToCamera();
+
+    updateArcballDragInertiaFromFrame(prev_sphere, curr_sphere, arcball_rot, delta_time);
 
     arcball_.endFrame(cursor);
 }

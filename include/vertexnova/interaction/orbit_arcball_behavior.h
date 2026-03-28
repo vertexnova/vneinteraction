@@ -140,9 +140,20 @@ class VNE_INTERACTION_API OrbitArcballBehavior final : public CameraBehaviorBase
     // setZoomMethod / getZoomMethod / setFovZoomSpeed / getFovZoomSpeed / getZoomScale
     // are inherited from CameraBehaviorBase.
 
-    /** Set rotation speed multiplier (>= 0). Scales Euler yaw/pitch (deg/pixel) and arcball delta angle. */
+    /**
+     * Set rotation speed multiplier (>= 0). Scales Euler yaw/pitch (deg/pixel). For arcball, the
+     * effective angle scale is rotation_speed × arcball_rotation_scale (see setArcballRotationScale).
+     */
     void setRotationSpeed(float speed) noexcept { rotation_speed_ = std::max(0.0f, speed); }
     [[nodiscard]] float getRotationSpeed() const noexcept { return rotation_speed_; }
+
+    /**
+     * Extra scale applied only in arcball mode (>= 0). The arcball path scales quaternion angle by
+     * rotation_speed, while Euler uses deg/pixel — the defaults make arcball usable at the same
+     * rotation_speed as orbit. Default 2.5.
+     */
+    void setArcballRotationScale(float scale) noexcept { arcball_rotation_scale_ = std::max(0.0f, scale); }
+    [[nodiscard]] float getArcballRotationScale() const noexcept { return arcball_rotation_scale_; }
 
     /** Set pan speed multiplier (>= 0). */
     void setPanSpeed(float speed) noexcept { pan_speed_ = std::max(0.0f, speed); }
@@ -202,6 +213,10 @@ class VNE_INTERACTION_API OrbitArcballBehavior final : public CameraBehaviorBase
     // ---- inertia ----------------------------------------------------------------
     void applyInertia(double delta_time) noexcept;
     void doPanInertia(double delta_time) noexcept;
+    void updateArcballDragInertiaFromFrame(const vne::math::Vec3f& prev_sphere,
+                                           const vne::math::Vec3f& curr_sphere,
+                                           float arcball_rot,
+                                           double delta_time) noexcept;
 
     // ---- camera helpers ---------------------------------------------------------
     [[nodiscard]] bool isPerspective() const noexcept;
@@ -241,6 +256,7 @@ class VNE_INTERACTION_API OrbitArcballBehavior final : public CameraBehaviorBase
 
     // Speeds / damping
     float rotation_speed_ = 0.2f;
+    float arcball_rotation_scale_ = 2.5f;
     float pan_speed_ = 1.0f;
     float rot_damping_ = 8.0f;
     float pan_damping_ = 10.0f;
