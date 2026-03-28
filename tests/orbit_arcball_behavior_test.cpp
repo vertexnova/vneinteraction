@@ -12,6 +12,13 @@
 
 namespace vne_interaction_test {
 
+TEST(OrbitArcballBehavior, SetArcballProjectionMode) {
+    vne::interaction::OrbitArcballBehavior b;
+    EXPECT_EQ(b.getArcballProjectionMode(), vne::interaction::Arcball::ProjectionMode::eHyperbolic);
+    b.setArcballProjectionMode(vne::interaction::Arcball::ProjectionMode::eRim);
+    EXPECT_EQ(b.getArcballProjectionMode(), vne::interaction::Arcball::ProjectionMode::eRim);
+}
+
 static std::shared_ptr<vne::scene::PerspectiveCamera> makePerspCamera() {
     return vne::scene::CameraFactory::createPerspective(
         vne::scene::PerspectiveCameraParameters(45.0f, 16.0f / 9.0f, 0.1f, 1000.0f));
@@ -116,6 +123,74 @@ TEST(OrbitArcballBehavior, ChangeFovZoomFallsThroughToDollyWhenFovClamped) {
     EXPECT_FLOAT_EQ(cam->getFieldOfView(), kFovMaxDeg);
     EXPECT_GT(b.getOrbitDistance(), orbit_before)
         << "At max FOV, eChangeFov should fall through to dolly (orbit_distance changes)";
+}
+
+// ---------------------------------------------------------------------------
+// Arcball rotation + inertia (integration; math details in arcball_test.cpp)
+// ---------------------------------------------------------------------------
+
+[[nodiscard]] static float arcballInertiaStepMagnitude(float end_x_px) {
+    auto cam = makePerspCamera();
+    cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
+    cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
+
+    vne::interaction::OrbitArcballBehavior b;
+    b.setRotationMode(vne::interaction::OrbitRotationMode::eArcball);
+    b.setCamera(cam);
+    b.onResize(800.0f, 600.0f);
+
+    constexpr double kDt = 0.016;
+    vne::interaction::CameraCommandPayload p;
+    p.x_px = 400.0f;
+    p.y_px = 300.0f;
+    b.onAction(vne::interaction::CameraActionType::eBeginRotate, p, kDt);
+
+    p.x_px = end_x_px;
+    p.y_px = 300.0f;
+    b.onAction(vne::interaction::CameraActionType::eRotateDelta, p, kDt);
+
+    const vne::math::Vec3f pos_after_drag = cam->getPosition();
+    b.onAction(vne::interaction::CameraActionType::eEndRotate, p, kDt);
+    b.onUpdate(kDt);
+
+    return (cam->getPosition() - pos_after_drag).length();
+}
+
+TEST(OrbitArcballBehavior, ArcballInertiaMovesCameraAfterRotateEnds) {
+    EXPECT_GT(arcballInertiaStepMagnitude(620.0f), 1e-4f);
+}
+
+TEST(OrbitArcballBehavior, ArcballInertiaNotUpdatedWhenDeltaTimeBelowInertiaThreshold) {
+    auto cam = makePerspCamera();
+    cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
+    cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
+
+    vne::interaction::OrbitArcballBehavior b;
+    b.setRotationMode(vne::interaction::OrbitRotationMode::eArcball);
+    b.setCamera(cam);
+    b.onResize(800.0f, 600.0f);
+
+    vne::interaction::CameraCommandPayload p;
+    p.x_px = 400.0f;
+    p.y_px = 300.0f;
+    b.onAction(vne::interaction::CameraActionType::eBeginRotate, p, 0.016);
+
+    p.x_px = 620.0f;
+    p.y_px = 300.0f;
+    // OrbitArcballBehavior: inertia sampling requires delta_time >= kMinDeltaTimeForInertia (0.001).
+    b.onAction(vne::interaction::CameraActionType::eRotateDelta, p, 1e-5);
+
+    const vne::math::Vec3f pos_after_drag = cam->getPosition();
+    b.onAction(vne::interaction::CameraActionType::eEndRotate, p, 1e-5);
+    b.onUpdate(0.016);
+
+    EXPECT_LT((cam->getPosition() - pos_after_drag).length(), 1e-3f);
+}
+
+TEST(OrbitArcballBehavior, ArcballLargeDragProducesStrongerInertiaThanSmallDrag) {
+    const float small_step = arcballInertiaStepMagnitude(430.0f);
+    const float large_step = arcballInertiaStepMagnitude(650.0f);
+    EXPECT_GT(large_step, small_step);
 }
 
 }  // namespace vne_interaction_test
