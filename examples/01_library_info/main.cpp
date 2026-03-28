@@ -17,12 +17,12 @@ int main() {
 
     VNE_LOG_INFO << "VneInteraction " << vne::interaction::get_version();
 
-    VNE_LOG_INFO << "Behaviors: OrbitArcballBehavior (arcball / orbit), FreeLookBehavior (FPS / Fly), "
+    VNE_LOG_INFO << "Behaviors: OrbitalCameraBehavior (trackball / orbit), FreeLookBehavior (FPS / Fly), "
                  << "OrthoPanZoomBehavior (orthographic 2D pan+zoom), FollowBehavior (smooth follow)";
 
     VNE_LOG_INFO << "InputMapper presets: orbitPreset(), fpsPreset(), gamePreset(), cadPreset(), orthoPreset()";
 
-    VNE_LOG_INFO << "Controllers: InspectController, Navigation3DController, Ortho2DController, FollowController";
+    VNE_LOG_INFO << "Controllers: Inspect3DController, Navigation3DController, Ortho2DController, FollowController";
 
     return 0;
 }

@@ -14,7 +14,7 @@
  * @brief dispatchMouseEvents — shared mouse/touch event→InputMapper bridge.
  *
  * Eliminates the verbatim copy of the mouse/touch switch-case that appeared
- * in InspectController, Navigation3DController, and Ortho2DController.
+ * in Inspect3DController, Navigation3DController, and Ortho2DController.
  * Internal header — explicitly excluded from the CMake install rule.
  */
 

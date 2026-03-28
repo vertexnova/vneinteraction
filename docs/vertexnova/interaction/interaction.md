@@ -8,12 +8,12 @@ The Interaction module provides composable camera behaviors and high-level contr
 
 - **Event-based**: Controllers consume `vne::events::Event` objects (mouse, keyboard, touch) and expose `onEvent(event, delta_time)` and `onUpdate(delta_time)`.
 - **Behaviors**: Each behavior implements `ICameraBehavior`, holds a `std::shared_ptr<vne::scene::ICamera>`, and processes `CameraActionType` actions (orbit, pan, zoom, move, look, etc.).
-- **Controllers**: High-level wrappers (`InspectController`, `Navigation3DController`, `Ortho2DController`, `FollowController`) combine behaviors with `InputMapper` and event handling.
+- **Controllers**: High-level wrappers (`Inspect3DController`, `Navigation3DController`, `Ortho2DController`, `FollowController`) combine behaviors with `InputMapper` and event handling.
 - **Composable**: `CameraRig` holds multiple behaviors; each receives every action independently. Enables hybrid setups (e.g. orbit + free-look for game editors).
 
 ## Architecture
 
-- **Public API** (`include/vertexnova/interaction/`): `camera_behavior.h`, `camera_rig.h`, `orbit_arcball_behavior.h`, `free_look_behavior.h`, `ortho_pan_zoom_behavior.h`, `follow_behavior.h`, `input_mapper.h`, `inspect_controller.h`, `navigation_3d_controller.h`, `ortho_2d_controller.h`, `follow_controller.h`, `interaction_types.h`, `interaction.h` (umbrella), `version.h`.
+- **Public API** (`include/vertexnova/interaction/`): `camera_behavior.h`, `camera_rig.h`, `orbital_camera_behavior.h`, `free_look_behavior.h`, `ortho_pan_zoom_behavior.h`, `follow_behavior.h`, `input_mapper.h`, `inspect_3d_controller.h`, `navigation_3d_controller.h`, `ortho_2d_controller.h`, `follow_controller.h`, `interaction_types.h`, `interaction.h` (umbrella), `version.h`.
 - **Implementation** (`src/vertexnova/interaction/`): One `.cpp` per behavior and controller plus `input_mapper.cpp`, `camera_rig.cpp`, and `version.cpp`.
 - **Dependencies**: **vnescene** (cameras, `ICamera`, `PerspectiveCamera`, `OrthographicCamera`, `CameraFactory`), **vneevents** (event types), **vnemath** (vectors, quaternions, matrices; pulled in via vnescene).
 
@@ -22,22 +22,22 @@ The Interaction module provides composable camera behaviors and high-level contr
 ### Behaviors (ICameraBehavior)
 
 - **camera_behavior.h**: `ICameraBehavior` — interface: `onAction`, `onUpdate`, `setCamera`, `onResize`, `resetState`, `isEnabled`, `setEnabled`.
-- **orbit_arcball_behavior.h**: `OrbitArcballBehavior` — orbit around a center of interest; Euler or Quaternion rotation; pivot modes (COI, ViewCenter, Fixed); pan, zoom, inertia, fitToAABB.
+- **orbital_camera_behavior.h**: `OrbitalCameraBehavior` — orbit around a center of interest; Euler or Quaternion rotation; pivot modes (COI, ViewCenter, Fixed); pan, zoom, inertia, fitToAABB.
 - **free_look_behavior.h**: `FreeLookBehavior` — FPS or Fly mode; WASD movement, mouse look, sprint/slow modifiers.
 - **ortho_pan_zoom_behavior.h**: `OrthoPanZoomBehavior` — orthographic camera only; pan and zoom-to-cursor; inertia.
 - **follow_behavior.h**: `FollowBehavior` — follow a target (static or from provider); smooth damping; offset.
 
 ### Controllers
 
-- **inspect_controller.h**: `InspectController` — 3D inspection (medical, CAD); wraps `OrbitArcballBehavior` + `InputMapper` with orbit preset; pivot, DOF toggles, fitToAABB.
-- **navigation_3d_controller.h**: `Navigation3DController` — 3D environment traversal; FPS, Fly, or Game mode; wraps `FreeLookBehavior` (+ optional `OrbitArcballBehavior` in Game mode) + `InputMapper`.
+- **inspect_3d_controller.h**: `Inspect3DController` — 3D inspection (medical, CAD); wraps `OrbitalCameraBehavior` + `InputMapper` with orbit preset; pivot, DOF toggles, fitToAABB.
+- **navigation_3d_controller.h**: `Navigation3DController` — 3D environment traversal; FPS, Fly, or Game mode; wraps `FreeLookBehavior` (+ optional `OrbitalCameraBehavior` in Game mode) + `InputMapper`.
 - **ortho_2d_controller.h**: `Ortho2DController` — 2D orthographic viewports (slices, maps); wraps `OrthoPanZoomBehavior` + `InputMapper` with ortho preset.
 - **follow_controller.h**: `FollowController` — target-follow camera; wraps `FollowBehavior`; no user input required.
 
 ### Input and Rig
 
 - **input_mapper.h**: `InputMapper` — maps mouse/keyboard/touch events to `CameraActionType` via `InputRule`; presets: `orbitPreset`, `fpsPreset`, `gamePreset`, `cadPreset`, `orthoPreset`.
-- **camera_rig.h**: `CameraRig` — multi-behavior container; `onAction`, `onUpdate`, `setCamera`, `onResize`, `resetState`; factory methods: `makeOrbit`, `makeArcball`, `makeFps`, `makeFly`, `makeOrthoPanZoom`, `makeFollow`, `makeGameCamera`, `make2D`.
+- **camera_rig.h**: `CameraRig` — multi-behavior container; `onAction`, `onUpdate`, `setCamera`, `onResize`, `resetState`; factory methods: `makeOrbit`, `makeTrackball`, `makeFps`, `makeFly`, `makeOrthoPanZoom`, `makeFollow`, `makeGameCamera`, `make2D`.
 
 ### Types
 
@@ -49,7 +49,7 @@ The Interaction module provides composable camera behaviors and high-level contr
 
 ## Usage
 
-### Minimal: InspectController + camera
+### Minimal: Inspect3DController + camera
 
 ```cpp
 #include <vertexnova/interaction/interaction.h>
@@ -65,7 +65,7 @@ int main() {
     camera->setPosition(vne::math::Vec3f(0.0f, 2.0f, 5.0f));
     camera->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
-    InspectController ctrl;
+    Inspect3DController ctrl;
     ctrl.setCamera(camera);
     ctrl.onResize(1280.0f, 720.0f);
 
@@ -95,10 +95,10 @@ The controller's `onEvent` handles `MouseMovedEvent`, `MouseButtonPressedEvent`,
 
 | Use case | Controller | Notes |
 |----------|------------|-------|
-| Medical 3D inspection | `InspectController` | Arcball default; `setPivotMode(eFixed)` for landmark-centred |
+| Medical 3D inspection | `Inspect3DController` | Trackball default; `setPivotMode(eFixed)` for landmark-centred |
 | Medical 2D slices | `Ortho2DController` | Pan + zoom; optional in-plane rotate via `setRotationEnabled(true)` |
 | Game / editor camera | `Navigation3DController` | Orbit mode for object view; FPS/Fly for world nav |
-| Robotic simulator | `InspectController` + `Navigation3DController` + `FollowController` | Inspect robot; navigate environment; follow end-effector |
+| Robotic simulator | `Inspect3DController` + `Navigation3DController` + `FollowController` | Inspect robot; navigate environment; follow end-effector |
 
 ## CMake options
 

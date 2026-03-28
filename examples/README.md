@@ -23,17 +23,17 @@ Executables are placed in `build/shared/Debug/bin/examples/` (or `build/static/b
 | Example | Description |
 |---------|-------------|
 | **01_library_info** | Version info; list all behavior types and presets |
-| **02_medical_3d_inspect** | InspectController — arcball rotation, landmark pivot, fitToAABB |
+| **02_medical_3d_inspect** | Inspect3DController — trackball rotation, landmark pivot, fitToAABB |
 | **03_medical_2d_slices** | Ortho2DController — pan, scroll-zoom, orthographic camera |
 | **04_game_editor_camera** | Navigation3DController — FPS + orbit modes, WASD |
-| **05_robotic_simulator** | InspectController + Navigation3DController + FollowController |
+| **05_robotic_simulator** | Inspect3DController + Navigation3DController + FollowController |
 
 ## Quick Reference
 
 | Example | Controller | Focus |
 |---------|------------|-------|
 | 01_library_info | — | Version, behavior listing |
-| 02_medical_3d_inspect | InspectController | 3D inspection, arcball |
+| 02_medical_3d_inspect | Inspect3DController | 3D inspection, trackball |
 | 03_medical_2d_slices | Ortho2DController | 2D slices, ortho pan+zoom |
 | 04_game_editor_camera | Navigation3DController | Game/editor camera |
 | 05_robotic_simulator | Inspect + Navigate + Follow | Robotic simulator |

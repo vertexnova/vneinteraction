@@ -11,10 +11,10 @@
  */
 
 /**
- * @file euler_orbit.h
- * @brief Classic yaw/pitch orbit around a world-up axis (Euler orbit).
+ * @file orbit_behavior.h
+ * @brief Classic yaw/pitch orbit around a world-up axis (Euler angles).
  *
- * Complements @ref Arcball: this type stores **degrees** on the ground track (yaw) and
+ * Complements @ref TrackballBehavior: this type stores **degrees** on the ground track (yaw) and
  * elevation (pitch) relative to a horizontal plane derived from \c world_up (see implementation).
  * Screen motion maps to deltas with a caller-supplied **deg/pixel** scale (see @ref applyDrag).
  *
@@ -22,7 +22,7 @@
  * Given a normalized @a world_up, forward and right axes are built so yaw is rotation about
  * world-up and pitch tilts the view direction toward or away from that axis. The resulting
  * **view direction** is the unit vector from eye toward center of interest (COI), consistent
- * with @c OrbitArcballBehavior::computeFront in Euler mode.
+ * with @c OrbitalCameraBehavior::computeFront in Euler mode.
  *
  * @par Pitch limits
  * Pitch is clamped to @ref kDefaultPitchMinDeg .. @ref kDefaultPitchMaxDeg by default to avoid
@@ -32,13 +32,14 @@
  *
  * @par Drag inertia
  * @ref applyDrag can record yaw/pitch rates (deg/s) for release coasting. @ref stepInertia integrates
- * one frame using the same exponential damping as @ref OrbitArcballBehavior (via @c vne::math::damp).
+ * one frame using the same exponential damping as @ref OrbitalCameraBehavior (via @c vne::math::damp).
  * Call @ref beginDrag or @ref clearInertia when a new rotation gesture starts or on reset.
  *
- * @par Symmetry with @ref Arcball
- * @ref EulerOrbit centralizes **Euler** angles, limits, and **Euler** inertia. @ref Arcball centralizes
- * sphere mapping and **ball-space** frame deltas (@ref BallFrameDelta / @ref Arcball::ballFrameDeltaFromSpheres).
- * **Arcball** orientation integration and world-axis mapping remain in @c OrbitArcballBehavior because
+ * @par Symmetry with @ref TrackballBehavior
+ * @ref OrbitBehavior centralizes **Euler** angles, limits, and **Euler** inertia. @ref TrackballBehavior centralizes
+ * sphere mapping and **ball-space** frame deltas (@ref BallFrameDelta / @ref
+ * TrackballBehavior::ballFrameDeltaFromSpheres).
+ * **Trackball** orientation integration and world-axis mapping remain in @c OrbitalCameraBehavior because
  * they need the orbit quaternion — parallel to how Euler world view direction is assembled there from
  * @ref computeFrontDirection.
  */
@@ -59,7 +60,7 @@ namespace vne::interaction {
  * - When the camera is moved externally: @ref syncFromViewDirection to recover yaw/pitch.
  * - For framing presets: @ref setYawPitch or adjust limits with @ref setPitchLimits.
  */
-class VNE_INTERACTION_API EulerOrbit {
+class VNE_INTERACTION_API OrbitBehavior {
    public:
     /**
      * @brief Default lower pitch bound (degrees).
@@ -72,7 +73,7 @@ class VNE_INTERACTION_API EulerOrbit {
      */
     static constexpr float kDefaultPitchMaxDeg = 89.0f;
 
-    EulerOrbit() noexcept = default;
+    OrbitBehavior() noexcept = default;
 
     /**
      * @brief Current yaw about world-up (degrees).
@@ -152,7 +153,7 @@ class VNE_INTERACTION_API EulerOrbit {
     /**
      * @brief Integrate inertia for one frame and damp angular rates.
      * @param delta_time_sec    Frame duration (seconds).
-     * @param rot_damping       Damping factor (same convention as @ref OrbitArcballBehavior::setRotationDamping).
+     * @param rot_damping       Damping factor (same convention as @ref OrbitalCameraBehavior::setRotationDamping).
      * @param inertia_threshold Minimum absolute rate (deg/s) to treat as moving.
      * @return @c true if yaw or pitch changed this frame.
      */

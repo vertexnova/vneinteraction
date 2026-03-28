@@ -47,22 +47,22 @@ enum class ZoomMethod : std::uint8_t {
     eChangeFov = 2,   //!< Adjust field of view (perspective cameras only)
 };
 
-/** Rotation algorithm for orbit-style camera (OrbitArcballBehavior, InspectController). */
+/** Rotation algorithm for orbit-style camera (OrbitalCameraBehavior, Inspect3DController). */
 enum class OrbitRotationMode : std::uint8_t {
-    eOrbit = 0,    //!< Classic orbit (Euler yaw/pitch), pitch clamped [-89°, 89°]
-    eArcball = 1,  //!< Arcball quaternion rotation (smooth, no gimbal lock)
+    eOrbit = 0,      //!< Classic orbit (Euler yaw/pitch), pitch clamped [-89°, 89°]
+    eTrackball = 1,  //!< Quaternion / virtual-trackball rotation (smooth, no gimbal lock)
 };
 
 /**
  * @brief Pivot control mode for orbit-style camera behaviors.
  *
  * Determines which point in world space the camera orbits around.
- * Used by OrbitArcballBehavior and InspectController.
+ * Used by OrbitalCameraBehavior and Inspect3DController.
  */
 enum class OrbitPivotMode : std::uint8_t {
-    eCoi = 0,         //!< Rotate around the current center of interest (default; pan moves pivot)
-    eViewCenter = 1,  //!< On pan end, pivot updates to where the camera looks (panned-to point)
-    eFixed = 2,       //!< Pivot is fixed in world space; pan translates eye+target without moving pivot
+    eCoi = 0,         //!< Pan moves COI in the view plane; camera looks at COI (default).
+    eViewCenter = 1,  //!< Same as eCoi during pan; on pan end, sync COI from camera target.
+    eFixed = 2,       //!< Fixed world pivot; pan translates eye+target together; COI unchanged.
 };
 
 /** World up axis selection. */
@@ -90,7 +90,7 @@ using MouseButton = vne::events::MouseButton;
  * controls without exposing InputRule or CameraActionType.
  */
 enum class GestureAction : std::uint8_t {
-    eRotate = 0,    //!< Orbit/arcball rotate (button + drag)
+    eRotate = 0,    //!< Orbit / trackball rotate (button + drag)
     ePan = 1,       //!< Pan (button + drag)
     eZoom = 2,      //!< Zoom (scroll wheel)
     eLook = 3,      //!< FPS-style look (button + drag)
@@ -244,13 +244,13 @@ struct VNE_INTERACTION_API OrbitCameraState {
         , world_up(0.0f, 1.0f, 0.0f) {}
 };
 
-struct VNE_INTERACTION_API ArcballCameraState {
+struct VNE_INTERACTION_API TrackballCameraState {
     vne::math::Vec3f coi_world;
     float distance = 5.0f;
     vne::math::Quatf rotation;
     vne::math::Vec3f world_up;
 
-    ArcballCameraState() noexcept
+    TrackballCameraState() noexcept
         : coi_world(0.0f, 0.0f, 0.0f)
         , rotation(0.0f, 0.0f, 0.0f, 1.0f)
         , world_up(0.0f, 1.0f, 0.0f) {}

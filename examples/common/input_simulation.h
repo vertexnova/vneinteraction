@@ -4,7 +4,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
  * Input simulation helpers for VneInteraction examples.
- * Drives event-based controllers (InspectController, Navigation3DController,
+ * Drives event-based controllers (Inspect3DController, Navigation3DController,
  * Ortho2DController) via vne::events — no window or GPU required.
  * ----------------------------------------------------------------------
  */

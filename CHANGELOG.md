@@ -17,21 +17,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Bug Fixes
 
-* Fix the arcball camera rotation issue that was oposite direction; ALso fix rotation speed factor and some refactoring ([#16](https://github.com/vertexnova/vneinteraction/issues/16)) ([e906f9e](https://github.com/vertexnova/vneinteraction/commit/e906f9ed897039cdd416b060b37ab6cbd249b680))
+* Fix the trackball camera rotation issue that was opposite direction; Also fix rotation speed factor and some refactoring ([#16](https://github.com/vertexnova/vneinteraction/issues/16)) ([e906f9e](https://github.com/vertexnova/vneinteraction/commit/e906f9ed897039cdd416b060b37ab6cbd249b680))
 
 ## [1.3.2](https://github.com/vertexnova/vneinteraction/compare/v1.3.1...v1.3.2) (2026-03-28)
 
 
 ### Bug Fixes
 
-* fixing the math for arcball rotation. ([#14](https://github.com/vertexnova/vneinteraction/issues/14)) ([113dfa9](https://github.com/vertexnova/vneinteraction/commit/113dfa95f2a0331d4e572c08e0b00e5f01e0ae2d))
+* fixing the math for trackball rotation. ([#14](https://github.com/vertexnova/vneinteraction/issues/14)) ([113dfa9](https://github.com/vertexnova/vneinteraction/commit/113dfa95f2a0331d4e572c08e0b00e5f01e0ae2d))
 
 ## [1.3.1](https://github.com/vertexnova/vneinteraction/compare/v1.3.0...v1.3.1) (2026-03-24)
 
 
 ### Bug Fixes
 
-* Fixing the arcball and zoom bugs ([#9](https://github.com/vertexnova/vneinteraction/issues/9)) ([dae4009](https://github.com/vertexnova/vneinteraction/commit/dae4009ec47a7d9eba0aebc7e8df22bf19693b61))
+* Fixing the trackball and zoom bugs ([#9](https://github.com/vertexnova/vneinteraction/issues/9)) ([dae4009](https://github.com/vertexnova/vneinteraction/commit/dae4009ec47a7d9eba0aebc7e8df22bf19693b61))
 
 ## [1.3.0](https://github.com/vertexnova/vneinteraction/compare/v1.2.0...v1.3.0) (2026-03-24)
 
@@ -51,9 +51,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking**: Renamed `InspectController` to `Inspect3DController`; header `inspect_controller.h` → `inspect_3d_controller.h`.
+- **Breaking**: Renamed `OrbitArcballBehavior` to `OrbitalCameraBehavior`; header `orbit_arcball_behavior.h` → `orbital_camera_behavior.h`; accessors `orbitArcballBehavior()` → `orbitalCameraBehavior()` on `Inspect3DController` and `Navigation3DController`.
+- **Breaking**: `OrbitRotationMode::eArcball` renamed to `eTrackball`; `CameraRig::makeArcball()` → `makeTrackball()`.
 - **Breaking**: New behavior-based architecture. Removed legacy manipulators (`OrbitManipulator`, `ArcballManipulator`, `FpsManipulator`, `FlyManipulator`, `OrthoPanZoomManipulator`, `FollowManipulator`), `CameraManipulatorFactory`, and `CameraSystemController`.
-- **Added**: Behaviors — `OrbitArcballBehavior`, `FreeLookBehavior`, `OrthoPanZoomBehavior`, `FollowBehavior` (implement `ICameraBehavior`).
-- **Added**: Controllers — `InspectController`, `Navigation3DController`, `Ortho2DController`, `FollowController`.
+- **Added**: Behaviors — `OrbitalCameraBehavior`, `FreeLookBehavior`, `OrthoPanZoomBehavior`, `FollowBehavior` (implement `ICameraBehavior`).
+- **Added**: Controllers — `Inspect3DController`, `Navigation3DController`, `Ortho2DController`, `FollowController`.
 - **Added**: `InputMapper` with presets (`orbitPreset`, `fpsPreset`, `gamePreset`, `cadPreset`, `orthoPreset`).
 - **Added**: `CameraRig` — multi-behavior container with factory methods.
 - **Changed**: Event-based API — `onEvent(event, delta_time)` and `onUpdate(delta_time)` replace `handleMouse*`/`handleKeyboard`/`update`.
@@ -77,6 +80,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Initial release of VneInteraction: camera manipulators (Orbit, Arcball, FPS, Fly, OrthoPanZoom, Follow), minimal camera interfaces, factory, and system controller.
+- Initial release of VneInteraction: camera manipulators (Orbit, Trackball, FPS, Fly, OrthoPanZoom, Follow), minimal camera interfaces, factory, and system controller.
 - Integration with vnemath for vectors, quaternions, and angle utilities.
 - Shared library export/import (VNE_INTERACTION_API) for Windows DLL builds.

@@ -2,13 +2,13 @@
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
- * Example 05: Robotic simulator — InspectController (robot/tool inspection),
+ * Example 05: Robotic simulator — Inspect3DController (robot/tool inspection),
  * Navigation3DController (environment), FollowController (end-effector view).
  * ----------------------------------------------------------------------
  */
 
 #include "vertexnova/interaction/follow_controller.h"
-#include "vertexnova/interaction/inspect_controller.h"
+#include "vertexnova/interaction/inspect_3d_controller.h"
 #include "vertexnova/interaction/navigation_3d_controller.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
@@ -24,8 +24,8 @@ int main() {
     camera->setPosition(vne::math::Vec3f(0.0f, 2.0f, 6.0f));
     camera->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
-    // 1. InspectController — inspect robot arm / tool / anatomy
-    vne::interaction::InspectController inspect;
+    // 1. Inspect3DController — inspect robot arm / tool / anatomy
+    vne::interaction::Inspect3DController inspect;
     inspect.setCamera(camera);
     inspect.onResize(1280.0f, 720.0f);
     inspect.setPivot(vne::math::Vec3f(0.0f, 0.5f, 0.0f));  // robot base
@@ -65,6 +65,6 @@ int main() {
         follow.onUpdate(dt);
     }
 
-    VNE_LOG_INFO << "Robotic simulator: InspectController + Navigation3DController + FollowController — done.";
+    VNE_LOG_INFO << "Robotic simulator: Inspect3DController + Navigation3DController + FollowController — done.";
     return 0;
 }

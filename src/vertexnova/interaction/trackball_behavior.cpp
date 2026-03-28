@@ -9,7 +9,7 @@
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/interaction/arcball.h"
+#include "vertexnova/interaction/trackball_behavior.h"
 
 #include <vertexnova/logging/logging.h>
 
@@ -17,7 +17,7 @@
 #include <cmath>
 
 namespace {
-CREATE_VNE_LOGGER_CATEGORY("vne.interaction.arcball");
+CREATE_VNE_LOGGER_CATEGORY("vne.interaction.trackball_behavior");
 
 constexpr float kMinViewportAxis = 1e-6f;
 /** Radius in normalized trackball coordinates (unit ball). */
@@ -37,11 +37,11 @@ constexpr float kAntiParallelDot = 1e-5f;  //!< dot <= -1 + this → treat as 18
 
 namespace vne::interaction {
 
-void Arcball::setViewport(const vne::math::Vec2f& size_px) noexcept {
+void TrackballBehavior::setViewport(const vne::math::Vec2f& size_px) noexcept {
     viewport_px_ = size_px;
 }
 
-vne::math::Vec3f Arcball::projectHyperbolic(float rx, float ry) const noexcept {
+vne::math::Vec3f TrackballBehavior::projectHyperbolic(float rx, float ry) const noexcept {
     // Spherical cap + hyperbolic outer: t = R/sqrt(2); z = sqrt(R² - d²) inside, else t²/d.
     const float radius = kTrackballRadius;
     const float t = radius / std::sqrt(2.0f);
@@ -55,7 +55,7 @@ vne::math::Vec3f Arcball::projectHyperbolic(float rx, float ry) const noexcept {
     return normalizeOrDefaultZ(vne::math::Vec3f(rx, ry, rz));
 }
 
-vne::math::Vec3f Arcball::projectRim(float rx, float ry) const noexcept {
+vne::math::Vec3f TrackballBehavior::projectRim(float rx, float ry) const noexcept {
     vne::math::Vec3f v;
     const float r2 = rx * rx + ry * ry;
     if (r2 <= 1.0f) {
@@ -67,17 +67,18 @@ vne::math::Vec3f Arcball::projectRim(float rx, float ry) const noexcept {
     return normalizeOrDefaultZ(v);
 }
 
-vne::math::Vec3f Arcball::project(const vne::math::Vec2f& cursor_px) const noexcept {
+vne::math::Vec3f TrackballBehavior::project(const vne::math::Vec2f& cursor_px) const noexcept {
     const float w = viewport_px_.x();
     const float h = viewport_px_.y();
     if (w <= 0.0f || h <= 0.0f) {
-        VNE_LOG_WARN << "Arcball::project: invalid viewport size (" << w << ", " << h << "), using +Z fallback";
+        VNE_LOG_WARN << "TrackballBehavior::project: invalid viewport size (" << w << ", " << h
+                     << "), using +Z fallback";
         return vne::math::Vec3f(0.0f, 0.0f, 1.0f);
     }
     const float size_min = std::min(w, h);
     const float half_size = 0.5f * size_min;
     if (half_size < kMinViewportAxis) {
-        VNE_LOG_WARN << "Arcball::project: viewport too small for trackball (min axis " << size_min
+        VNE_LOG_WARN << "TrackballBehavior::project: viewport too small for trackball (min axis " << size_min
                      << " px), using +Z fallback";
         return vne::math::Vec3f(0.0f, 0.0f, 1.0f);
     }
@@ -95,19 +96,19 @@ vne::math::Vec3f Arcball::project(const vne::math::Vec2f& cursor_px) const noexc
         case ProjectionMode::eRim:
             return projectRim(rx, ry);
         default:
-            VNE_LOG_WARN << "Arcball::project: unknown ProjectionMode value " << static_cast<int>(projection_mode_)
-                         << ", using +Z fallback";
+            VNE_LOG_WARN << "TrackballBehavior::project: unknown ProjectionMode value "
+                         << static_cast<int>(projection_mode_) << ", using +Z fallback";
             return vne::math::Vec3f(0.0f, 0.0f, 1.0f);
     }
 }
 
-void Arcball::beginDrag(const vne::math::Vec2f& cursor_px) noexcept {
+void TrackballBehavior::beginDrag(const vne::math::Vec2f& cursor_px) noexcept {
     drag_start_on_sphere_ = project(cursor_px);
     last_cursor_px_ = cursor_px;
 }
 
-BallFrameDelta Arcball::ballFrameDeltaFromSpheres(const vne::math::Vec3f& prev_sphere_unit,
-                                                  const vne::math::Vec3f& curr_sphere_unit) noexcept {
+BallFrameDelta TrackballBehavior::ballFrameDeltaFromSpheres(const vne::math::Vec3f& prev_sphere_unit,
+                                                            const vne::math::Vec3f& curr_sphere_unit) noexcept {
     BallFrameDelta out{};
     const float dot_pc = vne::math::clamp(prev_sphere_unit.dot(curr_sphere_unit), -1.0f, 1.0f);
     out.angle_rad = std::acos(dot_pc);
@@ -130,10 +131,10 @@ BallFrameDelta Arcball::ballFrameDeltaFromSpheres(const vne::math::Vec3f& prev_s
     return out;
 }
 
-vne::math::Quatf Arcball::rotationBetween(const vne::math::Vec3f& from, const vne::math::Vec3f& to) noexcept {
+vne::math::Quatf TrackballBehavior::rotationBetween(const vne::math::Vec3f& from, const vne::math::Vec3f& to) noexcept {
     // Shortest arc: same as unnormalized (1 + dot, from×to) with anti-parallel fallback — see Quatf::fromToRotation.
     if (from.lengthSquared() < kEpsilonLen * kEpsilonLen || to.lengthSquared() < kEpsilonLen * kEpsilonLen) {
-        VNE_LOG_WARN << "Arcball::rotationBetween: zero-length endpoint, returning identity";
+        VNE_LOG_WARN << "TrackballBehavior::rotationBetween: zero-length endpoint, returning identity";
         return vne::math::Quatf::identity();
     }
     const vne::math::Vec3f a = from.normalized();
@@ -141,19 +142,19 @@ vne::math::Quatf Arcball::rotationBetween(const vne::math::Vec3f& from, const vn
     return vne::math::Quatf::fromToRotation(a, b);
 }
 
-vne::math::Quatf Arcball::cumulativeDeltaQuaternion(const vne::math::Vec2f& cursor_px) const noexcept {
+vne::math::Quatf TrackballBehavior::cumulativeDeltaQuaternion(const vne::math::Vec2f& cursor_px) const noexcept {
     return rotationBetween(drag_start_on_sphere_, project(cursor_px));
 }
 
-vne::math::Vec3f Arcball::previousOnSphere() const noexcept {
+vne::math::Vec3f TrackballBehavior::previousOnSphere() const noexcept {
     return project(last_cursor_px_);
 }
 
-void Arcball::endFrame(const vne::math::Vec2f& cursor_px) noexcept {
+void TrackballBehavior::endFrame(const vne::math::Vec2f& cursor_px) noexcept {
     last_cursor_px_ = cursor_px;
 }
 
-void Arcball::reset() noexcept {
+void TrackballBehavior::reset() noexcept {
     drag_start_on_sphere_ = vne::math::Vec3f(0.0f, 0.0f, 1.0f);
     last_cursor_px_ = {};
 }

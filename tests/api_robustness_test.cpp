@@ -7,10 +7,10 @@
  */
 
 #include "vertexnova/interaction/camera_behavior.h"
-#include "vertexnova/interaction/inspect_controller.h"
+#include "vertexnova/interaction/inspect_3d_controller.h"
 #include "vertexnova/interaction/interaction_types.h"
 #include "vertexnova/interaction/navigation_3d_controller.h"
-#include "vertexnova/interaction/orbit_arcball_behavior.h"
+#include "vertexnova/interaction/orbital_camera_behavior.h"
 #include "vertexnova/interaction/ortho_2d_controller.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
@@ -35,23 +35,23 @@ static std::shared_ptr<vne::scene::OrthographicCamera> makeOrthoCamera() {
         vne::scene::OrthographicCameraParameters(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 1000.0f));
 }
 
-TEST(ApiRobustness, OrbitArcballBehaviorIsEnabledDefaultTrue) {
-    vne::interaction::OrbitArcballBehavior b;
+TEST(ApiRobustness, OrbitalCameraBehaviorIsEnabledDefaultTrue) {
+    vne::interaction::OrbitalCameraBehavior b;
     EXPECT_TRUE(b.isEnabled());
 }
 
-TEST(ApiRobustness, OrbitArcballBehaviorSetEnabledFalseReflected) {
-    vne::interaction::OrbitArcballBehavior b;
+TEST(ApiRobustness, OrbitalCameraBehaviorSetEnabledFalseReflected) {
+    vne::interaction::OrbitalCameraBehavior b;
     b.setEnabled(false);
     EXPECT_FALSE(b.isEnabled());
 }
 
-TEST(ApiRobustness, DisabledOrbitArcballBehaviorDoesNotMoveCamera) {
+TEST(ApiRobustness, DisabledOrbitalCameraBehaviorDoesNotMoveCamera) {
     auto cam = makePerspCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
-    vne::interaction::OrbitArcballBehavior b;
+    vne::interaction::OrbitalCameraBehavior b;
     b.setCamera(cam);
     b.onResize(1280.0f, 720.0f);
     b.setEnabled(false);
@@ -71,7 +71,7 @@ TEST(ApiRobustness, DisabledOrbitArcballBehaviorDoesNotMoveCamera) {
 }
 
 TEST(ApiRobustness, SetViewportSizeZeroClamped) {
-    vne::interaction::OrbitArcballBehavior b;
+    vne::interaction::OrbitalCameraBehavior b;
     auto cam = makePerspCamera();
     b.setCamera(cam);
     b.onResize(0.0f, 0.0f);
@@ -88,7 +88,7 @@ TEST(ApiRobustness, DetachThenUpdateAndActionSafe) {
     p.delta_x_px = 10.0f;
     p.zoom_factor = 1.1f;
 
-    vne::interaction::OrbitArcballBehavior b;
+    vne::interaction::OrbitalCameraBehavior b;
     b.setCamera(cam);
     b.onResize(1280.0f, 720.0f);
     b.setCamera(nullptr);  // detach
@@ -105,7 +105,7 @@ TEST(ApiRobustness, DetachThenUpdateAndActionSafe) {
 
 TEST(ApiRobustness, ControllerDetachThenEventAndUpdateSafe) {
     auto cam = makePerspCamera();
-    vne::interaction::InspectController ctrl;
+    vne::interaction::Inspect3DController ctrl;
     ctrl.setCamera(cam);
     ctrl.onResize(1280.0f, 720.0f);
     ctrl.setCamera(nullptr);  // detach
@@ -120,30 +120,30 @@ TEST(ApiRobustness, ControllerDetachThenEventAndUpdateSafe) {
     });
 }
 
-TEST(ApiRobustness, InspectControllerScrollZoom) {
+TEST(ApiRobustness, Inspect3DControllerScrollZoom) {
     auto cam = makePerspCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 10.0f));
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
-    vne::interaction::InspectController ctrl;
+    vne::interaction::Inspect3DController ctrl;
     ctrl.setCamera(cam);
     ctrl.onResize(1280.0f, 720.0f);
-    ctrl.orbitArcballBehavior().setZoomSpeed(2.0f);
+    ctrl.orbitalCameraBehavior().setZoomSpeed(2.0f);
 
-    const float dist_before = ctrl.orbitArcballBehavior().getOrbitDistance();
+    const float dist_before = ctrl.orbitalCameraBehavior().getOrbitDistance();
     vne::events::MouseMovedEvent pos(640.0, 360.0);
     ctrl.onEvent(pos, 0.016);
     vne::events::MouseScrolledEvent scroll(0.0, 1.0);
     ctrl.onEvent(scroll, 0.016);
     ctrl.onUpdate(0.016);
 
-    const float dist_after = ctrl.orbitArcballBehavior().getOrbitDistance();
+    const float dist_after = ctrl.orbitalCameraBehavior().getOrbitDistance();
     EXPECT_LT(dist_after, dist_before);
 }
 
 TEST(ApiRobustness, FitToAABBPositionsCOI) {
     auto cam = makePerspCamera();
-    vne::interaction::InspectController ctrl;
+    vne::interaction::Inspect3DController ctrl;
     ctrl.setCamera(cam);
     ctrl.onResize(1280.0f, 720.0f);
 
@@ -151,7 +151,7 @@ TEST(ApiRobustness, FitToAABBPositionsCOI) {
     const vne::math::Vec3f max_w(10.0f, 10.0f, 10.0f);
     ctrl.fitToAABB(min_w, max_w);
 
-    const auto coi = ctrl.orbitArcballBehavior().getCenterOfInterestWorld();
+    const auto coi = ctrl.orbitalCameraBehavior().getCenterOfInterestWorld();
     const vne::math::Vec3f center = (min_w + max_w) * 0.5f;
     EXPECT_NEAR(coi.x(), center.x(), 1e-2f);
     EXPECT_NEAR(coi.y(), center.y(), 1e-2f);

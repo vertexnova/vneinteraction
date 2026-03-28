@@ -33,7 +33,7 @@ namespace vne::interaction {
  *
  * All registered behaviors receive every CameraAction. Each behavior silently
  * ignores actions it doesn't handle. This enables composition: e.g. adding
- * both OrbitArcballBehavior and FreeLookBehavior creates a "game camera" that
+ * both OrbitalCameraBehavior and FreeLookBehavior creates a "game camera" that
  * supports both orbiting and WASD flight simultaneously.
  *
  * ### Usage
@@ -43,7 +43,7 @@ namespace vne::interaction {
  *
  * // Custom composition (game camera):
  * CameraRig rig;
- * rig.addBehavior(std::make_shared<OrbitArcballBehavior>());
+ * rig.addBehavior(std::make_shared<OrbitalCameraBehavior>());
  * rig.addBehavior(std::make_shared<FreeLookBehavior>());
  * ```
  *
@@ -119,11 +119,11 @@ class VNE_INTERACTION_API CameraRig {
     // Convenience factory methods
     // -------------------------------------------------------------------------
 
-    /** Orbit rig: OrbitArcballBehavior with Euler rotation. Default for 3D model viewers. */
+    /** Orbit rig: OrbitalCameraBehavior with Euler rotation. Default for 3D model viewers. */
     static CameraRig makeOrbit();
 
-    /** Arcball rig: OrbitArcballBehavior with Quaternion rotation. Smoother, no gimbal lock. */
-    static CameraRig makeArcball();
+    /** Trackball rig: OrbitalCameraBehavior with quaternion rotation. Smoother, no gimbal lock. */
+    static CameraRig makeTrackball();
 
     /** FPS rig: FreeLookBehavior with world-up constraint. */
     static CameraRig makeFps();
@@ -138,7 +138,7 @@ class VNE_INTERACTION_API CameraRig {
     static CameraRig makeFollow();
 
     /**
-     * Game camera rig: OrbitArcballBehavior (Euler) + FreeLookBehavior (constrained).
+     * Game camera rig: OrbitalCameraBehavior (Euler) + FreeLookBehavior (constrained).
      * LMB orbits, RMB looks, WASD flies — all simultaneously.
      */
     static CameraRig makeGameCamera();

@@ -74,7 +74,7 @@ inline void buildReferenceFrame(const vne::math::Vec3f& world_up,
 
 /**
  * @brief Convert top-left-origin mouse coords to NDC [-1, 1].
- * API-independent; for manual frustum geometry (pan, arcball, zoom-to-cursor).
+ * API-independent; for manual frustum geometry (pan, trackball, zoom-to-cursor).
  */
 [[nodiscard]] inline vne::math::Vec2f mouseToNDC(float mx, float my, float w, float h) noexcept {
     if (w <= 0.0f || h <= 0.0f) {

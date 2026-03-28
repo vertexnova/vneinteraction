@@ -10,7 +10,7 @@
  */
 
 #include "vertexnova/interaction/follow_controller.h"
-#include "vertexnova/interaction/inspect_controller.h"
+#include "vertexnova/interaction/inspect_3d_controller.h"
 #include "vertexnova/interaction/navigation_3d_controller.h"
 #include "vertexnova/interaction/ortho_2d_controller.h"
 
@@ -40,13 +40,13 @@ std::shared_ptr<vne::scene::OrthographicCamera> makeOrthoCamera() {
 
 }  // namespace
 
-TEST(ControllerMoveSafety, InspectController_EventAndUpdateAfterMove) {
-    vne::interaction::InspectController src;
+TEST(ControllerMoveSafety, Inspect3DController_EventAndUpdateAfterMove) {
+    vne::interaction::Inspect3DController src;
     auto cam = makePerspCamera();
     src.setCamera(cam);
     src.onResize(1280.0f, 720.0f);
 
-    vne::interaction::InspectController moved = std::move(src);
+    vne::interaction::Inspect3DController moved = std::move(src);
 
     vne::events::MouseScrolledEvent scroll(0.0, 1.0);
     vne::events::MouseButtonPressedEvent press(vne::events::MouseButton::eLeft, 0, 640.0, 360.0);

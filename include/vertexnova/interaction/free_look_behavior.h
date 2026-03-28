@@ -13,6 +13,10 @@
  * @file free_look_behavior.h
  * @brief FreeLookBehavior — FPS / Fly camera behavior (ICameraBehavior implementation).
  *
+ * Orientation is stored as **Euler yaw/pitch** (degrees) and converted to a view via @c lookAt;
+ * there is no quaternion look mode (unlike @ref OrbitalCameraBehavior, which offers Euler orbit or
+ * trackball quaternion rotation).
+ *
  * WASD movement + mouse look. Two modes:
  * - FreeLookMode::eFps — world up fixed, pitch clamped [-89°, 89°]
  * - FreeLookMode::eFly  — unconstrained, up follows camera
@@ -131,7 +135,7 @@ class VNE_INTERACTION_API FreeLookBehavior final : public CameraBehaviorBase {
 
     /**
      * @brief Enable or disable zoom handling for this behavior (default: true).
-     * Disable when another behavior in the same rig (e.g. OrbitArcballBehavior)
+     * Disable when another behavior in the same rig (e.g. OrbitalCameraBehavior)
      * should own eZoomAtCursor to avoid double-zoom per scroll tick.
      */
     void setHandleZoom(bool enable) noexcept { handle_zoom_ = enable; }

@@ -10,14 +10,14 @@
  */
 
 /**
- * @file inspect_controller.h
- * @brief InspectController — high-level camera controller for object inspection.
+ * @file inspect_3d_controller.h
+ * @brief Inspect3DController — high-level camera controller for object inspection.
  *
- * The simplest way to add orbit/arcball camera interaction to a 3D viewer, CAD tool,
+ * The simplest way to add orbit / trackball camera interaction to a 3D viewer, CAD tool,
  * or medical 3D application. Three lines of setup:
  *
  * @code
- * auto ctrl = vne::interaction::InspectController{};
+ * auto ctrl = vne::interaction::Inspect3DController{};
  * ctrl.setCamera(camera);
  * ctrl.onResize(1920, 1080);
  * // In your loop:
@@ -26,7 +26,7 @@
  * @endcode
  *
  * ### Defaults
- * - Rotation: Arcball (quaternion) — smooth, no gimbal lock
+ * - Rotation: Trackball (quaternion) — smooth, no gimbal lock
  * - LMB drag = rotate, RMB/MMB drag = pan, scroll = zoom
  * - Double-click LMB = move pivot to cursor (auto-pivot)
  * - Pivot mode: eCoi (follows panning)
@@ -68,25 +68,25 @@ class ICamera;
 namespace vne::interaction {
 
 class InputMapper;
-class OrbitArcballBehavior;
+class OrbitalCameraBehavior;
 
 /**
  * @brief High-level camera controller for object inspection.
  *
- * Wraps a CameraRig (OrbitArcballBehavior) and an InputMapper with a sensible preset.
+ * Wraps a CameraRig (OrbitalCameraBehavior) and an InputMapper with a sensible preset.
  * Covers: 3D model viewers, CAD, scientific visualization, medical 3D.
  *
  * @threadsafe Not thread-safe. Call all methods from the same thread.
  */
-class VNE_INTERACTION_API InspectController {
+class VNE_INTERACTION_API Inspect3DController {
    public:
-    InspectController();
-    ~InspectController();
+    Inspect3DController();
+    ~Inspect3DController();
 
-    InspectController(const InspectController&) = delete;
-    InspectController& operator=(const InspectController&) = delete;
-    InspectController(InspectController&&) noexcept;
-    InspectController& operator=(InspectController&&) noexcept;
+    Inspect3DController(const Inspect3DController&) = delete;
+    Inspect3DController& operator=(const Inspect3DController&) = delete;
+    Inspect3DController(Inspect3DController&&) noexcept;
+    Inspect3DController& operator=(Inspect3DController&&) noexcept;
 
     // -------------------------------------------------------------------------
     // Core setup — must call before first onEvent / onUpdate
@@ -112,7 +112,7 @@ class VNE_INTERACTION_API InspectController {
     // Rotation
     // -------------------------------------------------------------------------
 
-    /** Switch rotation algorithm (default: OrbitRotationMode::eArcball). */
+    /** Switch rotation algorithm (default: OrbitRotationMode::eTrackball). */
     void setRotationMode(OrbitRotationMode mode) noexcept;
     [[nodiscard]] OrbitRotationMode getRotationMode() const noexcept;
 
@@ -128,10 +128,10 @@ class VNE_INTERACTION_API InspectController {
     void setPivot(const vne::math::Vec3f& world_pos) noexcept;
 
     /**
-     * @brief Control how the pivot point behaves.
-     * - eCoi    — pivot follows panning (default)
-     * - eFixed  — pivot stays at the point set by setPivot()
-     * - eViewCenter — pivot moves to screen-center on pan end
+     * @brief Control how the pivot point behaves (see @ref OrbitPivotMode).
+     * - eCoi — orbit center follows pan in the view plane (default)
+     * - eFixed — world pivot fixed; pan trucks eye+target (e.g. after @ref setPivot)
+     * - eViewCenter — same as eCoi while panning; on pan end, COI syncs from the camera target
      */
     void setPivotMode(OrbitPivotMode mode) noexcept;
     [[nodiscard]] OrbitPivotMode getPivotMode() const noexcept;
@@ -164,8 +164,8 @@ class VNE_INTERACTION_API InspectController {
     /** Direct access to the underlying InputMapper for full rebind. */
     [[nodiscard]] InputMapper& inputMapper() noexcept;
 
-    /** Direct access to the underlying OrbitArcballBehavior for fine-tuning. */
-    [[nodiscard]] OrbitArcballBehavior& orbitArcballBehavior() noexcept;
+    /** Direct access to the underlying OrbitalCameraBehavior for fine-tuning. */
+    [[nodiscard]] OrbitalCameraBehavior& orbitalCameraBehavior() noexcept;
 
    private:
     void rebuildRules() noexcept;

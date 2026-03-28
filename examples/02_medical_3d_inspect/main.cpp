@@ -2,12 +2,12 @@
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
- * Example 02: Medical 3D inspect — InspectController with arcball,
+ * Example 02: Medical 3D inspect — Inspect3DController with trackball,
  * landmark pivot, fitToAABB, DOF toggles.
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/interaction/inspect_controller.h"
+#include "vertexnova/interaction/inspect_3d_controller.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
 
@@ -22,13 +22,13 @@ int main() {
     camera->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
     camera->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
-    vne::interaction::InspectController ctrl;
+    vne::interaction::Inspect3DController ctrl;
     ctrl.setCamera(camera);
     ctrl.onResize(1280.0f, 720.0f);
 
-    // Default: arcball (quaternion), eCoi pivot
+    // Default: trackball (quaternion), eCoi pivot
     VNE_LOG_INFO << "Rotation mode: "
-                 << (ctrl.getRotationMode() == vne::interaction::OrbitRotationMode::eArcball ? "arcball" : "orbit");
+                 << (ctrl.getRotationMode() == vne::interaction::OrbitRotationMode::eTrackball ? "trackball" : "orbit");
 
     // Landmark-centered inspection (medical use case)
     ctrl.setPivot(vne::math::Vec3f(0.5f, 0.3f, 0.0f));  // e.g. anatomical landmark
@@ -65,6 +65,6 @@ int main() {
         ctrl.onUpdate(dt);
     }
 
-    VNE_LOG_INFO << "Medical 3D inspect: arcball, fixed pivot, fitToAABB — done.";
+    VNE_LOG_INFO << "Medical 3D inspect: trackball, fixed pivot, fitToAABB — done.";
     return 0;
 }

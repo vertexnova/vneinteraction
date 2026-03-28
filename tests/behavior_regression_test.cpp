@@ -5,13 +5,13 @@
 
 /**
  * Regression tests for behavior fixes: pan direction, pitch direction,
- * zoom-to-cursor, mouseToNDC, and buildReferenceFrame / arcball pole safety.
+ * zoom-to-cursor, mouseToNDC, and buildReferenceFrame / trackball pole safety.
  */
 
 #include "vertexnova/interaction/behavior_utils.h"
 #include "vertexnova/interaction/free_look_behavior.h"
 #include "vertexnova/interaction/ortho_pan_zoom_behavior.h"
-#include "vertexnova/interaction/orbit_arcball_behavior.h"
+#include "vertexnova/interaction/orbital_camera_behavior.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
 #include "vertexnova/scene/camera/orthographic_camera.h"
@@ -169,7 +169,7 @@ TEST(BehaviorRegression, OrbitEuler_PositiveYawTurnsRight) {
     persp->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
     persp->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
-    vne::interaction::OrbitArcballBehavior b;
+    vne::interaction::OrbitalCameraBehavior b;
     b.setRotationMode(vne::interaction::OrbitRotationMode::eOrbit);
     b.setCamera(persp);
     b.onResize(800.0f, 600.0f);
@@ -187,15 +187,15 @@ TEST(BehaviorRegression, OrbitEuler_PositiveYawTurnsRight) {
         << "Drag right (positive delta_x) should orbit camera left (position X decreases in RH Y-up)";
 }
 
-// Arcball uses absolute cursor in eRotateDelta; same horizontal drag should match Euler orbit sense.
-TEST(BehaviorRegression, OrbitArcball_HorizontalDragMatchesEulerSign) {
+// Trackball mode uses absolute cursor in eRotateDelta; same horizontal drag should match Euler orbit sense.
+TEST(BehaviorRegression, OrbitalCamera_HorizontalDragMatchesEulerSign) {
     auto persp = vne::scene::CameraFactory::createPerspective(
         vne::scene::PerspectiveCameraParameters(45.0f, 16.0f / 9.0f, 0.1f, 1000.0f));
     persp->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
     persp->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
-    vne::interaction::OrbitArcballBehavior b;
-    b.setRotationMode(vne::interaction::OrbitRotationMode::eArcball);
+    vne::interaction::OrbitalCameraBehavior b;
+    b.setRotationMode(vne::interaction::OrbitRotationMode::eTrackball);
     b.setCamera(persp);
     b.onResize(800.0f, 600.0f);
 
@@ -210,7 +210,7 @@ TEST(BehaviorRegression, OrbitArcball_HorizontalDragMatchesEulerSign) {
     b.onAction(vne::interaction::CameraActionType::eEndRotate, p, 0.0);
 
     vne::math::Vec3f pos_after = persp->getPosition();
-    EXPECT_LT(pos_after.x(), pos_before.x()) << "Arcball drag right should match Euler: camera X decreases";
+    EXPECT_LT(pos_after.x(), pos_before.x()) << "Trackball drag right should match Euler: camera X decreases";
 }
 
 }  // namespace vne_interaction_regression_test

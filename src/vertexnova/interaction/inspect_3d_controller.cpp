@@ -7,10 +7,10 @@
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/interaction/inspect_controller.h"
+#include "vertexnova/interaction/inspect_3d_controller.h"
 
 #include "vertexnova/interaction/input_mapper.h"
-#include "vertexnova/interaction/orbit_arcball_behavior.h"
+#include "vertexnova/interaction/orbital_camera_behavior.h"
 
 #include "controller_event_dispatch.h"
 
@@ -19,7 +19,7 @@
 #include <algorithm>
 
 namespace {
-CREATE_VNE_LOGGER_CATEGORY("vne.interaction.inspect");
+CREATE_VNE_LOGGER_CATEGORY("vne.interaction.inspect_3d");
 }  // namespace
 
 namespace vne::interaction {
@@ -30,16 +30,16 @@ using namespace vne;
 // Pimpl
 // ---------------------------------------------------------------------------
 
-struct InspectController::Impl {
+struct Inspect3DController::Impl {
     CameraRig rig;
     InputMapper mapper;
-    std::shared_ptr<OrbitArcballBehavior> orbit;  // shared ownership; also in rig
+    std::shared_ptr<OrbitalCameraBehavior> orbit;  // shared ownership; also in rig
 
     std::shared_ptr<vne::scene::ICamera> camera;
     float viewport_w = 1280.0f;
     float viewport_h = 720.0f;
 
-    OrbitRotationMode rotation_mode = OrbitRotationMode::eArcball;
+    OrbitRotationMode rotation_mode = OrbitRotationMode::eTrackball;
     bool rotation_enabled = true;
     bool pan_enabled = true;
     bool zoom_enabled = true;
@@ -124,11 +124,11 @@ static std::vector<InputRule> buildInspectRules(bool rotation, bool pan, bool zo
 // Constructor / destructor
 // ---------------------------------------------------------------------------
 
-InspectController::InspectController()
+Inspect3DController::Inspect3DController()
     : impl_(std::make_unique<Impl>()) {
-    // Build rig with arcball orbit
-    impl_->orbit = std::make_shared<OrbitArcballBehavior>();
-    impl_->orbit->setRotationMode(OrbitRotationMode::eArcball);
+    // Build rig with trackball orbit
+    impl_->orbit = std::make_shared<OrbitalCameraBehavior>();
+    impl_->orbit->setRotationMode(OrbitRotationMode::eTrackball);
     impl_->rig.addBehavior(impl_->orbit);
 
     // Wire mapper ->rig. Capture raw Impl* so the callback stays valid across moves.
@@ -139,23 +139,23 @@ InspectController::InspectController()
     rebuildRules();
 }
 
-InspectController::~InspectController() = default;
-InspectController::InspectController(InspectController&&) noexcept = default;
-InspectController& InspectController::operator=(InspectController&&) noexcept = default;
+Inspect3DController::~Inspect3DController() = default;
+Inspect3DController::Inspect3DController(Inspect3DController&&) noexcept = default;
+Inspect3DController& Inspect3DController::operator=(Inspect3DController&&) noexcept = default;
 
 // ---------------------------------------------------------------------------
 // Core setup
 // ---------------------------------------------------------------------------
 
-void InspectController::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
+void Inspect3DController::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
     impl_->camera = camera;
     if (!camera) {
-        VNE_LOG_DEBUG << "InspectController: camera detached (null camera)";
+        VNE_LOG_DEBUG << "Inspect3DController: camera detached (null camera)";
     }
     impl_->rig.setCamera(camera);
 }
 
-void InspectController::onResize(float w, float h) noexcept {
+void Inspect3DController::onResize(float w, float h) noexcept {
     impl_->viewport_w = w;
     impl_->viewport_h = h;
     impl_->rig.onResize(w, h);
@@ -165,11 +165,11 @@ void InspectController::onResize(float w, float h) noexcept {
 // Per-frame
 // ---------------------------------------------------------------------------
 
-void InspectController::onEvent(const events::Event& event, double delta_time) noexcept {
+void Inspect3DController::onEvent(const events::Event& event, double delta_time) noexcept {
     dispatchMouseEvents(impl_->mapper, impl_->cursor, event, delta_time);
 }
 
-void InspectController::onUpdate(double dt) noexcept {
+void Inspect3DController::onUpdate(double dt) noexcept {
     impl_->rig.onUpdate(dt);
 }
 
@@ -177,14 +177,14 @@ void InspectController::onUpdate(double dt) noexcept {
 // Rotation mode
 // ---------------------------------------------------------------------------
 
-void InspectController::setRotationMode(OrbitRotationMode mode) noexcept {
+void Inspect3DController::setRotationMode(OrbitRotationMode mode) noexcept {
     impl_->rotation_mode = mode;
     if (impl_->orbit) {
         impl_->orbit->setRotationMode(mode);
     }
 }
 
-OrbitRotationMode InspectController::getRotationMode() const noexcept {
+OrbitRotationMode Inspect3DController::getRotationMode() const noexcept {
     return impl_->rotation_mode;
 }
 
@@ -192,20 +192,20 @@ OrbitRotationMode InspectController::getRotationMode() const noexcept {
 // Pivot
 // ---------------------------------------------------------------------------
 
-void InspectController::setPivot(const vne::math::Vec3f& world_pos) noexcept {
+void Inspect3DController::setPivot(const vne::math::Vec3f& world_pos) noexcept {
     if (impl_->orbit) {
         impl_->orbit->setPivot(world_pos, CenterOfInterestSpace::eWorldSpace);
         impl_->orbit->setPivotMode(OrbitPivotMode::eFixed);
     }
 }
 
-void InspectController::setPivotMode(OrbitPivotMode mode) noexcept {
+void Inspect3DController::setPivotMode(OrbitPivotMode mode) noexcept {
     if (impl_->orbit) {
         impl_->orbit->setPivotMode(mode);
     }
 }
 
-OrbitPivotMode InspectController::getPivotMode() const noexcept {
+OrbitPivotMode Inspect3DController::getPivotMode() const noexcept {
     if (impl_->orbit)
         return impl_->orbit->getPivotMode();
     return OrbitPivotMode::eCoi;
@@ -215,17 +215,17 @@ OrbitPivotMode InspectController::getPivotMode() const noexcept {
 // DOF enable/disable
 // ---------------------------------------------------------------------------
 
-void InspectController::setRotationEnabled(bool enabled) noexcept {
+void Inspect3DController::setRotationEnabled(bool enabled) noexcept {
     impl_->rotation_enabled = enabled;
     rebuildRules();
 }
 
-void InspectController::setPanEnabled(bool enabled) noexcept {
+void Inspect3DController::setPanEnabled(bool enabled) noexcept {
     impl_->pan_enabled = enabled;
     rebuildRules();
 }
 
-void InspectController::setZoomEnabled(bool enabled) noexcept {
+void Inspect3DController::setZoomEnabled(bool enabled) noexcept {
     impl_->zoom_enabled = enabled;
     rebuildRules();
 }
@@ -234,12 +234,12 @@ void InspectController::setZoomEnabled(bool enabled) noexcept {
 // Convenience
 // ---------------------------------------------------------------------------
 
-void InspectController::fitToAABB(const vne::math::Vec3f& mn, const vne::math::Vec3f& mx) noexcept {
+void Inspect3DController::fitToAABB(const vne::math::Vec3f& mn, const vne::math::Vec3f& mx) noexcept {
     if (impl_->orbit)
         impl_->orbit->fitToAABB(mn, mx);
 }
 
-void InspectController::reset() noexcept {
+void Inspect3DController::reset() noexcept {
     impl_->cursor = {};
     impl_->rig.resetState();
     impl_->mapper.resetState();
@@ -249,11 +249,11 @@ void InspectController::reset() noexcept {
 // Escape hatches
 // ---------------------------------------------------------------------------
 
-InputMapper& InspectController::inputMapper() noexcept {
+InputMapper& Inspect3DController::inputMapper() noexcept {
     return impl_->mapper;
 }
 
-OrbitArcballBehavior& InspectController::orbitArcballBehavior() noexcept {
+OrbitalCameraBehavior& Inspect3DController::orbitalCameraBehavior() noexcept {
     return *impl_->orbit;
 }
 
@@ -261,7 +261,7 @@ OrbitArcballBehavior& InspectController::orbitArcballBehavior() noexcept {
 // Private
 // ---------------------------------------------------------------------------
 
-void InspectController::rebuildRules() noexcept {
+void Inspect3DController::rebuildRules() noexcept {
     auto rules = buildInspectRules(impl_->rotation_enabled, impl_->pan_enabled, impl_->zoom_enabled);
     impl_->mapper.setRules(rules);
 }
