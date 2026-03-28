@@ -19,9 +19,6 @@
 namespace {
 CREATE_VNE_LOGGER_CATEGORY("vne.interaction.arcball");
 
-/** Near-zero threshold. */
-constexpr float kEpsilon = 1e-6f;
-
 constexpr float kMinViewportAxis = 1e-6f;
 /** Radius in normalized trackball coordinates (unit ball). */
 constexpr float kTrackballRadius = 1.0f;

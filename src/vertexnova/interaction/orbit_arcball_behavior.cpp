@@ -723,13 +723,14 @@ void OrbitArcballBehavior::setViewDirection(ViewDirection dir) noexcept {
             yaw = 90.0f;
             pitch = 0.0f;
             break;
+        // Straight down/up: use current Euler pitch limits (defaults ±89°).
         case ViewDirection::eTop:
             yaw = 0.0f;
-            pitch = -89.0f;
+            pitch = euler_orbit_.getPitchMinDeg();
             break;
         case ViewDirection::eBottom:
             yaw = 0.0f;
-            pitch = 89.0f;
+            pitch = euler_orbit_.getPitchMaxDeg();
             break;
         case ViewDirection::eIso:
             yaw = 45.0f;

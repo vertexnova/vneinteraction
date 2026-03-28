@@ -126,7 +126,11 @@ class VNE_INTERACTION_API OrbitArcballBehavior final : public CameraBehaviorBase
     /** Set the world-space up vector (default: +Y). */
     void setWorldUp(const vne::math::Vec3f& world_up) noexcept;
 
-    /** Set the camera view-direction preset (front, back, top, iso…). */
+    /**
+     * @brief Set the camera view-direction preset (front, back, top, iso…).
+     * @details For @c eTop / @c eBottom, pitch matches @ref EulerOrbit::getPitchMinDeg() /
+     *          getPitchMaxDeg() on the internal Euler orbit (defaults ±89°).
+     */
     void setViewDirection(ViewDirection dir) noexcept;
 
     /** Set orbit distance (camera-to-pivot); clamped to [0.01, 1e6]. */

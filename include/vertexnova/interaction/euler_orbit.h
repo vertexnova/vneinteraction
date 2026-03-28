@@ -139,6 +139,9 @@ class VNE_INTERACTION_API EulerOrbit {
      * @param rotation_speed_deg_per_px     Degrees of rotation per pixel (behavior tuning).
      * @param delta_time                    Frame time for this drag sample (seconds).
      * @param min_delta_time_for_inertia    Minimum dt to consider when updating inertia rates (seconds).
+     *                                      Non-finite values log a warning and use an internal floor; non-positive
+     *                                      values are clamped to that floor. Inertia rates are updated only when
+     *                                      @a delta_time is finite, positive, and @c 1/delta_time is finite.
      */
     void applyDrag(float delta_x_px,
                    float delta_y_px,

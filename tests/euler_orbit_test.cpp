@@ -81,4 +81,22 @@ TEST(EulerOrbit, BeginDragClearsInertia) {
     EXPECT_FLOAT_EQ(o.getInertiaSpeedYDegPerSec(), 0.0f);
 }
 
+TEST(EulerOrbit, ApplyDragZeroDeltaTimeDoesNotPoisonInertia) {
+    vne::interaction::EulerOrbit o;
+    o.beginDrag();
+    o.applyDrag(100.0f, 0.0f, 0.5f, 0.0, 0.001);
+    EXPECT_TRUE(std::isfinite(o.getInertiaSpeedXDegPerSec()));
+    EXPECT_TRUE(std::isfinite(o.getInertiaSpeedYDegPerSec()));
+    EXPECT_FLOAT_EQ(o.getInertiaSpeedXDegPerSec(), 0.0f);
+}
+
+TEST(EulerOrbit, ApplyDragNonPositiveMinDeltaTimeClampedForInertia) {
+    vne::interaction::EulerOrbit o;
+    o.beginDrag();
+    o.applyDrag(100.0f, 0.0f, 0.5f, 0.016, 0.0);
+    const float speed = std::abs(o.getInertiaSpeedXDegPerSec());
+    EXPECT_TRUE(std::isfinite(speed));
+    EXPECT_GT(speed, 1.0f);
+}
+
 }  // namespace vne_interaction_test

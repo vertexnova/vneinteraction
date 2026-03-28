@@ -25,6 +25,8 @@ CREATE_VNE_LOGGER_CATEGORY("vne.interaction.euler_orbit");
 
 /** Near-zero threshold. */
 constexpr float kEpsilon = 1e-6f;
+/** Minimum valid interval (seconds) for inertia rate sampling; clamps @a min_delta_time_for_inertia. */
+constexpr double kMinDeltaTimeForInertiaFloor = 1e-9;
 }  // namespace
 
 namespace vne::interaction {
@@ -111,10 +113,25 @@ void EulerOrbit::applyDrag(const float delta_x_px,
     yaw_deg_ += delta_x_px * speed;
     pitch_deg_ += delta_y_px * speed;
     pitch_deg_ = vne::math::clamp(pitch_deg_, pitch_min_deg_, pitch_max_deg_);
-    if (delta_time >= min_delta_time_for_inertia) {
-        const float inv_dt = 1.0f / static_cast<float>(delta_time);
-        inertia_rot_speed_x_ = delta_x_px * speed * inv_dt;
-        inertia_rot_speed_y_ = delta_y_px * speed * inv_dt;
+
+    double min_inertia_dt = min_delta_time_for_inertia;
+    if (!std::isfinite(min_inertia_dt)) {
+        VNE_LOG_WARN << "EulerOrbit::applyDrag: min_delta_time_for_inertia not finite, using floor";
+        min_inertia_dt = kMinDeltaTimeForInertiaFloor;
+    } else if (min_inertia_dt <= 0.0) {
+        min_inertia_dt = kMinDeltaTimeForInertiaFloor;
+    } else {
+        min_inertia_dt = std::max(min_inertia_dt, kMinDeltaTimeForInertiaFloor);
+    }
+
+    const double dt = delta_time;
+    if (std::isfinite(dt) && dt > 0.0 && dt >= min_inertia_dt) {
+        const double inv = 1.0 / dt;
+        if (std::isfinite(inv)) {
+            const float inv_dt = static_cast<float>(inv);
+            inertia_rot_speed_x_ = delta_x_px * speed * inv_dt;
+            inertia_rot_speed_y_ = delta_y_px * speed * inv_dt;
+        }
     }
 }
 
