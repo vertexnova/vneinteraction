@@ -454,10 +454,7 @@ void OrbitalCameraBehavior::onZoomDolly(float factor, float mouse_x_px, float mo
             auto persp = perspCamera();
             if (persp) {
                 const float fov = persp->getFieldOfView();
-                const float new_fov =
-                    vne::math::clamp(fov * ((factor < 1.0f) ? (1.0f / fov_zoom_speed_) : fov_zoom_speed_),
-                                     kFovMinDeg,
-                                     kFovMaxDeg);
+                const float new_fov = vne::math::clamp(fov * factor, kFovMinDeg, kFovMaxDeg);
                 persp->setFieldOfView(new_fov);
                 persp->updateMatrices();
                 // If FOV has not changed (limit reached), fall through to dolly so zoom doesn't feel stuck

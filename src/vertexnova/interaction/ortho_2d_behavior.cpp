@@ -39,15 +39,14 @@ constexpr float kMinRotationAngleRad = 1e-8f;
  */
 void scalePanVelocityWithOrthoExtentChange(vne::math::Vec3f& pan_velocity,
                                           ZoomMethod method,
-                                          float zoom_factor,
-                                          float fov_zoom_speed) noexcept {
+                                          float zoom_factor) noexcept {
     float extent_scale = 1.0f;
     switch (method) {
         case ZoomMethod::eDollyToCoi:
             extent_scale = zoom_factor;
             break;
         case ZoomMethod::eChangeFov:
-            extent_scale = (zoom_factor < 1.0f) ? (1.0f / fov_zoom_speed) : fov_zoom_speed;
+            extent_scale = zoom_factor;
             break;
         case ZoomMethod::eSceneScale:
             return;
@@ -299,8 +298,7 @@ bool Ortho2DBehavior::onAction(CameraActionType action,
 
         case CameraActionType::eZoomAtCursor:
             if (payload.zoom_factor > 0.0f && payload.zoom_factor != 1.0f) {
-                scalePanVelocityWithOrthoExtentChange(
-                    pan_velocity_, getZoomMethod(), payload.zoom_factor, getFovZoomSpeed());
+                scalePanVelocityWithOrthoExtentChange(pan_velocity_, getZoomMethod(), payload.zoom_factor);
                 dispatchZoom(payload.zoom_factor, payload.x_px, payload.y_px);
                 return true;
             }

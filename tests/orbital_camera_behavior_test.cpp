@@ -110,7 +110,7 @@ TEST(OrbitalCameraBehavior, ResetState) {
 }
 
 // kFovMaxDeg in CameraBehaviorBase is 120 — must match OrbitalCameraBehavior::onZoomDolly clamp.
-// Use max FOV so 120 * fov_zoom_speed_ clamps back to 120 with exact float equality (new_fov == fov),
+// Use max FOV so 120 * zoom_factor clamps back to 120 with exact float equality (new_fov == fov),
 // deterministically exercising fallthrough to dolly. At min FOV, tiny float drift can make
 // new_fov != fov and return early before dolly.
 TEST(OrbitalCameraBehavior, ChangeFovZoomFallsThroughToDollyWhenFovClamped) {
@@ -134,7 +134,7 @@ TEST(OrbitalCameraBehavior, ChangeFovZoomFallsThroughToDollyWhenFovClamped) {
     vne::interaction::CameraCommandPayload p;
     p.x_px = 640.0f;
     p.y_px = 360.0f;
-    p.zoom_factor = 1.1f;  // zoom out (> 1): 120*1.05 clamps to 120 → fallthrough to dolly
+    p.zoom_factor = 1.1f;  // zoom out: 120*1.1 clamps to 120 → fallthrough to dolly
     b.onAction(vne::interaction::CameraActionType::eZoomAtCursor, p, 0.0);
 
     EXPECT_FLOAT_EQ(cam->getFieldOfView(), kFovMaxDeg);

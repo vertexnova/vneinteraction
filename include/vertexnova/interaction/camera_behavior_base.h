@@ -79,16 +79,13 @@ class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
     // -------------------------------------------------------------------------
 
     /** Set the zoom interaction method (dolly, scene scale, or FOV). */
-    void setZoomMethod(ZoomMethod method) noexcept { zoom_method_ = method; }
+    void setZoomMethod(ZoomMethod method) noexcept;
     /** Get the current zoom interaction method. */
     [[nodiscard]] ZoomMethod getZoomMethod() const noexcept { return zoom_method_; }
 
     /**
-     * @brief Set the step rate for FOV and scene-scale zoom (>= 0.01).
-     *
-     * For eChangeFov: FOV is divided by this value on zoom-in and multiplied
-     * by it on zoom-out.
-     * For eSceneScale: the accumulated scale is multiplied/divided by this value.
+     * @brief Reserved tuning knob (>= 0.01). eChangeFov uses scroll/pinch factor magnitude
+     * directly on FOV / ortho extents; eSceneScale multiplies accumulated scale by the event factor.
      */
     void setFovZoomSpeed(float speed) noexcept;
     [[nodiscard]] float getFovZoomSpeed() const noexcept { return fov_zoom_speed_; }
@@ -174,25 +171,19 @@ class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
     // -------------------------------------------------------------------------
 
     /**
-     * @brief FOV zoom — applies fov_zoom_speed_ in the direction given by factor.
+     * @brief FOV / ortho-extent zoom using the event factor magnitude.
      *
-     * Perspective: FOV multiplied or divided by fov_zoom_speed_, clamped to
-     *   [kFovMinDeg, kFovMaxDeg]. No fallthrough.
-     * Orthographic: vertical half-extent scaled by fov_zoom_speed_, aspect
-     *   ratio preserved, clamped to kMinOrthoExtent.
+     * Perspective: FOV *= factor, clamped to [kFovMinDeg, kFovMaxDeg].
+     * Orthographic: half-extents *= factor with uniform scale and ortho half clamps.
      *
-     * @param factor Direction: < 1 = zoom in (reduce FOV), > 1 = zoom out.
+     * @param factor Per-event multiplier (< 1 = zoom in, > 1 = zoom out).
      */
     void applyFovZoom(float factor) noexcept;
 
     /**
-     * @brief Scene-scale zoom — accumulates zoom_scale_ for getZoomScale() / app use.
+     * @brief Scene-scale zoom — accumulates zoom_scale_, syncs ICamera::setSceneScale, refreshes matrices.
      *
-     * Accumulates zoom_scale_ by multiplying with factor (clamped to
-     * [kSceneScaleMin, kSceneScaleMax]). ICamera does not expose scene scale; callers
-     * may read getZoomScale() and apply scale in their pipeline if needed.
-     *
-     * @param factor Multiplier applied to accumulated zoom_scale_.
+     * @param factor Multiplier applied to accumulated zoom_scale_ (clamped to [kSceneScaleMin, kSceneScaleMax]).
      */
     void applySceneScaleZoom(float factor) noexcept;
 
@@ -219,7 +210,7 @@ class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
 
     ZoomMethod zoom_method_ = ZoomMethod::eDollyToCoi;
     float zoom_scale_ = 1.0f;       //!< Accumulated zoom scale (eSceneScale)
-    float fov_zoom_speed_ = 1.05f;  //!< Multiplicative step for FOV/scene-scale zoom
+    float fov_zoom_speed_ = 1.05f;  //!< Legacy default for setFovZoomSpeed (eChangeFov uses event factor)
 };
 
 }  // namespace vne::interaction
