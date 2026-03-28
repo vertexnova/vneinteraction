@@ -51,52 +51,92 @@ class VNE_INTERACTION_API Arcball {
 
     Arcball() noexcept = default;
 
-    /** Update pixel size (e.g. from @ref CameraBehaviorBase::onResize). @a size_px: (width, height). */
+    /**
+     * @brief Update pixel size (e.g. from @ref CameraBehaviorBase::onResize).
+     * @param size_px: (width, height) in pixels.
+     */
     void setViewport(const vne::math::Vec2f& size_px) noexcept;
 
+    /**
+     * @brief Set the projection mode.
+     * @param mode: The projection mode.
+     */
     void setProjectionMode(ProjectionMode mode) noexcept { projection_mode_ = mode; }
-    [[nodiscard]] ProjectionMode projectionMode() const noexcept { return projection_mode_; }
+
+    /**
+     * @brief Get the projection mode.
+     * @return The projection mode.
+     */
+    [[nodiscard]] ProjectionMode getProjectionMode() const noexcept { return projection_mode_; }
 
     /**
      * @brief Map screen coordinates to a **unit** vector on the sphere (camera / arcball space).
-     * @param cursor_px (x, y) in pixels.
+     * @param cursor_px: (x, y) in pixels.
+     * @return The projected point on the sphere.
      */
     [[nodiscard]] vne::math::Vec3f project(const vne::math::Vec2f& cursor_px) const noexcept;
 
-    /** Start a drag: records the sphere point and initial cursor for frame-to-frame inertia. */
+    /**
+     * @brief Start a drag: records the sphere point and initial cursor for frame-to-frame inertia.
+     * @param cursor_px: (x, y) in pixels.
+     */
     void beginDrag(const vne::math::Vec2f& cursor_px) noexcept;
 
-    /** Quaternion rotating from the drag-start sphere point to @a project(cursor_px). */
+    /**
+     * @brief Quaternion rotating from the drag-start sphere point to @a project(cursor_px).
+     * @param cursor_px: (x, y) in pixels.
+     * @return The quaternion.
+     */
     [[nodiscard]] vne::math::Quatf cumulativeDeltaQuaternion(const vne::math::Vec2f& cursor_px) const noexcept;
 
     /**
      * @brief Shortest-arc rotation quaternion from unit vectors @a from to @a to.
+     * @param from: The starting unit vector.
+     * @param to: The ending unit vector.
+     * @return The quaternion.
      */
     [[nodiscard]] static vne::math::Quatf rotationBetween(const vne::math::Vec3f& from,
                                                           const vne::math::Vec3f& to) noexcept;
 
     /**
      * @brief Sphere points for inertia: previous frame cursor vs current (camera space).
-     * At the start of a drag step, previous equals @ref beginDrag position on the first frame.
+     * @return The sphere point.
      */
     [[nodiscard]] vne::math::Vec3f previousOnSphere() const noexcept;
 
-    /** Call at end of each drag step so the next step’s @ref previousOnSphere matches this frame. */
+    /**
+     * @brief Call at end of each drag step so the next step's @ref previousOnSphere matches this frame.
+     * @param cursor_px: (x, y) in pixels.
+     */
     void endFrame(const vne::math::Vec2f& cursor_px) noexcept;
 
-    /** Clear drag bookkeeping (e.g. on reset). */
+    /**
+     * @brief Clear drag bookkeeping (e.g. on reset).
+     */
     void reset() noexcept;
 
    private:
+    /**
+     * @brief Project the point on the hyperbolic surface.
+     * @param rx: The x coordinate.
+     * @param ry: The y coordinate.
+     * @return The projected point on the hyperbolic surface.
+     */
     [[nodiscard]] vne::math::Vec3f projectHyperbolic(float rx, float ry) const noexcept;
+
+    /**
+     * @brief Project the point on the rim surface.
+     * @param rx: The x coordinate.
+     * @param ry: The y coordinate.
+     * @return The projected point on the rim surface.
+     */
     [[nodiscard]] vne::math::Vec3f projectRim(float rx, float ry) const noexcept;
 
-    /** Viewport size in pixels (width = x, height = y). */
-    vne::math::Vec2f viewport_px_{};
-    ProjectionMode projection_mode_ = ProjectionMode::eHyperbolic;
-    vne::math::Vec3f drag_start_on_sphere_{0.0f, 0.0f, 1.0f};
-    /** Previous pointer position for frame-to-frame inertia (x, y pixels). */
-    vne::math::Vec2f last_cursor_px_{};
+   private:
+    vne::math::Vec2f viewport_px_{};  //!< Viewport size in pixels (width = x, height = y).
+    ProjectionMode projection_mode_ = ProjectionMode::eHyperbolic;  //!< Projection mode.
+    vne::math::Vec3f drag_start_on_sphere_{0.0f, 0.0f, 1.0f};       //!< Drag start on sphere.
+    vne::math::Vec2f last_cursor_px_{};  //!< Previous pointer position for frame-to-frame inertia (x, y pixels).
 };
 
 }  // namespace vne::interaction
