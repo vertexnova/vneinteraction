@@ -10,8 +10,8 @@
  */
 
 /**
- * @file orbit_trackball_behavior.h
- * @brief OrbitTrackballBehavior — orbit camera behavior with Euler or virtual-trackball rotation (ICameraBehavior).
+ * @file orbital_camera_behavior.h
+ * @brief OrbitalCameraBehavior — orbit camera behavior with Euler or virtual-trackball rotation (ICameraBehavior).
  *
  * Supports both Euler (classic orbit) and quaternion virtual-trackball rotation modes,
  * and three pivot modes (COI, ViewCenter, Fixed). Handles rotate, pan, zoom,
@@ -38,7 +38,7 @@ class ICamera;
 namespace vne::interaction {
 
 /**
- * @brief Orbit + trackball camera behavior.
+ * @brief Orbital camera behavior (Euler orbit or virtual-trackball rotation).
  *
  * Implements ICameraBehavior for orbit-style interaction. Handles rotate, pan, and zoom
  * actions. Supports inertia via exponential decay.
@@ -51,16 +51,16 @@ namespace vne::interaction {
  *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
  */
-class VNE_INTERACTION_API OrbitTrackballBehavior final : public CameraBehaviorBase {
+class VNE_INTERACTION_API OrbitalCameraBehavior final : public CameraBehaviorBase {
    public:
     /** Construct with default settings (eOrbit mode, eCoi pivot, Y-up). */
-    OrbitTrackballBehavior() noexcept;
-    ~OrbitTrackballBehavior() noexcept override = default;
+    OrbitalCameraBehavior() noexcept;
+    ~OrbitalCameraBehavior() noexcept override = default;
 
-    OrbitTrackballBehavior(const OrbitTrackballBehavior&) = delete;
-    OrbitTrackballBehavior& operator=(const OrbitTrackballBehavior&) = delete;
-    OrbitTrackballBehavior(OrbitTrackballBehavior&&) noexcept = default;
-    OrbitTrackballBehavior& operator=(OrbitTrackballBehavior&&) noexcept = default;
+    OrbitalCameraBehavior(const OrbitalCameraBehavior&) = delete;
+    OrbitalCameraBehavior& operator=(const OrbitalCameraBehavior&) = delete;
+    OrbitalCameraBehavior(OrbitalCameraBehavior&&) noexcept = default;
+    OrbitalCameraBehavior& operator=(OrbitalCameraBehavior&&) noexcept = default;
 
     // -------------------------------------------------------------------------
     // ICameraBehavior

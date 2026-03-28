@@ -25,8 +25,8 @@ VneInteraction provides composable camera behaviors and high-level controllers f
 
 VneInteraction is a C++20 library offering:
 
-- **Behaviors**: `OrbitTrackballBehavior`, `FreeLookBehavior`, `OrthoPanZoomBehavior`, `FollowBehavior` — each implements `ICameraBehavior` and works with `vne::scene::ICamera` (perspective or orthographic).
-- **Controllers**: `InspectController`, `Navigation3DController`, `Ortho2DController`, `FollowController` — high-level wrappers that combine behaviors with `InputMapper` and event handling.
+- **Behaviors**: `OrbitalCameraBehavior`, `FreeLookBehavior`, `OrthoPanZoomBehavior`, `FollowBehavior` — each implements `ICameraBehavior` and works with `vne::scene::ICamera` (perspective or orthographic).
+- **Controllers**: `Inspect3DController`, `Navigation3DController`, `Ortho2DController`, `FollowController` — high-level wrappers that combine behaviors with `InputMapper` and event handling.
 - **InputMapper**: Maps mouse, keyboard, and touch events to `CameraActionType` via configurable `InputRule` presets (orbit, FPS, game, CAD, ortho).
 - **CameraRig**: Multi-behavior container for custom compositions.
 - **Event-based**: Controllers expose `onEvent(event, delta_time)` and `onUpdate(delta_time)`; compatible with vneevents or any event source.
@@ -35,8 +35,8 @@ It depends on **vnescene** (and transitively **vnemath**) for cameras and math, 
 
 ## Features
 
-- **Behaviors**: `OrbitTrackballBehavior`, `FreeLookBehavior`, `OrthoPanZoomBehavior`, `FollowBehavior` — rotation modes (Euler/Quaternion), pivot modes, zoom methods, inertia, fit-to-AABB.
-- **Controllers**: `InspectController` (3D inspection), `Navigation3DController` (FPS/Fly/Game modes), `Ortho2DController` (2D slices, maps), `FollowController` (target following).
+- **Behaviors**: `OrbitalCameraBehavior`, `FreeLookBehavior`, `OrthoPanZoomBehavior`, `FollowBehavior` — rotation modes (Euler/Quaternion), pivot modes, zoom methods, inertia, fit-to-AABB.
+- **Controllers**: `Inspect3DController` (3D inspection), `Navigation3DController` (FPS/Fly/Game modes), `Ortho2DController` (2D slices, maps), `FollowController` (target following).
 - **InputMapper**: Presets (`orbitPreset`, `fpsPreset`, `gamePreset`, `cadPreset`, `orthoPreset`) and custom `InputRule` configuration.
 - **Types**: `CameraActionType`, `CameraCommandPayload`, `InputRule`, `ZoomMethod`, `OrbitPivotMode`, `NavigateMode`, etc. in `interaction_types.h`.
 - **Use cases**: Medical 3D/2D inspection, game/editor cameras, robotic simulators.
@@ -140,7 +140,7 @@ int main() {
     camera->setPosition(vne::math::Vec3f(0.0f, 2.0f, 5.0f));
     camera->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
-    InspectController ctrl;
+    Inspect3DController ctrl;
     ctrl.setCamera(camera);
     ctrl.onResize(1280.0f, 720.0f);
 
@@ -153,17 +153,17 @@ int main() {
 }
 ```
 
-See [examples/01_library_info](examples/01_library_info) for version and behavior listing, and [examples/02_medical_3d_inspect](examples/02_medical_3d_inspect) for a minimal InspectController example.
+See [examples/01_library_info](examples/01_library_info) for version and behavior listing, and [examples/02_medical_3d_inspect](examples/02_medical_3d_inspect) for a minimal Inspect3DController example.
 
 ## Examples
 
 | Example | Description |
 |---------|-------------|
 | [01_library_info](examples/01_library_info) | Version info; list all behavior types and presets |
-| [02_medical_3d_inspect](examples/02_medical_3d_inspect) | InspectController — trackball, landmark pivot, fitToAABB |
+| [02_medical_3d_inspect](examples/02_medical_3d_inspect) | Inspect3DController — trackball, landmark pivot, fitToAABB |
 | [03_medical_2d_slices](examples/03_medical_2d_slices) | Ortho2DController — pan, scroll-zoom, ortho camera |
 | [04_game_editor_camera](examples/04_game_editor_camera) | Navigation3DController — FPS + orbit modes, WASD |
-| [05_robotic_simulator](examples/05_robotic_simulator) | InspectController + Navigation3DController + FollowController |
+| [05_robotic_simulator](examples/05_robotic_simulator) | Inspect3DController + Navigation3DController + FollowController |
 
 Build with `-DVNE_INTERACTION_EXAMPLES=ON` or use the dev preset (`-DVNE_INTERACTION_DEV=ON`). Run from `build/bin/examples/` (or `build/shared/Debug/bin/examples/` for Debug).
 

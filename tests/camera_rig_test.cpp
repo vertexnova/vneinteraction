@@ -4,7 +4,7 @@
  * --------------------------------------------------------------------- */
 
 #include "vertexnova/interaction/camera_rig.h"
-#include "vertexnova/interaction/orbit_trackball_behavior.h"
+#include "vertexnova/interaction/orbital_camera_behavior.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
 
@@ -29,7 +29,7 @@ TEST(CameraRig, Make2D) {
 
 TEST(CameraRig, AddRemoveBehavior) {
     vne::interaction::CameraRig rig;
-    auto b = std::make_shared<vne::interaction::OrbitTrackballBehavior>();
+    auto b = std::make_shared<vne::interaction::OrbitalCameraBehavior>();
     rig.addBehavior(b);
     EXPECT_EQ(rig.behaviors().size(), 1u);
     rig.clearBehaviors();

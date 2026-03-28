@@ -11,7 +11,7 @@
 
 #include "vertexnova/interaction/input_mapper.h"
 #include "vertexnova/interaction/free_look_behavior.h"
-#include "vertexnova/interaction/orbit_trackball_behavior.h"
+#include "vertexnova/interaction/orbital_camera_behavior.h"
 
 #include "controller_event_dispatch.h"
 #include "vertexnova/events/key_event.h"
@@ -34,7 +34,7 @@ struct Navigation3DController::Impl {
     CameraRig rig;
     InputMapper mapper;
     std::shared_ptr<FreeLookBehavior> free_look;    // shared ownership; also in rig
-    std::shared_ptr<OrbitTrackballBehavior> orbit;  // shared ownership; only in eGame mode
+    std::shared_ptr<OrbitalCameraBehavior> orbit;  // shared ownership; only in eGame mode
 
     NavigateMode mode = NavigateMode::eFps;
 
@@ -184,7 +184,7 @@ InputMapper& Navigation3DController::inputMapper() noexcept {
 FreeLookBehavior& Navigation3DController::freeLookBehavior() noexcept {
     return *impl_->free_look;
 }
-OrbitTrackballBehavior* Navigation3DController::orbitTrackballBehavior() noexcept {
+OrbitalCameraBehavior* Navigation3DController::orbitalCameraBehavior() noexcept {
     return impl_->orbit.get();
 }
 
@@ -221,7 +221,7 @@ void Navigation3DController::rebuild() noexcept {
             impl_->free_look->setConstrainWorldUp(false);
             impl_->free_look->setHandleZoom(false);
             VNE_LOG_DEBUG << "Navigation3DController: Game mode — orbit owns zoom, free_look zoom disabled";
-            impl_->orbit = std::make_shared<OrbitTrackballBehavior>();
+            impl_->orbit = std::make_shared<OrbitalCameraBehavior>();
             impl_->orbit->setRotationMode(OrbitRotationMode::eOrbit);
             impl_->rig.addBehavior(impl_->orbit);
             break;

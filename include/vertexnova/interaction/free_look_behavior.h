@@ -131,7 +131,7 @@ class VNE_INTERACTION_API FreeLookBehavior final : public CameraBehaviorBase {
 
     /**
      * @brief Enable or disable zoom handling for this behavior (default: true).
-     * Disable when another behavior in the same rig (e.g. OrbitTrackballBehavior)
+     * Disable when another behavior in the same rig (e.g. OrbitalCameraBehavior)
      * should own eZoomAtCursor to avoid double-zoom per scroll tick.
      */
     void setHandleZoom(bool enable) noexcept { handle_zoom_ = enable; }

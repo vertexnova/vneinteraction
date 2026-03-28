@@ -47,7 +47,7 @@ enum class ZoomMethod : std::uint8_t {
     eChangeFov = 2,   //!< Adjust field of view (perspective cameras only)
 };
 
-/** Rotation algorithm for orbit-style camera (OrbitTrackballBehavior, InspectController). */
+/** Rotation algorithm for orbit-style camera (OrbitalCameraBehavior, Inspect3DController). */
 enum class OrbitRotationMode : std::uint8_t {
     eOrbit = 0,      //!< Classic orbit (Euler yaw/pitch), pitch clamped [-89°, 89°]
     eTrackball = 1,  //!< Quaternion / virtual-trackball rotation (smooth, no gimbal lock)
@@ -57,7 +57,7 @@ enum class OrbitRotationMode : std::uint8_t {
  * @brief Pivot control mode for orbit-style camera behaviors.
  *
  * Determines which point in world space the camera orbits around.
- * Used by OrbitTrackballBehavior and InspectController.
+ * Used by OrbitalCameraBehavior and Inspect3DController.
  */
 enum class OrbitPivotMode : std::uint8_t {
     eCoi = 0,         //!< Pan moves COI in the view plane; camera looks at COI (default).

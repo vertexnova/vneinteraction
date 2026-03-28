@@ -10,14 +10,14 @@
  */
 
 /**
- * @file inspect_controller.h
- * @brief InspectController — high-level camera controller for object inspection.
+ * @file inspect_3d_controller.h
+ * @brief Inspect3DController — high-level camera controller for object inspection.
  *
  * The simplest way to add orbit / trackball camera interaction to a 3D viewer, CAD tool,
  * or medical 3D application. Three lines of setup:
  *
  * @code
- * auto ctrl = vne::interaction::InspectController{};
+ * auto ctrl = vne::interaction::Inspect3DController{};
  * ctrl.setCamera(camera);
  * ctrl.onResize(1920, 1080);
  * // In your loop:
@@ -68,25 +68,25 @@ class ICamera;
 namespace vne::interaction {
 
 class InputMapper;
-class OrbitTrackballBehavior;
+class OrbitalCameraBehavior;
 
 /**
  * @brief High-level camera controller for object inspection.
  *
- * Wraps a CameraRig (OrbitTrackballBehavior) and an InputMapper with a sensible preset.
+ * Wraps a CameraRig (OrbitalCameraBehavior) and an InputMapper with a sensible preset.
  * Covers: 3D model viewers, CAD, scientific visualization, medical 3D.
  *
  * @threadsafe Not thread-safe. Call all methods from the same thread.
  */
-class VNE_INTERACTION_API InspectController {
+class VNE_INTERACTION_API Inspect3DController {
    public:
-    InspectController();
-    ~InspectController();
+    Inspect3DController();
+    ~Inspect3DController();
 
-    InspectController(const InspectController&) = delete;
-    InspectController& operator=(const InspectController&) = delete;
-    InspectController(InspectController&&) noexcept;
-    InspectController& operator=(InspectController&&) noexcept;
+    Inspect3DController(const Inspect3DController&) = delete;
+    Inspect3DController& operator=(const Inspect3DController&) = delete;
+    Inspect3DController(Inspect3DController&&) noexcept;
+    Inspect3DController& operator=(Inspect3DController&&) noexcept;
 
     // -------------------------------------------------------------------------
     // Core setup — must call before first onEvent / onUpdate
@@ -164,8 +164,8 @@ class VNE_INTERACTION_API InspectController {
     /** Direct access to the underlying InputMapper for full rebind. */
     [[nodiscard]] InputMapper& inputMapper() noexcept;
 
-    /** Direct access to the underlying OrbitTrackballBehavior for fine-tuning. */
-    [[nodiscard]] OrbitTrackballBehavior& orbitTrackballBehavior() noexcept;
+    /** Direct access to the underlying OrbitalCameraBehavior for fine-tuning. */
+    [[nodiscard]] OrbitalCameraBehavior& orbitalCameraBehavior() noexcept;
 
    private:
     void rebuildRules() noexcept;
