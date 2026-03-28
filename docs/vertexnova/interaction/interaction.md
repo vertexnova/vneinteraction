@@ -37,7 +37,7 @@ The Interaction module provides composable camera behaviors and high-level contr
 ### Input and Rig
 
 - **input_mapper.h**: `InputMapper` — maps mouse/keyboard/touch events to `CameraActionType` via `InputRule`; presets: `orbitPreset`, `fpsPreset`, `gamePreset`, `cadPreset`, `orthoPreset`.
-- **camera_rig.h**: `CameraRig` — multi-behavior container; `onAction`, `onUpdate`, `setCamera`, `onResize`, `resetState`; factory methods: `makeOrbit`, `makeArcball`, `makeFps`, `makeFly`, `makeOrthoPanZoom`, `makeFollow`, `makeGameCamera`, `make2D`.
+- **camera_rig.h**: `CameraRig` — multi-behavior container; `onAction`, `onUpdate`, `setCamera`, `onResize`, `resetState`; factory methods: `makeOrbit`, `makeTrackball`, `makeFps`, `makeFly`, `makeOrthoPanZoom`, `makeFollow`, `makeGameCamera`, `make2D`.
 
 ### Types
 
@@ -95,7 +95,7 @@ The controller's `onEvent` handles `MouseMovedEvent`, `MouseButtonPressedEvent`,
 
 | Use case | Controller | Notes |
 |----------|------------|-------|
-| Medical 3D inspection | `InspectController` | Arcball default; `setPivotMode(eFixed)` for landmark-centred |
+| Medical 3D inspection | `InspectController` | Trackball default; `setPivotMode(eFixed)` for landmark-centred |
 | Medical 2D slices | `Ortho2DController` | Pan + zoom; optional in-plane rotate via `setRotationEnabled(true)` |
 | Game / editor camera | `Navigation3DController` | Orbit mode for object view; FPS/Fly for world nav |
 | Robotic simulator | `InspectController` + `Navigation3DController` + `FollowController` | Inspect robot; navigate environment; follow end-effector |

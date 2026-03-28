@@ -17,9 +17,9 @@ static std::shared_ptr<vne::scene::PerspectiveCamera> makePerspCamera() {
         vne::scene::PerspectiveCameraParameters(45.0f, 16.0f / 9.0f, 0.1f, 1000.0f));
 }
 
-TEST(InspectController, DefaultArcballMode) {
+TEST(InspectController, DefaultTrackballMode) {
     vne::interaction::InspectController ctrl;
-    EXPECT_EQ(ctrl.getRotationMode(), vne::interaction::OrbitRotationMode::eArcball);
+    EXPECT_EQ(ctrl.getRotationMode(), vne::interaction::OrbitRotationMode::eTrackball);
 }
 
 TEST(InspectController, SetPivotMode) {
@@ -36,7 +36,7 @@ TEST(InspectController, SetRotationEnabled) {
     vne::interaction::InspectController ctrl;
     ctrl.setRotationEnabled(false);
     ctrl.setRotationEnabled(true);
-    EXPECT_TRUE(ctrl.getRotationMode() == vne::interaction::OrbitRotationMode::eArcball
+    EXPECT_TRUE(ctrl.getRotationMode() == vne::interaction::OrbitRotationMode::eTrackball
                 || ctrl.getRotationMode() == vne::interaction::OrbitRotationMode::eOrbit);
 }
 

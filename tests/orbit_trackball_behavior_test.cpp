@@ -36,11 +36,11 @@ TEST(OrbitTrackballBehavior, DefaultValues) {
 
 TEST(OrbitTrackballBehavior, SetRotationMode) {
     vne::interaction::OrbitTrackballBehavior b;
-    b.setRotationMode(vne::interaction::OrbitRotationMode::eArcball);
-    EXPECT_EQ(b.getRotationMode(), vne::interaction::OrbitRotationMode::eArcball);
+    b.setRotationMode(vne::interaction::OrbitRotationMode::eTrackball);
+    EXPECT_EQ(b.getRotationMode(), vne::interaction::OrbitRotationMode::eTrackball);
 }
 
-TEST(OrbitTrackballBehavior, SetArcballRotationScale) {
+TEST(OrbitTrackballBehavior, SetTrackballRotationScale) {
     vne::interaction::OrbitTrackballBehavior b;
     EXPECT_FLOAT_EQ(b.getTrackballRotationScale(), 2.5f);
     b.setTrackballRotationScale(1.0f);
@@ -143,16 +143,16 @@ TEST(OrbitTrackballBehavior, ChangeFovZoomFallsThroughToDollyWhenFovClamped) {
 }
 
 // ---------------------------------------------------------------------------
-// eArcball rotation + inertia (integration; math details in trackball_behavior_test.cpp)
+// eTrackball rotation + inertia (integration; math details in trackball_behavior_test.cpp)
 // ---------------------------------------------------------------------------
 
-[[nodiscard]] static float arcballInertiaStepMagnitude(float end_x_px) {
+[[nodiscard]] static float trackballInertiaStepMagnitude(float end_x_px) {
     auto cam = makePerspCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
     vne::interaction::OrbitTrackballBehavior b;
-    b.setRotationMode(vne::interaction::OrbitRotationMode::eArcball);
+    b.setRotationMode(vne::interaction::OrbitRotationMode::eTrackball);
     b.setCamera(cam);
     b.onResize(800.0f, 600.0f);
 
@@ -173,17 +173,17 @@ TEST(OrbitTrackballBehavior, ChangeFovZoomFallsThroughToDollyWhenFovClamped) {
     return (cam->getPosition() - pos_after_drag).length();
 }
 
-TEST(OrbitTrackballBehavior, ArcballInertiaMovesCameraAfterRotateEnds) {
-    EXPECT_GT(arcballInertiaStepMagnitude(620.0f), 1e-4f);
+TEST(OrbitTrackballBehavior, TrackballInertiaMovesCameraAfterRotateEnds) {
+    EXPECT_GT(trackballInertiaStepMagnitude(620.0f), 1e-4f);
 }
 
-TEST(OrbitTrackballBehavior, ArcballInertiaNotUpdatedWhenDeltaTimeBelowInertiaThreshold) {
+TEST(OrbitTrackballBehavior, TrackballInertiaNotUpdatedWhenDeltaTimeBelowInertiaThreshold) {
     auto cam = makePerspCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
     vne::interaction::OrbitTrackballBehavior b;
-    b.setRotationMode(vne::interaction::OrbitRotationMode::eArcball);
+    b.setRotationMode(vne::interaction::OrbitRotationMode::eTrackball);
     b.setCamera(cam);
     b.onResize(800.0f, 600.0f);
 
@@ -204,9 +204,9 @@ TEST(OrbitTrackballBehavior, ArcballInertiaNotUpdatedWhenDeltaTimeBelowInertiaTh
     EXPECT_LT((cam->getPosition() - pos_after_drag).length(), 1e-3f);
 }
 
-TEST(OrbitTrackballBehavior, ArcballLargeDragProducesStrongerInertiaThanSmallDrag) {
-    const float small_step = arcballInertiaStepMagnitude(430.0f);
-    const float large_step = arcballInertiaStepMagnitude(650.0f);
+TEST(OrbitTrackballBehavior, TrackballLargeDragProducesStrongerInertiaThanSmallDrag) {
+    const float small_step = trackballInertiaStepMagnitude(430.0f);
+    const float large_step = trackballInertiaStepMagnitude(650.0f);
     EXPECT_GT(large_step, small_step);
 }
 

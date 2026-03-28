@@ -13,7 +13,7 @@
  * @file orbit_trackball_behavior.h
  * @brief OrbitTrackballBehavior — orbit camera behavior with Euler or virtual-trackball rotation (ICameraBehavior).
  *
- * Supports both Euler (classic orbit) and Quaternion (arcball / trackball) rotation modes,
+ * Supports both Euler (classic orbit) and quaternion virtual-trackball rotation modes,
  * and three pivot modes (COI, ViewCenter, Fixed). Handles rotate, pan, zoom,
  * inertia, and fitToAABB.
  */
@@ -38,13 +38,13 @@ class ICamera;
 namespace vne::interaction {
 
 /**
- * @brief Orbit/arcball camera behavior.
+ * @brief Orbit + trackball camera behavior.
  *
  * Implements ICameraBehavior for orbit-style interaction. Handles rotate, pan, and zoom
  * actions. Supports inertia via exponential decay.
  *
  * - RotationMode::eOrbit   — classic yaw/pitch orbit, pitch clamped to [-89°, 89°]
- * - RotationMode::eArcball — arcball quaternion rotation (unconstrained)
+ * - RotationMode::eTrackball — quaternion / virtual-trackball rotation (unconstrained)
  * - PivotMode::eCoi — orbit center follows pan in the view plane (see @ref OrbitPivotMode).
  * - PivotMode::eViewCenter — same as eCoi while panning; on pan end, COI syncs from the camera target.
  * - PivotMode::eFixed — world pivot fixed; pan trucks eye+target; after pan, target may not equal COI until rotate.
@@ -88,10 +88,10 @@ class VNE_INTERACTION_API OrbitTrackballBehavior final : public CameraBehaviorBa
     // isEnabled / setEnabled inherited from CameraBehaviorBase
 
     // -------------------------------------------------------------------------
-    // Orbit/arcball-specific API
+    // Orbit / trackball-specific API
     // -------------------------------------------------------------------------
 
-    /** Set the rotation algorithm (eOrbit or eArcball). */
+    /** Set the rotation algorithm (eOrbit or eTrackball). */
     void setRotationMode(OrbitRotationMode mode) noexcept { rotation_mode_ = mode; }
     /** Get the current rotation algorithm. */
     [[nodiscard]] OrbitRotationMode getRotationMode() const noexcept { return rotation_mode_; }
@@ -148,14 +148,14 @@ class VNE_INTERACTION_API OrbitTrackballBehavior final : public CameraBehaviorBa
     // are inherited from CameraBehaviorBase.
 
     /**
-     * Set rotation speed multiplier (>= 0). Scales Euler yaw/pitch (deg/pixel). For arcball, the
+     * Set rotation speed multiplier (>= 0). Scales Euler yaw/pitch (deg/pixel). For trackball mode, the
      * effective angle scale is rotation_speed × trackball_rotation_scale (see setTrackballRotationScale).
      */
     void setRotationSpeed(float speed) noexcept { rotation_speed_ = std::max(0.0f, speed); }
     [[nodiscard]] float getRotationSpeed() const noexcept { return rotation_speed_; }
 
     /**
-     * Extra scale applied only in @c OrbitRotationMode::eArcball (>= 0). The trackball path scales
+     * Extra scale applied only in @c OrbitRotationMode::eTrackball (>= 0). The trackball path scales
      * quaternion angle by rotation_speed, while Euler uses deg/pixel — the defaults match feel across
      * modes. Default 2.5.
      */
@@ -206,7 +206,7 @@ class VNE_INTERACTION_API OrbitTrackballBehavior final : public CameraBehaviorBa
     // ---- rotation ---------------------------------------------------------------
     void beginRotate(float x_px, float y_px) noexcept;
     void dragRotateEuler(float delta_x_px, float delta_y_px, double delta_time) noexcept;
-    void dragRotateArcball(float x_px, float y_px, double delta_time) noexcept;
+    void dragRotateTrackball(float x_px, float y_px, double delta_time) noexcept;
     void endRotate(double delta_time) noexcept;
 
     // ---- pan --------------------------------------------------------------------
@@ -250,12 +250,12 @@ class VNE_INTERACTION_API OrbitTrackballBehavior final : public CameraBehaviorBa
     // Euler rotation (classic yaw/pitch around world-up reference)
     OrbitBehavior orbit_behavior_;
 
-    // Trackball (eArcball) rotation state
+    // Trackball (eTrackball) rotation state
     vne::math::Quatf orientation_;
     vne::math::Quatf orientation_at_drag_start_;
     TrackballBehavior trackball_;
     uint32_t normalize_counter_ = 0;
-    float inertia_rot_speed_ = 0.0f;  // arcball angular speed (rad/s)
+    float inertia_rot_speed_ = 0.0f;  // trackball angular speed (rad/s)
     vne::math::Vec3f inertia_rot_axis_{0.0f, 1.0f, 0.0f};
 
     // Pan inertia

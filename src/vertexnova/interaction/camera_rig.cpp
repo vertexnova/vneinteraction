@@ -90,10 +90,10 @@ CameraRig CameraRig::makeOrbit() {
     return rig;
 }
 
-CameraRig CameraRig::makeArcball() {
+CameraRig CameraRig::makeTrackball() {
     CameraRig rig;
     auto b = std::make_shared<OrbitTrackballBehavior>();
-    b->setRotationMode(OrbitRotationMode::eArcball);
+    b->setRotationMode(OrbitRotationMode::eTrackball);
     rig.addBehavior(std::move(b));
     return rig;
 }

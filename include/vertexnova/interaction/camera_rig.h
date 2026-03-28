@@ -122,8 +122,8 @@ class VNE_INTERACTION_API CameraRig {
     /** Orbit rig: OrbitTrackballBehavior with Euler rotation. Default for 3D model viewers. */
     static CameraRig makeOrbit();
 
-    /** Arcball rig: OrbitTrackballBehavior with Quaternion rotation. Smoother, no gimbal lock. */
-    static CameraRig makeArcball();
+    /** Trackball rig: OrbitTrackballBehavior with quaternion rotation. Smoother, no gimbal lock. */
+    static CameraRig makeTrackball();
 
     /** FPS rig: FreeLookBehavior with world-up constraint. */
     static CameraRig makeFps();

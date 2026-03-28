@@ -49,8 +49,8 @@ enum class ZoomMethod : std::uint8_t {
 
 /** Rotation algorithm for orbit-style camera (OrbitTrackballBehavior, InspectController). */
 enum class OrbitRotationMode : std::uint8_t {
-    eOrbit = 0,    //!< Classic orbit (Euler yaw/pitch), pitch clamped [-89°, 89°]
-    eArcball = 1,  //!< Arcball quaternion rotation (smooth, no gimbal lock)
+    eOrbit = 0,      //!< Classic orbit (Euler yaw/pitch), pitch clamped [-89°, 89°]
+    eTrackball = 1,  //!< Quaternion / virtual-trackball rotation (smooth, no gimbal lock)
 };
 
 /**
@@ -90,7 +90,7 @@ using MouseButton = vne::events::MouseButton;
  * controls without exposing InputRule or CameraActionType.
  */
 enum class GestureAction : std::uint8_t {
-    eRotate = 0,    //!< Orbit/arcball rotate (button + drag)
+    eRotate = 0,    //!< Orbit / trackball rotate (button + drag)
     ePan = 1,       //!< Pan (button + drag)
     eZoom = 2,      //!< Zoom (scroll wheel)
     eLook = 3,      //!< FPS-style look (button + drag)

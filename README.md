@@ -160,7 +160,7 @@ See [examples/01_library_info](examples/01_library_info) for version and behavio
 | Example | Description |
 |---------|-------------|
 | [01_library_info](examples/01_library_info) | Version info; list all behavior types and presets |
-| [02_medical_3d_inspect](examples/02_medical_3d_inspect) | InspectController — arcball, landmark pivot, fitToAABB |
+| [02_medical_3d_inspect](examples/02_medical_3d_inspect) | InspectController — trackball, landmark pivot, fitToAABB |
 | [03_medical_2d_slices](examples/03_medical_2d_slices) | Ortho2DController — pan, scroll-zoom, ortho camera |
 | [04_game_editor_camera](examples/04_game_editor_camera) | Navigation3DController — FPS + orbit modes, WASD |
 | [05_robotic_simulator](examples/05_robotic_simulator) | InspectController + Navigation3DController + FollowController |

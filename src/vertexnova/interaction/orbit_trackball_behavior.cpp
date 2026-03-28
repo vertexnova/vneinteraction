@@ -77,7 +77,7 @@ constexpr float kZoomToCursorStrength = 0.5f;
 }
 
 /**
- * Apply rotation_speed_ to the arcball delta quaternion. Uses slerp near identity (avoids Quat::axis()
+ * Apply rotation_speed_ to the trackball delta quaternion. Uses slerp near identity (avoids Quat::axis()
  * fallback when |sin(θ/2)| is tiny) and canonical w >= 0 before measuring angle.
  */
 [[nodiscard]] vne::math::Quatf scaleTrackballDeltaQuaternion(vne::math::Quatf q, float rotation_speed) noexcept {
@@ -181,7 +181,7 @@ vne::math::Vec3f OrbitTrackballBehavior::computeUp(const vne::math::Vec3f& front
 // ---------------------------------------------------------------------------
 
 vne::math::Vec3f OrbitTrackballBehavior::computeFront() const noexcept {
-    if (rotation_mode_ == OrbitRotationMode::eArcball) {
+    if (rotation_mode_ == OrbitRotationMode::eTrackball) {
         return -orientation_.getZAxis();
     }
     return orbit_behavior_.computeFrontDirection(world_up_);
@@ -198,8 +198,8 @@ void OrbitTrackballBehavior::syncFromCamera() noexcept {
     coi_world_ = camera_->getTarget();
     orbit_distance_ = std::max((camera_->getPosition() - coi_world_).length(), kMinOrbitDistance);
 
-    if (rotation_mode_ == OrbitRotationMode::eArcball) {
-        // Build orientation_ from the full camera basis — same as ArcballManipulator::syncFromCamera
+    if (rotation_mode_ == OrbitRotationMode::eTrackball) {
+        // Build orientation_ from the full camera basis
         vne::math::Vec3f back = (camera_->getPosition() - coi_world_);
         const float back_len = back.length();
         back = (back_len < kEpsilon) ? vne::math::Vec3f(0.0f, 0.0f, 1.0f) : (back / back_len);
@@ -241,7 +241,7 @@ void OrbitTrackballBehavior::applyToCamera() noexcept {
     if (!camera_) {
         return;
     }
-    if (rotation_mode_ == OrbitRotationMode::eArcball) {
+    if (rotation_mode_ == OrbitRotationMode::eTrackball) {
         const vne::math::Vec3f back = orientation_.getZAxis();
         const vne::math::Vec3f view_dir = (-back).normalized();
         const vne::math::Vec3f up_hint = orientation_.getYAxis();
@@ -258,7 +258,7 @@ void OrbitTrackballBehavior::applyToCamera() noexcept {
 }
 
 void OrbitTrackballBehavior::onPivotChanged() noexcept {
-    if (rotation_mode_ == OrbitRotationMode::eArcball) {
+    if (rotation_mode_ == OrbitRotationMode::eTrackball) {
         syncFromCamera();
     }
     // Euler: no extra sync needed; yaw/pitch are still valid after COI moves
@@ -303,7 +303,7 @@ void OrbitTrackballBehavior::updateTrackballDragInertiaFromFrame(const vne::math
                                           kInertiaRotSpeedMax);
 }
 
-void OrbitTrackballBehavior::dragRotateArcball(float x_px, float y_px, double delta_time) noexcept {
+void OrbitTrackballBehavior::dragRotateTrackball(float x_px, float y_px, double delta_time) noexcept {
     if (!camera_) {
         return;
     }
@@ -315,7 +315,7 @@ void OrbitTrackballBehavior::dragRotateArcball(float x_px, float y_px, double de
     const vne::math::Vec3f prev_sphere = trackball_.previousOnSphere();
     const vne::math::Vec3f curr_sphere = trackball_.project(cursor);
 
-    // Arcball scales quaternion angle by rotation_speed_; Euler uses deg/pixel — multiply by
+    // Trackball mode scales quaternion angle by rotation_speed_; Euler uses deg/pixel — multiply by
     // trackball_rotation_scale_ so a single rotation_speed feels usable in both modes.
     const float trackball_rot = rotation_speed_ * trackball_rotation_scale_;
     vne::math::Quatf delta_q =
@@ -477,7 +477,7 @@ void OrbitTrackballBehavior::onZoomDolly(float factor, float mouse_x_px, float m
                 orbit_distance_ =
                     vne::math::clamp(orbit_distance_ * effective_factor, kMinOrbitDistance, kMaxOrbitDistance);
                 // computeRight/computeUp expect the view/front direction (not camera-back / +Z).
-                // computeFront() matches applyToCamera (Euler yaw/pitch or arcball -orientation_.getZAxis()).
+                // computeFront() matches applyToCamera (Euler yaw/pitch or trackball -orientation_.getZAxis()).
                 const vne::math::Vec3f front_dir = computeFront();
                 const vne::math::Vec3f r = computeRight(front_dir);
                 const vne::math::Vec3f u = computeUp(front_dir, r);
@@ -501,7 +501,7 @@ void OrbitTrackballBehavior::onZoomDolly(float factor, float mouse_x_px, float m
                 applyToCamera();
                 if (pivot_mode_ == OrbitPivotMode::eViewCenter) {
                     onPivotChanged();
-                } else if (rotation_mode_ == OrbitRotationMode::eArcball) {
+                } else if (rotation_mode_ == OrbitRotationMode::eTrackball) {
                     // Re-sync orientation_ after COI shift so rotation basis stays valid
                     syncFromCamera();
                 }
@@ -534,7 +534,7 @@ void OrbitTrackballBehavior::applyInertia(double delta_time) noexcept {
     }
     const float dt = static_cast<float>(delta_time);
 
-    if (rotation_mode_ == OrbitRotationMode::eArcball) {
+    if (rotation_mode_ == OrbitRotationMode::eTrackball) {
         bool rotation_applied = false;
         bool changed = false;
         vne::math::Vec3f pan_delta_fixed(0.0f, 0.0f, 0.0f);
@@ -670,7 +670,7 @@ void OrbitTrackballBehavior::resetState() noexcept {
     trackball_.reset();
     normalize_counter_ = 0;
     animating_fit_ = false;
-    if (rotation_mode_ == OrbitRotationMode::eArcball) {
+    if (rotation_mode_ == OrbitRotationMode::eTrackball) {
         syncFromCamera();
     }
 }
@@ -761,7 +761,7 @@ void OrbitTrackballBehavior::setViewDirection(ViewDirection dir) noexcept {
 
     orbit_behavior_.setYawPitch(yaw, pitch);
 
-    if (rotation_mode_ == OrbitRotationMode::eArcball) {
+    if (rotation_mode_ == OrbitRotationMode::eTrackball) {
         // Apply via Euler path temporarily, then bake the result into orientation_.
         const OrbitRotationMode prev = rotation_mode_;
         rotation_mode_ = OrbitRotationMode::eOrbit;
@@ -819,13 +819,13 @@ bool OrbitTrackballBehavior::onAction(CameraActionType action,
 
         case CameraActionType::eRotateDelta:
             if (interaction_.rotating) {
-                if (rotation_mode_ == OrbitRotationMode::eArcball) {
-                    // Arcball needs the running absolute screen position.
+                if (rotation_mode_ == OrbitRotationMode::eTrackball) {
+                    // Trackball mode needs the running absolute screen position.
                     // The payload.x_px / y_px carry absolute cursor position;
                     // update trackball_start_ was already set at beginRotate, so
-                    // we always pass the current cursor pos (dragRotateArcball
+                    // we always pass the current cursor pos (dragRotateTrackball
                     // updates trackball_start_ internally).
-                    dragRotateArcball(payload.x_px, payload.y_px, delta_time);
+                    dragRotateTrackball(payload.x_px, payload.y_px, delta_time);
                 } else {
                     dragRotateEuler(payload.delta_x_px, payload.delta_y_px, delta_time);
                 }

@@ -28,7 +28,7 @@ int main() {
 
     // Default: arcball (quaternion), eCoi pivot
     VNE_LOG_INFO << "Rotation mode: "
-                 << (ctrl.getRotationMode() == vne::interaction::OrbitRotationMode::eArcball ? "arcball" : "orbit");
+                 << (ctrl.getRotationMode() == vne::interaction::OrbitRotationMode::eTrackball ? "arcball" : "orbit");
 
     // Landmark-centered inspection (medical use case)
     ctrl.setPivot(vne::math::Vec3f(0.5f, 0.3f, 0.0f));  // e.g. anatomical landmark
@@ -65,6 +65,6 @@ int main() {
         ctrl.onUpdate(dt);
     }
 
-    VNE_LOG_INFO << "Medical 3D inspect: arcball, fixed pivot, fitToAABB — done.";
+    VNE_LOG_INFO << "Medical 3D inspect: trackball, fixed pivot, fitToAABB — done.";
     return 0;
 }

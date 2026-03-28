@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Breaking**: `OrbitRotationMode::eArcball` renamed to `eTrackball`; `CameraRig::makeArcball()` → `makeTrackball()`; `OrbitTrackballBehavior::dragRotateArcball()` → `dragRotateTrackball()`.
 - **Breaking**: Renamed `OrbitArcballBehavior` to `OrbitTrackballBehavior`; header `orbit_arcball_behavior.h` → `orbit_trackball_behavior.h`; accessor `orbitArcballBehavior()` → `orbitTrackballBehavior()`.
 - **Breaking**: New behavior-based architecture. Removed legacy manipulators (`OrbitManipulator`, `ArcballManipulator`, `FpsManipulator`, `FlyManipulator`, `OrthoPanZoomManipulator`, `FollowManipulator`), `CameraManipulatorFactory`, and `CameraSystemController`.
 - **Added**: Behaviors — `OrbitTrackballBehavior`, `FreeLookBehavior`, `OrthoPanZoomBehavior`, `FollowBehavior` (implement `ICameraBehavior`).

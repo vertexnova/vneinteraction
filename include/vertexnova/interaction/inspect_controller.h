@@ -13,7 +13,7 @@
  * @file inspect_controller.h
  * @brief InspectController — high-level camera controller for object inspection.
  *
- * The simplest way to add orbit/arcball camera interaction to a 3D viewer, CAD tool,
+ * The simplest way to add orbit / trackball camera interaction to a 3D viewer, CAD tool,
  * or medical 3D application. Three lines of setup:
  *
  * @code
@@ -26,7 +26,7 @@
  * @endcode
  *
  * ### Defaults
- * - Rotation: Arcball (quaternion) — smooth, no gimbal lock
+ * - Rotation: Trackball (quaternion) — smooth, no gimbal lock
  * - LMB drag = rotate, RMB/MMB drag = pan, scroll = zoom
  * - Double-click LMB = move pivot to cursor (auto-pivot)
  * - Pivot mode: eCoi (follows panning)
@@ -112,7 +112,7 @@ class VNE_INTERACTION_API InspectController {
     // Rotation
     // -------------------------------------------------------------------------
 
-    /** Switch rotation algorithm (default: OrbitRotationMode::eArcball). */
+    /** Switch rotation algorithm (default: OrbitRotationMode::eTrackball). */
     void setRotationMode(OrbitRotationMode mode) noexcept;
     [[nodiscard]] OrbitRotationMode getRotationMode() const noexcept;
 
