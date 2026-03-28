@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0](https://github.com/vertexnova/vneinteraction/compare/v1.4.1...v1.5.0) (2026-03-28)
+
+
+### Features
+
+* Adding rotation for ortho 2d and fixing pan direction issue.  ([#22](https://github.com/vertexnova/vneinteraction/issues/22)) ([f776506](https://github.com/vertexnova/vneinteraction/commit/f776506048a328abdd50d8d99396ab5154be805a))
+
 ## [1.4.1](https://github.com/vertexnova/vneinteraction/compare/v1.4.0...v1.4.1) (2026-03-28)
 
 
