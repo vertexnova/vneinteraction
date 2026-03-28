@@ -12,7 +12,7 @@
 
 namespace vne_interaction_test {
 
-TEST(OrbitArcballBehavior, ArcballProjectionModeForward) {
+TEST(OrbitArcballBehavior, SetArcballProjectionMode) {
     vne::interaction::OrbitArcballBehavior b;
     EXPECT_EQ(b.getArcballProjectionMode(), vne::interaction::Arcball::ProjectionMode::eHyperbolic);
     b.setArcballProjectionMode(vne::interaction::Arcball::ProjectionMode::eRim);
