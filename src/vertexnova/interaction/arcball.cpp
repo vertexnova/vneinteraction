@@ -82,9 +82,10 @@ vne::math::Vec3f Arcball::project(const vne::math::Vec2f& cursor_px) const noexc
             return projectHyperbolic(rx, ry);
         case ProjectionMode::eRim:
             return projectRim(rx, ry);
+        default:
+            // Unknown enumerator (bad cast / storage): safe +Z in ball space. (MSVC C4715: default inside switch)
+            return vne::math::Vec3f(0.0f, 0.0f, 1.0f);
     }
-    // Fallback if projection_mode_ is not a known enumerator (undefined cast / storage): +Z in ball space.
-    return vne::math::Vec3f(0.0f, 0.0f, 1.0f);
 }
 
 void Arcball::beginDrag(const vne::math::Vec2f& cursor_px) noexcept {
