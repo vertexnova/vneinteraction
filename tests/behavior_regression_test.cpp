@@ -126,6 +126,67 @@ TEST(BehaviorRegression, OrthoPan_DragDownMovesSceneDown) {
 }
 
 // ---------------------------------------------------------------------------
+// Orbital pan (perspective + ortho): vertical drag matches Ortho2D sign (COI moves +camera up on screen-down)
+// ---------------------------------------------------------------------------
+TEST(BehaviorRegression, OrbitPan_Perspective_DragDownMovesCoiAlongUp) {
+    auto persp = vne::scene::CameraFactory::createPerspective(
+        vne::scene::PerspectiveCameraParameters(45.0f, 16.0f / 9.0f, 0.1f, 1000.0f));
+    persp->lookAt(vne::math::Vec3f(0.0f, 0.0f, 10.0f),
+                  vne::math::Vec3f(0.0f, 0.0f, 0.0f),
+                  vne::math::Vec3f(0.0f, 1.0f, 0.0f));
+    persp->updateMatrices();
+
+    vne::interaction::OrbitalCameraBehavior b;
+    b.setRotationMode(vne::interaction::OrbitRotationMode::eOrbit);
+    b.setCamera(persp);
+    b.onResize(200.0f, 200.0f);
+
+    const vne::math::Vec3f target_before = persp->getTarget();
+    vne::interaction::CameraCommandPayload p;
+    p.x_px = 100.0f;
+    p.y_px = 100.0f;
+    p.delta_x_px = 0.0f;
+    p.delta_y_px = 20.0f;
+
+    b.onAction(vne::interaction::CameraActionType::eBeginPan, p, 0.0);
+    b.onAction(vne::interaction::CameraActionType::ePanDelta, p, 0.016);
+    b.onAction(vne::interaction::CameraActionType::eEndPan, p, 0.0);
+
+    const float delta_y_world = persp->getTarget().y() - target_before.y();
+    EXPECT_GT(delta_y_world, 0.0f)
+        << "Orbit pan (perspective): drag down should shift COI along +view up (positive dY for default look)";
+}
+
+TEST(BehaviorRegression, OrbitPan_Orthographic_DragDownMovesCoiAlongUp) {
+    auto ortho = vne::scene::CameraFactory::createOrthographic(
+        vne::scene::OrthographicCameraParameters(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 1000.0f));
+    ortho->lookAt(vne::math::Vec3f(0.0f, 0.0f, 10.0f),
+                  vne::math::Vec3f(0.0f, 0.0f, 0.0f),
+                  vne::math::Vec3f(0.0f, 1.0f, 0.0f));
+    ortho->updateMatrices();
+
+    vne::interaction::OrbitalCameraBehavior b;
+    b.setRotationMode(vne::interaction::OrbitRotationMode::eOrbit);
+    b.setCamera(ortho);
+    b.onResize(200.0f, 200.0f);
+
+    const vne::math::Vec3f target_before = ortho->getTarget();
+    vne::interaction::CameraCommandPayload p;
+    p.x_px = 100.0f;
+    p.y_px = 100.0f;
+    p.delta_x_px = 0.0f;
+    p.delta_y_px = 20.0f;
+
+    b.onAction(vne::interaction::CameraActionType::eBeginPan, p, 0.0);
+    b.onAction(vne::interaction::CameraActionType::ePanDelta, p, 0.016);
+    b.onAction(vne::interaction::CameraActionType::eEndPan, p, 0.0);
+
+    const float delta_y_world = ortho->getTarget().y() - target_before.y();
+    EXPECT_GT(delta_y_world, 0.0f)
+        << "Orbit pan (orthographic): drag down should shift COI along +view up (positive dY for default look)";
+}
+
+// ---------------------------------------------------------------------------
 // FreeLook pitch: mouse up (negative delta_y) -> look up (pitch increases)
 // ---------------------------------------------------------------------------
 TEST(BehaviorRegression, FreeLook_MouseUpLooksUp) {
