@@ -44,7 +44,8 @@ namespace vne::interaction {
  * actions. Supports inertia via exponential decay.
  *
  * - RotationMode::eOrbit   — classic yaw/pitch orbit, pitch clamped to [-89°, 89°]
- * - RotationMode::eTrackball — quaternion / virtual-trackball rotation (unconstrained)
+ * - RotationMode::eTrackball — arcball-style quaternion about COI (cf. ArcballManipulator + distance in
+ *   orbit-style camera rigs)
  * - PivotMode::eCoi — orbit center follows pan in the view plane (see @ref OrbitPivotMode).
  * - PivotMode::eViewCenter — same as eCoi while panning; on pan end, COI syncs from the camera target.
  * - PivotMode::eFixed — world pivot fixed; pan trucks eye+target; after pan, target may not equal COI until rotate.
@@ -187,7 +188,7 @@ class VNE_INTERACTION_API OrbitalCameraBehavior final : public CameraBehaviorBas
    protected:
     /**
      * @brief Zoom dispatch: eSceneScale → applySceneScaleZoom; eChangeFov → applyFovZoom only (no dolly
-     * fallback at FOV limits — use eDollyToCoi for orbit distance zoom); eDollyToCoi → applyOrbitGeometricZoom.
+     * fallback at FOV limits — use eDollyToCoi for orbit distance zoom); eDollyToCoi → applyDolly.
      */
     void dispatchZoom(float factor, float mx, float my) noexcept;
 
@@ -199,8 +200,16 @@ class VNE_INTERACTION_API OrbitalCameraBehavior final : public CameraBehaviorBas
                                              const vne::math::Vec3f& right) const noexcept;
 
     void syncFromCamera() noexcept;
+    /** Eye at COI + orientation * distance (trackball / arcball-style), like CameraManipulator::getMatrix + look-at. */
+    void applyTrackballOrbitToCamera() noexcept;
+    /** Eye at COI − front * distance from yaw/pitch orbit state. */
+    void applyEulerOrbitToCamera() noexcept;
     void applyToCamera() noexcept;
     void onPivotChanged() noexcept;
+
+    void syncCoiAndDistanceFromCamera() noexcept;
+    void syncTrackballOrientationFromCamera() noexcept;
+    void syncEulerYawPitchFromCamera() noexcept;
 
     // ---- rotation ---------------------------------------------------------------
     void beginRotate(float x_px, float y_px) noexcept;

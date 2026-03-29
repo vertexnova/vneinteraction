@@ -107,6 +107,13 @@ constexpr float kZoomToCursorStrength = 0.5f;
 
 }  // namespace
 
+// Orbit pose model (same separation as ogl_attachments ArcballManipulator + CameraManipulator):
+// - coi_world_  — look-at / orbit center (Panthera m_lookat)
+// - orbit_distance_ — eye–COI distance along view axis (m_dist)
+// - eOrbit — yaw/pitch stored in OrbitBehavior; eTrackball — orientation_ quaternion (arcball m_rot)
+// applyToCamera() composes eye from COI + rotation + distance; syncFromCamera() pulls COI/dist and
+// either rebuilds orientation_ from the realized camera basis (trackball) or yaw/pitch from view dir.
+
 // ---------------------------------------------------------------------------
 // Constructor
 // ---------------------------------------------------------------------------
@@ -191,50 +198,77 @@ vne::math::Vec3f OrbitalCameraBehavior::computeFront() const noexcept {
 // syncFromCamera / applyToCamera
 // ---------------------------------------------------------------------------
 
+void OrbitalCameraBehavior::syncCoiAndDistanceFromCamera() noexcept {
+    coi_world_ = camera_->getTarget();
+    orbit_distance_ = std::max((camera_->getPosition() - coi_world_).length(), kMinOrbitDistance);
+}
+
+void OrbitalCameraBehavior::syncTrackballOrientationFromCamera() noexcept {
+    // Rebuild arcball quaternion from the realized camera basis after lookAt (up stabilization, etc.).
+    vne::math::Vec3f back = (camera_->getPosition() - coi_world_);
+    const float back_len = back.length();
+    back = (back_len < kEpsilon) ? vne::math::Vec3f(0.0f, 0.0f, 1.0f) : (back / back_len);
+
+    vne::math::Vec3f up = camera_->getUp();
+    const float up_len = up.length();
+    up = (up_len < kEpsilon) ? world_up_ : (up / up_len);
+
+    vne::math::Vec3f right = up.cross(back);
+    const float right_len = right.length();
+    if (right_len < kEpsilon) {
+        right = world_up_.cross(back);
+        const float r2 = right.length();
+        right = (r2 < kEpsilon) ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : (right / r2);
+    } else {
+        right /= right_len;
+    }
+    up = back.cross(right);
+
+    const vne::math::Mat4f rot(vne::math::Vec4f(right.x(), right.y(), right.z(), 0.0f),
+                               vne::math::Vec4f(up.x(), up.y(), up.z(), 0.0f),
+                               vne::math::Vec4f(back.x(), back.y(), back.z(), 0.0f),
+                               vne::math::Vec4f(0.0f, 0.0f, 0.0f, 1.0f));
+    orientation_ = vne::math::Quatf(rot).normalized();
+    normalize_counter_ = 0;
+}
+
+void OrbitalCameraBehavior::syncEulerYawPitchFromCamera() noexcept {
+    vne::math::Vec3f front = coi_world_ - camera_->getPosition();
+    if (orbit_distance_ < kEpsilon) {
+        orbit_distance_ = kDefaultOrbitDistance;
+        orbit_behavior_.setYawPitch(0.0f, 0.0f);
+        return;
+    }
+    front /= orbit_distance_;
+    orbit_behavior_.syncFromViewDirection(world_up_, front);
+}
+
 void OrbitalCameraBehavior::syncFromCamera() noexcept {
     if (!camera_) {
         return;
     }
-    coi_world_ = camera_->getTarget();
-    orbit_distance_ = std::max((camera_->getPosition() - coi_world_).length(), kMinOrbitDistance);
-
+    syncCoiAndDistanceFromCamera();
     if (rotation_mode_ == OrbitRotationMode::eTrackball) {
-        // Build orientation_ from the full camera basis
-        vne::math::Vec3f back = (camera_->getPosition() - coi_world_);
-        const float back_len = back.length();
-        back = (back_len < kEpsilon) ? vne::math::Vec3f(0.0f, 0.0f, 1.0f) : (back / back_len);
-
-        vne::math::Vec3f up = camera_->getUp();
-        const float up_len = up.length();
-        up = (up_len < kEpsilon) ? world_up_ : (up / up_len);
-
-        vne::math::Vec3f right = up.cross(back);
-        const float right_len = right.length();
-        if (right_len < kEpsilon) {
-            right = world_up_.cross(back);
-            const float r2 = right.length();
-            right = (r2 < kEpsilon) ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : (right / r2);
-        } else {
-            right /= right_len;
-        }
-        up = back.cross(right);
-
-        const vne::math::Mat4f rot(vne::math::Vec4f(right.x(), right.y(), right.z(), 0.0f),
-                                   vne::math::Vec4f(up.x(), up.y(), up.z(), 0.0f),
-                                   vne::math::Vec4f(back.x(), back.y(), back.z(), 0.0f),
-                                   vne::math::Vec4f(0.0f, 0.0f, 0.0f, 1.0f));
-        orientation_ = vne::math::Quatf(rot).normalized();
-        normalize_counter_ = 0;
+        syncTrackballOrientationFromCamera();
     } else {
-        vne::math::Vec3f front = coi_world_ - camera_->getPosition();
-        if (orbit_distance_ < kEpsilon) {
-            orbit_distance_ = kDefaultOrbitDistance;
-            orbit_behavior_.setYawPitch(0.0f, 0.0f);
-            return;
-        }
-        front /= orbit_distance_;
-        orbit_behavior_.syncFromViewDirection(world_up_, front);
+        syncEulerYawPitchFromCamera();
     }
+}
+
+void OrbitalCameraBehavior::applyTrackballOrbitToCamera() noexcept {
+    const vne::math::Vec3f back = orientation_.getZAxis();
+    const vne::math::Vec3f view_dir = (-back).normalized();
+    const vne::math::Vec3f up_hint = orientation_.getYAxis();
+    const vne::math::Vec3f up = stableCameraUpForLookAt(up_hint, view_dir, world_up_);
+    camera_->lookAt(coi_world_ + back * orbit_distance_, coi_world_, up);
+}
+
+void OrbitalCameraBehavior::applyEulerOrbitToCamera() noexcept {
+    const vne::math::Vec3f front = computeFront();
+    const vne::math::Vec3f view_dir = front.normalized();
+    const vne::math::Vec3f up_hint = computeUp(front, computeRight(front));
+    const vne::math::Vec3f up = stableCameraUpForLookAt(up_hint, view_dir, world_up_);
+    camera_->lookAt(coi_world_ - front * orbit_distance_, coi_world_, up);
 }
 
 void OrbitalCameraBehavior::applyToCamera() noexcept {
@@ -242,17 +276,9 @@ void OrbitalCameraBehavior::applyToCamera() noexcept {
         return;
     }
     if (rotation_mode_ == OrbitRotationMode::eTrackball) {
-        const vne::math::Vec3f back = orientation_.getZAxis();
-        const vne::math::Vec3f view_dir = (-back).normalized();
-        const vne::math::Vec3f up_hint = orientation_.getYAxis();
-        const vne::math::Vec3f up = stableCameraUpForLookAt(up_hint, view_dir, world_up_);
-        camera_->lookAt(coi_world_ + back * orbit_distance_, coi_world_, up);
+        applyTrackballOrbitToCamera();
     } else {
-        const vne::math::Vec3f front = computeFront();
-        const vne::math::Vec3f view_dir = front.normalized();
-        const vne::math::Vec3f up_hint = computeUp(front, computeRight(front));
-        const vne::math::Vec3f up = stableCameraUpForLookAt(up_hint, view_dir, world_up_);
-        camera_->lookAt(coi_world_ - front * orbit_distance_, coi_world_, up);
+        applyEulerOrbitToCamera();
     }
     camera_->updateMatrices();
 }
@@ -453,37 +479,34 @@ void OrbitalCameraBehavior::applyDolly(float factor, float mx, float my) noexcep
         CameraBehaviorBase::applyOrthoZoomToCursor(effective_factor, mx, my);
         return;
     }
-
-    const float old_dist = orbit_distance_;
-    orbit_distance_ = vne::math::clamp(orbit_distance_ * effective_factor, kMinOrbitDistance, kMaxOrbitDistance);
-    // computeRight/computeUp expect the view/front direction (not camera-back / +Z).
-    // computeFront() matches applyToCamera (Euler yaw/pitch or trackball -orientation_.getZAxis()).
-    const vne::math::Vec3f front_dir = computeFront();
-    const vne::math::Vec3f r = computeRight(front_dir);
-    const vne::math::Vec3f u = computeUp(front_dir, r);
-    auto persp = perspCamera();
-    const float vw = viewportWidth();
-    const float vh = viewportHeight();
-    if (persp && vw > 0.0f && vh > 0.0f) {
-        const float ndc_x = (2.0f * mx / vw) - 1.0f;
-        const float ndc_y = 1.0f - (2.0f * my / vh);
-        const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
-        const float half_h = old_dist * vne::math::tan(fov_y_rad * 0.5f);
-        const float half_w = half_h * (vw / vh);
-        // Camera is along -front from COI at old_dist; cursor offset in the view plane (r, u).
-        const vne::math::Vec3f cursor_world = coi_world_ + r * (ndc_x * half_w) + u * (ndc_y * half_h);
-        const vne::math::Vec3f to_cursor = cursor_world - coi_world_;
-        const float shift_t = (1.0f - effective_factor) * kZoomToCursorStrength;
-        if (to_cursor.length() < old_dist * 2.0f) {
-            coi_world_ += to_cursor * shift_t;
+    if (auto persp = perspCamera()) {
+        const float old_dist = orbit_distance_;
+        orbit_distance_ = vne::math::clamp(orbit_distance_ * effective_factor, kMinOrbitDistance, kMaxOrbitDistance);
+        // computeRight/computeUp use view/front; computeFront() matches applyEulerOrbitToCamera / trackball basis.
+        const vne::math::Vec3f front_dir = computeFront();
+        const vne::math::Vec3f r = computeRight(front_dir);
+        const vne::math::Vec3f u = computeUp(front_dir, r);
+        const float vw = viewportWidth();
+        const float vh = viewportHeight();
+        if (vw > 0.0f && vh > 0.0f) {
+            const float ndc_x = (2.0f * mx / vw) - 1.0f;
+            const float ndc_y = 1.0f - (2.0f * my / vh);
+            const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
+            const float half_h = old_dist * vne::math::tan(fov_y_rad * 0.5f);
+            const float half_w = half_h * (vw / vh);
+            const vne::math::Vec3f cursor_world = coi_world_ + r * (ndc_x * half_w) + u * (ndc_y * half_h);
+            const vne::math::Vec3f to_cursor = cursor_world - coi_world_;
+            const float shift_t = (1.0f - effective_factor) * kZoomToCursorStrength;
+            if (to_cursor.length() < old_dist * 2.0f) {
+                coi_world_ += to_cursor * shift_t;
+            }
         }
-    }
-    applyToCamera();
-    if (pivot_mode_ == OrbitPivotMode::eViewCenter) {
-        onPivotChanged();
-    } else if (rotation_mode_ == OrbitRotationMode::eTrackball) {
-        // Re-sync orientation_ after COI shift so rotation basis stays valid
-        syncFromCamera();
+        applyToCamera();
+        // Zoom-to-cursor moves COI; lookAt may adjust up. Euler yaw/pitch stay valid; trackball orientation_
+        // must match the realized camera (same need as after any COI change in trackball mode).
+        if (rotation_mode_ == OrbitRotationMode::eTrackball) {
+            syncFromCamera();
+        }
     }
 }
 // ---------------------------------------------------------------------------
