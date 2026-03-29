@@ -186,9 +186,8 @@ class VNE_INTERACTION_API OrbitalCameraBehavior final : public CameraBehaviorBas
 
    protected:
     /**
-     * @brief Zoom dispatch: eSceneScale uses applySceneScaleZoom; eChangeFov and eDollyToCoi call
-     * onZoomDolly so FOV can fall back to orbit dolly when FOV is clamped (unlike base dispatchZoom,
-     * which only calls applyFovZoom for eChangeFov).
+     * @brief Zoom dispatch: eSceneScale → applySceneScaleZoom; eChangeFov → tryOrbitPerspectiveFovZoom
+     * then applyOrbitGeometricZoom if FOV unchanged at clamp; eDollyToCoi → applyOrbitGeometricZoom only.
      */
     void dispatchZoom(float factor, float mx, float my) noexcept;
 
@@ -221,6 +220,11 @@ class VNE_INTERACTION_API OrbitalCameraBehavior final : public CameraBehaviorBas
     void updatePanInertiaFromDragSample(const vne::math::Vec3f& delta_world, double delta_time) noexcept;
 
     // ---- zoom -------------------------------------------------------------------
+    /** Perspective-only FOV step for eChangeFov; false if ortho, no persp, or FOV clamped with no change. */
+    [[nodiscard]] bool tryOrbitPerspectiveFovZoom(float factor) noexcept;
+    /** Ortho zoom-to-cursor or perspective orbit dolly (zoom_speed_ applied via pow). */
+    void applyOrbitGeometricZoom(float factor, float mx, float my) noexcept;
+
     void onZoomDolly(float factor, float mx, float my) noexcept override;
 
     // ---- inertia ----------------------------------------------------------------

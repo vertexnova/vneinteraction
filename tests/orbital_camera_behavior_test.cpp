@@ -109,7 +109,7 @@ TEST(OrbitalCameraBehavior, ResetState) {
     EXPECT_NO_FATAL_FAILURE(b.resetState());
 }
 
-// kFovMaxDeg in CameraBehaviorBase is 120 — must match OrbitalCameraBehavior::onZoomDolly clamp.
+// kFovMaxDeg in CameraBehaviorBase is 120 — must match OrbitalCameraBehavior::tryOrbitPerspectiveFovZoom clamp.
 // Use max FOV so 120 * zoom_factor clamps back to 120 with exact float equality (new_fov == fov),
 // deterministically exercising fallthrough to dolly. At min FOV, tiny float drift can make
 // new_fov != fov and return early before dolly.
