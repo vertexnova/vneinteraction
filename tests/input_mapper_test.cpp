@@ -95,10 +95,9 @@ TEST(InputMapper, CallbackFiredOnMatch) {
 TEST(InputMapper, OnMouseScroll_ZeroScrollDoesNotEmit) {
     vne::interaction::InputMapper m = makeMapperWithScrollZoom();
     int call_count = 0;
-    m.setActionCallback(
-        [&call_count](vne::interaction::CameraActionType, const vne::interaction::CameraCommandPayload&, double) {
-            ++call_count;
-        });
+    m.setActionCallback([&call_count](vne::interaction::CameraActionType,
+                                      const vne::interaction::CameraCommandPayload&,
+                                      double) { ++call_count; });
     m.onMouseScroll(0.0f, 0.0f, 100.0f, 200.0f, 0.016);
     EXPECT_EQ(call_count, 0);
 }
@@ -107,12 +106,11 @@ TEST(InputMapper, OnMouseScroll_LegacyNotchOneLineDown) {
     vne::interaction::InputMapper m = makeMapperWithScrollZoom();
     std::optional<float> zoom;
     vne::interaction::CameraActionType seen = vne::interaction::CameraActionType::eNone;
-    m.setActionCallback([&zoom, &seen](vne::interaction::CameraActionType a,
-                                       const vne::interaction::CameraCommandPayload& p,
-                                       double) {
-        seen = a;
-        zoom = p.zoom_factor;
-    });
+    m.setActionCallback(
+        [&zoom, &seen](vne::interaction::CameraActionType a, const vne::interaction::CameraCommandPayload& p, double) {
+            seen = a;
+            zoom = p.zoom_factor;
+        });
     m.onMouseScroll(0.0f, 1.0f, 10.0f, 20.0f, 0.016);
     ASSERT_TRUE(zoom.has_value());
     EXPECT_EQ(seen, vne::interaction::CameraActionType::eZoomAtCursor);
@@ -123,10 +121,9 @@ TEST(InputMapper, OnMouseScroll_LegacyNotchOneLineDown) {
 TEST(InputMapper, OnMouseScroll_LegacyNotchOneLineUp) {
     vne::interaction::InputMapper m = makeMapperWithScrollZoom();
     std::optional<float> zoom;
-    m.setActionCallback(
-        [&zoom](vne::interaction::CameraActionType, const vne::interaction::CameraCommandPayload& p, double) {
-            zoom = p.zoom_factor;
-        });
+    m.setActionCallback([&zoom](vne::interaction::CameraActionType,
+                                const vne::interaction::CameraCommandPayload& p,
+                                double) { zoom = p.zoom_factor; });
     m.onMouseScroll(0.0f, -1.0f, 0.0f, 0.0f, 0.016);
     ASSERT_TRUE(zoom.has_value());
     EXPECT_FLOAT_EQ(*zoom, referenceScrollToZoomFactor(-1.0f));
@@ -137,10 +134,9 @@ TEST(InputMapper, OnMouseScroll_SmallTrackpadDelta) {
     constexpr float kDy = 0.02f;
     vne::interaction::InputMapper m = makeMapperWithScrollZoom();
     std::optional<float> zoom;
-    m.setActionCallback(
-        [&zoom](vne::interaction::CameraActionType, const vne::interaction::CameraCommandPayload& p, double) {
-            zoom = p.zoom_factor;
-        });
+    m.setActionCallback([&zoom](vne::interaction::CameraActionType,
+                                const vne::interaction::CameraCommandPayload& p,
+                                double) { zoom = p.zoom_factor; });
     m.onMouseScroll(0.0f, kDy, 640.0f, 360.0f, 0.016);
     ASSERT_TRUE(zoom.has_value());
     EXPECT_FLOAT_EQ(*zoom, referenceScrollToZoomFactor(kDy));
@@ -152,10 +148,9 @@ TEST(InputMapper, OnMouseScroll_LargePositiveScrollHitsFactorClampMin) {
     // |dy| clamped to 25; 0.9^25 < 0.5 → zoom_factor floors at kWheelZoomFactorMin
     vne::interaction::InputMapper m = makeMapperWithScrollZoom();
     std::optional<float> zoom;
-    m.setActionCallback(
-        [&zoom](vne::interaction::CameraActionType, const vne::interaction::CameraCommandPayload& p, double) {
-            zoom = p.zoom_factor;
-        });
+    m.setActionCallback([&zoom](vne::interaction::CameraActionType,
+                                const vne::interaction::CameraCommandPayload& p,
+                                double) { zoom = p.zoom_factor; });
     m.onMouseScroll(0.0f, 100.0f, 0.0f, 0.0f, 0.016);
     ASSERT_TRUE(zoom.has_value());
     EXPECT_FLOAT_EQ(*zoom, kWheelZoomFactorMin);
@@ -166,10 +161,9 @@ TEST(InputMapper, OnMouseScroll_LargeNegativeScrollHitsFactorClampMax) {
     // dy clamped to -25; 0.9^(-25) >> kWheelZoomFactorMax → caps at 2
     vne::interaction::InputMapper m = makeMapperWithScrollZoom();
     std::optional<float> zoom;
-    m.setActionCallback(
-        [&zoom](vne::interaction::CameraActionType, const vne::interaction::CameraCommandPayload& p, double) {
-            zoom = p.zoom_factor;
-        });
+    m.setActionCallback([&zoom](vne::interaction::CameraActionType,
+                                const vne::interaction::CameraCommandPayload& p,
+                                double) { zoom = p.zoom_factor; });
     m.onMouseScroll(0.0f, -100.0f, 0.0f, 0.0f, 0.016);
     ASSERT_TRUE(zoom.has_value());
     EXPECT_FLOAT_EQ(*zoom, kWheelZoomFactorMax);
@@ -179,7 +173,8 @@ TEST(InputMapper, OnMouseScroll_LargeNegativeScrollHitsFactorClampMax) {
 TEST(InputMapper, OnMouseScroll_PassesMousePositionInPayload) {
     vne::interaction::InputMapper m = makeMapperWithScrollZoom();
     vne::interaction::CameraCommandPayload captured{};
-    m.setActionCallback([&captured](vne::interaction::CameraActionType, const vne::interaction::CameraCommandPayload& p,
+    m.setActionCallback([&captured](vne::interaction::CameraActionType,
+                                    const vne::interaction::CameraCommandPayload& p,
                                     double) { captured = p; });
     m.onMouseScroll(0.0f, 1.0f, 123.0f, 456.0f, 0.016);
     EXPECT_FLOAT_EQ(captured.x_px, 123.0f);
@@ -190,10 +185,9 @@ TEST(InputMapper, OnMouseScroll_UnclampedMidRangeMatchesPow) {
     // Two-line zoom in: no clamp on factor; documents pow curve between notches
     vne::interaction::InputMapper m = makeMapperWithScrollZoom();
     std::optional<float> zoom;
-    m.setActionCallback(
-        [&zoom](vne::interaction::CameraActionType, const vne::interaction::CameraCommandPayload& p, double) {
-            zoom = p.zoom_factor;
-        });
+    m.setActionCallback([&zoom](vne::interaction::CameraActionType,
+                                const vne::interaction::CameraCommandPayload& p,
+                                double) { zoom = p.zoom_factor; });
     m.onMouseScroll(0.0f, 2.0f, 0.0f, 0.0f, 0.016);
     ASSERT_TRUE(zoom.has_value());
     const float expected = std::pow(kWheelZoomFactorPerLine, 2.0f);
