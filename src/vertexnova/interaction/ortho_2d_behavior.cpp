@@ -297,8 +297,12 @@ bool Ortho2DBehavior::onAction(CameraActionType action,
             return true;
 
         case CameraActionType::eZoomAtCursor:
-            if (payload.zoom_factor > 0.0f && payload.zoom_factor != 1.0f) {
+            if (payload.zoom_factor > 0.0f && payload.zoom_factor != 1.0f
+                && std::isfinite(payload.zoom_factor)) {
                 const float effective_factor = std::pow(payload.zoom_factor, zoom_speed_);
+                if (!std::isfinite(effective_factor) || effective_factor <= 0.0f) {
+                    return false;
+                }
                 scalePanVelocityWithOrthoExtentChange(pan_velocity_, getZoomMethod(), effective_factor);
                 dispatchZoom(effective_factor, payload.x_px, payload.y_px);
                 return true;
