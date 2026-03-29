@@ -45,7 +45,7 @@ constexpr float kInertiaRotSpeedMax = 10.0f;
 constexpr float kInertiaRotAngleThreshold = 1e-6f;
 constexpr float kInertiaRotSpeedThreshold = 1e-4f;
 constexpr float kInertiaPanSpeedThreshold = 1e-4f;
-/** Strength of COI shift toward cursor on perspective zoom-to-cursor (0..1). */
+/** Fraction of cursor–COI offset applied per zoom step toward (in) or away from (out) the cursor; 0.5 = 50%. */
 constexpr float kZoomToCursorStrength = 0.5f;
 
 /**

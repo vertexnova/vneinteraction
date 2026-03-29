@@ -99,7 +99,8 @@ void FollowBehavior::applyDolly(float factor, float /*mx*/, float /*my*/) noexce
     if (!camera_ || factor <= 0.0f) {
         return;
     }
-    const vne::math::Vec3f new_offset = offset_world_ * factor;
+    const float effective_factor = std::pow(factor, zoom_speed_);
+    const vne::math::Vec3f new_offset = offset_world_ * effective_factor;
     const float len = new_offset.length();
     if (len > kOffsetMinLength && len < kOffsetMaxLength) {
         offset_world_ = new_offset;

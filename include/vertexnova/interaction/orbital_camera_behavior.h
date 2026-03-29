@@ -141,7 +141,10 @@ class VNE_INTERACTION_API OrbitalCameraBehavior final : public CameraBehaviorBas
     /** Get current orbit distance. */
     [[nodiscard]] float getOrbitDistance() const noexcept { return orbit_distance_; }
 
-    /** Set scroll/pinch zoom speed (>= 0.01). */
+    /**
+     * Set zoom sensitivity exponent (>= 0.01). Applied as pow(scroll_factor, zoom_speed_) before changing
+     * orbit distance / ortho extents (dolly path). Values > 1 amplify wheel zoom; < 1 attenuate. Default 1.1.
+     */
     void setZoomSpeed(float speed) noexcept { zoom_speed_ = std::max(0.01f, speed); }
     [[nodiscard]] float getZoomSpeed() const noexcept { return zoom_speed_; }
 

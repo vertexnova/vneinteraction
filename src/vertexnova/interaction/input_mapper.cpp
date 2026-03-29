@@ -323,9 +323,8 @@ void InputMapper::onMouseScroll(float /*scroll_x*/, float scroll_y, float mouse_
     CameraCommandPayload payload;
     payload.x_px = mouse_x;
     payload.y_px = mouse_y;
-    const float k_ln_per_line = -std::log(kWheelZoomFactorPerLine);
     const float clamped_dy = std::clamp(scroll_y, -kWheelScrollYAbsMax, kWheelScrollYAbsMax);
-    float factor = std::exp(-k_ln_per_line * clamped_dy);
+    float factor = std::pow(kWheelZoomFactorPerLine, clamped_dy);
     factor = std::clamp(factor, kWheelZoomFactorMin, kWheelZoomFactorMax);
     payload.zoom_factor = factor;
 

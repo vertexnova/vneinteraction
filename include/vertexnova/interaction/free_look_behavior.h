@@ -126,7 +126,10 @@ class VNE_INTERACTION_API FreeLookBehavior final : public CameraBehaviorBase {
     void setSlowMultiplier(float mult) noexcept { slow_mult_ = std::max(0.0f, mult); }
     [[nodiscard]] float getSlowMultiplier() const noexcept { return slow_mult_; }
 
-    /** Set zoom speed (>= 0.01). */
+    /**
+     * Set scroll zoom sensitivity (>= 0.01), dimensionless. Perspective dolly uses
+     * (1 − scroll_factor) × zoom_speed × eye–target distance per zoom step (small trackpad deltas → small moves).
+     */
     void setZoomSpeed(float speed) noexcept { zoom_speed_ = std::max(0.01f, speed); }
     [[nodiscard]] float getZoomSpeed() const noexcept { return zoom_speed_; }
 
@@ -178,7 +181,7 @@ class VNE_INTERACTION_API FreeLookBehavior final : public CameraBehaviorBase {
     float mouse_sensitivity_ = 0.15f;
     float sprint_mult_ = 4.0f;
     float slow_mult_ = 0.2f;
-    float zoom_speed_ = 0.5f;
+    float zoom_speed_ = 1.0f;
     bool handle_zoom_ = true;
 
     FreeLookInputState input_state_;

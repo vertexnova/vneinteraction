@@ -122,7 +122,7 @@ class VNE_INTERACTION_API FollowBehavior final : public CameraBehaviorBase {
     void setDamping(float damping) noexcept { damping_ = std::max(0.0f, damping); }
     [[nodiscard]] float getDamping() const noexcept { return damping_; }
 
-    /** Set zoom speed (>= 0.01). */
+    /** Exponent on scroll factor for eDollyToCoi: offset scales by pow(factor, zoom_speed_) (>= 0.01). */
     void setZoomSpeed(float speed) noexcept { zoom_speed_ = std::max(0.01f, speed); }
     [[nodiscard]] float getZoomSpeed() const noexcept { return zoom_speed_; }
 
