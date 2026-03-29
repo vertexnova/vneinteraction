@@ -123,11 +123,8 @@ inline void buildReferenceFrame(const vne::math::Vec3f& world_up,
 /**
  * @brief Top-left window/client mouse coords → NDC [-1, 1] for the given graphics API.
  */
-[[nodiscard]] vne::math::Vec2f mouseWindowToNDC(float mx,
-                                                float my,
-                                                float w,
-                                                float h,
-                                                vne::math::GraphicsApi api) noexcept;
+[[nodiscard]] vne::math::Vec2f mouseWindowToNDC(
+    float mx, float my, float w, float h, vne::math::GraphicsApi api) noexcept;
 
 /**
  * @brief API-aware unproject from mouse coords (mouse -> API screen -> unproject).

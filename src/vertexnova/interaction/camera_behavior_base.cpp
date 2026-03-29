@@ -149,8 +149,7 @@ void CameraBehaviorBase::applyOrthoZoomToCursor(float factor, float mx, float my
     if (!ortho || viewport().width <= 0.0f || viewport().height <= 0.0f) {
         return;
     }
-    const vne::math::Vec2f ndc =
-        mouseWindowToNDC(mx, my, viewport().width, viewport().height, graphicsApi());
+    const vne::math::Vec2f ndc = mouseWindowToNDC(mx, my, viewport().width, viewport().height, graphicsApi());
     const float ndc_x = ndc.x();
     const float ndc_y = ndc.y();
     const float half_w = ortho->getWidth() * 0.5f;

@@ -38,8 +38,8 @@ constexpr float kMinRotationAngleRad = 1e-8f;
  * eSceneScale does not change the ortho frustum here — leave velocity unchanged.
  */
 void scalePanVelocityWithOrthoExtentChange(vne::math::Vec3f& pan_velocity,
-                                          ZoomMethod method,
-                                          float zoom_factor) noexcept {
+                                           ZoomMethod method,
+                                           float zoom_factor) noexcept {
     float extent_scale = 1.0f;
     switch (method) {
         case ZoomMethod::eDollyToCoi:
