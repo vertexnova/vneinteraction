@@ -85,12 +85,12 @@ void CameraBehaviorBase::dispatchZoom(float factor, float mx, float my) noexcept
             applySceneScaleZoom(factor);
             return;
         case ZoomMethod::eDollyToCoi:
-            onZoomDolly(factor, mx, my);
+            applyDolly(factor, mx, my);
             return;
     }
 }
 
-void CameraBehaviorBase::onZoomDolly(float factor, float mx, float my) noexcept {
+void CameraBehaviorBase::applyDolly(float factor, float mx, float my) noexcept {
     // Default: handle ortho cursor-anchored zoom; persp no-op (behaviors override).
     if (orthoCamera()) {
         applyOrthoZoomToCursor(factor, mx, my);
@@ -109,10 +109,7 @@ void CameraBehaviorBase::applyFovZoom(float factor) noexcept {
     if (auto persp = perspCamera()) {
         persp->setFieldOfView(vne::math::clamp(persp->getFieldOfView() * factor, kFovMinDeg, kFovMaxDeg));
         persp->updateMatrices();
-        return;
-    }
-
-    if (auto ortho = orthoCamera()) {
+    } else if (auto ortho = orthoCamera()) {
         const float half_h = ortho->getHeight() * 0.5f;
         const float half_w = ortho->getWidth() * 0.5f;
         const float hw = std::max(half_w, kEpsilon);

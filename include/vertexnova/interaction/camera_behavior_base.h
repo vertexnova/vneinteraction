@@ -16,7 +16,7 @@
  * Provides common fields, trivial method bodies, and shared zoom dispatch
  * logic used by every concrete behavior. The zoom dispatch uses the template
  * method pattern: dispatchZoom() is non-virtual and handles eChangeFov and
- * eSceneScale internally; eDollyToCoi is routed to the virtual onZoomDolly()
+ * eSceneScale internally; eDollyToCoi is routed to the virtual applyDolly()
  * hook — the default implementation handles orthographic zoom-to-cursor;
  * concrete behaviors override it to implement perspective dolly.
  *
@@ -40,7 +40,7 @@ class OrthographicCamera;
 namespace vne::interaction {
 
 /**
- * @brief Base class for ICameraBehavior implementations with shared zoom logic and a virtual dolly-zoom hook.
+ * @brief Base class for ICameraBehavior implementations with shared zoom logic and virtual applyDolly().
  *
  * Concrete behaviors inherit from this instead of ICameraBehavior directly.
  * They still override the remaining pure-virtual methods (onAction, onUpdate,
@@ -51,9 +51,9 @@ namespace vne::interaction {
  *
  * Call `dispatchZoom(payload.zoom_factor, payload.x_px, payload.y_px)` from
  * the `eZoomAtCursor` case of `onAction`. The base class handles eChangeFov and
- * eSceneScale centrally. For eDollyToCoi it calls the virtual `onZoomDolly()` —
+ * eSceneScale centrally. For eDollyToCoi it calls the virtual `applyDolly()` —
  * override that to implement behavior-specific perspective dolly. The default
- * onZoomDolly handles orthographic zoom-to-cursor automatically, so
+ * applyDolly handles orthographic zoom-to-cursor automatically, so
  * Ortho2DBehavior needs no override.
  */
 class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
@@ -138,7 +138,7 @@ class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
      * Routing:
      *  - eChangeFov  → applyFovZoom(factor)
      *  - eSceneScale → applySceneScaleZoom(factor)
-     *  - eDollyToCoi → onZoomDolly(factor, mx, my)
+     *  - eDollyToCoi → applyDolly(factor, mx, my)
      *
      * @param factor  Zoom factor (< 1 = zoom in, > 1 = zoom out, must be > 0)
      * @param mx      Mouse X in pixels (for cursor-anchored zoom)
@@ -147,7 +147,7 @@ class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
     void dispatchZoom(float factor, float mx, float my) noexcept;
 
     /**
-     * @brief Dolly-zoom hook, called by dispatchZoom for eDollyToCoi.
+     * @brief Geometric zoom for eDollyToCoi (orbit dolly, ortho zoom-to-cursor, etc.).
      *
      * Default: handles orthographic cameras via applyOrthoZoomToCursor().
      * For perspective cameras the default is a no-op — override to implement
@@ -157,14 +157,14 @@ class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
      * in the ortho branch:
      * @code
      *   if (auto ortho = orthoCamera()) {
-     *       CameraBehaviorBase::onZoomDolly(factor, mx, my);  // handles ortho
+     *       CameraBehaviorBase::applyDolly(factor, mx, my);  // handles ortho
      *       coi_world_ = ortho->getTarget();  // sync orbit-specific state
      *       return;
      *   }
      *   // ... perspective dolly logic ...
      * @endcode
      */
-    virtual void onZoomDolly(float factor, float mx, float my) noexcept;
+    virtual void applyDolly(float factor, float mx, float my) noexcept;
 
     // -------------------------------------------------------------------------
     // Shared zoom implementations

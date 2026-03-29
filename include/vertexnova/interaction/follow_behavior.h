@@ -147,7 +147,7 @@ class VNE_INTERACTION_API FollowBehavior final : public CameraBehaviorBase {
     void fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept;
 
    private:
-    void onZoomDolly(float factor, float mx, float my) noexcept override;
+    void applyDolly(float factor, float mx, float my) noexcept override;
 
     // perspCamera() / orthoCamera() inherited from CameraBehaviorBase
 

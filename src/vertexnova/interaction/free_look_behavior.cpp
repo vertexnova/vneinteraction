@@ -150,10 +150,10 @@ void FreeLookBehavior::applyAnglesToCamera() noexcept {
     camera_->updateMatrices();
 }
 
-void FreeLookBehavior::onZoomDolly(float factor, float mx, float my) noexcept {
+void FreeLookBehavior::applyDolly(float factor, float mx, float my) noexcept {
     // Ortho: delegate to base cursor-anchored zoom.
     if (orthoCamera()) {
-        CameraBehaviorBase::onZoomDolly(factor, mx, my);
+        CameraBehaviorBase::applyDolly(factor, mx, my);
         return;
     }
     // Perspective (or unknown): move camera + target along front.

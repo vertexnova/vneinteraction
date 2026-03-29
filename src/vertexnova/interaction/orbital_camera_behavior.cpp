@@ -424,26 +424,11 @@ void OrbitalCameraBehavior::endPan(double) noexcept {
 // Zoom
 // ---------------------------------------------------------------------------
 
-bool OrbitalCameraBehavior::tryOrbitPerspectiveFovZoom(float factor) noexcept {
-    auto persp = perspCamera();
-    if (!persp) {
-        return false;
-    }
-    const float fov = persp->getFieldOfView();
-    const float new_fov = vne::math::clamp(fov * factor, kFovMinDeg, kFovMaxDeg);
-    if (new_fov == fov) {
-        return false;
-    }
-    persp->setFieldOfView(new_fov);
-    persp->updateMatrices();
-    return true;
-}
-
 void OrbitalCameraBehavior::applyOrbitGeometricZoom(float factor, float mouse_x_px, float mouse_y_px) noexcept {
     if (!camera_) {
         return;
     }
-    // Do not use CameraBehaviorBase::onZoomDolly for perspective — base is ortho-only (raw factor).
+    // Do not use CameraBehaviorBase::applyDolly for perspective — base is ortho-only (raw factor).
     // Orbit needs orbit_distance_, COI shift, and applyOrthoZoomToCursor(pow factor).
     const float effective_factor = std::pow(factor, zoom_speed_);
 
@@ -494,9 +479,7 @@ void OrbitalCameraBehavior::dispatchZoom(float factor, float mx, float my) noexc
             CameraBehaviorBase::applySceneScaleZoom(factor);
             return;
         case ZoomMethod::eChangeFov:
-            if (!tryOrbitPerspectiveFovZoom(factor)) {
-                applyOrbitGeometricZoom(factor, mx, my);
-            }
+            CameraBehaviorBase::applyFovZoom(factor);
             return;
         case ZoomMethod::eDollyToCoi:
             applyOrbitGeometricZoom(factor, mx, my);
@@ -504,7 +487,7 @@ void OrbitalCameraBehavior::dispatchZoom(float factor, float mx, float my) noexc
     }
 }
 
-void OrbitalCameraBehavior::onZoomDolly(float factor, float mx, float my) noexcept {
+void OrbitalCameraBehavior::applyDolly(float factor, float mx, float my) noexcept {
     applyOrbitGeometricZoom(factor, mx, my);
 }
 

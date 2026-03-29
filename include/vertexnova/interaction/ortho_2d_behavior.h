@@ -116,7 +116,7 @@ class VNE_INTERACTION_API Ortho2DBehavior final : public CameraBehaviorBase {
     void applyInertia(double delta_time) noexcept;
 
     // orthoCamera() inherited from CameraBehaviorBase
-    // onZoomDolly() default in CameraBehaviorBase handles ortho zoom-to-cursor
+    // applyDolly() default in CameraBehaviorBase handles ortho zoom-to-cursor
 
     float zoom_speed_ = 1.1f;
     float pan_damping_ = 10.0f;

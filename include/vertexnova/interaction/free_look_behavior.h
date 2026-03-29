@@ -161,7 +161,7 @@ class VNE_INTERACTION_API FreeLookBehavior final : public CameraBehaviorBase {
 
     void syncAnglesFromCamera() noexcept;
     void applyAnglesToCamera() noexcept;
-    void onZoomDolly(float factor, float mx, float my) noexcept override;
+    void applyDolly(float factor, float mx, float my) noexcept override;
 
     // perspCamera() / orthoCamera() inherited from CameraBehaviorBase
 

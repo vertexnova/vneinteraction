@@ -92,10 +92,10 @@ float FollowBehavior::getWorldUnitsPerPixel() const noexcept {
 }
 
 // ---------------------------------------------------------------------------
-// Zoom (onZoomDolly: offset scaling for eDollyToCoi; eSceneScale / eChangeFov via base dispatchZoom)
+// Zoom (applyDolly: offset scaling for eDollyToCoi; eSceneScale / eChangeFov via base dispatchZoom)
 // ---------------------------------------------------------------------------
 
-void FollowBehavior::onZoomDolly(float factor, float /*mx*/, float /*my*/) noexcept {
+void FollowBehavior::applyDolly(float factor, float /*mx*/, float /*my*/) noexcept {
     if (!camera_ || factor <= 0.0f) {
         return;
     }
