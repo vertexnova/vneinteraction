@@ -221,8 +221,6 @@ class VNE_INTERACTION_API OrbitalCameraBehavior final : public CameraBehaviorBas
 
     // ---- zoom -------------------------------------------------------------------
     /** Ortho zoom-to-cursor or perspective orbit dolly (zoom_speed_ applied via pow). */
-    void applyOrbitGeometricZoom(float factor, float mx, float my) noexcept;
-
     void applyDolly(float factor, float mx, float my) noexcept override;
 
     // ---- inertia ----------------------------------------------------------------
