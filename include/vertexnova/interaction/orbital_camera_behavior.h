@@ -44,7 +44,8 @@ namespace vne::interaction {
  * actions. Supports inertia via exponential decay.
  *
  * - RotationMode::eOrbit   — classic yaw/pitch orbit, pitch clamped to [-89°, 89°]
- * - RotationMode::eTrackball — quaternion / virtual-trackball rotation (unconstrained)
+ * - RotationMode::eTrackball — arcball-style quaternion about COI (cf. ArcballManipulator + distance in
+ *   orbit-style camera rigs)
  * - PivotMode::eCoi — orbit center follows pan in the view plane (see @ref OrbitPivotMode).
  * - PivotMode::eViewCenter — same as eCoi while panning; on pan end, COI syncs from the camera target.
  * - PivotMode::eFixed — world pivot fixed; pan trucks eye+target; after pan, target may not equal COI until rotate.
@@ -140,7 +141,10 @@ class VNE_INTERACTION_API OrbitalCameraBehavior final : public CameraBehaviorBas
     /** Get current orbit distance. */
     [[nodiscard]] float getOrbitDistance() const noexcept { return orbit_distance_; }
 
-    /** Set scroll/pinch zoom speed (>= 0.01). */
+    /**
+     * Set zoom sensitivity exponent (>= 0.01). Applied as pow(scroll_factor, zoom_speed_) before changing
+     * orbit distance / ortho extents (dolly path). Values > 1 amplify wheel zoom; < 1 attenuate. Default 1.1.
+     */
     void setZoomSpeed(float speed) noexcept { zoom_speed_ = std::max(0.01f, speed); }
     [[nodiscard]] float getZoomSpeed() const noexcept { return zoom_speed_; }
 
@@ -186,9 +190,8 @@ class VNE_INTERACTION_API OrbitalCameraBehavior final : public CameraBehaviorBas
 
    protected:
     /**
-     * @brief Zoom dispatch: eChangeFov and eDollyToCoi both route through onZoomDolly so FOV can
-     * fall through to dolly when FOV is clamped (CameraBehaviorBase::dispatchZoom only calls
-     * applyFovZoom for eChangeFov and never reaches onZoomDolly).
+     * @brief Zoom dispatch: eSceneScale → applySceneScaleZoom; eChangeFov → applyFovZoom only (no dolly
+     * fallback at FOV limits — use eDollyToCoi for orbit distance zoom); eDollyToCoi → applyDolly.
      */
     void dispatchZoom(float factor, float mx, float my) noexcept;
 
@@ -200,8 +203,16 @@ class VNE_INTERACTION_API OrbitalCameraBehavior final : public CameraBehaviorBas
                                              const vne::math::Vec3f& right) const noexcept;
 
     void syncFromCamera() noexcept;
+    /** Eye at COI + orientation * distance (trackball / arcball-style), like CameraManipulator::getMatrix + look-at. */
+    void applyTrackballOrbitToCamera() noexcept;
+    /** Eye at COI − front * distance from yaw/pitch orbit state. */
+    void applyEulerOrbitToCamera() noexcept;
     void applyToCamera() noexcept;
     void onPivotChanged() noexcept;
+
+    void syncCoiAndDistanceFromCamera() noexcept;
+    void syncTrackballOrientationFromCamera() noexcept;
+    void syncEulerYawPitchFromCamera() noexcept;
 
     // ---- rotation ---------------------------------------------------------------
     void beginRotate(float x_px, float y_px) noexcept;
@@ -221,7 +232,8 @@ class VNE_INTERACTION_API OrbitalCameraBehavior final : public CameraBehaviorBas
     void updatePanInertiaFromDragSample(const vne::math::Vec3f& delta_world, double delta_time) noexcept;
 
     // ---- zoom -------------------------------------------------------------------
-    void onZoomDolly(float factor, float mx, float my) noexcept override;
+    /** Ortho zoom-to-cursor or perspective orbit dolly (zoom_speed_ applied via pow). */
+    void applyDolly(float factor, float mx, float my) noexcept override;
 
     // ---- inertia ----------------------------------------------------------------
     void applyInertia(double delta_time) noexcept;

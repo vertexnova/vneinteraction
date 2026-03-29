@@ -92,14 +92,15 @@ float FollowBehavior::getWorldUnitsPerPixel() const noexcept {
 }
 
 // ---------------------------------------------------------------------------
-// Zoom (onZoomDolly: offset scaling for eDollyToCoi; eSceneScale / eChangeFov via base dispatchZoom)
+// Zoom (applyDolly: offset scaling for eDollyToCoi; eSceneScale / eChangeFov via base dispatchZoom)
 // ---------------------------------------------------------------------------
 
-void FollowBehavior::onZoomDolly(float factor, float /*mx*/, float /*my*/) noexcept {
+void FollowBehavior::applyDolly(float factor, float /*mx*/, float /*my*/) noexcept {
     if (!camera_ || factor <= 0.0f) {
         return;
     }
-    const vne::math::Vec3f new_offset = offset_world_ * factor;
+    const float effective_factor = std::pow(factor, zoom_speed_);
+    const vne::math::Vec3f new_offset = offset_world_ * effective_factor;
     const float len = new_offset.length();
     if (len > kOffsetMinLength && len < kOffsetMaxLength) {
         offset_world_ = new_offset;

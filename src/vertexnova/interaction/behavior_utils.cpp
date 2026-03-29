@@ -18,6 +18,15 @@ vne::math::Vec2f mouseToApiScreen(float mx,
     return vne::math::Vec2f(mx, my);
 }
 
+vne::math::Vec2f mouseWindowToNDC(float mx, float my, float w, float h, vne::math::GraphicsApi api) noexcept {
+    if (w <= 0.0f || h <= 0.0f) {
+        return vne::math::Vec2f(0.0f, 0.0f);
+    }
+    const vne::math::Viewport vp(w, h);
+    const vne::math::Vec2f api_screen = mouseToApiScreen(mx, my, vp, api);
+    return vne::math::screenToNDC(api_screen, vp, api);
+}
+
 vne::math::Vec3f mouseUnproject(
     const vne::scene::ICamera& camera, float mx, float my, float depth, const vne::math::Viewport& vp) noexcept {
     const vne::math::GraphicsApi api = camera.getGraphicsApi();

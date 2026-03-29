@@ -43,6 +43,16 @@ void CameraBehaviorBase::setFovZoomSpeed(float speed) noexcept {
     fov_zoom_speed_ = std::max(0.01f, speed);
 }
 
+void CameraBehaviorBase::setZoomMethod(ZoomMethod method) noexcept {
+    const ZoomMethod prev = zoom_method_;
+    zoom_method_ = method;
+    if (prev == ZoomMethod::eSceneScale && method != ZoomMethod::eSceneScale && camera_) {
+        zoom_scale_ = 1.0f;
+        camera_->setSceneScale(1.0f);
+        camera_->updateMatrices();
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Camera type helpers
 // ---------------------------------------------------------------------------
@@ -75,12 +85,12 @@ void CameraBehaviorBase::dispatchZoom(float factor, float mx, float my) noexcept
             applySceneScaleZoom(factor);
             return;
         case ZoomMethod::eDollyToCoi:
-            onZoomDolly(factor, mx, my);
+            applyDolly(factor, mx, my);
             return;
     }
 }
 
-void CameraBehaviorBase::onZoomDolly(float factor, float mx, float my) noexcept {
+void CameraBehaviorBase::applyDolly(float factor, float mx, float my) noexcept {
     // Default: handle ortho cursor-anchored zoom; persp no-op (behaviors override).
     if (orthoCamera()) {
         applyOrthoZoomToCursor(factor, mx, my);
@@ -92,23 +102,23 @@ void CameraBehaviorBase::onZoomDolly(float factor, float mx, float my) noexcept 
 // ---------------------------------------------------------------------------
 
 void CameraBehaviorBase::applyFovZoom(float factor) noexcept {
-    if (!camera_) {
+    if (!camera_ || factor <= 0.0f || !std::isfinite(factor)) {
         return;
     }
-    const float mult = (factor < 1.0f) ? (1.0f / fov_zoom_speed_) : fov_zoom_speed_;
-
+    // Use scroll/pinch factor magnitude directly (same convention as dolly ortho + InputMapper).
     if (auto persp = perspCamera()) {
-        persp->setFieldOfView(vne::math::clamp(persp->getFieldOfView() * mult, kFovMinDeg, kFovMaxDeg));
+        persp->setFieldOfView(vne::math::clamp(persp->getFieldOfView() * factor, kFovMinDeg, kFovMaxDeg));
         persp->updateMatrices();
-        return;
-    }
-
-    if (auto ortho = orthoCamera()) {
+    } else if (auto ortho = orthoCamera()) {
         const float half_h = ortho->getHeight() * 0.5f;
         const float half_w = ortho->getWidth() * 0.5f;
-        const float aspect = (half_h > kEpsilon) ? (half_w / half_h) : 1.0f;
-        const float new_half_h = std::max(kMinOrthoExtent, half_h * mult);
-        const float new_half_w = std::max(kMinOrthoExtent, new_half_h * aspect);
+        const float hw = std::max(half_w, kEpsilon);
+        const float hh = std::max(half_h, kEpsilon);
+        const float t_min = std::max(kZoomOrthoHalfMin / hw, kZoomOrthoHalfMin / hh);
+        const float t_max = std::min(kZoomOrthoHalfMax / hw, kZoomOrthoHalfMax / hh);
+        const float t = vne::math::clamp(factor, t_min, t_max);
+        const float new_half_w = half_w * t;
+        const float new_half_h = half_h * t;
         ortho->setBounds(-new_half_w, new_half_w, -new_half_h, new_half_h, ortho->getNearPlane(), ortho->getFarPlane());
         ortho->updateMatrices();
     }
@@ -119,11 +129,11 @@ void CameraBehaviorBase::applyFovZoom(float factor) noexcept {
 // ---------------------------------------------------------------------------
 
 void CameraBehaviorBase::applySceneScaleZoom(float factor) noexcept {
-    if (!camera_) {
+    if (!camera_ || factor <= 0.0f || !std::isfinite(factor)) {
         return;
     }
     zoom_scale_ = vne::math::clamp(zoom_scale_ * factor, kSceneScaleMin, kSceneScaleMax);
-    // ICamera no longer exposes scene scale; zoom_scale_ is tracked for getZoomScale() and app use.
+    camera_->setSceneScale(zoom_scale_);
     camera_->updateMatrices();
 }
 
@@ -136,7 +146,7 @@ void CameraBehaviorBase::applyOrthoZoomToCursor(float factor, float mx, float my
     if (!ortho || viewport().width <= 0.0f || viewport().height <= 0.0f) {
         return;
     }
-    const vne::math::Vec2f ndc = mouseToNDC(mx, my, viewport().width, viewport().height);
+    const vne::math::Vec2f ndc = mouseWindowToNDC(mx, my, viewport().width, viewport().height, graphicsApi());
     const float ndc_x = ndc.x();
     const float ndc_y = ndc.y();
     const float half_w = ortho->getWidth() * 0.5f;
@@ -154,8 +164,13 @@ void CameraBehaviorBase::applyOrthoZoomToCursor(float factor, float mx, float my
     r = (r_len < kEpsilon) ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : (r / r_len);
 
     const vne::math::Vec3f world_at_cursor = target + r * (ndc_x * half_w) + up * (ndc_y * half_h);
-    const float new_half_w = vne::math::clamp(half_w * factor, kZoomOrthoHalfMin, kZoomOrthoHalfMax);
-    const float new_half_h = vne::math::clamp(half_h * factor, kZoomOrthoHalfMin, kZoomOrthoHalfMax);
+    const float hw = std::max(half_w, kEpsilon);
+    const float hh = std::max(half_h, kEpsilon);
+    const float t_min = std::max(kZoomOrthoHalfMin / hw, kZoomOrthoHalfMin / hh);
+    const float t_max = std::min(kZoomOrthoHalfMax / hw, kZoomOrthoHalfMax / hh);
+    const float t = vne::math::clamp(factor, t_min, t_max);
+    const float new_half_w = half_w * t;
+    const float new_half_h = half_h * t;
     const vne::math::Vec3f new_target = world_at_cursor - r * (ndc_x * new_half_w) - up * (ndc_y * new_half_h);
     const vne::math::Vec3f eye_offset = eye - target;
 

@@ -16,7 +16,7 @@
  * Provides common fields, trivial method bodies, and shared zoom dispatch
  * logic used by every concrete behavior. The zoom dispatch uses the template
  * method pattern: dispatchZoom() is non-virtual and handles eChangeFov and
- * eSceneScale internally; eDollyToCoi is routed to the virtual onZoomDolly()
+ * eSceneScale internally; eDollyToCoi is routed to the virtual applyDolly()
  * hook — the default implementation handles orthographic zoom-to-cursor;
  * concrete behaviors override it to implement perspective dolly.
  *
@@ -40,7 +40,7 @@ class OrthographicCamera;
 namespace vne::interaction {
 
 /**
- * @brief Base class for ICameraBehavior implementations with shared zoom logic and a virtual dolly-zoom hook.
+ * @brief Base class for ICameraBehavior implementations with shared zoom logic and virtual applyDolly().
  *
  * Concrete behaviors inherit from this instead of ICameraBehavior directly.
  * They still override the remaining pure-virtual methods (onAction, onUpdate,
@@ -51,9 +51,9 @@ namespace vne::interaction {
  *
  * Call `dispatchZoom(payload.zoom_factor, payload.x_px, payload.y_px)` from
  * the `eZoomAtCursor` case of `onAction`. The base class handles eChangeFov and
- * eSceneScale centrally. For eDollyToCoi it calls the virtual `onZoomDolly()` —
+ * eSceneScale centrally. For eDollyToCoi it calls the virtual `applyDolly()` —
  * override that to implement behavior-specific perspective dolly. The default
- * onZoomDolly handles orthographic zoom-to-cursor automatically, so
+ * applyDolly handles orthographic zoom-to-cursor automatically, so
  * Ortho2DBehavior needs no override.
  */
 class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
@@ -79,16 +79,13 @@ class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
     // -------------------------------------------------------------------------
 
     /** Set the zoom interaction method (dolly, scene scale, or FOV). */
-    void setZoomMethod(ZoomMethod method) noexcept { zoom_method_ = method; }
+    void setZoomMethod(ZoomMethod method) noexcept;
     /** Get the current zoom interaction method. */
     [[nodiscard]] ZoomMethod getZoomMethod() const noexcept { return zoom_method_; }
 
     /**
-     * @brief Set the step rate for FOV and scene-scale zoom (>= 0.01).
-     *
-     * For eChangeFov: FOV is divided by this value on zoom-in and multiplied
-     * by it on zoom-out.
-     * For eSceneScale: the accumulated scale is multiplied/divided by this value.
+     * @brief Reserved tuning knob (>= 0.01). eChangeFov uses scroll/pinch factor magnitude
+     * directly on FOV / ortho extents; eSceneScale multiplies accumulated scale by the event factor.
      */
     void setFovZoomSpeed(float speed) noexcept;
     [[nodiscard]] float getFovZoomSpeed() const noexcept { return fov_zoom_speed_; }
@@ -141,7 +138,7 @@ class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
      * Routing:
      *  - eChangeFov  → applyFovZoom(factor)
      *  - eSceneScale → applySceneScaleZoom(factor)
-     *  - eDollyToCoi → onZoomDolly(factor, mx, my)
+     *  - eDollyToCoi → applyDolly(factor, mx, my)
      *
      * @param factor  Zoom factor (< 1 = zoom in, > 1 = zoom out, must be > 0)
      * @param mx      Mouse X in pixels (for cursor-anchored zoom)
@@ -150,7 +147,7 @@ class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
     void dispatchZoom(float factor, float mx, float my) noexcept;
 
     /**
-     * @brief Dolly-zoom hook, called by dispatchZoom for eDollyToCoi.
+     * @brief Geometric zoom for eDollyToCoi (orbit dolly, ortho zoom-to-cursor, etc.).
      *
      * Default: handles orthographic cameras via applyOrthoZoomToCursor().
      * For perspective cameras the default is a no-op — override to implement
@@ -160,39 +157,33 @@ class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
      * in the ortho branch:
      * @code
      *   if (auto ortho = orthoCamera()) {
-     *       CameraBehaviorBase::onZoomDolly(factor, mx, my);  // handles ortho
+     *       CameraBehaviorBase::applyDolly(factor, mx, my);  // handles ortho
      *       coi_world_ = ortho->getTarget();  // sync orbit-specific state
      *       return;
      *   }
      *   // ... perspective dolly logic ...
      * @endcode
      */
-    virtual void onZoomDolly(float factor, float mx, float my) noexcept;
+    virtual void applyDolly(float factor, float mx, float my) noexcept;
 
     // -------------------------------------------------------------------------
     // Shared zoom implementations
     // -------------------------------------------------------------------------
 
     /**
-     * @brief FOV zoom — applies fov_zoom_speed_ in the direction given by factor.
+     * @brief FOV / ortho-extent zoom using the event factor magnitude.
      *
-     * Perspective: FOV multiplied or divided by fov_zoom_speed_, clamped to
-     *   [kFovMinDeg, kFovMaxDeg]. No fallthrough.
-     * Orthographic: vertical half-extent scaled by fov_zoom_speed_, aspect
-     *   ratio preserved, clamped to kMinOrthoExtent.
+     * Perspective: FOV *= factor, clamped to [kFovMinDeg, kFovMaxDeg].
+     * Orthographic: half-extents *= factor with uniform scale and ortho half clamps.
      *
-     * @param factor Direction: < 1 = zoom in (reduce FOV), > 1 = zoom out.
+     * @param factor Per-event multiplier (< 1 = zoom in, > 1 = zoom out).
      */
     void applyFovZoom(float factor) noexcept;
 
     /**
-     * @brief Scene-scale zoom — accumulates zoom_scale_ for getZoomScale() / app use.
+     * @brief Scene-scale zoom — accumulates zoom_scale_, syncs ICamera::setSceneScale, refreshes matrices.
      *
-     * Accumulates zoom_scale_ by multiplying with factor (clamped to
-     * [kSceneScaleMin, kSceneScaleMax]). ICamera does not expose scene scale; callers
-     * may read getZoomScale() and apply scale in their pipeline if needed.
-     *
-     * @param factor Multiplier applied to accumulated zoom_scale_.
+     * @param factor Multiplier applied to accumulated zoom_scale_ (clamped to [kSceneScaleMin, kSceneScaleMax]).
      */
     void applySceneScaleZoom(float factor) noexcept;
 
@@ -219,7 +210,7 @@ class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
 
     ZoomMethod zoom_method_ = ZoomMethod::eDollyToCoi;
     float zoom_scale_ = 1.0f;       //!< Accumulated zoom scale (eSceneScale)
-    float fov_zoom_speed_ = 1.05f;  //!< Multiplicative step for FOV/scene-scale zoom
+    float fov_zoom_speed_ = 1.05f;  //!< Legacy default for setFovZoomSpeed (eChangeFov uses event factor)
 };
 
 }  // namespace vne::interaction

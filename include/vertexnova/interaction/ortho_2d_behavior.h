@@ -80,7 +80,7 @@ class VNE_INTERACTION_API Ortho2DBehavior final : public CameraBehaviorBase {
     // Ortho2D-specific API
     // -------------------------------------------------------------------------
 
-    /** Set scroll/pinch zoom speed (>= 0.01). */
+    /** Exponent on scroll factor: effective = pow(scroll_factor, zoom_speed_) before zoom dispatch (>= 0.01). */
     void setZoomSpeed(float speed) noexcept { zoom_speed_ = std::max(0.01f, speed); }
     [[nodiscard]] float getZoomSpeed() const noexcept { return zoom_speed_; }
 
@@ -116,7 +116,7 @@ class VNE_INTERACTION_API Ortho2DBehavior final : public CameraBehaviorBase {
     void applyInertia(double delta_time) noexcept;
 
     // orthoCamera() inherited from CameraBehaviorBase
-    // onZoomDolly() default in CameraBehaviorBase handles ortho zoom-to-cursor
+    // applyDolly() default in CameraBehaviorBase handles ortho zoom-to-cursor
 
     float zoom_speed_ = 1.1f;
     float pan_damping_ = 10.0f;

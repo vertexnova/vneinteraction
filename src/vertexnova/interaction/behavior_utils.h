@@ -13,6 +13,7 @@
  * Provides:
  *   - buildReferenceFrame     — forward/right frame from world-up (inline)
  *   - mouseToNDC              — top-left mouse coords → NDC [-1, 1] (inline)
+ *   - mouseWindowToNDC        — top-left mouse + graphics API → NDC (behavior_utils.cpp)
  *   - worldUnderCursorOrtho   — cursor world position for orthographic camera (inline)
  *   - mouseToApiScreen        — top-left mouse coords → API-native screen
  *   - mouseUnproject          — API-aware unproject from mouse coords
@@ -118,6 +119,12 @@ inline void buildReferenceFrame(const vne::math::Vec3f& world_up,
                                                 float my,
                                                 const vne::math::Viewport& vp,
                                                 vne::math::GraphicsApi api) noexcept;
+
+/**
+ * @brief Top-left window/client mouse coords → NDC [-1, 1] for the given graphics API.
+ */
+[[nodiscard]] vne::math::Vec2f mouseWindowToNDC(
+    float mx, float my, float w, float h, vne::math::GraphicsApi api) noexcept;
 
 /**
  * @brief API-aware unproject from mouse coords (mouse -> API screen -> unproject).

@@ -150,18 +150,21 @@ void FreeLookBehavior::applyAnglesToCamera() noexcept {
     camera_->updateMatrices();
 }
 
-void FreeLookBehavior::onZoomDolly(float factor, float mx, float my) noexcept {
+void FreeLookBehavior::applyDolly(float factor, float mx, float my) noexcept {
     // Ortho: delegate to base cursor-anchored zoom.
     if (orthoCamera()) {
-        CameraBehaviorBase::onZoomDolly(factor, mx, my);
+        CameraBehaviorBase::applyDolly(factor, mx, my);
         return;
     }
-    // Perspective (or unknown): move camera + target along front.
+    // Perspective: dolly along view. zoom_speed_ is an exponent on scroll_factor (same as OrbitalCameraBehavior);
+    // step = (1 − pow(factor, zoom_speed_)) × eye–target distance — small scroll deltas stay small.
     if (!camera_) {
         return;
     }
-    const float step = (factor < 1.0f) ? (move_speed_ * zoom_speed_) : -(move_speed_ * zoom_speed_);
     const vne::math::Vec3f f = front();
+    const float current_dist = (camera_->getTarget() - camera_->getPosition()).length();
+    const float effective_factor = std::pow(factor, zoom_speed_);
+    const float step = (1.0f - effective_factor) * std::max(current_dist, kEpsilon);
     camera_->setPosition(camera_->getPosition() + f * step);
     camera_->setTarget(camera_->getTarget() + f * step);
     camera_->updateMatrices();
