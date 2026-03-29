@@ -489,12 +489,12 @@ void OrbitalCameraBehavior::applyDolly(float factor, float mx, float my) noexcep
         const float vw = viewportWidth();
         const float vh = viewportHeight();
         if (vw > 0.0f && vh > 0.0f) {
-            const float ndc_x = (2.0f * mx / vw) - 1.0f;
-            const float ndc_y = 1.0f - (2.0f * my / vh);
+            const vne::math::Vec2f ndc = mouseWindowToNDC(mx, my, vw, vh, graphicsApi());
             const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
             const float half_h = old_dist * vne::math::tan(fov_y_rad * 0.5f);
             const float half_w = half_h * (vw / vh);
-            const vne::math::Vec3f cursor_world = coi_world_ + r * (ndc_x * half_w) + u * (ndc_y * half_h);
+            const vne::math::Vec3f cursor_world =
+                coi_world_ + r * (ndc.x() * half_w) + u * (ndc.y() * half_h);
             const vne::math::Vec3f to_cursor = cursor_world - coi_world_;
             const float shift_t = (1.0f - effective_factor) * kZoomToCursorStrength;
             if (to_cursor.length() < old_dist * 2.0f) {
