@@ -493,8 +493,7 @@ void OrbitalCameraBehavior::applyDolly(float factor, float mx, float my) noexcep
             const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
             const float half_h = old_dist * vne::math::tan(fov_y_rad * 0.5f);
             const float half_w = half_h * (vw / vh);
-            const vne::math::Vec3f cursor_world =
-                coi_world_ + r * (ndc.x() * half_w) + u * (ndc.y() * half_h);
+            const vne::math::Vec3f cursor_world = coi_world_ + r * (ndc.x() * half_w) + u * (ndc.y() * half_h);
             const vne::math::Vec3f to_cursor = cursor_world - coi_world_;
             const float shift_t = (1.0f - effective_factor) * kZoomToCursorStrength;
             if (to_cursor.length() < old_dist * 2.0f) {

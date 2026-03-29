@@ -156,13 +156,15 @@ void FreeLookBehavior::applyDolly(float factor, float mx, float my) noexcept {
         CameraBehaviorBase::applyDolly(factor, mx, my);
         return;
     }
-    // Perspective: dolly along view; step scales with scroll magnitude (factor) and eye–target distance.
+    // Perspective: dolly along view. zoom_speed_ is an exponent on scroll_factor (same as OrbitalCameraBehavior);
+    // step = (1 − pow(factor, zoom_speed_)) × eye–target distance — small scroll deltas stay small.
     if (!camera_) {
         return;
     }
     const vne::math::Vec3f f = front();
     const float current_dist = (camera_->getTarget() - camera_->getPosition()).length();
-    const float step = (1.0f - factor) * zoom_speed_ * std::max(current_dist, kEpsilon);
+    const float effective_factor = std::pow(factor, zoom_speed_);
+    const float step = (1.0f - effective_factor) * std::max(current_dist, kEpsilon);
     camera_->setPosition(camera_->getPosition() + f * step);
     camera_->setTarget(camera_->getTarget() + f * step);
     camera_->updateMatrices();
