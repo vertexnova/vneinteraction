@@ -102,7 +102,7 @@ class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
     // -------------------------------------------------------------------------
 
     static constexpr float kFovMinDeg = 5.0f;
-    static constexpr float kFovMaxDeg = 120.0f;
+    static constexpr float kFovMaxDeg = 160.0f;
     static constexpr float kSceneScaleMin = 1e-4f;
     static constexpr float kSceneScaleMax = 1e4f;
     static constexpr float kMinOrthoExtent = 1e-3f;
