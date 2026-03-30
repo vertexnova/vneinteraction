@@ -42,9 +42,9 @@ enum class ViewDirection : std::uint8_t {
 
 /** Zoom behavior method selection (declared in preferred UI / iteration order). */
 enum class ZoomMethod : std::uint8_t {
-    eSceneScale = 0,   //!< XY scene scale in the view matrix (virtual zoom)
-    eChangeFov = 1,    //!< Adjust field of view (perspective) or ortho half-extents
-    eDollyToCoi = 2,   //!< Move camera along view direction toward center of interest
+    eSceneScale = 0,  //!< XY scene scale in the view matrix (virtual zoom)
+    eChangeFov = 1,   //!< Adjust field of view (perspective) or ortho half-extents
+    eDollyToCoi = 2,  //!< Move camera along view direction toward center of interest
 };
 
 /** Rotation algorithm for orbit-style camera (OrbitalCameraBehavior, Inspect3DController). */
