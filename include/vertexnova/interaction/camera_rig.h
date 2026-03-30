@@ -141,9 +141,10 @@ class VNE_INTERACTION_API CameraRig {
     static CameraRig makeFollow();
 
     /**
-     * Game camera rig: OrbitalCameraBehavior (Euler) + FreeLookBehavior (constrained).
-     * LMB orbits, RMB looks, WASD flies — all simultaneously.
+     * Hybrid rig: OrbitalCameraBehavior (Euler) + FreeLookBehavior.
+     * @deprecated Prefer composing behaviors manually, or Inspect3DController / Navigation3DController.
      */
+    [[deprecated("Compose OrbitalCameraBehavior + FreeLookBehavior on CameraRig, or use controllers")]]
     static CameraRig makeGameCamera();
 
     /** 2D rig: Ortho2DBehavior (alias for makeOrtho2D). */

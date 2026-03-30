@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.5.3](https://github.com/vertexnova/vneinteraction/compare/v1.5.2...v1.5.3) (2026-03-30)
 
+### Breaking Changes
+
+* **Navigation**: Remove `NavigateMode::eGame`. `Navigation3DController` supports only **FPS** and **Fly** (`FreeLookBehavior` + `fpsPreset`). For orbit + WASD hybrid rigs, use `CameraRig::makeGameCamera()` (deprecated) or compose behaviors manually; use **`Inspect3DController`** for orbit-style inspection.
+* **`Navigation3DController::orbitalCameraBehavior()`** always returns **`nullptr`**.
+* **Inspect3DController**: **Rotation is off by default**; when enabled, default algorithm is **Euler orbit** (`OrbitRotationMode::eOrbit`). Previously rotation was on by default with **trackball**.
+* **`CameraRig::makeGameCamera()`** is **deprecated** (still available).
 
 ### Bug Fixes
 

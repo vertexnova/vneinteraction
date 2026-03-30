@@ -39,8 +39,8 @@ struct Inspect3DController::Impl {
     float viewport_w = 1280.0f;
     float viewport_h = 720.0f;
 
-    OrbitRotationMode rotation_mode = OrbitRotationMode::eTrackball;
-    bool rotation_enabled = true;
+    OrbitRotationMode rotation_mode = OrbitRotationMode::eOrbit;
+    bool rotation_enabled = false;
     bool pan_enabled = true;
     bool zoom_enabled = true;
 
@@ -126,9 +126,8 @@ static std::vector<InputRule> buildInspectRules(bool rotation, bool pan, bool zo
 
 Inspect3DController::Inspect3DController()
     : impl_(std::make_unique<Impl>()) {
-    // Build rig with trackball orbit
     impl_->orbit = std::make_shared<OrbitalCameraBehavior>();
-    impl_->orbit->setRotationMode(OrbitRotationMode::eTrackball);
+    impl_->orbit->setRotationMode(OrbitRotationMode::eOrbit);
     impl_->rig.addBehavior(impl_->orbit);
 
     // Wire mapper ->rig. Capture raw Impl* so the callback stays valid across moves.

@@ -2,7 +2,7 @@
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
- * Example 02: Medical 3D inspect — Inspect3DController with trackball,
+ * Example 02: Medical 3D inspect — Inspect3DController (Euler orbit default),
  * landmark pivot, fitToAABB, DOF toggles.
  * ----------------------------------------------------------------------
  */
@@ -26,7 +26,7 @@ int main() {
     ctrl.setCamera(camera);
     ctrl.onResize(1280.0f, 720.0f);
 
-    // Default: trackball (quaternion), eCoi pivot
+    ctrl.setRotationEnabled(true);  // LMB rotate (off by default)
     VNE_LOG_INFO << "Rotation mode: "
                  << (ctrl.getRotationMode() == vne::interaction::OrbitRotationMode::eTrackball ? "trackball" : "orbit");
 
@@ -65,6 +65,6 @@ int main() {
         ctrl.onUpdate(dt);
     }
 
-    VNE_LOG_INFO << "Medical 3D inspect: trackball, fixed pivot, fitToAABB — done.";
+    VNE_LOG_INFO << "Medical 3D inspect: orbit, fixed pivot, fitToAABB — done.";
     return 0;
 }

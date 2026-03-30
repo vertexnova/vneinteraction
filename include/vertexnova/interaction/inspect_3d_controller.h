@@ -26,8 +26,9 @@
  * @endcode
  *
  * ### Defaults
- * - Rotation: Trackball (quaternion) — smooth, no gimbal lock
- * - LMB drag = rotate, RMB/MMB drag = pan, scroll = zoom
+ * - Rotation: **off** by default; when enabled, algorithm is **Euler orbit** (`OrbitRotationMode::eOrbit`).
+ *   Use `setRotationMode(OrbitRotationMode::eTrackball)` for quaternion trackball.
+ * - LMB drag = rotate (when rotation enabled), RMB/MMB drag = pan, scroll = zoom
  * - Double-click LMB = move pivot to cursor (auto-pivot)
  * - Pivot mode: eCoi (follows panning)
  *
@@ -37,9 +38,9 @@
  * ctrl.setPivotMode(OrbitPivotMode::eFixed);  // rotates around landmark
  * @endcode
  *
- * ### Disable a DOF
+ * ### Enable rotation
  * @code
- * ctrl.setRotationEnabled(false);   // pan + zoom only
+ * ctrl.setRotationEnabled(true);   // LMB orbit / trackball (see setRotationMode)
  * @endcode
  *
  * ### Rebind inputs
@@ -112,7 +113,7 @@ class VNE_INTERACTION_API Inspect3DController {
     // Rotation
     // -------------------------------------------------------------------------
 
-    /** Switch rotation algorithm (default: OrbitRotationMode::eTrackball). */
+    /** Switch rotation algorithm (default: OrbitRotationMode::eOrbit). */
     void setRotationMode(OrbitRotationMode mode) noexcept;
     [[nodiscard]] OrbitRotationMode getRotationMode() const noexcept;
 

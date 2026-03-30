@@ -36,7 +36,7 @@ It depends on **vnescene** (and transitively **vnemath**) for cameras and math, 
 ## Features
 
 - **Behaviors**: `OrbitalCameraBehavior`, `FreeLookBehavior`, `Ortho2DBehavior`, `FollowBehavior` — rotation modes (Euler/Quaternion), pivot modes, zoom methods, inertia, fit-to-AABB.
-- **Controllers**: `Inspect3DController` (3D inspection), `Navigation3DController` (FPS/Fly/Game modes), `Ortho2DController` (2D slices, maps), `FollowController` (target following).
+- **Controllers**: `Inspect3DController` (3D inspection), `Navigation3DController` (FPS/Fly modes), `Ortho2DController` (2D slices, maps), `FollowController` (target following).
 - **InputMapper**: Presets (`orbitPreset`, `fpsPreset`, `gamePreset`, `cadPreset`, `orthoPreset`) and custom `InputRule` configuration.
 - **Types**: `CameraActionType`, `CameraCommandPayload`, `InputRule`, `ZoomMethod`, `OrbitPivotMode`, `NavigateMode`, etc. in `interaction_types.h`.
 - **Use cases**: Medical 3D/2D inspection, game/editor cameras, robotic simulators.

@@ -2,8 +2,8 @@
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
- * Example 04: Game/editor camera — Navigation3DController with orbit and
- * free-look modes, WASD sprint, eSetPivotAtCursor.
+ * Example 04: Game/editor camera — Navigation3DController FPS and Fly
+ * (WASD + look), sprint. Orbit inspection: use Inspect3DController.
  * ----------------------------------------------------------------------
  */
 
@@ -55,21 +55,15 @@ int main() {
     vne::events::MouseButtonReleasedEvent look_release(vne::events::MouseButton::eRight, 0, 650.0, 355.0);
     on_event(look_release, dt);
 
-    // Switch to orbit (game editor object view)
-    ctrl.setMode(vne::interaction::NavigateMode::eGame);
-    vne::interaction::examples::simulateMouseDrag(on_event,
-                                                  vne::events::MouseButton::eLeft,
-                                                  cx,
-                                                  cy,
-                                                  50.0f,
-                                                  -30.0f,
-                                                  15,
-                                                  dt);
-
-    for (int i = 0; i < 20; ++i) {
+    // Fly mode: same input preset (RMB look, WASD); unconstrained up / roll
+    ctrl.setMode(vne::interaction::NavigateMode::eFly);
+    on_event(look_press, dt);
+    on_event(look_move, dt);
+    for (int i = 0; i < 10; ++i) {
         ctrl.onUpdate(dt);
     }
+    on_event(look_release, dt);
 
-    VNE_LOG_INFO << "Game editor camera: FPS + orbit modes, WASD — done.";
+    VNE_LOG_INFO << "Game editor camera: FPS + Fly navigation, WASD — done.";
     return 0;
 }

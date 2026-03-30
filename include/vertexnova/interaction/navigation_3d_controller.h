@@ -27,7 +27,6 @@
  * ### Modes
  * - **eFps**  — WASD + mouse look, world-up fixed, pitch clamped ±89° (default)
  * - **eFly**  — WASD + mouse look, unconstrained, allows barrel roll
- * - **eGame** — WASD fly + RMB orbit: walk/fly and inspect simultaneously
  *
  * ### Speed
  * @code
@@ -58,16 +57,14 @@ class OrbitalCameraBehavior;
 
 /** Navigation mode for Navigation3DController. */
 enum class NavigateMode : std::uint8_t {
-    eFps = 0,   //!< FPS: WASD + mouse look, world-up fixed, pitch clamped (default)
-    eFly = 1,   //!< Fly: WASD + mouse look, unconstrained
-    eGame = 2,  //!< Game hybrid: WASD fly + RMB orbit simultaneously
+    eFps = 0,  //!< FPS: WASD + mouse look, world-up fixed, pitch clamped (default)
+    eFly = 1,  //!< Fly: WASD + mouse look, unconstrained
 };
 
 /**
  * @brief High-level camera controller for 3D environment traversal.
  *
- * Wraps a CameraRig (FreeLookBehavior, optionally + OrbitalCameraBehavior) and an
- * InputMapper with a sensible preset for each NavigateMode.
+ * Wraps a CameraRig (FreeLookBehavior) and an InputMapper with a sensible preset per mode.
  *
  * Covers: FPS games, flight/space sims, architectural walkthroughs,
  * game editors, drone simulators.
@@ -138,10 +135,8 @@ class VNE_INTERACTION_API Navigation3DController {
     [[nodiscard]] FreeLookBehavior& freeLookBehavior() noexcept;
 
     /**
-     * @brief Access the orbit behavior (only valid in eGame mode).
-     * Returns nullptr in eFps / eFly modes.
-     * @warning The returned pointer is invalidated by setMode() when switching
-     *          away from eGame. Do not hold the pointer across mode changes.
+     * @brief Former hook for hybrid orbit + free-look; always returns nullptr.
+     * @deprecated Use Inspect3DController for orbit-style inspection, or compose CameraRig manually.
      */
     [[nodiscard]] OrbitalCameraBehavior* orbitalCameraBehavior() noexcept;
 
