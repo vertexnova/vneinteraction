@@ -147,12 +147,14 @@ void OrbitalCameraBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camer
     if (!camera_) {
         VNE_LOG_DEBUG << "OrbitalCameraBehavior: camera detached (null camera)";
     }
+    trackball_.setGraphicsApi(graphicsApi());
     syncFromCamera();
 }
 
 void OrbitalCameraBehavior::onResize(float width_px, float height_px) noexcept {
     CameraBehaviorBase::onResize(width_px, height_px);
     trackball_.setViewport(vne::math::Vec2f(width_px, height_px));
+    trackball_.setGraphicsApi(graphicsApi());
 }
 
 // ---------------------------------------------------------------------------
@@ -300,6 +302,7 @@ void OrbitalCameraBehavior::beginRotate(float x_px, float y_px) noexcept {
     interaction_.last_y_px = y_px;
     const vne::math::Vec2f vp(viewport().width, viewport().height);
     trackball_.setViewport(vp);
+    trackball_.setGraphicsApi(graphicsApi());
     trackball_.beginDrag(vne::math::Vec2f(x_px, y_px));
     orientation_at_drag_start_ = orientation_;
     orbit_behavior_.beginDrag();
@@ -336,6 +339,7 @@ void OrbitalCameraBehavior::dragRotateTrackball(float x_px, float y_px, double d
 
     const vne::math::Vec2f vp(viewport().width, viewport().height);
     trackball_.setViewport(vp);
+    trackball_.setGraphicsApi(graphicsApi());
 
     const vne::math::Vec2f cursor(x_px, y_px);
     const vne::math::Vec3f prev_sphere = trackball_.previousOnSphere();
@@ -421,16 +425,20 @@ void OrbitalCameraBehavior::dragPan(
     const vne::math::Vec3f u = computeUp(front, r);
     vne::math::Vec3f delta_world(0.0f, 0.0f, 0.0f);
 
-    if (isPerspective()) {
-        const float wpp = getWorldUnitsPerPixel();
-        delta_world = r * (-delta_x_px * wpp * pan_speed_) + u * (delta_y_px * wpp * pan_speed_);
-    } else {
-        auto ortho = orthoCamera();
-        if (ortho) {
-            const float wppx = ortho->getWidth() / viewport().width;
-            const float wppy = ortho->getHeight() / viewport().height;
-            delta_world = r * (-delta_x_px * wppx * pan_speed_) + u * (delta_y_px * wppy * pan_speed_);
-        }
+    const float vw = viewportWidth();
+    const float vh = viewportHeight();
+    const vne::math::Vec2f ndc_d = mouseWindowDeltaToNDCDelta(delta_x_px, delta_y_px, vw, vh, graphicsApi());
+
+    if (auto persp = perspCamera()) {
+        const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
+        const float half_h = orbit_distance_ * vne::math::tan(fov_y_rad * 0.5f);
+        const float half_w = (vh > 0.0f) ? half_h * (vw / vh) : half_h;
+        // Match view-plane extent at orbit distance; minus NDC deltas keep grab-the-world parity with legacy pixel pan.
+        delta_world = r * (-ndc_d.x() * half_w * pan_speed_) + u * (-ndc_d.y() * half_h * pan_speed_);
+    } else if (auto ortho = orthoCamera()) {
+        const float half_w = ortho->getWidth() * 0.5f;
+        const float half_h = ortho->getHeight() * 0.5f;
+        delta_world = r * (-ndc_d.x() * half_w * pan_speed_) + u * (-ndc_d.y() * half_h * pan_speed_);
     }
 
     applyPanDeltaWorld(delta_world);

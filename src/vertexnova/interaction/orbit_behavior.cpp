@@ -111,7 +111,9 @@ void OrbitBehavior::applyDrag(const float delta_x_px,
     }
     const float speed = std::max(0.0f, rotation_speed_deg_per_px);
     yaw_deg_ += delta_x_px * speed;
-    pitch_deg_ += delta_y_px * speed;
+    // Screen Y is down-positive; subtract dy so mouse-up (negative dy) increases pitch (look up), matching
+    // FreeLook / grab-the-world expectation and horizontal drag symmetry.
+    pitch_deg_ -= delta_y_px * speed;
     pitch_deg_ = vne::math::clamp(pitch_deg_, pitch_min_deg_, pitch_max_deg_);
 
     double min_inertia_dt = min_delta_time_for_inertia;
@@ -130,7 +132,7 @@ void OrbitBehavior::applyDrag(const float delta_x_px,
         if (std::isfinite(inv)) {
             const float inv_dt = static_cast<float>(inv);
             inertia_rot_speed_x_ = delta_x_px * speed * inv_dt;
-            inertia_rot_speed_y_ = delta_y_px * speed * inv_dt;
+            inertia_rot_speed_y_ = -delta_y_px * speed * inv_dt;
         }
     }
 }

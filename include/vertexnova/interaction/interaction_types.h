@@ -40,11 +40,11 @@ enum class ViewDirection : std::uint8_t {
     eIso = 6,     //!< Isometric view at 45-45 degrees
 };
 
-/** Zoom behavior method selection. */
+/** Zoom behavior method selection (declared in preferred UI / iteration order). */
 enum class ZoomMethod : std::uint8_t {
-    eDollyToCoi = 0,  //!< Move camera along view direction toward center of interest
-    eSceneScale = 1,  //!< Scale entire scene relative to camera
-    eChangeFov = 2,   //!< Adjust field of view (perspective cameras only)
+    eSceneScale = 0,  //!< XY scene scale in the view matrix (virtual zoom)
+    eChangeFov = 1,   //!< Adjust field of view (perspective) or ortho half-extents
+    eDollyToCoi = 2,  //!< Move camera along view direction toward center of interest
 };
 
 /** Rotation algorithm for orbit-style camera (OrbitalCameraBehavior, Inspect3DController). */

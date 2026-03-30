@@ -43,9 +43,10 @@ namespace vne::interaction {
  * Implements ICameraBehavior for orbit-style interaction. Handles rotate, pan, and zoom
  * actions. Supports inertia via exponential decay.
  *
- * - RotationMode::eOrbit   — classic yaw/pitch orbit, pitch clamped to [-89°, 89°]
- * - RotationMode::eTrackball — arcball-style quaternion about COI (cf. ArcballManipulator + distance in
- *   orbit-style camera rigs)
+ * - RotationMode::eOrbit   — classic yaw/pitch orbit, pitch clamped to [-89°, 89°] (raw window deltas, deg/pixel)
+ * - RotationMode::eTrackball — arcball quaternion; sphere mapping uses @ref CameraBehaviorBase::graphicsApi()
+ *   (same NDC path as pan and zoom-to-cursor)
+ * - Pan — view-plane motion from @c mouseWindowDeltaToNDCDelta × frustum half-extents at the camera (API-aware)
  * - PivotMode::eCoi — orbit center follows pan in the view plane (see @ref OrbitPivotMode).
  * - PivotMode::eViewCenter — same as eCoi while panning; on pan end, COI syncs from the camera target.
  * - PivotMode::eFixed — world pivot fixed; pan trucks eye+target; after pan, target may not equal COI until rotate.

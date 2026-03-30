@@ -136,8 +136,8 @@ class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
      * @endcode
      *
      * Routing:
-     *  - eChangeFov  → applyFovZoom(factor)
      *  - eSceneScale → applySceneScaleZoom(factor)
+     *  - eChangeFov  → applyFovZoom(factor)
      *  - eDollyToCoi → applyDolly(factor, mx, my)
      *
      * @param factor  Zoom factor (< 1 = zoom in, > 1 = zoom out, must be > 0)
@@ -208,7 +208,7 @@ class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
 
     vne::math::Viewport viewport_{1280.0f, 720.0f};
 
-    ZoomMethod zoom_method_ = ZoomMethod::eDollyToCoi;
+    ZoomMethod zoom_method_ = ZoomMethod::eSceneScale;
     float zoom_scale_ = 1.0f;       //!< Accumulated zoom scale (eSceneScale)
     float fov_zoom_speed_ = 1.05f;  //!< Legacy default for setFovZoomSpeed (eChangeFov uses event factor)
 };

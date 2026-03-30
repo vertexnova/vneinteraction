@@ -17,8 +17,8 @@
  * @par ProjectionMode::eHyperbolic (default)
  * Isotropic mapping using `min(viewport width, height)`, inner spherical cap
  * `z = √(R² − d²)` when `d < R/√2`, hyperbolic continuation `z = t²/d` with `t = R/√2` outside.
- * Screen Y uses `(y_px − center_y)` (positive downward). Common in production 3D viewports;
- * see e.g. `calctrackballvec` in public engine/editor sources.
+ * Pointer positions are mapped through @c mouseWindowToNDC (see @ref setGraphicsApi) so horizontal and
+ * vertical drags match the same clip/NDC convention as orbit pan and zoom-to-cursor across graphics APIs.
  *
  * @par ProjectionMode::eRim
  * Hemisphere `z = √(1 − x² − y²)` inside the unit disk; outside, points map to the
@@ -80,6 +80,13 @@ class VNE_INTERACTION_API TrackballBehavior {
      * @param size_px: (width, height) in pixels.
      */
     void setViewport(const vne::math::Vec2f& size_px) noexcept;
+
+    /**
+     * @brief Graphics API for window → NDC mapping in @ref project (default OpenGL).
+     * Must match @c ICamera::getGraphicsApi() / @ref CameraBehaviorBase::graphicsApi().
+     */
+    void setGraphicsApi(vne::math::GraphicsApi api) noexcept { graphics_api_ = api; }
+    [[nodiscard]] vne::math::GraphicsApi getGraphicsApi() const noexcept { return graphics_api_; }
 
     /**
      * @brief Set the projection mode.
@@ -167,6 +174,7 @@ class VNE_INTERACTION_API TrackballBehavior {
 
    private:
     vne::math::Vec2f viewport_px_{};  //!< Viewport size in pixels (width = x, height = y).
+    vne::math::GraphicsApi graphics_api_{vne::math::GraphicsApi::eOpenGL};
     ProjectionMode projection_mode_ = ProjectionMode::eHyperbolic;  //!< Projection mode.
     vne::math::Vec3f drag_start_on_sphere_{0.0f, 0.0f, 1.0f};       //!< Drag start on sphere.
     vne::math::Vec2f last_cursor_px_{};  //!< Previous pointer position for frame-to-frame inertia (x, y pixels).

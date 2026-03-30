@@ -78,11 +78,11 @@ void CameraBehaviorBase::dispatchZoom(float factor, float mx, float my) noexcept
         return;
     }
     switch (zoom_method_) {
-        case ZoomMethod::eChangeFov:
-            applyFovZoom(factor);
-            return;
         case ZoomMethod::eSceneScale:
             applySceneScaleZoom(factor);
+            return;
+        case ZoomMethod::eChangeFov:
+            applyFovZoom(factor);
             return;
         case ZoomMethod::eDollyToCoi:
             applyDolly(factor, mx, my);
