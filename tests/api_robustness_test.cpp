@@ -11,6 +11,7 @@
 #include "vertexnova/interaction/interaction_types.h"
 #include "vertexnova/interaction/navigation_3d_controller.h"
 #include "vertexnova/interaction/orbital_camera_behavior.h"
+#include "vertexnova/interaction/ortho_2d_behavior.h"
 #include "vertexnova/interaction/ortho_2d_controller.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
@@ -129,6 +130,7 @@ TEST(ApiRobustness, Inspect3DControllerScrollZoom) {
     ctrl.setCamera(cam);
     ctrl.onResize(1280.0f, 720.0f);
     ctrl.orbitalCameraBehavior().setZoomSpeed(2.0f);
+    ctrl.orbitalCameraBehavior().setZoomMethod(vne::interaction::ZoomMethod::eDollyToCoi);
 
     const float dist_before = ctrl.orbitalCameraBehavior().getOrbitDistance();
     vne::events::MouseMovedEvent pos(640.0, 360.0);
@@ -163,6 +165,7 @@ TEST(ApiRobustness, Ortho2DControllerScrollChangesExtents) {
     vne::interaction::Ortho2DController ctrl;
     ctrl.setCamera(ortho);
     ctrl.onResize(1280.0f, 720.0f);
+    ctrl.ortho2DBehavior().setZoomMethod(vne::interaction::ZoomMethod::eDollyToCoi);
 
     const float extent_before = ortho->getWidth();
     vne::events::MouseMovedEvent pos(640.0, 360.0);
