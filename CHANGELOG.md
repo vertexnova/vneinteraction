@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.3](https://github.com/vertexnova/vneinteraction/compare/v1.5.2...v1.5.3) (2026-03-30)
+
+
+### Bug Fixes
+
+* Fixing the rotational direction issue. The rotation is in opposite to intended direction. ([#28](https://github.com/vertexnova/vneinteraction/issues/28)) ([0eae905](https://github.com/vertexnova/vneinteraction/commit/0eae90591e26bc7f63575afd92410b53b7f763ad))
+
 ## [1.5.2](https://github.com/vertexnova/vneinteraction/compare/v1.5.1...v1.5.2) (2026-03-30)
 
 
