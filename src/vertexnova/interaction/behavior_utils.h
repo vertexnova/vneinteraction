@@ -14,6 +14,7 @@
  *   - buildReferenceFrame     — forward/right frame from world-up (inline)
  *   - mouseToNDC              — top-left mouse coords → NDC [-1, 1] (inline)
  *   - mouseWindowToNDC        — top-left mouse + graphics API → NDC (behavior_utils.cpp)
+ *   - mouseWindowDeltaToNDCDelta — pointer delta in window px → NDC delta (API-aware; pan / frustum math)
  *   - worldUnderCursorOrtho   — cursor world position for orthographic camera (inline)
  *   - mouseToApiScreen        — top-left mouse coords → API-native screen
  *   - mouseUnproject          — API-aware unproject from mouse coords
@@ -74,8 +75,8 @@ inline void buildReferenceFrame(const vne::math::Vec3f& world_up,
 // -----------------------------------------------------------------------------
 
 /**
- * @brief Convert top-left-origin mouse coords to NDC [-1, 1].
- * API-independent; for manual frustum geometry (pan, trackball, zoom-to-cursor).
+ * @brief Convert top-left-origin mouse coords to NDC [-1, 1] (OpenGL-style Y only).
+ * Prefer @ref mouseWindowToNDC / @ref mouseWindowDeltaToNDCDelta with @c GraphicsApi for Vulkan/Metal/DX.
  */
 [[nodiscard]] inline vne::math::Vec2f mouseToNDC(float mx, float my, float w, float h) noexcept {
     if (w <= 0.0f || h <= 0.0f) {
@@ -125,6 +126,13 @@ inline void buildReferenceFrame(const vne::math::Vec3f& world_up,
  */
 [[nodiscard]] vne::math::Vec2f mouseWindowToNDC(
     float mx, float my, float w, float h, vne::math::GraphicsApi api) noexcept;
+
+/**
+ * @brief Pointer delta in top-left window pixels → change in NDC (same convention as @ref mouseWindowToNDC).
+ * Uses a viewport-center reference; result is invariant for affine window→NDC maps (typical full-viewport case).
+ */
+[[nodiscard]] vne::math::Vec2f mouseWindowDeltaToNDCDelta(
+    float delta_x_px, float delta_y_px, float w, float h, vne::math::GraphicsApi api) noexcept;
 
 /**
  * @brief API-aware unproject from mouse coords (mouse -> API screen -> unproject).

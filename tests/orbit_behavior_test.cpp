@@ -43,8 +43,18 @@ TEST(OrbitBehavior, SetPitchLimits) {
 
 TEST(OrbitBehavior, ApplyDragClampsPitch) {
     vne::interaction::OrbitBehavior o;
-    o.applyDrag(0.0f, 10000.0f, 1.0f, 0.016, 0.001);
+    // Negative dy = mouse up → pitch increases; large magnitude clamps to max pitch.
+    o.applyDrag(0.0f, -10000.0f, 1.0f, 0.016, 0.001);
     EXPECT_FLOAT_EQ(o.getPitchDeg(), vne::interaction::OrbitBehavior::kDefaultPitchMaxDeg);
+}
+
+TEST(OrbitBehavior, ApplyDrag_MouseUpIncreasesPitch) {
+    vne::interaction::OrbitBehavior o;
+    o.applyDrag(0.0f, -20.0f, 0.5f, 0.016, 0.001);
+    EXPECT_GT(o.getPitchDeg(), 0.0f);
+    o.setYawPitch(0.0f, 0.0f);
+    o.applyDrag(0.0f, 20.0f, 0.5f, 0.016, 0.001);
+    EXPECT_LT(o.getPitchDeg(), 0.0f);
 }
 
 TEST(OrbitBehavior, SyncFromViewDirectionRoundTrip) {

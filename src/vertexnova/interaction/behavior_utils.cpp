@@ -27,6 +27,21 @@ vne::math::Vec2f mouseWindowToNDC(float mx, float my, float w, float h, vne::mat
     return vne::math::screenToNDC(api_screen, vp, api);
 }
 
+vne::math::Vec2f mouseWindowDeltaToNDCDelta(const float delta_x_px,
+                                            const float delta_y_px,
+                                            const float w,
+                                            const float h,
+                                            const vne::math::GraphicsApi api) noexcept {
+    if (w <= 0.0f || h <= 0.0f) {
+        return vne::math::Vec2f(0.0f, 0.0f);
+    }
+    const float cx = 0.5f * w;
+    const float cy = 0.5f * h;
+    const vne::math::Vec2f ndc0 = mouseWindowToNDC(cx, cy, w, h, api);
+    const vne::math::Vec2f ndc1 = mouseWindowToNDC(cx + delta_x_px, cy + delta_y_px, w, h, api);
+    return vne::math::Vec2f(ndc1.x() - ndc0.x(), ndc1.y() - ndc0.y());
+}
+
 vne::math::Vec3f mouseUnproject(
     const vne::scene::ICamera& camera, float mx, float my, float depth, const vne::math::Viewport& vp) noexcept {
     const vne::math::GraphicsApi api = camera.getGraphicsApi();

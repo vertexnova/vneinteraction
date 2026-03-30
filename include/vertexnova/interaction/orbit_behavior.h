@@ -134,9 +134,11 @@ class VNE_INTERACTION_API OrbitBehavior {
     void beginDrag() noexcept;
 
     /**
-     * @brief Apply a pointer delta: yaw += dx × speed, pitch += dy × speed (pitch clamped).
+     * @brief Apply a pointer delta: yaw += dx × speed, pitch −= dy × speed (pitch clamped).
      * @param delta_x_px                    Horizontal pointer delta (pixels).
-     * @param delta_y_px                    Vertical pointer delta (pixels; screen Y positive down).
+     * @param delta_y_px                    Vertical pointer delta (pixels; top-left window space, Y down). Uses the
+     *                                      same raw convention as typical OS/input APIs — not remapped through
+     *                                      @c GraphicsApi NDC (Euler orbit is deg/pixel, not frustum samples).
      * @param rotation_speed_deg_per_px     Degrees of rotation per pixel (behavior tuning).
      * @param delta_time                    Frame time for this drag sample (seconds).
      * @param min_delta_time_for_inertia    Minimum dt to consider when updating inertia rates (seconds).

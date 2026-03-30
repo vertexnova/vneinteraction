@@ -10,6 +10,7 @@
  */
 
 #include "vertexnova/interaction/trackball_behavior.h"
+#include "vertexnova/interaction/behavior_utils.h"
 
 #include <vertexnova/logging/logging.h>
 
@@ -82,13 +83,13 @@ vne::math::Vec3f TrackballBehavior::project(const vne::math::Vec2f& cursor_px) c
                      << " px), using +Z fallback";
         return vne::math::Vec3f(0.0f, 0.0f, 1.0f);
     }
-    const float cx = w * 0.5f;
-    const float cy = h * 0.5f;
     const float x_px = cursor_px.x();
     const float y_px = cursor_px.y();
-    // Screen Y increases downward: (y_px - center_y).
-    const float rx = (x_px - cx) / half_size;
-    const float ry = (y_px - cy) / half_size;
+    // NDC from window + graphics API, then scale to the legacy min(viewport) trackball radius (matches frustum
+    // pan/zoom).
+    const vne::math::Vec2f ndc = mouseWindowToNDC(x_px, y_px, w, h, graphics_api_);
+    const float rx = ndc.x() * (w * 0.5f / half_size);
+    const float ry = ndc.y() * (h * 0.5f / half_size);
 
     switch (projection_mode_) {
         case ProjectionMode::eHyperbolic:
