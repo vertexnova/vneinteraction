@@ -120,7 +120,7 @@ TEST(OrbitalCameraBehavior, ChangeFovAtClampDoesNotChangeOrbitDistance) {
     b.setCamera(cam);
     b.onResize(1280.0f, 720.0f);
 
-    constexpr float kFovMaxDeg = 120.0f;
+    constexpr float kFovMaxDeg = 160.0f;
     cam->setFieldOfView(kFovMaxDeg);
     cam->updateMatrices();
 
