@@ -155,6 +155,9 @@ class VNE_INTERACTION_API FreeLookBehavior final : public CameraBehaviorBase {
      */
     void fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept;
 
+    /** Mark angles as stale so onUpdate re-syncs from the camera pose (call when an external behavior moves the camera). */
+    void markAnglesDirty() noexcept { angles_dirty_ = true; }
+
    private:
     // ---- up-vector policy (FPS vs Fly) --------------------------------------
     [[nodiscard]] vne::math::Vec3f upVector() const noexcept;
@@ -167,9 +170,6 @@ class VNE_INTERACTION_API FreeLookBehavior final : public CameraBehaviorBase {
 
     void syncAnglesFromCamera() noexcept;
     void applyAnglesToCamera() noexcept;
-    /** Mark angles as stale so onUpdate re-syncs from the camera pose (call when an external behavior moves the
-     * camera). */
-    void markAnglesDirty() noexcept { angles_dirty_ = true; }
     void applyDolly(float factor, float mx, float my) noexcept override;
 
     // perspCamera() / orthoCamera() inherited from CameraBehaviorBase

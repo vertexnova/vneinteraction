@@ -271,21 +271,23 @@ void FreeLookBehavior::onUpdate(double delta_time) noexcept {
         angles_dirty_ = false;
     }
     // Derive movement basis from the live camera pose.
-    // Perspective: use getForward()/getRight() which are pre-computed from the view matrix.
-    // Ortho/generic: derive from target-position and world_up_.
+    // Perspective: view-matrix axes are pre-computed and authoritative.
+    // Ortho/generic: W/S pan along screen-up so keys don't feel dead (translating along the
+    // view direction only changes depth, which is invisible in orthographic projection).
     vne::math::Vec3f forward_axis;
     vne::math::Vec3f right_axis;
     const vne::math::Vec3f vertical_axis = world_up_.normalized();
     if (auto persp = perspCamera()) {
         forward_axis = persp->getForward();
-        right_axis = persp->getRight();
+        right_axis   = persp->getRight();
     } else {
         const vne::math::Vec3f f_raw = camera_->getTarget() - camera_->getPosition();
         const float f_len = f_raw.length();
-        forward_axis = (f_len >= kEpsilon) ? (f_raw / f_len) : front();
-        const vne::math::Vec3f r_try = forward_axis.cross(vertical_axis);
+        const vne::math::Vec3f view_dir = (f_len >= kEpsilon) ? (f_raw / f_len) : front();
+        forward_axis = orthoPanUp(view_dir);
+        const vne::math::Vec3f r_try = view_dir.cross(forward_axis);
         const float r_len = r_try.length();
-        right_axis = (r_len >= kEpsilon) ? (r_try / r_len) : right(forward_axis);
+        right_axis = (r_len >= kEpsilon) ? (r_try / r_len) : right(view_dir);
     }
     vne::math::Vec3f move(0.0f, 0.0f, 0.0f);
     if (input_state_.move_forward)
