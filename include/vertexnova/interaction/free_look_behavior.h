@@ -183,6 +183,8 @@ class VNE_INTERACTION_API FreeLookBehavior final : public CameraBehaviorBase {
                                               const vne::math::Vec3f& vertical_hint) const noexcept;
 
     void syncAnglesFromCamera() noexcept;
+    /** If @ref angles_dirty_ and a camera is set, sync from the camera and clear the flag (input paths before onUpdate). */
+    void syncAnglesFromCameraIfDirty() noexcept;
     void applyAnglesToCamera() noexcept;
     void applyDolly(float factor, float mx, float my) noexcept override;
 
