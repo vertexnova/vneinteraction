@@ -36,7 +36,7 @@ It depends on **vnescene** (and transitively **vnemath**) for cameras and math, 
 ## Features
 
 - **Behaviors**: `OrbitalCameraBehavior`, `FreeLookBehavior`, `Ortho2DBehavior`, `FollowBehavior` — rotation modes (Euler/Quaternion), pivot modes, zoom methods, inertia, fit-to-AABB.
-- **Controllers**: `Inspect3DController` (3D inspection), `Navigation3DController` (FPS/Fly/Game modes), `Ortho2DController` (2D slices, maps), `FollowController` (target following).
+- **Controllers**: `Inspect3DController` (3D inspection), `Navigation3DController` (FPS/Fly modes), `Ortho2DController` (2D slices, maps), `FollowController` (target following).
 - **InputMapper**: Presets (`orbitPreset`, `fpsPreset`, `gamePreset`, `cadPreset`, `orthoPreset`) and custom `InputRule` configuration.
 - **Types**: `CameraActionType`, `CameraCommandPayload`, `InputRule`, `ZoomMethod`, `OrbitPivotMode`, `NavigateMode`, etc. in `interaction_types.h`.
 - **Use cases**: Medical 3D/2D inspection, game/editor cameras, robotic simulators.
@@ -160,9 +160,9 @@ See [examples/01_library_info](examples/01_library_info) for version and behavio
 | Example | Description |
 |---------|-------------|
 | [01_library_info](examples/01_library_info) | Version info; list all behavior types and presets |
-| [02_medical_3d_inspect](examples/02_medical_3d_inspect) | Inspect3DController — trackball, landmark pivot, fitToAABB |
+| [02_medical_3d_inspect](examples/02_medical_3d_inspect) | Inspect3DController — 3D inspection, Euler orbit (default) or trackball, landmark pivot, fitToAABB |
 | [03_medical_2d_slices](examples/03_medical_2d_slices) | Ortho2DController — pan, scroll-zoom, ortho camera |
-| [04_game_editor_camera](examples/04_game_editor_camera) | Navigation3DController — FPS + orbit modes, WASD |
+| [04_game_editor_camera](examples/04_game_editor_camera) | Navigation3DController — FPS and Fly, WASD + mouse look (sprint) |
 | [05_robotic_simulator](examples/05_robotic_simulator) | Inspect3DController + Navigation3DController + FollowController |
 
 Build with `-DVNE_INTERACTION_EXAMPLES=ON` or use the dev preset (`-DVNE_INTERACTION_DEV=ON`). Run from `build/bin/examples/` (or `build/shared/Debug/bin/examples/` for Debug).

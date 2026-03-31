@@ -877,7 +877,7 @@ bool OrbitalCameraBehavior::onAction(CameraActionType action,
             return true;
 
         case CameraActionType::eSetPivotAtCursor: {
-            // Move orbit pivot to camera_pos + view_dir * orbit_distance_
+            // Move orbit pivot to camera_pos + view_dir * orbit_distance_ (payload x_px/y_px ignored; not a screen ray)
             const vne::math::Vec3f front = computeFront();
             coi_world_ = camera_->getPosition() + front * orbit_distance_;
             orbit_distance_ = std::max((camera_->getPosition() - coi_world_).length(), kMinOrbitDistance);

@@ -444,7 +444,7 @@ std::vector<InputRule> InputMapper::orbitPreset() {
         makeTouchPanRule(CameraActionType::eRotateDelta),
         // Touch pinch: zoom
         makeTouchPinchRule(CameraActionType::eZoomAtCursor),
-        // Double-click LMB: set pivot at cursor
+        // Double-click LMB: eSetPivotAtCursor (COI along view direction in OrbitalCameraBehavior)
         makeDblClickRule(kLeft, CameraActionType::eSetPivotAtCursor),
     };
 }
@@ -533,7 +533,7 @@ std::vector<InputRule> InputMapper::gamePreset() {
         makeTouchPanRule(CameraActionType::eRotateDelta),
         // Touch pinch: zoom
         makeTouchPinchRule(CameraActionType::eZoomAtCursor),
-        // Double-click LMB: set pivot
+        // Double-click LMB: eSetPivotAtCursor (COI along view direction)
         makeDblClickRule(kLeft, CameraActionType::eSetPivotAtCursor),
     };
 }
@@ -560,7 +560,7 @@ std::vector<InputRule> InputMapper::cadPreset() {
         makeTouchPanRule(CameraActionType::ePanDelta),
         // Touch pinch: zoom
         makeTouchPinchRule(CameraActionType::eZoomAtCursor),
-        // Double-click MMB: set pivot
+        // Double-click MMB: eSetPivotAtCursor (COI along view direction)
         makeDblClickRule(kMiddle, CameraActionType::eSetPivotAtCursor),
     };
 }

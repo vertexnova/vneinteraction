@@ -91,6 +91,34 @@ vne::math::Vec3f FreeLookBehavior::right(const vne::math::Vec3f& front_vec) cons
     return (len < kEpsilon) ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : (r / len);
 }
 
+vne::math::Vec3f FreeLookBehavior::orthoPanUp(const vne::math::Vec3f& view_dir) const noexcept {
+    const vne::math::Vec3f f =
+        view_dir.length() < kEpsilon ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : view_dir.normalized();
+    vne::math::Vec3f u = camera_->getUp();
+    u = u - f * u.dot(f);
+    float len = u.length();
+    if (len < kEpsilon) {
+        const vne::math::Vec3f r = right(f);
+        u = r.cross(f);
+        len = u.length();
+    }
+    if (len < kEpsilon) {
+        vne::math::Vec3f w = upVector();
+        u = w - f * w.dot(f);
+        len = u.length();
+    }
+    if (len < kEpsilon) {
+        vne::math::Vec3f ref_fwd, ref_right;
+        buildReferenceFrame(upVector(), ref_fwd, ref_right);
+        u = ref_fwd - f * ref_fwd.dot(f);
+        len = u.length();
+    }
+    if (len < kEpsilon) {
+        return vne::math::Vec3f(0.0f, 1.0f, 0.0f);
+    }
+    return u / len;
+}
+
 void FreeLookBehavior::syncAnglesFromCamera() noexcept {
     if (!camera_) {
         return;
@@ -223,6 +251,7 @@ void FreeLookBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::m
 
 void FreeLookBehavior::resetState() noexcept {
     input_state_ = FreeLookInputState{};
+    syncAnglesFromCamera();
 }
 
 // ---------------------------------------------------------------------------
@@ -238,14 +267,30 @@ void FreeLookBehavior::onUpdate(double delta_time) noexcept {
         return;
     }
     const vne::math::Vec3f f = front();
-    const vne::math::Vec3f r = right(f);
     const vne::math::Vec3f up = upVector();
+    // Perspective: W/S along full view f (includes pitch); A/D strafe via f × upVector(). That pairing is
+    // conventional for FPS fly; after pitch, forward vs strafe need not match the camera image axes —
+    // a skewed / odd feel can show up in perspective too, not only ortho.
+    // Orthographic: translating along the view changes only depth in projection (W/S feel dead), so W/S
+    // use screen-up (orthoPanUp). Strafe uses f × screen_up so W/S and A/D share one lookAt-aligned basis.
+    vne::math::Vec3f r;
+    vne::math::Vec3f forward_axis;
+    if (orthoCamera()) {
+        const vne::math::Vec3f screen_up = orthoPanUp(f);
+        vne::math::Vec3f r_try = f.cross(screen_up);
+        const float r_len = r_try.length();
+        r = (r_len >= kEpsilon) ? (r_try / r_len) : right(f);
+        forward_axis = screen_up;
+    } else {
+        r = right(f);
+        forward_axis = f;
+    }
     vne::math::Vec3f move(0.0f, 0.0f, 0.0f);
     if (input_state_.move_forward) {
-        move += f;
+        move += forward_axis;
     }
     if (input_state_.move_backward) {
-        move -= f;
+        move -= forward_axis;
     }
     if (input_state_.move_right) {
         move += r;
@@ -268,7 +313,12 @@ void FreeLookBehavior::onUpdate(double delta_time) noexcept {
     } else if (input_state_.slow) {
         speed *= slow_mult_;
     }
-    move = move.normalized() * (speed * dt);
+    // Scene scale is applied as scale(s,s,1) on the view (see CameraBase::composeViewWithSceneScale), which
+    // scales image-plane motion from a fixed world translation. Divide so keyboard steps stay similar on
+    // screen when scene scale changes (perspective and orthographic).
+    const float scene_s = camera_->getSceneScale();
+    const float scene_comp = (scene_s > kEpsilon) ? (1.0f / scene_s) : 1.0f;
+    move = move.normalized() * (speed * dt * scene_comp);
     camera_->setPosition(camera_->getPosition() + move);
     camera_->setTarget(camera_->getTarget() + move);
     camera_->updateMatrices();

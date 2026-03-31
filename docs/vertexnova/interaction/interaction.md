@@ -30,14 +30,14 @@ The Interaction module provides composable camera behaviors and high-level contr
 ### Controllers
 
 - **inspect_3d_controller.h**: `Inspect3DController` — 3D inspection (medical, CAD); wraps `OrbitalCameraBehavior` + `InputMapper` with orbit preset; pivot, DOF toggles, fitToAABB.
-- **navigation_3d_controller.h**: `Navigation3DController` — 3D environment traversal; FPS, Fly, or Game mode; wraps `FreeLookBehavior` (+ optional `OrbitalCameraBehavior` in Game mode) + `InputMapper`.
+- **navigation_3d_controller.h**: `Navigation3DController` — 3D environment traversal; FPS or Fly mode; wraps `FreeLookBehavior` + `InputMapper` (`fpsPreset`).
 - **ortho_2d_controller.h**: `Ortho2DController` — 2D orthographic viewports (slices, maps); wraps `Ortho2DBehavior` + `InputMapper` with ortho preset.
 - **follow_controller.h**: `FollowController` — target-follow camera; wraps `FollowBehavior`; no user input required.
 
 ### Input and Rig
 
 - **input_mapper.h**: `InputMapper` — maps mouse/keyboard/touch events to `CameraActionType` via `InputRule`; presets: `orbitPreset`, `fpsPreset`, `gamePreset`, `cadPreset`, `orthoPreset`.
-- **camera_rig.h**: `CameraRig` — multi-behavior container; `onAction`, `onUpdate`, `setCamera`, `onResize`, `resetState`; factory methods: `makeOrbit`, `makeTrackball`, `makeFps`, `makeFly`, `makeOrtho2D` (deprecated: `makeOrthoPanZoom`), `makeFollow`, `makeGameCamera`, `make2D`.
+- **camera_rig.h**: `CameraRig` — multi-behavior container; `onAction`, `onUpdate`, `setCamera`, `onResize`, `resetState`; factory methods: `makeOrbit`, `makeTrackball`, `makeFps`, `makeFly`, `makeOrtho2D`, `makeFollow`, `make2D`.
 
 ### Types
 
@@ -95,9 +95,9 @@ The controller's `onEvent` handles `MouseMovedEvent`, `MouseButtonPressedEvent`,
 
 | Use case | Controller | Notes |
 |----------|------------|-------|
-| Medical 3D inspection | `Inspect3DController` | Trackball default; `setPivotMode(eFixed)` for landmark-centred |
+| Medical 3D inspection | `Inspect3DController` | Euler orbit by default (`setRotationEnabled(false)` to disable LMB orbit); `setRotationMode(eTrackball)` optional; `setPivotMode(eFixed)` for landmark-centred |
 | Medical 2D slices | `Ortho2DController` | Pan + zoom; optional in-plane rotate via `setRotationEnabled(true)` |
-| Game / editor camera | `Navigation3DController` | Orbit mode for object view; FPS/Fly for world nav |
+| Game / editor camera | `Navigation3DController` + `Inspect3DController` | FPS/Fly for world nav; `Inspect3DController` for orbit inspection |
 | Robotic simulator | `Inspect3DController` + `Navigation3DController` + `FollowController` | Inspect robot; navigate environment; follow end-effector |
 
 ## CMake options

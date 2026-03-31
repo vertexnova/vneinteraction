@@ -39,8 +39,9 @@ struct Inspect3DController::Impl {
     float viewport_w = 1280.0f;
     float viewport_h = 720.0f;
 
-    OrbitRotationMode rotation_mode = OrbitRotationMode::eTrackball;
+    OrbitRotationMode rotation_mode = OrbitRotationMode::eOrbit;
     bool rotation_enabled = true;
+    bool pivot_on_double_click_enabled = true;
     bool pan_enabled = true;
     bool zoom_enabled = true;
 
@@ -51,7 +52,7 @@ struct Inspect3DController::Impl {
 // Helpers
 // ---------------------------------------------------------------------------
 
-static std::vector<InputRule> buildInspectRules(bool rotation, bool pan, bool zoom) {
+static std::vector<InputRule> buildInspectRules(bool rotation, bool pivot_on_double_click, bool pan, bool zoom) {
     std::vector<InputRule> rules;
 
     if (rotation) {
@@ -72,7 +73,10 @@ static std::vector<InputRule> buildInspectRules(bool rotation, bool pan, bool zo
             .on_release = CameraActionType::eEndPan,
             .on_delta = CameraActionType::ePanDelta,
         });
-        // Double-click LMB = set pivot at cursor
+    }
+
+    if (pivot_on_double_click) {
+        // Double-click LMB = eSetPivotAtCursor (COI along view direction; independent of LMB rotate-drag)
         rules.push_back({
             .trigger = InputRule::Trigger::eMouseDblClick,
             .code = static_cast<int>(MouseButton::eLeft),
@@ -126,9 +130,8 @@ static std::vector<InputRule> buildInspectRules(bool rotation, bool pan, bool zo
 
 Inspect3DController::Inspect3DController()
     : impl_(std::make_unique<Impl>()) {
-    // Build rig with trackball orbit
     impl_->orbit = std::make_shared<OrbitalCameraBehavior>();
-    impl_->orbit->setRotationMode(OrbitRotationMode::eTrackball);
+    impl_->orbit->setRotationMode(OrbitRotationMode::eOrbit);
     impl_->rig.addBehavior(impl_->orbit);
 
     // Wire mapper ->rig. Capture raw Impl* so the callback stays valid across moves.
@@ -220,6 +223,19 @@ void Inspect3DController::setRotationEnabled(bool enabled) noexcept {
     rebuildRules();
 }
 
+bool Inspect3DController::isRotationEnabled() const noexcept {
+    return impl_->rotation_enabled;
+}
+
+void Inspect3DController::setPivotOnDoubleClickEnabled(bool enabled) noexcept {
+    impl_->pivot_on_double_click_enabled = enabled;
+    rebuildRules();
+}
+
+bool Inspect3DController::isPivotOnDoubleClickEnabled() const noexcept {
+    return impl_->pivot_on_double_click_enabled;
+}
+
 void Inspect3DController::setPanEnabled(bool enabled) noexcept {
     impl_->pan_enabled = enabled;
     rebuildRules();
@@ -262,7 +278,10 @@ OrbitalCameraBehavior& Inspect3DController::orbitalCameraBehavior() noexcept {
 // ---------------------------------------------------------------------------
 
 void Inspect3DController::rebuildRules() noexcept {
-    auto rules = buildInspectRules(impl_->rotation_enabled, impl_->pan_enabled, impl_->zoom_enabled);
+    auto rules = buildInspectRules(impl_->rotation_enabled,
+                                   impl_->pivot_on_double_click_enabled,
+                                   impl_->pan_enabled,
+                                   impl_->zoom_enabled);
     impl_->mapper.setRules(rules);
 }
 

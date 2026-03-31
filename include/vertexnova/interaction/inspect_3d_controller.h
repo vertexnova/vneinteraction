@@ -26,10 +26,13 @@
  * @endcode
  *
  * ### Defaults
- * - Rotation: Trackball (quaternion) — smooth, no gimbal lock
- * - LMB drag = rotate, RMB/MMB drag = pan, scroll = zoom
- * - Double-click LMB = move pivot to cursor (auto-pivot)
- * - Pivot mode: eCoi (follows panning)
+ * - Rotation: **on** by default; algorithm is **Euler orbit** (`OrbitRotationMode::eOrbit`).
+ *   Use `setRotationMode(OrbitRotationMode::eTrackball)` for quaternion trackball; use `setRotationEnabled(false)` to
+ * disable LMB orbit.
+ * - LMB drag = rotate (when rotation enabled), RMB/MMB drag = pan, scroll = zoom
+ * - Double-click LMB = move pivot to current center-of-interest along the view direction (auto-pivot; **on** by
+ *   default, independent of rotation). Does not use the double-click screen position; see `eSetPivotAtCursor`.
+ * - Pivot mode: eCoi (pivot at the center-of-interest; follows panning)
  *
  * ### Medical / CAD anchor
  * @code
@@ -37,9 +40,9 @@
  * ctrl.setPivotMode(OrbitPivotMode::eFixed);  // rotates around landmark
  * @endcode
  *
- * ### Disable a DOF
+ * ### Disable rotation
  * @code
- * ctrl.setRotationEnabled(false);   // pan + zoom only
+ * ctrl.setRotationEnabled(false);   // no LMB orbit; pan/zoom/double-click pivot unchanged
  * @endcode
  *
  * ### Rebind inputs
@@ -112,7 +115,7 @@ class VNE_INTERACTION_API Inspect3DController {
     // Rotation
     // -------------------------------------------------------------------------
 
-    /** Switch rotation algorithm (default: OrbitRotationMode::eTrackball). */
+    /** Switch rotation algorithm (default: OrbitRotationMode::eOrbit). */
     void setRotationMode(OrbitRotationMode mode) noexcept;
     [[nodiscard]] OrbitRotationMode getRotationMode() const noexcept;
 
@@ -142,6 +145,13 @@ class VNE_INTERACTION_API Inspect3DController {
 
     /** Enable or disable rotation (removes/restores rotate rules). */
     void setRotationEnabled(bool enabled) noexcept;
+    [[nodiscard]] bool isRotationEnabled() const noexcept;
+    /**
+     * @brief Enable or disable double-click LMB → `eSetPivotAtCursor` (auto-pivot along the view direction).
+     * Default: **enabled**. Independent of @ref setRotationEnabled (LMB drag orbit can stay off).
+     */
+    void setPivotOnDoubleClickEnabled(bool enabled) noexcept;
+    [[nodiscard]] bool isPivotOnDoubleClickEnabled() const noexcept;
     /** Enable or disable panning (removes/restores pan rules). */
     void setPanEnabled(bool enabled) noexcept;
     /** Enable or disable zoom (removes/restores zoom rules). */

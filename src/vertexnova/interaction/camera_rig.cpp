@@ -120,23 +120,9 @@ CameraRig CameraRig::makeOrtho2D() {
     return rig;
 }
 
-CameraRig CameraRig::makeOrthoPanZoom() {
-    return makeOrtho2D();
-}
-
 CameraRig CameraRig::makeFollow() {
     CameraRig rig;
     rig.addBehavior(std::make_shared<FollowBehavior>());
-    return rig;
-}
-
-CameraRig CameraRig::makeGameCamera() {
-    CameraRig rig;
-    rig.addBehavior(std::make_shared<OrbitalCameraBehavior>());
-    auto fl = std::make_shared<FreeLookBehavior>();
-    fl->setConstrainWorldUp(true);
-    fl->setHandleZoom(false);  // orbit behavior owns eZoomAtCursor
-    rig.addBehavior(std::move(fl));
     return rig;
 }
 

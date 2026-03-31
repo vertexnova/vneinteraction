@@ -117,7 +117,8 @@ class VNE_INTERACTION_API InputMapper {
     void bindScroll(GestureAction action, vne::events::ModifierKey modifier = vne::events::ModifierKey::eModNone);
 
     /**
-     * @brief Bind double-click to set pivot. Replaces existing double-click rule for this action.
+     * @brief Bind double-click to `eSetPivotAtCursor` (orbit COI along view direction; see OrbitalCameraBehavior).
+     * Replaces existing double-click rule for this action.
      */
     void bindDoubleClick(GestureAction action,
                          MouseButton button,
