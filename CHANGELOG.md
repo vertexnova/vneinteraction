@@ -7,18 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+* **`Inspect3DController`**: LMB orbit rotation **on** by default (`OrbitRotationMode::eOrbit`); use `setRotationEnabled(false)` to disable. Matches examples that simulate LMB drag without calling `setRotationEnabled(true)`.
+
 ### Removed
 
 * **`CameraRig::makeOrthoPanZoom()`** — use **`CameraRig::makeOrtho2D()`** instead.
 * **`CameraRig::makeGameCamera()`** — compose **`OrbitalCameraBehavior`** + **`FreeLookBehavior`** on **`CameraRig`** (see `camera_rig.h` usage example), or use **`Inspect3DController`** / **`Navigation3DController`** as appropriate.
 
-## [2.0.0](https://github.com/vertexnova/vneinteraction/compare/v1.5.2...v2.0.0) (2026-03-30)
+### Changed
+
+* **Breaking**: Renamed `InspectController` to `Inspect3DController`; header `inspect_controller.h` → `inspect_3d_controller.h`.
+* **Breaking**: Renamed `OrbitArcballBehavior` to `OrbitalCameraBehavior`; header `orbit_arcball_behavior.h` → `orbital_camera_behavior.h`; accessors `orbitArcballBehavior()` → `orbitalCameraBehavior()` on `Inspect3DController` and `Navigation3DController`.
+* **Breaking**: `OrbitRotationMode::eArcball` renamed to `eTrackball`; `CameraRig::makeArcball()` → `makeTrackball()`.
+* **Breaking**: New behavior-based architecture. Removed legacy manipulators (`OrbitManipulator`, `ArcballManipulator`, `FpsManipulator`, `FlyManipulator`, `OrthoPanZoomManipulator`, `FollowManipulator`), `CameraManipulatorFactory`, and `CameraSystemController`.
+* **Added**: Behaviors — `OrbitalCameraBehavior`, `FreeLookBehavior`, `OrthoPanZoomBehavior`, `FollowBehavior` (implement `ICameraBehavior`).
+* **Added**: Controllers — `Inspect3DController`, `Navigation3DController`, `Ortho2DController`, `FollowController`.
+* **Added**: `InputMapper` with presets (`orbitPreset`, `fpsPreset`, `gamePreset`, `cadPreset`, `orthoPreset`).
+* **Added**: `CameraRig` — multi-behavior container with factory methods.
+* **Changed**: Event-based API — `onEvent(event, delta_time)` and `onUpdate(delta_time)` replace `handleMouse*`/`handleKeyboard`/`update`.
+* **Changed**: `PlanarController` renamed to `Ortho2DController`, `NavigateController` to `Navigation3DController`.
+
+## [1.5.3](https://github.com/vertexnova/vneinteraction/compare/v1.5.2...v1.5.3) (2026-03-30)
 
 ### Breaking Changes
 
 * **Navigation**: Remove `NavigateMode::eGame`. `Navigation3DController` supports only **FPS** and **Fly** (`FreeLookBehavior` + `fpsPreset`). For orbit + WASD hybrid rigs, compose **`OrbitalCameraBehavior`** + **`FreeLookBehavior`** on **`CameraRig`** manually; use **`Inspect3DController`** for orbit-style inspection.
 * **`Navigation3DController::orbitalCameraBehavior()`** always returns **`nullptr`**.
-* **Inspect3DController**: **Rotation is off by default**; when enabled, default algorithm is **Euler orbit** (`OrbitRotationMode::eOrbit`). Previously rotation was on by default with **trackball**.
+* **Inspect3DController**: When LMB orbit is enabled, default algorithm is **Euler orbit** (`OrbitRotationMode::eOrbit`). Previously the default was **trackball** when rotation was enabled.
 
 ### Bug Fixes
 
@@ -104,21 +121,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Features
 
 * major refactoring camera intraction changes ([#6](https://github.com/vertexnova/vneinteraction/issues/6)) ([8548b74](https://github.com/vertexnova/vneinteraction/commit/8548b74e317d59691577479d3040601e4c7a3dda))
-
-## [Unreleased]
-
-### Changed
-
-- **Breaking**: Renamed `InspectController` to `Inspect3DController`; header `inspect_controller.h` → `inspect_3d_controller.h`.
-- **Breaking**: Renamed `OrbitArcballBehavior` to `OrbitalCameraBehavior`; header `orbit_arcball_behavior.h` → `orbital_camera_behavior.h`; accessors `orbitArcballBehavior()` → `orbitalCameraBehavior()` on `Inspect3DController` and `Navigation3DController`.
-- **Breaking**: `OrbitRotationMode::eArcball` renamed to `eTrackball`; `CameraRig::makeArcball()` → `makeTrackball()`.
-- **Breaking**: New behavior-based architecture. Removed legacy manipulators (`OrbitManipulator`, `ArcballManipulator`, `FpsManipulator`, `FlyManipulator`, `OrthoPanZoomManipulator`, `FollowManipulator`), `CameraManipulatorFactory`, and `CameraSystemController`.
-- **Added**: Behaviors — `OrbitalCameraBehavior`, `FreeLookBehavior`, `OrthoPanZoomBehavior`, `FollowBehavior` (implement `ICameraBehavior`).
-- **Added**: Controllers — `Inspect3DController`, `Navigation3DController`, `Ortho2DController`, `FollowController`.
-- **Added**: `InputMapper` with presets (`orbitPreset`, `fpsPreset`, `gamePreset`, `cadPreset`, `orthoPreset`).
-- **Added**: `CameraRig` — multi-behavior container with factory methods.
-- **Changed**: Event-based API — `onEvent(event, delta_time)` and `onUpdate(delta_time)` replace `handleMouse*`/`handleKeyboard`/`update`.
-- **Changed**: `PlanarController` renamed to `Ortho2DController`, `NavigateController` to `Navigation3DController`.
 
 ## [1.1.1](https://github.com/vertexnova/vneinteraction/compare/v1.1.0...v1.1.1) (2026-03-11)
 

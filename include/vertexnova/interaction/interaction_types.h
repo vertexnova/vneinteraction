@@ -94,7 +94,7 @@ enum class GestureAction : std::uint8_t {
     ePan = 1,       //!< Pan (button + drag)
     eZoom = 2,      //!< Zoom (scroll wheel)
     eLook = 3,      //!< FPS-style look (button + drag)
-    eSetPivot = 4,  //!< Set orbit pivot at cursor (double-click)
+    eSetPivot = 4,  //!< Set orbit pivot via double-click (maps to orbit COI behavior; see OrbitalCameraBehavior)
 };
 
 /**
@@ -145,7 +145,7 @@ enum class CameraActionType : std::uint8_t {
     eSlowModifier = 18,
     eOrbitPanModifier = 19,  // shift: orbit uses for pan-alias, free uses SprintModifier
     eResetView = 20,
-    eSetPivotAtCursor = 21,  //!< Double-click: move orbit pivot to cursor position on view ray
+    eSetPivotAtCursor = 21,  //!< Double-click: set COI along view direction (camera + front * orbit distance); payload x/y ignored
 };
 
 // -----------------------------------------------------------------------------

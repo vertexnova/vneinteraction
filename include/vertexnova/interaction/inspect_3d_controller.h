@@ -26,11 +26,12 @@
  * @endcode
  *
  * ### Defaults
- * - Rotation: **off** by default; when enabled, algorithm is **Euler orbit** (`OrbitRotationMode::eOrbit`).
- *   Use `setRotationMode(OrbitRotationMode::eTrackball)` for quaternion trackball.
+ * - Rotation: **on** by default; algorithm is **Euler orbit** (`OrbitRotationMode::eOrbit`).
+ *   Use `setRotationMode(OrbitRotationMode::eTrackball)` for quaternion trackball; use `setRotationEnabled(false)` to disable LMB orbit.
  * - LMB drag = rotate (when rotation enabled), RMB/MMB drag = pan, scroll = zoom
- * - Double-click LMB = move pivot to cursor (auto-pivot; **on** by default, independent of rotation)
- * - Pivot mode: eCoi (follows panning)
+ * - Double-click LMB = move pivot to current center-of-interest along the view direction (auto-pivot; **on** by
+ *   default, independent of rotation). Does not use the double-click screen position; see `eSetPivotAtCursor`.
+ * - Pivot mode: eCoi (pivot at the center-of-interest; follows panning)
  *
  * ### Medical / CAD anchor
  * @code
@@ -38,9 +39,9 @@
  * ctrl.setPivotMode(OrbitPivotMode::eFixed);  // rotates around landmark
  * @endcode
  *
- * ### Enable rotation
+ * ### Disable rotation
  * @code
- * ctrl.setRotationEnabled(true);   // LMB orbit / trackball (see setRotationMode)
+ * ctrl.setRotationEnabled(false);   // no LMB orbit; pan/zoom/double-click pivot unchanged
  * @endcode
  *
  * ### Rebind inputs
@@ -145,7 +146,7 @@ class VNE_INTERACTION_API Inspect3DController {
     void setRotationEnabled(bool enabled) noexcept;
     [[nodiscard]] bool isRotationEnabled() const noexcept;
     /**
-     * @brief Enable or disable double-click LMB → `eSetPivotAtCursor` (auto-pivot).
+     * @brief Enable or disable double-click LMB → `eSetPivotAtCursor` (auto-pivot along the view direction).
      * Default: **enabled**. Independent of @ref setRotationEnabled (LMB drag orbit can stay off).
      */
     void setPivotOnDoubleClickEnabled(bool enabled) noexcept;

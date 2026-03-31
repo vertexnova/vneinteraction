@@ -71,7 +71,7 @@ class VNE_INTERACTION_API OrbitalCameraBehavior final : public CameraBehaviorBas
     /**
      * @brief Dispatch a camera action.
      * Handles: eBeginRotate, eRotateDelta, eEndRotate, eBeginPan, ePanDelta, eEndPan,
-     *          eZoomAtCursor, eOrbitPanModifier, eResetView, eSetPivotAtCursor.
+     *          eZoomAtCursor, eOrbitPanModifier, eResetView, eSetPivotAtCursor (COI on view ray; ignores payload x/y).
      */
     bool onAction(CameraActionType action, const CameraCommandPayload& payload, double delta_time) noexcept override;
 

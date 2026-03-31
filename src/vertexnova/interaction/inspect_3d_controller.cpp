@@ -40,7 +40,7 @@ struct Inspect3DController::Impl {
     float viewport_h = 720.0f;
 
     OrbitRotationMode rotation_mode = OrbitRotationMode::eOrbit;
-    bool rotation_enabled = false;
+    bool rotation_enabled = true;
     bool pivot_on_double_click_enabled = true;
     bool pan_enabled = true;
     bool zoom_enabled = true;
@@ -76,7 +76,7 @@ static std::vector<InputRule> buildInspectRules(bool rotation, bool pivot_on_dou
     }
 
     if (pivot_on_double_click) {
-        // Double-click LMB = set pivot at cursor (independent of LMB rotate-drag)
+        // Double-click LMB = eSetPivotAtCursor (COI along view direction; independent of LMB rotate-drag)
         rules.push_back({
             .trigger = InputRule::Trigger::eMouseDblClick,
             .code = static_cast<int>(MouseButton::eLeft),

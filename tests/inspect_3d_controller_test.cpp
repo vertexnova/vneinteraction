@@ -36,6 +36,7 @@ static std::shared_ptr<vne::scene::PerspectiveCamera> makePerspCamera() {
 TEST(Inspect3DController, DefaultOrbitRotationMode) {
     vne::interaction::Inspect3DController ctrl;
     EXPECT_EQ(ctrl.getRotationMode(), vne::interaction::OrbitRotationMode::eOrbit);
+    EXPECT_TRUE(ctrl.isRotationEnabled());
 }
 
 TEST(Inspect3DController, SetPivotMode) {
@@ -51,6 +52,7 @@ TEST(Inspect3DController, SetPivotMode) {
 TEST(Inspect3DController, PivotOnDoubleClickIndependentOfRotation) {
     vne::interaction::Inspect3DController ctrl;
     EXPECT_TRUE(ctrl.isPivotOnDoubleClickEnabled());
+    ctrl.setRotationEnabled(false);
     EXPECT_FALSE(ctrl.isRotationEnabled());
 
     auto cam = makePerspCamera();
@@ -79,13 +81,16 @@ TEST(Inspect3DController, PivotOnDoubleClickIndependentOfRotation) {
 TEST(Inspect3DController, SetRotationEnabled) {
     vne::interaction::Inspect3DController ctrl;
     EXPECT_EQ(ctrl.getRotationMode(), vne::interaction::OrbitRotationMode::eOrbit);
-    EXPECT_FALSE(ctrl.isRotationEnabled());
+    EXPECT_TRUE(ctrl.isRotationEnabled());
 
     auto cam = makePerspCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
     ctrl.setCamera(cam);
     ctrl.onResize(1280.0f, 720.0f);
+
+    ctrl.setRotationEnabled(false);
+    EXPECT_FALSE(ctrl.isRotationEnabled());
 
     const vne::math::Vec3f pos_rotation_off = cam->getPosition();
     simulateLeftButtonHorizontalDrag(ctrl, 640.0, 360.0, 690.0, 360.0);

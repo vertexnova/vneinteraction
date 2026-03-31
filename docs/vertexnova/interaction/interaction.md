@@ -95,7 +95,7 @@ The controller's `onEvent` handles `MouseMovedEvent`, `MouseButtonPressedEvent`,
 
 | Use case | Controller | Notes |
 |----------|------------|-------|
-| Medical 3D inspection | `Inspect3DController` | Euler orbit default when rotation enabled; `setRotationMode(eTrackball)` optional; `setPivotMode(eFixed)` for landmark-centred |
+| Medical 3D inspection | `Inspect3DController` | Euler orbit by default (`setRotationEnabled(false)` to disable LMB orbit); `setRotationMode(eTrackball)` optional; `setPivotMode(eFixed)` for landmark-centred |
 | Medical 2D slices | `Ortho2DController` | Pan + zoom; optional in-plane rotate via `setRotationEnabled(true)` |
 | Game / editor camera | `Navigation3DController` + `Inspect3DController` | FPS/Fly for world nav; `Inspect3DController` for orbit inspection |
 | Robotic simulator | `Inspect3DController` + `Navigation3DController` + `FollowController` | Inspect robot; navigate environment; follow end-effector |
