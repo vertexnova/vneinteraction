@@ -19,8 +19,12 @@ static std::shared_ptr<vne::scene::PerspectiveCamera> makePerspCamera() {
 }
 
 static std::shared_ptr<vne::scene::OrthographicCamera> makeOrthoCamera() {
-    return vne::scene::CameraFactory::createOrthographic(
-        vne::scene::OrthographicCameraParameters(20.0f, 20.0f * 9.0f / 16.0f, 1.0f, 0.1f, 1000.0f));
+    return vne::scene::CameraFactory::createOrthographic(vne::scene::OrthographicCameraParameters(-10.0f,
+                                                                                                  10.0f,
+                                                                                                  -10.0f * 9.0f / 16.0f,
+                                                                                                  10.0f * 9.0f / 16.0f,
+                                                                                                  0.1f,
+                                                                                                  1000.0f));
 }
 
 TEST(FreeLookBehavior, DefaultFpsMode) {

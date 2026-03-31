@@ -12,14 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * **`CameraRig::makeOrthoPanZoom()`** — use **`CameraRig::makeOrtho2D()`** instead.
 * **`CameraRig::makeGameCamera()`** — compose **`OrbitalCameraBehavior`** + **`FreeLookBehavior`** on **`CameraRig`** (see `camera_rig.h` usage example), or use **`Inspect3DController`** / **`Navigation3DController`** as appropriate.
 
-## [1.5.3](https://github.com/vertexnova/vneinteraction/compare/v1.5.2...v1.5.3) (2026-03-30)
+## [2.0.0](https://github.com/vertexnova/vneinteraction/compare/v1.5.2...v2.0.0) (2026-03-30)
 
 ### Breaking Changes
 
 * **Navigation**: Remove `NavigateMode::eGame`. `Navigation3DController` supports only **FPS** and **Fly** (`FreeLookBehavior` + `fpsPreset`). For orbit + WASD hybrid rigs, compose **`OrbitalCameraBehavior`** + **`FreeLookBehavior`** on **`CameraRig`** manually; use **`Inspect3DController`** for orbit-style inspection.
 * **`Navigation3DController::orbitalCameraBehavior()`** always returns **`nullptr`**.
 * **Inspect3DController**: **Rotation is off by default**; when enabled, default algorithm is **Euler orbit** (`OrbitRotationMode::eOrbit`). Previously rotation was on by default with **trackball**.
-* **`CameraRig::makeGameCamera()`** was **deprecated** in 1.5.3 and **removed** in a later release (use composition or controllers; see [Unreleased]).
 
 ### Bug Fixes
 

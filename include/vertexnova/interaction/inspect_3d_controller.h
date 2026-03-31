@@ -29,7 +29,7 @@
  * - Rotation: **off** by default; when enabled, algorithm is **Euler orbit** (`OrbitRotationMode::eOrbit`).
  *   Use `setRotationMode(OrbitRotationMode::eTrackball)` for quaternion trackball.
  * - LMB drag = rotate (when rotation enabled), RMB/MMB drag = pan, scroll = zoom
- * - Double-click LMB = move pivot to cursor (auto-pivot)
+ * - Double-click LMB = move pivot to cursor (auto-pivot; **on** by default, independent of rotation)
  * - Pivot mode: eCoi (follows panning)
  *
  * ### Medical / CAD anchor
@@ -143,6 +143,13 @@ class VNE_INTERACTION_API Inspect3DController {
 
     /** Enable or disable rotation (removes/restores rotate rules). */
     void setRotationEnabled(bool enabled) noexcept;
+    [[nodiscard]] bool isRotationEnabled() const noexcept;
+    /**
+     * @brief Enable or disable double-click LMB → `eSetPivotAtCursor` (auto-pivot).
+     * Default: **enabled**. Independent of @ref setRotationEnabled (LMB drag orbit can stay off).
+     */
+    void setPivotOnDoubleClickEnabled(bool enabled) noexcept;
+    [[nodiscard]] bool isPivotOnDoubleClickEnabled() const noexcept;
     /** Enable or disable panning (removes/restores pan rules). */
     void setPanEnabled(bool enabled) noexcept;
     /** Enable or disable zoom (removes/restores zoom rules). */
