@@ -45,7 +45,7 @@ namespace vne::interaction {
  *   new_eye = eye + (desired_eye - eye) * (1 - exp(-damping * dt))
  *
  * The target point can be set directly or provided by a callback
- * (e.g. a moving scene object).
+ * (e.g. a moving scene object). Offset is world space (not body-local).
  *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
  */
@@ -108,9 +108,10 @@ class VNE_INTERACTION_API FollowBehavior final : public CameraBehaviorBase {
     [[nodiscard]] vne::math::Vec3f getTargetWorld() const noexcept;
 
     /**
-     * @brief Set the camera offset from the target (world space).
-     * Default: (0, 2, 5) — behind and above the target.
-     * Near-zero offsets are silently ignored to prevent a degenerate look-at matrix.
+     * @brief Set world-space offset from target to desired eye: @c desired_eye = target + offset.
+     * Default (0, 2, 5): Y-up world; +Y above the target, +Z on the positive-Z side of the target
+     * (camera looks toward the target; use negative Z in the offset if your “behind” is −Z).
+     * Near-zero length is ignored to prevent a degenerate look-at matrix.
      */
     void setOffset(const vne::math::Vec3f& offset) noexcept;
     [[nodiscard]] vne::math::Vec3f getOffset() const noexcept { return offset_world_; }

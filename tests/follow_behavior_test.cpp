@@ -51,4 +51,31 @@ TEST(FollowBehavior, CameraMovesTowardTarget) {
     EXPECT_GT((pos_after - pos_before).length(), 0.1f);
 }
 
+TEST(FollowBehavior, ViewDirectionAntiParallelToOffset) {
+    auto cam = makePerspCamera();
+    cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 0.0f));
+    cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, -1.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
+    cam->updateMatrices();
+
+    vne::interaction::FollowBehavior b;
+    b.setCamera(cam);
+    b.onResize(1280.0f, 720.0f);
+    b.setTargetWorld(vne::math::Vec3f(100.0f, 0.0f, 0.0f));
+    b.setOffset(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
+    b.setDamping(200.0f);
+
+    for (int i = 0; i < 80; ++i) {
+        b.onUpdate(0.05);
+    }
+
+    const vne::math::Vec3f target = b.getTargetWorld();
+    const vne::math::Vec3f eye = cam->getPosition();
+    const vne::math::Vec3f to_target = (target - eye).normalized();
+    const vne::math::Vec3f off = b.getOffset().normalized();
+    EXPECT_NEAR(to_target.dot(off), -1.0f, 0.05f);
+
+    const vne::math::Vec3f desired = target + b.getOffset();
+    EXPECT_NEAR((eye - desired).length(), 0.0f, 0.15f);
+}
+
 }  // namespace vne_interaction_test

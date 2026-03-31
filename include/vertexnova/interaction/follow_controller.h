@@ -19,10 +19,10 @@
  * @code
  * auto ctrl = vne::interaction::FollowController{};
  * ctrl.setCamera(camera);
- * // Follow a dynamic transform:
+ * // Follow a dynamic transform (only translation from the matrix is used for the target point):
  * ctrl.setTarget([&]{ return player.worldTransform(); });
- * ctrl.setOffset({0.0f, 2.0f, -5.0f});   // behind and above
- * ctrl.setLag(0.1f);                      // smooth follow
+ * ctrl.setOffset({0.0f, 2.0f, 5.0f});   // world space: same default semantics as FollowBehavior
+ * ctrl.setLag(0.1f);                    // smooth follow
  * @endcode
  *
  * ### Static target
@@ -60,8 +60,9 @@ class FollowBehavior;
  * Wraps a CameraRig (FollowBehavior). No user input is required;
  * the camera autonomously tracks the target transform each frame.
  *
- * Covers: third-person game cameras, cinematic rigs, vehicle chase cams,
- * orbital inspection of a moving object.
+ * Covers: third-person game cameras, cinematic rigs, vehicle chase cams.
+ * Target orientation from @c Mat4f is not used to rotate the offset — only the
+ * translation column; offset is world-space (see @ref FollowBehavior::setOffset).
  *
  * @threadsafe Not thread-safe. Call all methods from the same thread.
  */
@@ -101,13 +102,13 @@ class VNE_INTERACTION_API FollowController {
 
     /**
      * @brief Set a dynamic target via callback (called every onUpdate()).
-     * @param callback Returns current world-space transform of the target.
+     * @param callback Returns current world-space transform; only translation is used.
      */
     void setTarget(TargetCallback callback) noexcept;
 
     /**
      * @brief Set a static target transform (updated once, not polled).
-     * Call again when the target moves.
+     * Only the translation (fourth column) is read; call again when the target moves.
      */
     void setTarget(const vne::math::Mat4f& world_transform) noexcept;
 
@@ -116,10 +117,10 @@ class VNE_INTERACTION_API FollowController {
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Camera offset relative to the target in local target space.
-     * E.g. {0, 2, -5} = 2 units above, 5 units behind the target.
+     * @brief World-space vector from target position to desired eye: @c desired_eye = target + offset.
+     * Not rotated by target orientation; see @ref FollowBehavior::setOffset for axis convention.
      */
-    void setOffset(const vne::math::Vec3f& local_offset) noexcept;
+    void setOffset(const vne::math::Vec3f& world_offset) noexcept;
     [[nodiscard]] vne::math::Vec3f getOffset() const noexcept;
 
     /**
