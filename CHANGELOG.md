@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.4](https://github.com/vertexnova/vneinteraction/compare/v1.5.3...v1.5.4) (2026-03-31)
+
+
+### Bug Fixes
+
+* Fixing navigation 3d controller direction issue. ([#30](https://github.com/vertexnova/vneinteraction/issues/30)) ([a2969df](https://github.com/vertexnova/vneinteraction/commit/a2969df3216888ce13d22b4a141895f609de9ae7))
+
 ## [Unreleased]
 
 ### Changed
