@@ -91,7 +91,8 @@ vne::math::Vec3f FreeLookBehavior::right(const vne::math::Vec3f& front_vec) cons
     return (len < kEpsilon) ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : (r / len);
 }
 
-vne::math::Vec3f FreeLookBehavior::orthoPanUp(const vne::math::Vec3f& view_dir) const noexcept {
+vne::math::Vec3f FreeLookBehavior::orthoPanUp(const vne::math::Vec3f& view_dir,
+                                              const vne::math::Vec3f& vertical_hint) const noexcept {
     const vne::math::Vec3f f =
         view_dir.length() < kEpsilon ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : view_dir.normalized();
     vne::math::Vec3f u = camera_->getUp();
@@ -103,13 +104,13 @@ vne::math::Vec3f FreeLookBehavior::orthoPanUp(const vne::math::Vec3f& view_dir) 
         len = u.length();
     }
     if (len < kEpsilon) {
-        vne::math::Vec3f w = upVector();
+        vne::math::Vec3f w = vertical_hint;
         u = w - f * w.dot(f);
         len = u.length();
     }
     if (len < kEpsilon) {
         vne::math::Vec3f ref_fwd, ref_right;
-        buildReferenceFrame(upVector(), ref_fwd, ref_right);
+        buildReferenceFrame(vertical_hint, ref_fwd, ref_right);
         u = ref_fwd - f * ref_fwd.dot(f);
         len = u.length();
     }
@@ -117,6 +118,18 @@ vne::math::Vec3f FreeLookBehavior::orthoPanUp(const vne::math::Vec3f& view_dir) 
         return vne::math::Vec3f(0.0f, 1.0f, 0.0f);
     }
     return u / len;
+}
+
+vne::math::Vec3f FreeLookBehavior::orthoPanUp(const vne::math::Vec3f& view_dir) const noexcept {
+    return orthoPanUp(view_dir, upVector());
+}
+
+vne::math::Vec3f FreeLookBehavior::orthoPanUp(const vne::scene::OrthographicCamera& ortho,
+                                              const vne::math::Vec3f& vertical_hint) const noexcept {
+    const vne::math::Vec3f view_raw = ortho.getTarget() - ortho.getPosition();
+    const float view_len = view_raw.length();
+    const vne::math::Vec3f view_dir = (view_len >= kEpsilon) ? (view_raw / view_len) : front();
+    return orthoPanUp(view_dir, vertical_hint);
 }
 
 void FreeLookBehavior::syncAnglesFromCamera() noexcept {
@@ -272,14 +285,22 @@ void FreeLookBehavior::onUpdate(double delta_time) noexcept {
     }
     // Derive movement basis from the live camera pose.
     // Perspective: view-matrix axes are pre-computed and authoritative.
-    // Ortho/generic: W/S pan along screen-up so keys don't feel dead (translating along the
-    // view direction only changes depth, which is invisible in orthographic projection).
+    // Orthographic: W/S pan along screen-up (orthoPanUp); A/D along right = view × screen-up.
+    // Other non-perspective: same image-plane pan basis using the live view direction.
     vne::math::Vec3f forward_axis;
     vne::math::Vec3f right_axis;
     const vne::math::Vec3f vertical_axis = world_up_.normalized();
     if (auto persp = perspCamera()) {
         forward_axis = persp->getForward();
         right_axis = persp->getRight();
+    } else if (auto ortho = orthoCamera()) {
+        const vne::math::Vec3f view_raw = ortho->getTarget() - ortho->getPosition();
+        const float view_len = view_raw.length();
+        const vne::math::Vec3f view_dir = (view_len >= kEpsilon) ? (view_raw / view_len) : front();
+        forward_axis = orthoPanUp(*ortho, vertical_axis);
+        const vne::math::Vec3f r_try = view_dir.cross(forward_axis);
+        const float r_len = r_try.length();
+        right_axis = (r_len >= kEpsilon) ? (r_try / r_len) : right(view_dir);
     } else {
         const vne::math::Vec3f f_raw = camera_->getTarget() - camera_->getPosition();
         const float f_len = f_raw.length();
