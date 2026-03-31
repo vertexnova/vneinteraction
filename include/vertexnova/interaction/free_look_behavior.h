@@ -162,6 +162,8 @@ class VNE_INTERACTION_API FreeLookBehavior final : public CameraBehaviorBase {
     // ---- movement math -------------------------------------------------------
     [[nodiscard]] vne::math::Vec3f front() const noexcept;
     [[nodiscard]] vne::math::Vec3f right(const vne::math::Vec3f& front_vec) const noexcept;
+    /** Camera up projected onto the plane perpendicular to view (for ortho WASD pan). */
+    [[nodiscard]] vne::math::Vec3f orthoPanUp(const vne::math::Vec3f& view_dir) const noexcept;
 
     void syncAnglesFromCamera() noexcept;
     void applyAnglesToCamera() noexcept;

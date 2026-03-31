@@ -91,6 +91,33 @@ vne::math::Vec3f FreeLookBehavior::right(const vne::math::Vec3f& front_vec) cons
     return (len < kEpsilon) ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : (r / len);
 }
 
+vne::math::Vec3f FreeLookBehavior::orthoPanUp(const vne::math::Vec3f& view_dir) const noexcept {
+    const vne::math::Vec3f f = view_dir.length() < kEpsilon ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : view_dir.normalized();
+    vne::math::Vec3f u = camera_->getUp();
+    u = u - f * u.dot(f);
+    float len = u.length();
+    if (len < kEpsilon) {
+        const vne::math::Vec3f r = right(f);
+        u = r.cross(f);
+        len = u.length();
+    }
+    if (len < kEpsilon) {
+        vne::math::Vec3f w = upVector();
+        u = w - f * w.dot(f);
+        len = u.length();
+    }
+    if (len < kEpsilon) {
+        vne::math::Vec3f ref_fwd, ref_right;
+        buildReferenceFrame(upVector(), ref_fwd, ref_right);
+        u = ref_fwd - f * ref_fwd.dot(f);
+        len = u.length();
+    }
+    if (len < kEpsilon) {
+        return vne::math::Vec3f(0.0f, 1.0f, 0.0f);
+    }
+    return u / len;
+}
+
 void FreeLookBehavior::syncAnglesFromCamera() noexcept {
     if (!camera_) {
         return;
@@ -240,12 +267,15 @@ void FreeLookBehavior::onUpdate(double delta_time) noexcept {
     const vne::math::Vec3f f = front();
     const vne::math::Vec3f r = right(f);
     const vne::math::Vec3f up = upVector();
+    // Perspective: W/S along full view direction (unchanged). Orthographic: pure translation along the
+    // view axis does not change projected x,y, so W/S use screen-up in the image plane (see orthoPanUp).
+    const vne::math::Vec3f forward_axis = orthoCamera() ? orthoPanUp(f) : f;
     vne::math::Vec3f move(0.0f, 0.0f, 0.0f);
     if (input_state_.move_forward) {
-        move += f;
+        move += forward_axis;
     }
     if (input_state_.move_backward) {
-        move -= f;
+        move -= forward_axis;
     }
     if (input_state_.move_right) {
         move += r;
@@ -268,7 +298,12 @@ void FreeLookBehavior::onUpdate(double delta_time) noexcept {
     } else if (input_state_.slow) {
         speed *= slow_mult_;
     }
-    move = move.normalized() * (speed * dt);
+    // Scene scale is applied as scale(s,s,1) on the view (see CameraBase::composeViewWithSceneScale), which
+    // scales image-plane motion from a fixed world translation. Divide so keyboard steps stay similar on
+    // screen when scene scale changes (perspective and orthographic).
+    const float scene_s = camera_->getSceneScale();
+    const float scene_comp = (scene_s > kEpsilon) ? (1.0f / scene_s) : 1.0f;
+    move = move.normalized() * (speed * dt * scene_comp);
     camera_->setPosition(camera_->getPosition() + move);
     camera_->setTarget(camera_->getTarget() + move);
     camera_->updateMatrices();
