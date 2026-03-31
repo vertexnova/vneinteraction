@@ -145,7 +145,8 @@ enum class CameraActionType : std::uint8_t {
     eSlowModifier = 18,
     eOrbitPanModifier = 19,  // shift: orbit uses for pan-alias, free uses SprintModifier
     eResetView = 20,
-    eSetPivotAtCursor = 21,  //!< Double-click: set COI along view direction (camera + front * orbit distance); payload x/y ignored
+    eSetPivotAtCursor =
+        21,  //!< Double-click: set COI along view direction (camera + front * orbit distance); payload x/y ignored
 };
 
 // -----------------------------------------------------------------------------
