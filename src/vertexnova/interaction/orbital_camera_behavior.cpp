@@ -807,7 +807,6 @@ void OrbitalCameraBehavior::onUpdate(double delta_time) noexcept {
         }
     }
     if (!animating_fit_ && !interaction_.rotating && !interaction_.panning) {
-        syncFromCamera();
         applyInertia(delta_time);
     }
 }

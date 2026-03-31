@@ -227,6 +227,13 @@ void Navigation3DController::rebuild() noexcept {
     // Capture raw Impl* so the callback stays valid across moves.
     impl_->mapper.setActionCallback([impl = impl_.get()](CameraActionType a, const CameraCommandPayload& p, double dt) {
         impl->rig.onAction(a, p, dt);
+        // After any orbit gesture, the orbit behavior has moved the camera; mark free-look angles stale
+        // so onUpdate re-syncs WASD direction from the new pose instead of stale yaw/pitch.
+        if (impl->free_look &&
+            (a == CameraActionType::eBeginRotate || a == CameraActionType::eBeginPan ||
+             a == CameraActionType::eZoomAtCursor)) {
+            impl->free_look->markAnglesDirty();
+        }
     });
 }
 
