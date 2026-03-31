@@ -279,7 +279,7 @@ void FreeLookBehavior::onUpdate(double delta_time) noexcept {
     const vne::math::Vec3f vertical_axis = world_up_.normalized();
     if (auto persp = perspCamera()) {
         forward_axis = persp->getForward();
-        right_axis   = persp->getRight();
+        right_axis = persp->getRight();
     } else {
         const vne::math::Vec3f f_raw = camera_->getTarget() - camera_->getPosition();
         const float f_len = f_raw.length();

@@ -155,7 +155,8 @@ class VNE_INTERACTION_API FreeLookBehavior final : public CameraBehaviorBase {
      */
     void fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept;
 
-    /** Mark angles as stale so onUpdate re-syncs from the camera pose (call when an external behavior moves the camera). */
+    /** Mark angles as stale so onUpdate re-syncs from the camera pose (call when an external behavior moves the
+     * camera). */
     void markAnglesDirty() noexcept { angles_dirty_ = true; }
 
    private:
