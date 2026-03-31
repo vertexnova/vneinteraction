@@ -5,14 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Removed
+
+* **`CameraRig::makeOrthoPanZoom()`** — use **`CameraRig::makeOrtho2D()`** instead.
+* **`CameraRig::makeGameCamera()`** — compose **`OrbitalCameraBehavior`** + **`FreeLookBehavior`** on **`CameraRig`** (see `camera_rig.h` usage example), or use **`Inspect3DController`** / **`Navigation3DController`** as appropriate.
+
 ## [1.5.3](https://github.com/vertexnova/vneinteraction/compare/v1.5.2...v1.5.3) (2026-03-30)
 
 ### Breaking Changes
 
-* **Navigation**: Remove `NavigateMode::eGame`. `Navigation3DController` supports only **FPS** and **Fly** (`FreeLookBehavior` + `fpsPreset`). For orbit + WASD hybrid rigs, use `CameraRig::makeGameCamera()` (deprecated) or compose behaviors manually; use **`Inspect3DController`** for orbit-style inspection.
+* **Navigation**: Remove `NavigateMode::eGame`. `Navigation3DController` supports only **FPS** and **Fly** (`FreeLookBehavior` + `fpsPreset`). For orbit + WASD hybrid rigs, compose **`OrbitalCameraBehavior`** + **`FreeLookBehavior`** on **`CameraRig`** manually; use **`Inspect3DController`** for orbit-style inspection.
 * **`Navigation3DController::orbitalCameraBehavior()`** always returns **`nullptr`**.
 * **Inspect3DController**: **Rotation is off by default**; when enabled, default algorithm is **Euler orbit** (`OrbitRotationMode::eOrbit`). Previously rotation was on by default with **trackball**.
-* **`CameraRig::makeGameCamera()`** is **deprecated** (still available).
+* **`CameraRig::makeGameCamera()`** was **deprecated** in 1.5.3 and **removed** in a later release (use composition or controllers; see [Unreleased]).
 
 ### Bug Fixes
 
@@ -50,7 +57,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Features
 
 * `Ortho2DBehavior` (renamed from `OrthoPanZoomBehavior`): in-plane slice rotation via `eBeginRotate` / `eRotateDelta` / `eEndRotate`, with `setRotationSensitivityDegreesPerPixel` (default 0.2°/px, aligned with orbit feel).
-* `CameraRig::makeOrtho2D()` replaces the primary factory name; `makeOrthoPanZoom()` is deprecated.
+* `CameraRig::makeOrtho2D()` replaces the primary factory name; `makeOrthoPanZoom()` was a deprecated alias (removed; see [Unreleased]).
 * `Ortho2DController::ortho2DBehavior()` replaces `orthoPanZoomBehavior()`.
 
 ### Breaking Changes

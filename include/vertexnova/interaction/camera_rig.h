@@ -134,18 +134,8 @@ class VNE_INTERACTION_API CameraRig {
     /** 2D orthographic rig: Ortho2DBehavior (pan, zoom, optional in-plane rotation). */
     static CameraRig makeOrtho2D();
 
-    /** @deprecated Use makeOrtho2D(). */
-    [[deprecated("Use makeOrtho2D()")]] static CameraRig makeOrthoPanZoom();
-
     /** Follow rig: FollowBehavior (autonomous smooth target following). */
     static CameraRig makeFollow();
-
-    /**
-     * Hybrid rig: OrbitalCameraBehavior (Euler) + FreeLookBehavior.
-     * @deprecated Prefer composing behaviors manually, or Inspect3DController / Navigation3DController.
-     */
-    [[deprecated("Compose OrbitalCameraBehavior + FreeLookBehavior on CameraRig, or use controllers")]]
-    static CameraRig makeGameCamera();
 
     /** 2D rig: Ortho2DBehavior (alias for makeOrtho2D). */
     static CameraRig make2D();
