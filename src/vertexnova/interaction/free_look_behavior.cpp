@@ -265,11 +265,24 @@ void FreeLookBehavior::onUpdate(double delta_time) noexcept {
         return;
     }
     const vne::math::Vec3f f = front();
-    const vne::math::Vec3f r = right(f);
     const vne::math::Vec3f up = upVector();
-    // Perspective: W/S along full view direction (unchanged). Orthographic: pure translation along the
-    // view axis does not change projected x,y, so W/S use screen-up in the image plane (see orthoPanUp).
-    const vne::math::Vec3f forward_axis = orthoCamera() ? orthoPanUp(f) : f;
+    // Perspective: W/S along full view f (includes pitch); A/D strafe via f × upVector(). That pairing is
+    // conventional for FPS fly; after pitch, forward vs strafe need not match the camera image axes —
+    // a skewed / odd feel can show up in perspective too, not only ortho.
+    // Orthographic: translating along the view changes only depth in projection (W/S feel dead), so W/S
+    // use screen-up (orthoPanUp). Strafe uses f × screen_up so W/S and A/D share one lookAt-aligned basis.
+    vne::math::Vec3f r;
+    vne::math::Vec3f forward_axis;
+    if (orthoCamera()) {
+        const vne::math::Vec3f screen_up = orthoPanUp(f);
+        vne::math::Vec3f r_try = f.cross(screen_up);
+        const float r_len = r_try.length();
+        r = (r_len >= kEpsilon) ? (r_try / r_len) : right(f);
+        forward_axis = screen_up;
+    } else {
+        r = right(f);
+        forward_axis = f;
+    }
     vne::math::Vec3f move(0.0f, 0.0f, 0.0f);
     if (input_state_.move_forward) {
         move += forward_axis;
