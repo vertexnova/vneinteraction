@@ -278,7 +278,7 @@ void FreeLookBehavior::onUpdate(double delta_time) noexcept {
     const vne::math::Vec3f vertical_axis = world_up_.normalized();
     if (auto persp = perspCamera()) {
         forward_axis = persp->getForward();
-        right_axis   = persp->getRight();
+        right_axis = persp->getRight();
     } else {
         const vne::math::Vec3f f_raw = camera_->getTarget() - camera_->getPosition();
         const float f_len = f_raw.length();
@@ -288,12 +288,18 @@ void FreeLookBehavior::onUpdate(double delta_time) noexcept {
         right_axis = (r_len >= kEpsilon) ? (r_try / r_len) : right(forward_axis);
     }
     vne::math::Vec3f move(0.0f, 0.0f, 0.0f);
-    if (input_state_.move_forward)  move += forward_axis;
-    if (input_state_.move_backward) move -= forward_axis;
-    if (input_state_.move_right)    move += right_axis;
-    if (input_state_.move_left)     move -= right_axis;
-    if (input_state_.move_up)       move += vertical_axis;
-    if (input_state_.move_down)     move -= vertical_axis;
+    if (input_state_.move_forward)
+        move += forward_axis;
+    if (input_state_.move_backward)
+        move -= forward_axis;
+    if (input_state_.move_right)
+        move += right_axis;
+    if (input_state_.move_left)
+        move -= right_axis;
+    if (input_state_.move_up)
+        move += vertical_axis;
+    if (input_state_.move_down)
+        move -= vertical_axis;
     const float move_len = move.length();
     if (move_len <= kEpsilon) {
         return;
