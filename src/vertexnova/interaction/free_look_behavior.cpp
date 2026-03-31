@@ -60,7 +60,7 @@ void FreeLookBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) no
     if (!camera_) {
         VNE_LOG_DEBUG << "FreeLookBehavior: camera detached (null camera)";
     }
-    syncAnglesFromCamera();
+    angles_dirty_ = true;
 }
 
 void FreeLookBehavior::onResize(float width_px, float height_px) noexcept {
@@ -266,7 +266,10 @@ void FreeLookBehavior::onUpdate(double delta_time) noexcept {
     if (dt <= 0.0f) {
         return;
     }
-    syncAnglesFromCamera();
+    if (angles_dirty_) {
+        syncAnglesFromCamera();
+        angles_dirty_ = false;
+    }
     // Derive movement basis from the live camera pose.
     // Perspective: use getForward()/getRight() which are pre-computed from the view matrix.
     // Ortho/generic: derive from target-position and world_up_.

@@ -167,6 +167,8 @@ class VNE_INTERACTION_API FreeLookBehavior final : public CameraBehaviorBase {
 
     void syncAnglesFromCamera() noexcept;
     void applyAnglesToCamera() noexcept;
+    /** Mark angles as stale so onUpdate re-syncs from the camera pose (call when an external behavior moves the camera). */
+    void markAnglesDirty() noexcept { angles_dirty_ = true; }
     void applyDolly(float factor, float mx, float my) noexcept override;
 
     // perspCamera() / orthoCamera() inherited from CameraBehaviorBase
@@ -186,6 +188,7 @@ class VNE_INTERACTION_API FreeLookBehavior final : public CameraBehaviorBase {
     float slow_mult_ = 0.2f;
     float zoom_speed_ = 1.1f;
     bool handle_zoom_ = true;
+    bool angles_dirty_ = true;
 
     FreeLookInputState input_state_;
 };
