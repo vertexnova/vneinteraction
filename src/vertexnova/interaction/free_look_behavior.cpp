@@ -267,55 +267,32 @@ void FreeLookBehavior::onUpdate(double delta_time) noexcept {
         return;
     }
     syncAnglesFromCamera();
-    // Movement axes follow the live camera basis (perspective: getForward/getRight; ortho: view plane).
-    vne::math::Vec3f r;
+    // Derive movement basis from the live camera pose.
+    // Perspective: use getForward()/getRight() which are pre-computed from the view matrix.
+    // Ortho/generic: derive from target-position and world_up_.
     vne::math::Vec3f forward_axis;
-    vne::math::Vec3f vertical_axis;
-    if (orthoCamera()) {
-        vne::math::Vec3f f = camera_->getTarget() - camera_->getPosition();
-        const float f_len = f.length();
-        f = (f_len >= kEpsilon) ? (f / f_len) : front();
-        const vne::math::Vec3f screen_up = orthoPanUp(f);
-        vne::math::Vec3f r_try = f.cross(screen_up);
-        const float r_len = r_try.length();
-        r = (r_len >= kEpsilon) ? (r_try / r_len) : right(f);
-        forward_axis = screen_up;
-        vertical_axis = world_up_.normalized();
-    } else if (auto persp = perspCamera()) {
+    vne::math::Vec3f right_axis;
+    const vne::math::Vec3f vertical_axis = world_up_.normalized();
+    if (auto persp = perspCamera()) {
         forward_axis = persp->getForward();
-        r = persp->getRight();
-        vertical_axis = upVector().normalized();
+        right_axis   = persp->getRight();
     } else {
-        vne::math::Vec3f f = camera_->getTarget() - camera_->getPosition();
-        const float f_len = f.length();
-        f = (f_len >= kEpsilon) ? (f / f_len) : front();
-        const vne::math::Vec3f up = world_up_.normalized();
-        vne::math::Vec3f r_try = f.cross(up);
+        const vne::math::Vec3f f_raw = camera_->getTarget() - camera_->getPosition();
+        const float f_len = f_raw.length();
+        forward_axis = (f_len >= kEpsilon) ? (f_raw / f_len) : front();
+        const vne::math::Vec3f r_try = forward_axis.cross(vertical_axis);
         const float r_len = r_try.length();
-        r = (r_len >= kEpsilon) ? (r_try / r_len) : right(f);
-        forward_axis = f;
-        vertical_axis = up;
+        right_axis = (r_len >= kEpsilon) ? (r_try / r_len) : right(forward_axis);
     }
     vne::math::Vec3f move(0.0f, 0.0f, 0.0f);
-    if (input_state_.move_forward) {
-        move += forward_axis;
-    }
-    if (input_state_.move_backward) {
-        move -= forward_axis;
-    }
-    if (input_state_.move_right) {
-        move += r;
-    }
-    if (input_state_.move_left) {
-        move -= r;
-    }
-    if (input_state_.move_up) {
-        move += vertical_axis;
-    }
-    if (input_state_.move_down) {
-        move -= vertical_axis;
-    }
-    if (move.length() <= kEpsilon) {
+    if (input_state_.move_forward)  move += forward_axis;
+    if (input_state_.move_backward) move -= forward_axis;
+    if (input_state_.move_right)    move += right_axis;
+    if (input_state_.move_left)     move -= right_axis;
+    if (input_state_.move_up)       move += vertical_axis;
+    if (input_state_.move_down)     move -= vertical_axis;
+    const float move_len = move.length();
+    if (move_len <= kEpsilon) {
         return;
     }
     float speed = move_speed_;
@@ -329,7 +306,7 @@ void FreeLookBehavior::onUpdate(double delta_time) noexcept {
     // screen when scene scale changes (perspective and orthographic).
     const float scene_s = camera_->getSceneScale();
     const float scene_comp = (scene_s > kEpsilon) ? (1.0f / scene_s) : 1.0f;
-    move = move.normalized() * (speed * dt * scene_comp);
+    move = (move / move_len) * (speed * dt * scene_comp);
     const vne::math::Vec3f pos_before = camera_->getPosition();
     const vne::math::Vec3f tgt_before = camera_->getTarget();
     const vne::math::Vec3f view_offset = tgt_before - pos_before;
