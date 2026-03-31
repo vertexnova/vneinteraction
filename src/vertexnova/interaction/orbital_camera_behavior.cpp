@@ -303,6 +303,7 @@ void OrbitalCameraBehavior::beginRotate(float x_px, float y_px) noexcept {
     const vne::math::Vec2f vp(viewport().width, viewport().height);
     trackball_.setViewport(vp);
     trackball_.setGraphicsApi(graphicsApi());
+    syncFromCamera();
     trackball_.beginDrag(vne::math::Vec2f(x_px, y_px));
     orientation_at_drag_start_ = orientation_;
     orbit_behavior_.beginDrag();
@@ -374,6 +375,7 @@ void OrbitalCameraBehavior::beginPan(float x_px, float y_px) noexcept {
     interaction_.last_x_px = x_px;
     interaction_.last_y_px = y_px;
     inertia_pan_velocity_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
+    syncFromCamera();
 }
 
 void OrbitalCameraBehavior::applyPanDeltaWorld(const vne::math::Vec3f& delta_world) noexcept {
@@ -479,6 +481,7 @@ void OrbitalCameraBehavior::applyDolly(float factor, float mx, float my) noexcep
     if (!camera_) {
         return;
     }
+    syncFromCamera();
     // Do not use CameraBehaviorBase::applyDolly for perspective — base is ortho-only (raw factor).
     // Orbit needs orbit_distance_, COI shift, and applyOrthoZoomToCursor(pow factor).
     const float effective_factor = std::pow(factor, zoom_speed_);
@@ -804,6 +807,7 @@ void OrbitalCameraBehavior::onUpdate(double delta_time) noexcept {
         }
     }
     if (!animating_fit_ && !interaction_.rotating && !interaction_.panning) {
+        syncFromCamera();
         applyInertia(delta_time);
     }
 }

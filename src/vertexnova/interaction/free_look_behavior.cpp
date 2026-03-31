@@ -266,24 +266,35 @@ void FreeLookBehavior::onUpdate(double delta_time) noexcept {
     if (dt <= 0.0f) {
         return;
     }
-    const vne::math::Vec3f f = front();
-    const vne::math::Vec3f up = upVector();
-    // Perspective: W/S along full view f (includes pitch); A/D strafe via f × upVector(). That pairing is
-    // conventional for FPS fly; after pitch, forward vs strafe need not match the camera image axes —
-    // a skewed / odd feel can show up in perspective too, not only ortho.
-    // Orthographic: translating along the view changes only depth in projection (W/S feel dead), so W/S
-    // use screen-up (orthoPanUp). Strafe uses f × screen_up so W/S and A/D share one lookAt-aligned basis.
+    syncAnglesFromCamera();
+    // Movement axes follow the live camera basis (perspective: getForward/getRight; ortho: view plane).
     vne::math::Vec3f r;
     vne::math::Vec3f forward_axis;
+    vne::math::Vec3f vertical_axis;
     if (orthoCamera()) {
+        vne::math::Vec3f f = camera_->getTarget() - camera_->getPosition();
+        const float f_len = f.length();
+        f = (f_len >= kEpsilon) ? (f / f_len) : front();
         const vne::math::Vec3f screen_up = orthoPanUp(f);
         vne::math::Vec3f r_try = f.cross(screen_up);
         const float r_len = r_try.length();
         r = (r_len >= kEpsilon) ? (r_try / r_len) : right(f);
         forward_axis = screen_up;
+        vertical_axis = world_up_.normalized();
+    } else if (auto persp = perspCamera()) {
+        forward_axis = persp->getForward();
+        r = persp->getRight();
+        vertical_axis = upVector().normalized();
     } else {
-        r = right(f);
+        vne::math::Vec3f f = camera_->getTarget() - camera_->getPosition();
+        const float f_len = f.length();
+        f = (f_len >= kEpsilon) ? (f / f_len) : front();
+        const vne::math::Vec3f up = world_up_.normalized();
+        vne::math::Vec3f r_try = f.cross(up);
+        const float r_len = r_try.length();
+        r = (r_len >= kEpsilon) ? (r_try / r_len) : right(f);
         forward_axis = f;
+        vertical_axis = up;
     }
     vne::math::Vec3f move(0.0f, 0.0f, 0.0f);
     if (input_state_.move_forward) {
@@ -299,10 +310,10 @@ void FreeLookBehavior::onUpdate(double delta_time) noexcept {
         move -= r;
     }
     if (input_state_.move_up) {
-        move += up;
+        move += vertical_axis;
     }
     if (input_state_.move_down) {
-        move -= up;
+        move -= vertical_axis;
     }
     if (move.length() <= kEpsilon) {
         return;
@@ -319,8 +330,12 @@ void FreeLookBehavior::onUpdate(double delta_time) noexcept {
     const float scene_s = camera_->getSceneScale();
     const float scene_comp = (scene_s > kEpsilon) ? (1.0f / scene_s) : 1.0f;
     move = move.normalized() * (speed * dt * scene_comp);
-    camera_->setPosition(camera_->getPosition() + move);
-    camera_->setTarget(camera_->getTarget() + move);
+    const vne::math::Vec3f pos_before = camera_->getPosition();
+    const vne::math::Vec3f tgt_before = camera_->getTarget();
+    const vne::math::Vec3f view_offset = tgt_before - pos_before;
+    const vne::math::Vec3f pos_new = pos_before + move;
+    camera_->setPosition(pos_new);
+    camera_->setTarget(pos_new + view_offset);
     camera_->updateMatrices();
 }
 
