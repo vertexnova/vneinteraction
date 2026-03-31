@@ -92,7 +92,8 @@ vne::math::Vec3f FreeLookBehavior::right(const vne::math::Vec3f& front_vec) cons
 }
 
 vne::math::Vec3f FreeLookBehavior::orthoPanUp(const vne::math::Vec3f& view_dir) const noexcept {
-    const vne::math::Vec3f f = view_dir.length() < kEpsilon ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : view_dir.normalized();
+    const vne::math::Vec3f f =
+        view_dir.length() < kEpsilon ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : view_dir.normalized();
     vne::math::Vec3f u = camera_->getUp();
     u = u - f * u.dot(f);
     float len = u.length();
@@ -250,6 +251,7 @@ void FreeLookBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::m
 
 void FreeLookBehavior::resetState() noexcept {
     input_state_ = FreeLookInputState{};
+    syncAnglesFromCamera();
 }
 
 // ---------------------------------------------------------------------------

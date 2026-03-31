@@ -86,7 +86,7 @@ class VNE_INTERACTION_API FreeLookBehavior final : public CameraBehaviorBase {
     /** Set viewport size in pixels. */
     void onResize(float width_px, float height_px) noexcept override;
 
-    /** Reset all input state (keys, looking flag). */
+    /** Reset all input state (keys, looking flag) and re-sync yaw/pitch from the camera if attached. */
     void resetState() noexcept override;
 
     // isEnabled / setEnabled inherited from CameraBehaviorBase

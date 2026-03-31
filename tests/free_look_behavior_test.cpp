@@ -134,4 +134,33 @@ TEST(FreeLookBehavior, KeyboardMoveCompensatesSceneScale) {
     EXPECT_NEAR(step_double_scale, 0.5f, 1e-4f);
 }
 
+TEST(FreeLookBehavior, ResetStateResyncsAnglesFromCamera) {
+    auto cam = makePerspCamera();
+    cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 10.0f));
+    cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
+    cam->updateMatrices();
+
+    vne::interaction::FreeLookBehavior b;
+    b.setCamera(cam);
+    b.onResize(1280.0f, 720.0f);
+    b.setMoveSpeed(5.0f);
+
+    // Simulate external camera reset without setCamera (e.g. testbed resetCamera).
+    cam->setPosition(vne::math::Vec3f(-10.0f, 0.0f, 0.0f));
+    cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
+    cam->updateMatrices();
+
+    b.resetState();
+
+    vne::interaction::CameraCommandPayload p;
+    p.pressed = true;
+    b.onAction(vne::interaction::CameraActionType::eMoveForward, p, 0.016);
+    b.onUpdate(0.1);
+    p.pressed = false;
+    b.onAction(vne::interaction::CameraActionType::eMoveForward, p, 0.016);
+
+    // Forward must follow the new +X view toward the origin, not the stale -Z basis.
+    EXPECT_GT(cam->getPosition().x(), -10.0f);
+}
+
 }  // namespace vne_interaction_test
