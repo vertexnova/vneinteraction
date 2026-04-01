@@ -53,10 +53,10 @@ namespace vne::interaction {
 /**
  * @brief Euler (yaw/pitch) orbit angles for inspect-style cameras.
  *
- * Typical usage with a behavior:
+ * Typical usage with an orbital manipulator:
  * - On rotate begin: @ref beginDrag.
  * - Each move: @ref applyDrag with pointer deltas and @a rotation_speed_deg_per_px.
- * - While coasting: @ref stepInertia with frame @a delta_time_sec and behavior damping.
+ * - While coasting: @ref stepInertia with frame @a delta_time_sec and manipulator damping.
  * - When the camera is moved externally: @ref syncFromViewDirection to recover yaw/pitch.
  * - For framing presets: @ref setYawPitch or adjust limits with @ref setPitchLimits.
  */

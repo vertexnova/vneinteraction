@@ -11,7 +11,8 @@
 
 /**
  * @file orbital_camera_manipulator.h
- * @brief OrbitalCameraManipulator — orbit camera behavior with Euler or virtual-trackball rotation (ICameraManipulator).
+ * @brief OrbitalCameraManipulator — orbit camera behavior with Euler or virtual-trackball rotation
+ * (ICameraManipulator).
  *
  * Supports both Euler (classic orbit) and quaternion virtual-trackball rotation modes,
  * and three pivot modes (COI, ViewCenter, Fixed). Handles rotate, pan, zoom,

@@ -263,8 +263,8 @@ void Ortho2DManipulator::onUpdate(double delta_time) noexcept {
 // ---------------------------------------------------------------------------
 
 bool Ortho2DManipulator::onAction(CameraActionType action,
-                               const CameraCommandPayload& payload,
-                               double delta_time) noexcept {
+                                  const CameraCommandPayload& payload,
+                                  double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return false;
     }

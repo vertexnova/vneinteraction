@@ -187,16 +187,18 @@ void InputMapper::bindGesture(GestureAction action, MouseBinding binding) {
 }
 
 void InputMapper::bindScroll(GestureAction action, vne::events::ModifierKey modifier) {
-    if (action != GestureAction::eZoom)
+    if (action != GestureAction::eZoom) {
         return;
+    }
     eraseRules(rules_, isZoomScrollRule);
     rules_.push_back(makeScrollRule(CameraActionType::eZoomAtCursor, static_cast<int>(modifier)));
     resetState();
 }
 
 void InputMapper::bindDoubleClick(GestureAction action, MouseButton button, vne::events::ModifierKey modifier) {
-    if (action != GestureAction::eSetPivot)
+    if (action != GestureAction::eSetPivot) {
         return;
+    }
     eraseRules(rules_, isSetPivotRule);
     rules_.push_back(makeDblClickRule(static_cast<int>(button), CameraActionType::eSetPivotAtCursor));
     if (!rules_.empty()) {
@@ -260,12 +262,15 @@ void InputMapper::onMouseButton(int button, bool pressed, float x, float y, doub
         // Find the first matching button rule with the right modifier
         for (int i = 0; i < static_cast<int>(rules_.size()); ++i) {
             const auto& r = rules_[static_cast<std::size_t>(i)];
-            if (r.trigger != InputRule::Trigger::eMouseButton)
+            if (r.trigger != InputRule::Trigger::eMouseButton) {
                 continue;
-            if (r.code != button)
+            }
+            if (r.code != button) {
                 continue;
-            if (!modifiersMatch(r.modifier_mask))
+            }
+            if (!modifiersMatch(r.modifier_mask)) {
                 continue;
+            }
             // Activate this rule for this button slot
             if (button >= 0 && button < kMaxButtons) {
                 active_button_rule_[button] = i;
@@ -289,12 +294,15 @@ void InputMapper::onMouseDoubleClick(int button, float x, float y, double dt) no
     payload.y_px = y;
 
     for (const auto& r : rules_) {
-        if (r.trigger != InputRule::Trigger::eMouseDblClick)
+        if (r.trigger != InputRule::Trigger::eMouseDblClick) {
             continue;
-        if (r.code != button)
+        }
+        if (r.code != button) {
             continue;
-        if (!modifiersMatch(r.modifier_mask))
+        }
+        if (!modifiersMatch(r.modifier_mask)) {
             continue;
+        }
         emit(r.on_press, payload, dt);
         break;
     }
@@ -310,16 +318,18 @@ void InputMapper::onMouseMove(float x, float y, float dx, float dy, double dt) n
 
     for (int btn = 0; btn < kMaxButtons; ++btn) {
         const int idx = active_button_rule_[btn];
-        if (idx < 0)
+        if (idx < 0) {
             continue;
+        }
         const auto& r = rules_[static_cast<size_t>(idx)];
         emit(r.on_delta, payload, dt);
     }
 }
 
 void InputMapper::onMouseScroll(float /*scroll_x*/, float scroll_y, float mouse_x, float mouse_y, double dt) noexcept {
-    if (scroll_y == 0.0f)
+    if (scroll_y == 0.0f) {
         return;
+    }
     CameraCommandPayload payload;
     payload.x_px = mouse_x;
     payload.y_px = mouse_y;
@@ -329,10 +339,12 @@ void InputMapper::onMouseScroll(float /*scroll_x*/, float scroll_y, float mouse_
     payload.zoom_factor = factor;
 
     for (const auto& r : rules_) {
-        if (r.trigger != InputRule::Trigger::eScroll)
+        if (r.trigger != InputRule::Trigger::eScroll) {
             continue;
-        if (!modifiersMatch(r.modifier_mask))
+        }
+        if (!modifiersMatch(r.modifier_mask)) {
             continue;
+        }
         emit(r.on_delta, payload, dt);
         break;
     }
@@ -345,13 +357,16 @@ void InputMapper::onKey(int key, bool pressed, double dt) noexcept {
     }
 
     // Update modifier state
-    if (key == static_cast<int>(events::KeyCode::eLeftShift) || key == static_cast<int>(events::KeyCode::eRightShift))
+    if (key == static_cast<int>(events::KeyCode::eLeftShift) || key == static_cast<int>(events::KeyCode::eRightShift)) {
         mod_shift_ = pressed;
+    }
     if (key == static_cast<int>(events::KeyCode::eLeftControl)
-        || key == static_cast<int>(events::KeyCode::eRightControl))
+        || key == static_cast<int>(events::KeyCode::eRightControl)) {
         mod_ctrl_ = pressed;
-    if (key == static_cast<int>(events::KeyCode::eLeftAlt) || key == static_cast<int>(events::KeyCode::eRightAlt))
+    }
+    if (key == static_cast<int>(events::KeyCode::eLeftAlt) || key == static_cast<int>(events::KeyCode::eRightAlt)) {
         mod_alt_ = pressed;
+    }
 
     // Track active key state
     active_key_[key] = pressed;
@@ -360,12 +375,15 @@ void InputMapper::onKey(int key, bool pressed, double dt) noexcept {
     payload.pressed = pressed;
 
     for (const auto& r : rules_) {
-        if (r.trigger != InputRule::Trigger::eKey)
+        if (r.trigger != InputRule::Trigger::eKey) {
             continue;
-        if (r.code != key)
+        }
+        if (r.code != key) {
             continue;
-        if (!modifiersMatch(r.modifier_mask))
+        }
+        if (!modifiersMatch(r.modifier_mask)) {
             continue;
+        }
         emit(pressed ? r.on_press : r.on_release, payload, dt);
         break;
     }
@@ -377,28 +395,33 @@ void InputMapper::onTouchPan(const TouchPan& pan, double dt) noexcept {
     payload.delta_y_px = pan.delta_y_px;
 
     for (const auto& r : rules_) {
-        if (r.trigger != InputRule::Trigger::eTouchPan)
+        if (r.trigger != InputRule::Trigger::eTouchPan) {
             continue;
-        if (!modifiersMatch(r.modifier_mask))
+        }
+        if (!modifiersMatch(r.modifier_mask)) {
             continue;
+        }
         emit(r.on_delta, payload, dt);
         break;
     }
 }
 
 void InputMapper::onTouchPinch(const TouchPinch& pinch, double dt) noexcept {
-    if (pinch.scale <= 0.0f)
+    if (pinch.scale <= 0.0f) {
         return;
+    }
     CameraCommandPayload payload;
     payload.x_px = pinch.center_x_px;
     payload.y_px = pinch.center_y_px;
     payload.zoom_factor = 1.0f / pinch.scale;
 
     for (const auto& r : rules_) {
-        if (r.trigger != InputRule::Trigger::eTouchPinch)
+        if (r.trigger != InputRule::Trigger::eTouchPinch) {
             continue;
-        if (!modifiersMatch(r.modifier_mask))
+        }
+        if (!modifiersMatch(r.modifier_mask)) {
             continue;
+        }
         emit(r.on_delta, payload, dt);
         break;
     }

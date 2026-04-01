@@ -95,7 +95,7 @@ vne::math::Vec3f FreeLookManipulator::right(const vne::math::Vec3f& front_vec) c
 }
 
 vne::math::Vec3f FreeLookManipulator::orthoPanUp(const vne::math::Vec3f& view_dir,
-                                              const vne::math::Vec3f& vertical_hint) const noexcept {
+                                                 const vne::math::Vec3f& vertical_hint) const noexcept {
     const vne::math::Vec3f f =
         view_dir.length() < kEpsilon ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : view_dir.normalized();
     vne::math::Vec3f u = camera_->getUp();
@@ -128,7 +128,7 @@ vne::math::Vec3f FreeLookManipulator::orthoPanUp(const vne::math::Vec3f& view_di
 }
 
 vne::math::Vec3f FreeLookManipulator::orthoPanUp(const vne::scene::OrthographicCamera& ortho,
-                                              const vne::math::Vec3f& vertical_hint) const noexcept {
+                                                 const vne::math::Vec3f& vertical_hint) const noexcept {
     const vne::math::Vec3f view_raw = ortho.getTarget() - ortho.getPosition();
     const float view_len = view_raw.length();
     const vne::math::Vec3f view_dir = (view_len >= kEpsilon) ? (view_raw / view_len) : front();
@@ -348,18 +348,24 @@ void FreeLookManipulator::onUpdate(double delta_time) noexcept {
         right_axis = (r_len >= kEpsilon) ? (r_try / r_len) : right(view_dir);
     }
     vne::math::Vec3f move(0.0f, 0.0f, 0.0f);
-    if (input_state_.move_forward)
+    if (input_state_.move_forward) {
         move += forward_axis;
-    if (input_state_.move_backward)
+    }
+    if (input_state_.move_backward) {
         move -= forward_axis;
-    if (input_state_.move_right)
+    }
+    if (input_state_.move_right) {
         move += right_axis;
-    if (input_state_.move_left)
+    }
+    if (input_state_.move_left) {
         move -= right_axis;
-    if (input_state_.move_up)
+    }
+    if (input_state_.move_up) {
         move += vertical_axis;
-    if (input_state_.move_down)
+    }
+    if (input_state_.move_down) {
         move -= vertical_axis;
+    }
     const float move_len = move.length();
     if (move_len <= kEpsilon) {
         return;
@@ -390,8 +396,8 @@ void FreeLookManipulator::onUpdate(double delta_time) noexcept {
 // ---------------------------------------------------------------------------
 
 bool FreeLookManipulator::onAction(CameraActionType action,
-                                const CameraCommandPayload& payload,
-                                double /*delta_time*/) noexcept {
+                                   const CameraCommandPayload& payload,
+                                   double /*delta_time*/) noexcept {
     if (!enabled_) {
         return false;
     }

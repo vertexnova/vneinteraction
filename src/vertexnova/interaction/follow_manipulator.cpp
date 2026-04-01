@@ -50,8 +50,8 @@ void FollowManipulator::setOffset(const vne::math::Vec3f& offset) noexcept {
     if (offset.length() > kOffsetMinLength) {
         offset_world_ = offset;
     } else {
-        VNE_LOG_WARN << "FollowManipulator: setOffset ignored — offset length " << offset.length() << " is below minimum "
-                     << kOffsetMinLength;
+        VNE_LOG_WARN << "FollowManipulator: setOffset ignored — offset length " << offset.length()
+                     << " is below minimum " << kOffsetMinLength;
     }
 }
 
@@ -146,8 +146,8 @@ void FollowManipulator::onUpdate(double delta_time) noexcept {
 // ---------------------------------------------------------------------------
 
 bool FollowManipulator::onAction(CameraActionType action,
-                              const CameraCommandPayload& payload,
-                              double /*delta_time*/) noexcept {
+                                 const CameraCommandPayload& payload,
+                                 double /*delta_time*/) noexcept {
     if (!enabled_ || !camera_) {
         return false;
     }

@@ -126,8 +126,9 @@ void FollowController::setTarget(const vne::math::Mat4f& world_transform) noexce
 // ---------------------------------------------------------------------------
 
 void FollowController::setOffset(const vne::math::Vec3f& offset) noexcept {
-    if (impl_->follow)
+    if (impl_->follow) {
         impl_->follow->setOffset(offset);
+    }
 }
 
 vne::math::Vec3f FollowController::getOffset() const noexcept {
@@ -144,8 +145,9 @@ void FollowController::setLag(float lag) noexcept {
 }
 
 float FollowController::getLag() const noexcept {
-    if (!impl_->follow)
+    if (!impl_->follow) {
         return 0.0f;
+    }
     // Invert the formula above
     return 1.0f - (impl_->follow->getDamping() / 20.0f);
 }

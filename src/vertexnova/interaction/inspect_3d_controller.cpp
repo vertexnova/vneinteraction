@@ -209,8 +209,9 @@ void Inspect3DController::setPivotMode(OrbitPivotMode mode) noexcept {
 }
 
 OrbitPivotMode Inspect3DController::getPivotMode() const noexcept {
-    if (impl_->orbit)
+    if (impl_->orbit) {
         return impl_->orbit->getPivotMode();
+    }
     return OrbitPivotMode::eCoi;
 }
 
@@ -251,8 +252,9 @@ void Inspect3DController::setZoomEnabled(bool enabled) noexcept {
 // ---------------------------------------------------------------------------
 
 void Inspect3DController::fitToAABB(const vne::math::Vec3f& mn, const vne::math::Vec3f& mx) noexcept {
-    if (impl_->orbit)
+    if (impl_->orbit) {
         impl_->orbit->fitToAABB(mn, mx);
+    }
 }
 
 void Inspect3DController::reset() noexcept {

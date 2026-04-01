@@ -41,8 +41,8 @@ namespace vne::interaction {
 /**
  * @brief One frame of motion on the unit sphere (trackball / camera space), for inertia.
  *
- * @a axis_ball is in the same space as @ref project (right, screen-down, toward eye). The behavior
- * maps it to a world rotation axis using the orbit orientation basis.
+ * @a axis_ball is in the same space as @ref project (right, screen-down, toward eye). The orbital
+ * manipulator maps it to a world rotation axis using the orbit orientation basis.
  */
 struct BallFrameDelta {
     bool valid = false;            //!< @c true if @a axis_ball and @a angle_rad are usable.

@@ -11,7 +11,8 @@
 
 /**
  * @file interaction_types.h
- * @brief Types, enums, and structs for camera interaction (manipulators, orbit/trackball behaviors, gestures, bindings).
+ * @brief Types, enums, and structs for camera interaction (manipulators, orbit/trackball behaviors, gestures,
+ * bindings).
  */
 
 #include "vertexnova/interaction/export.h"

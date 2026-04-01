@@ -122,8 +122,9 @@ NavigateMode Navigation3DController::getMode() const noexcept {
 // ---------------------------------------------------------------------------
 
 void Navigation3DController::setMoveSpeed(float s) noexcept {
-    if (impl_->free_look)
+    if (impl_->free_look) {
         impl_->free_look->setMoveSpeed(s);
+    }
 }
 
 float Navigation3DController::getMoveSpeed() const noexcept {
@@ -131,8 +132,9 @@ float Navigation3DController::getMoveSpeed() const noexcept {
 }
 
 void Navigation3DController::setMouseSensitivity(float s) noexcept {
-    if (impl_->free_look)
+    if (impl_->free_look) {
         impl_->free_look->setMouseSensitivity(s);
+    }
 }
 
 float Navigation3DController::getMouseSensitivity() const noexcept {
@@ -140,8 +142,9 @@ float Navigation3DController::getMouseSensitivity() const noexcept {
 }
 
 void Navigation3DController::setSprintMultiplier(float m) noexcept {
-    if (impl_->free_look)
+    if (impl_->free_look) {
         impl_->free_look->setSprintMultiplier(m);
+    }
 }
 
 float Navigation3DController::getSprintMultiplier() const noexcept {
@@ -149,8 +152,9 @@ float Navigation3DController::getSprintMultiplier() const noexcept {
 }
 
 void Navigation3DController::setSlowMultiplier(float m) noexcept {
-    if (impl_->free_look)
+    if (impl_->free_look) {
         impl_->free_look->setSlowMultiplier(m);
+    }
 }
 
 float Navigation3DController::getSlowMultiplier() const noexcept {
@@ -162,8 +166,9 @@ float Navigation3DController::getSlowMultiplier() const noexcept {
 // ---------------------------------------------------------------------------
 
 void Navigation3DController::fitToAABB(const vne::math::Vec3f& mn, const vne::math::Vec3f& mx) noexcept {
-    if (impl_->free_look)
+    if (impl_->free_look) {
         impl_->free_look->fitToAABB(mn, mx);
+    }
 }
 
 void Navigation3DController::reset() noexcept {
@@ -218,8 +223,9 @@ void Navigation3DController::rebuild() noexcept {
     impl_->rig.addManipulator(impl_->free_look);
 
     // Re-attach camera and viewport
-    if (impl_->camera)
+    if (impl_->camera) {
         impl_->rig.setCamera(impl_->camera);
+    }
     impl_->rig.onResize(impl_->viewport_w, impl_->viewport_h);
 
     const std::vector<InputRule> rules = InputMapper::fpsPreset();

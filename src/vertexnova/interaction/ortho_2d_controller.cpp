@@ -115,8 +115,9 @@ void Ortho2DController::setZoomEnabled(bool enabled) noexcept {
 // ---------------------------------------------------------------------------
 
 void Ortho2DController::fitToAABB(const vne::math::Vec3f& mn, const vne::math::Vec3f& mx) noexcept {
-    if (impl_->ortho2d_behavior)
+    if (impl_->ortho2d_behavior) {
         impl_->ortho2d_behavior->fitToAABB(mn, mx);
+    }
 }
 
 void Ortho2DController::reset() noexcept {
