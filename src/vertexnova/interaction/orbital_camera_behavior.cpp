@@ -484,6 +484,8 @@ void OrbitalCameraBehavior::applyDolly(float factor, float mx, float my) noexcep
     if (!camera_) {
         return;
     }
+    // syncCoiAndDistanceFromCamera() skips pulling coi_world_ from camera_->getTarget() when pivot is eFixed
+    // (after fixed-mode pan, target may differ from the landmark COI).
     syncFromCamera();
     // Do not use CameraBehaviorBase::applyDolly for perspective — base is ortho-only (raw factor).
     // Orbit needs orbit_distance_, COI shift, and applyOrthoZoomToCursor(pow factor).
@@ -510,12 +512,12 @@ void OrbitalCameraBehavior::applyDolly(float factor, float mx, float my) noexcep
             const vne::math::Vec3f cursor_world = coi_world_ + r * (ndc.x() * half_w) + u * (ndc.y() * half_h);
             const vne::math::Vec3f to_cursor = cursor_world - coi_world_;
             const float shift_t = (1.0f - effective_factor) * kZoomToCursorStrength;
-            if (to_cursor.length() < old_dist * 2.0f) {
+            if (to_cursor.length() < old_dist * 2.0f && pivot_mode_ != OrbitPivotMode::eFixed) {
                 coi_world_ += to_cursor * shift_t;
             }
         }
         applyToCamera();
-        // Zoom-to-cursor moves COI; lookAt may adjust up. Euler yaw/pitch stay valid; trackball orientation_
+        // Zoom-to-cursor moves COI (except eFixed); lookAt may adjust up. Euler yaw/pitch stay valid; trackball orientation_
         // must match the realized camera (same need as after any COI change in trackball mode).
         if (rotation_mode_ == OrbitRotationMode::eTrackball) {
             syncFromCamera();
