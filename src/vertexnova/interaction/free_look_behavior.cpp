@@ -289,11 +289,12 @@ void FreeLookBehavior::onUpdate(double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }
+    // Refresh yaw/pitch before the dt guard so zero-dt ticks still clear angles_dirty_ (see ensureAnglesSynced).
+    ensureAnglesSynced();
     const float dt = static_cast<float>(delta_time);
     if (dt <= 0.0f) {
         return;
     }
-    ensureAnglesSynced();
     // Derive movement basis from the live camera pose.
     // FPS: perspective uses view-matrix axes; ortho/other use world up for vertical and orthoPanUp hints.
     // Fly: vertical moves use @ref upVector() (roll-aware) so Q/E matches the camera basis with forward/right.
