@@ -52,7 +52,7 @@ namespace vne::interaction {
  * Call `dispatchZoom(payload.zoom_factor, payload.x_px, payload.y_px)` from
  * the `eZoomAtCursor` case of `onAction`. The base class handles eChangeFov and
  * eSceneScale centrally. For eDollyToCoi it calls the virtual `applyDolly()` —
- * override that to implement behavior-specific perspective dolly. The default
+ * override that to implement manipulator-specific perspective dolly. The default
  * applyDolly handles orthographic zoom-to-cursor automatically, so
  * Ortho2DManipulator needs no override.
  */

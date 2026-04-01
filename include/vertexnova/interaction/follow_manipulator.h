@@ -11,11 +11,14 @@
 
 /**
  * @file follow_manipulator.h
- * @brief FollowManipulator — autonomous smooth target-following camera behavior.
+ * @brief FollowManipulator — autonomous smooth target-following camera manipulator.
  *
  * The camera smoothly moves toward `target + offset` each frame using
- * exponential approach. Target can be fixed or from a callback.
- * Handles eZoomAtCursor and eResetView actions.
+ * exponential approach. Target can be fixed or provided by callback.
+ *
+ * @par Action coverage
+ * This manipulator is autonomous; input actions are optional.
+ * It handles @c eZoomAtCursor and @c eResetView when routed through a controller/mapper.
  */
 
 #include "vertexnova/interaction/camera_manipulator_base.h"
@@ -37,15 +40,19 @@ class ICamera;
 namespace vne::interaction {
 
 /**
- * @brief Autonomous smooth-follow camera behavior.
+ * @brief Autonomous smooth-follow camera manipulator.
  *
  * Each frame, the camera eye is smoothly interpolated toward
  * `getTargetWorld() + offset_world_` using exponential decay:
  *
  *   new_eye = eye + (desired_eye - eye) * (1 - exp(-damping * dt))
  *
- * The target point can be set directly or provided by a callback
+ * The target point can be set directly or provided by callback
  * (e.g. a moving scene object). Offset is world space (not body-local).
+ *
+ * @par Update model
+ * @ref onUpdate samples the current target, computes desired eye, and applies
+ * damping-based interpolation before updating the camera view.
  *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
  */

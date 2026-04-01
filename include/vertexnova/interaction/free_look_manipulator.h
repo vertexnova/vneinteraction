@@ -17,9 +17,14 @@
  * there is no quaternion look mode (unlike @ref OrbitalCameraManipulator, which offers Euler orbit or
  * trackball quaternion rotation).
  *
+ * @par Movement model
  * WASD movement + mouse look. Two modes:
  * - FreeLookMode::eFps — world up fixed, pitch clamped [-89°, 89°]
  * - FreeLookMode::eFly  — unconstrained, up follows camera
+ *
+ * @par Zoom
+ * Zoom is dispatched through @ref CameraManipulatorBase and can be disabled per-instance
+ * with @ref setHandleZoom when another manipulator should own scroll/pinch in a shared rig.
  */
 
 #include "vertexnova/interaction/camera_manipulator_base.h"
@@ -48,10 +53,16 @@ enum class FreeLookMode : std::uint8_t {
 /**
  * @brief Free-look camera manipulator supporting FPS and Fly movement modes.
  *
- * Handles WASD movement + mouse-look + zoom actions. Two sub-modes:
+ * Handles WASD movement + mouse-look + zoom actions.
  *
  * - **eFps** — world_up fixed, pitch clamped to [-89°, 89°].
  * - **eFly** — up vector tracks camera orientation, no pitch constraint.
+ *
+ * @par Action coverage
+ * Look: @c eBeginLook / @c eLookDelta / @c eEndLook
+ * Move: @c eMoveForward / @c eMoveBackward / @c eMoveLeft / @c eMoveRight / @c eMoveUp / @c eMoveDown
+ * Modifiers: @c eSprintModifier / @c eSlowModifier
+ * Zoom/reset: @c eZoomAtCursor / @c eResetView
  *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
  */

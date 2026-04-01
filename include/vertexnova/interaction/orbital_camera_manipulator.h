@@ -11,12 +11,24 @@
 
 /**
  * @file orbital_camera_manipulator.h
- * @brief OrbitalCameraManipulator — orbit camera behavior with Euler or virtual-trackball rotation
- * (ICameraManipulator).
+ * @brief OrbitalCameraManipulator — orbit camera manipulator with Euler or virtual-trackball rotation.
  *
- * Supports both Euler (classic orbit) and quaternion virtual-trackball rotation modes,
- * and three pivot modes (COI, ViewCenter, Fixed). Handles rotate, pan, zoom,
- * inertia, and fitToAABB.
+ * Public orbit manipulator used by inspect-style controllers. It composes:
+ * - @ref OrbitBehavior for Euler yaw/pitch state and Euler inertia
+ * - @ref TrackballBehavior for screen-to-sphere mapping and ball-space deltas
+ *
+ * @par Rotation modes
+ * - @c OrbitRotationMode::eOrbit: classic yaw/pitch orbit around @c world_up.
+ * - @c OrbitRotationMode::eTrackball: quaternion orbit via virtual trackball.
+ *
+ * @par Pivot modes
+ * - @c OrbitPivotMode::eCoi: pivot follows pan in view plane.
+ * - @c OrbitPivotMode::eViewCenter: behaves like COI while panning, then recenters from camera target on pan end.
+ * - @c OrbitPivotMode::eFixed: fixed world pivot; pan trucks eye+target.
+ *
+ * @par Zoom
+ * Zoom dispatch is inherited from @ref CameraManipulatorBase and supports
+ * @ref ZoomMethod::eDollyToCoi, @ref ZoomMethod::eSceneScale, and @ref ZoomMethod::eChangeFov.
  */
 
 #include "vertexnova/interaction/camera_manipulator_base.h"
@@ -39,18 +51,19 @@ class ICamera;
 namespace vne::interaction {
 
 /**
- * @brief Orbital camera behavior (Euler orbit or virtual-trackball rotation).
+ * @brief Orbit manipulator with Euler/trackball rotation, pan, zoom, inertia, and fit.
  *
- * Implements ICameraManipulator for orbit-style interaction. Handles rotate, pan, and zoom
- * actions. Supports inertia via exponential decay.
+ * Handles action-driven interaction and writes the resulting pose to the attached
+ * @ref vne::scene::ICamera.
  *
- * - RotationMode::eOrbit   — classic yaw/pitch orbit, pitch clamped to [-89°, 89°] (raw window deltas, deg/pixel)
- * - RotationMode::eTrackball — arcball quaternion; sphere mapping uses @ref CameraManipulatorBase::graphicsApi()
- *   (same NDC path as pan and zoom-to-cursor)
- * - Pan — view-plane motion from @c mouseWindowDeltaToNDCDelta × frustum half-extents at the camera (API-aware)
- * - PivotMode::eCoi — orbit center follows pan in the view plane (see @ref OrbitPivotMode).
- * - PivotMode::eViewCenter — same as eCoi while panning; on pan end, COI syncs from the camera target.
- * - PivotMode::eFixed — world pivot fixed; pan trucks eye+target; after pan, target may not equal COI until rotate.
+ * @par Action coverage
+ * Rotate: @c eBeginRotate / @c eRotateDelta / @c eEndRotate
+ * Pan: @c eBeginPan / @c ePanDelta / @c eEndPan
+ * Zoom: @c eZoomAtCursor
+ * Utility: @c eResetView, @c eSetPivotAtCursor, @c eOrbitPanModifier
+ *
+ * @par Inertia
+ * Rotation and pan both support damping-based inertia via @ref onUpdate.
  *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
  */

@@ -13,10 +13,14 @@
  * @file ortho_2d_manipulator.h
  * @brief Ortho2DManipulator — orthographic 2D viewport: pan, zoom-to-cursor, optional in-plane rotation.
  *
- * For orthographic viewports. Handles eBeginPan, ePanDelta, eEndPan, eZoomAtCursor, eResetView,
- * and when the input layer emits rotate actions: eBeginRotate, eRotateDelta, eEndRotate
- * (in-plane rotation about the view axis through the target). Inertia via exponential decay on
- * pan velocity.
+ * For orthographic viewports. Handles pan, zoom, and optional in-plane rotation.
+ *
+ * @par Rotation
+ * Rotation is in-plane (about the view axis through the camera target) and is only
+ * applied when rotate actions are emitted by the input binding layer.
+ *
+ * @par Inertia
+ * Pan velocity is damped over time in @ref onUpdate using exponential decay.
  */
 
 #include "vertexnova/interaction/camera_manipulator_base.h"
@@ -35,9 +39,14 @@ namespace vne::interaction {
 /**
  * @brief Orthographic 2D pan, zoom, and optional in-plane rotation.
  *
- * Pan is in screen-to-world pixel coordinates (mouse Y-down matches scene motion). Zoom-to-cursor
- * preserves the world point under the cursor. In-plane rotation spins eye and up about the axis
- * through the target (slice normal). Inertia is applied to pan velocity via exponential decay.
+ * Pan is in screen-to-world pixel coordinates (mouse Y-down matches scene motion).
+ * Zoom-to-cursor preserves the world point under the cursor.
+ * In-plane rotation spins eye/up around the axis through the target (slice normal).
+ *
+ * @par Action coverage
+ * Pan: @c eBeginPan / @c ePanDelta / @c eEndPan
+ * Rotate: @c eBeginRotate / @c eRotateDelta / @c eEndRotate
+ * Zoom/reset: @c eZoomAtCursor / @c eResetView
  *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
  */
