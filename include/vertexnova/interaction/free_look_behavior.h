@@ -155,8 +155,7 @@ class VNE_INTERACTION_API FreeLookBehavior final : public CameraBehaviorBase {
      */
     void fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept;
 
-    /** Mark angles as stale so onUpdate re-syncs from the camera pose (call when an external behavior moves the
-     * camera). */
+    /** Mark angles as stale (e.g. external camera move). @ref ensureAnglesSynced runs before look/zoom/fit paths. */
     void markAnglesDirty() noexcept { angles_dirty_ = true; }
 
    private:
@@ -183,8 +182,8 @@ class VNE_INTERACTION_API FreeLookBehavior final : public CameraBehaviorBase {
                                               const vne::math::Vec3f& vertical_hint) const noexcept;
 
     void syncAnglesFromCamera() noexcept;
-    /** If @ref angles_dirty_ and a camera is set, sync from the camera and clear the flag (input paths before onUpdate). */
-    void syncAnglesFromCameraIfDirty() noexcept;
+    /** If @ref angles_dirty_ and a camera is set, sync yaw/pitch from the camera pose and clear the flag. */
+    void ensureAnglesSynced() noexcept;
     void applyAnglesToCamera() noexcept;
     void applyDolly(float factor, float mx, float my) noexcept override;
 

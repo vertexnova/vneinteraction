@@ -164,7 +164,7 @@ void FreeLookBehavior::syncAnglesFromCamera() noexcept {
     yaw_deg_ = vne::math::radToDeg(vne::math::atan2(horiz_n.dot(ref_right), horiz_n.dot(ref_fwd)));
 }
 
-void FreeLookBehavior::syncAnglesFromCameraIfDirty() noexcept {
+void FreeLookBehavior::ensureAnglesSynced() noexcept {
     if (!angles_dirty_ || !camera_) {
         return;
     }
@@ -213,6 +213,7 @@ void FreeLookBehavior::applyDolly(float factor, float mx, float my) noexcept {
     if (!camera_) {
         return;
     }
+    ensureAnglesSynced();
     const vne::math::Vec3f f = front();
     const float current_dist = (camera_->getTarget() - camera_->getPosition()).length();
     const float effective_factor = std::pow(factor, zoom_speed_);
@@ -250,6 +251,7 @@ void FreeLookBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::m
     if (!camera_) {
         return;
     }
+    ensureAnglesSynced();
     const vne::math::Vec3f center = (min_world + max_world) * 0.5f;
     float radius = (max_world - min_world).length() * 0.5f;
     if (radius < kEpsilon) {
@@ -276,6 +278,7 @@ void FreeLookBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::m
 void FreeLookBehavior::resetState() noexcept {
     input_state_ = FreeLookInputState{};
     syncAnglesFromCamera();
+    angles_dirty_ = false;
 }
 
 // ---------------------------------------------------------------------------
@@ -290,24 +293,31 @@ void FreeLookBehavior::onUpdate(double delta_time) noexcept {
     if (dt <= 0.0f) {
         return;
     }
-    if (angles_dirty_) {
-        syncAnglesFromCamera();
-        angles_dirty_ = false;
-    }
+    ensureAnglesSynced();
     // Derive movement basis from the live camera pose.
-    // Perspective: view-matrix axes are pre-computed and authoritative.
-    // Orthographic: W/S pan along screen-up (orthoPanUp); A/D along right = view × screen-up.
-    // Other non-perspective: same image-plane pan basis using the live view direction.
-    // Vertical (Q/E or space/crouch): matches @ref upVector() — world-up in FPS, camera up in Fly (roll-aware).
+    // Perspective: view-matrix axes are pre-computed and authoritative; vertical moves use camera-local up.
+    // Orthographic / other: W/S pan via orthoPanUp; vertical moves use world up (not Fly roll) for predictable pan.
     vne::math::Vec3f forward_axis;
     vne::math::Vec3f right_axis;
-    vne::math::Vec3f vertical_axis = upVector();
-    const float va_len = vertical_axis.length();
-    vertical_axis = (va_len >= kEpsilon) ? (vertical_axis / va_len) : vne::math::Vec3f(0.0f, 1.0f, 0.0f);
+    vne::math::Vec3f vertical_axis;
+    const vne::math::Vec3f world_up_n = [&]() {
+        const float wl = world_up_.length();
+        return (wl >= kEpsilon) ? (world_up_ / wl) : vne::math::Vec3f(0.0f, 1.0f, 0.0f);
+    }();
     if (auto persp = perspCamera()) {
         forward_axis = persp->getForward();
         right_axis = persp->getRight();
+        vne::math::Vec3f u = persp->getUp();
+        const float ul = u.length();
+        if (ul >= kEpsilon) {
+            vertical_axis = u / ul;
+        } else {
+            const vne::math::Vec3f from_basis = right_axis.cross(forward_axis);
+            const float bl = from_basis.length();
+            vertical_axis = (bl >= kEpsilon) ? (from_basis / bl) : world_up_n;
+        }
     } else if (auto ortho = orthoCamera()) {
+        vertical_axis = world_up_n;
         const vne::math::Vec3f view_raw = ortho->getTarget() - ortho->getPosition();
         const float view_len = view_raw.length();
         const vne::math::Vec3f view_dir = (view_len >= kEpsilon) ? (view_raw / view_len) : front();
@@ -316,6 +326,7 @@ void FreeLookBehavior::onUpdate(double delta_time) noexcept {
         const float r_len = r_try.length();
         right_axis = (r_len >= kEpsilon) ? (r_try / r_len) : right(view_dir);
     } else {
+        vertical_axis = world_up_n;
         const vne::math::Vec3f f_raw = camera_->getTarget() - camera_->getPosition();
         const float f_len = f_raw.length();
         const vne::math::Vec3f view_dir = (f_len >= kEpsilon) ? (f_raw / f_len) : front();
@@ -374,7 +385,7 @@ bool FreeLookBehavior::onAction(CameraActionType action,
     }
     switch (action) {
         case CameraActionType::eBeginLook:
-            syncAnglesFromCameraIfDirty();
+            ensureAnglesSynced();
             input_state_.looking = true;
             return true;
 
@@ -384,7 +395,7 @@ bool FreeLookBehavior::onAction(CameraActionType action,
 
         case CameraActionType::eLookDelta:
             if (camera_ && input_state_.looking) {
-                syncAnglesFromCameraIfDirty();
+                ensureAnglesSynced();
                 yaw_deg_ += payload.delta_x_px * mouse_sensitivity_;
                 pitch_deg_ -= payload.delta_y_px * mouse_sensitivity_;
                 if (mode_ == FreeLookMode::eFps) {

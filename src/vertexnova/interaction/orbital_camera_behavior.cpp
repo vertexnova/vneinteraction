@@ -201,7 +201,10 @@ vne::math::Vec3f OrbitalCameraBehavior::computeFront() const noexcept {
 // ---------------------------------------------------------------------------
 
 void OrbitalCameraBehavior::syncCoiAndDistanceFromCamera() noexcept {
-    coi_world_ = camera_->getTarget();
+    // eFixed: pivot is a stable world landmark — do not re-derive COI from the camera target or panning breaks.
+    if (pivot_mode_ != OrbitPivotMode::eFixed) {
+        coi_world_ = camera_->getTarget();
+    }
     orbit_distance_ = std::max((camera_->getPosition() - coi_world_).length(), kMinOrbitDistance);
 }
 
