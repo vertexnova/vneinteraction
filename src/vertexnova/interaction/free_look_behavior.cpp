@@ -295,8 +295,8 @@ void FreeLookBehavior::onUpdate(double delta_time) noexcept {
     }
     ensureAnglesSynced();
     // Derive movement basis from the live camera pose.
-    // Perspective: view-matrix axes are pre-computed and authoritative; vertical moves use camera-local up.
-    // Orthographic / other: W/S pan via orthoPanUp; vertical moves use world up (not Fly roll) for predictable pan.
+    // FPS: perspective uses view-matrix axes; ortho/other use world up for vertical and orthoPanUp hints.
+    // Fly: vertical moves use @ref upVector() (roll-aware) so Q/E matches the camera basis with forward/right.
     vne::math::Vec3f forward_axis;
     vne::math::Vec3f right_axis;
     vne::math::Vec3f vertical_axis;
@@ -304,20 +304,29 @@ void FreeLookBehavior::onUpdate(double delta_time) noexcept {
         const float wl = world_up_.length();
         return (wl >= kEpsilon) ? (world_up_ / wl) : vne::math::Vec3f(0.0f, 1.0f, 0.0f);
     }();
+    if (mode_ == FreeLookMode::eFly) {
+        vne::math::Vec3f u = upVector();
+        const float ul = u.length();
+        vertical_axis = (ul >= kEpsilon) ? (u / ul) : world_up_n;
+    }
     if (auto persp = perspCamera()) {
         forward_axis = persp->getForward();
         right_axis = persp->getRight();
-        vne::math::Vec3f u = persp->getUp();
-        const float ul = u.length();
-        if (ul >= kEpsilon) {
-            vertical_axis = u / ul;
-        } else {
-            const vne::math::Vec3f from_basis = right_axis.cross(forward_axis);
-            const float bl = from_basis.length();
-            vertical_axis = (bl >= kEpsilon) ? (from_basis / bl) : world_up_n;
+        if (mode_ == FreeLookMode::eFps) {
+            vne::math::Vec3f u = persp->getUp();
+            const float ul = u.length();
+            if (ul >= kEpsilon) {
+                vertical_axis = u / ul;
+            } else {
+                const vne::math::Vec3f from_basis = right_axis.cross(forward_axis);
+                const float bl = from_basis.length();
+                vertical_axis = (bl >= kEpsilon) ? (from_basis / bl) : world_up_n;
+            }
         }
     } else if (auto ortho = orthoCamera()) {
-        vertical_axis = world_up_n;
+        if (mode_ == FreeLookMode::eFps) {
+            vertical_axis = world_up_n;
+        }
         const vne::math::Vec3f view_raw = ortho->getTarget() - ortho->getPosition();
         const float view_len = view_raw.length();
         const vne::math::Vec3f view_dir = (view_len >= kEpsilon) ? (view_raw / view_len) : front();
@@ -326,7 +335,9 @@ void FreeLookBehavior::onUpdate(double delta_time) noexcept {
         const float r_len = r_try.length();
         right_axis = (r_len >= kEpsilon) ? (r_try / r_len) : right(view_dir);
     } else {
-        vertical_axis = world_up_n;
+        if (mode_ == FreeLookMode::eFps) {
+            vertical_axis = world_up_n;
+        }
         const vne::math::Vec3f f_raw = camera_->getTarget() - camera_->getPosition();
         const float f_len = f_raw.length();
         const vne::math::Vec3f view_dir = (f_len >= kEpsilon) ? (f_raw / f_len) : front();
