@@ -7,13 +7,13 @@
 #pragma once
 
 /**
- * @file behavior_utils.h
- * @brief Internal geometry utilities for camera behaviors.
+ * @file manipulator_utils.h
+ * @brief Internal geometry utilities for camera manipulators.
  *
  * Provides:
  *   - buildReferenceFrame     — forward/right frame from world-up (inline)
  *   - mouseToNDC              — top-left mouse coords → NDC [-1, 1] (inline)
- *   - mouseWindowToNDC        — top-left mouse + graphics API → NDC (behavior_utils.cpp)
+ *   - mouseWindowToNDC        — top-left mouse + graphics API → NDC (manipulator_utils.cpp)
  *   - mouseWindowDeltaToNDCDelta — pointer delta in window px → NDC delta (API-aware; pan / frustum math)
  *   - worldUnderCursorOrtho   — cursor world position for orthographic camera (inline)
  *   - mouseToApiScreen        — top-left mouse coords → API-native screen
@@ -24,7 +24,7 @@
  *
  * Internal header — not installed, not included from any public header.
  * Inline functions are header-only (safe to call from test TUs without linking
- * vneinteraction). Non-inline functions are defined in behavior_utils.cpp and
+ * vneinteraction). Non-inline functions are defined in manipulator_utils.cpp and
  * compiled into the library.
  */
 
@@ -109,7 +109,7 @@ inline void buildReferenceFrame(const vne::math::Vec3f& world_up,
 }
 
 // -----------------------------------------------------------------------------
-// Camera-API-dependent functions — defined in behavior_utils.cpp
+// Camera-API-dependent functions — defined in manipulator_utils.cpp
 // -----------------------------------------------------------------------------
 
 /**

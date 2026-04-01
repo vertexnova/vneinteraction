@@ -4,7 +4,7 @@
  * --------------------------------------------------------------------- */
 
 #include "vertexnova/interaction/follow_controller.h"
-#include "vertexnova/interaction/follow_behavior.h"
+#include "vertexnova/interaction/follow_manipulator.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
 
@@ -67,7 +67,7 @@ TEST(FollowController, ViewDirectionAntiParallelToOffset) {
     ctrl.onResize(1280.0f, 720.0f);
     ctrl.setTarget(vne::math::Mat4f::translate(vne::math::Vec3f(100.0f, 0.0f, 0.0f)));
     ctrl.setOffset(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
-    ctrl.followBehavior().setDamping(200.0f);
+    ctrl.followManipulator().setDamping(200.0f);
 
     for (int i = 0; i < 80; ++i) {
         ctrl.onUpdate(0.05);
@@ -100,7 +100,7 @@ TEST(FollowController, OffsetWorldSpaceWithRotatedTargetTransform) {
 
     ctrl.setTarget(target);
     ctrl.setOffset(world_offset);
-    ctrl.followBehavior().setDamping(200.0f);
+    ctrl.followManipulator().setDamping(200.0f);
 
     for (int i = 0; i < 80; ++i) {
         ctrl.onUpdate(0.05);

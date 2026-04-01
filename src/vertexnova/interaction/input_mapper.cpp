@@ -444,7 +444,7 @@ std::vector<InputRule> InputMapper::orbitPreset() {
         makeTouchPanRule(CameraActionType::eRotateDelta),
         // Touch pinch: zoom
         makeTouchPinchRule(CameraActionType::eZoomAtCursor),
-        // Double-click LMB: eSetPivotAtCursor (COI along view direction in OrbitalCameraBehavior)
+        // Double-click LMB: eSetPivotAtCursor (COI along view direction in OrbitalCameraManipulator)
         makeDblClickRule(kLeft, CameraActionType::eSetPivotAtCursor),
     };
 }

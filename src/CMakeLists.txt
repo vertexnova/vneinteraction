@@ -11,14 +11,14 @@
 set(SOURCE_FILES
     vertexnova/interaction/version.cpp
     vertexnova/interaction/input_mapper.cpp
-    vertexnova/interaction/behavior_utils.cpp
-    vertexnova/interaction/camera_behavior_base.cpp
+    vertexnova/interaction/manipulator_utils.cpp
+    vertexnova/interaction/camera_manipulator_base.cpp
     vertexnova/interaction/trackball_behavior.cpp
     vertexnova/interaction/orbit_behavior.cpp
-    vertexnova/interaction/orbital_camera_behavior.cpp
-    vertexnova/interaction/free_look_behavior.cpp
-    vertexnova/interaction/ortho_2d_behavior.cpp
-    vertexnova/interaction/follow_behavior.cpp
+    vertexnova/interaction/orbital_camera_manipulator.cpp
+    vertexnova/interaction/free_look_manipulator.cpp
+    vertexnova/interaction/ortho_2d_manipulator.cpp
+    vertexnova/interaction/follow_manipulator.cpp
     vertexnova/interaction/camera_rig.cpp
     vertexnova/interaction/inspect_3d_controller.cpp
     vertexnova/interaction/navigation_3d_controller.cpp
@@ -31,15 +31,15 @@ set(HEADER_FILES
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/export.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/version.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/interaction_types.h
-    ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_behavior.h
-    ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_behavior_base.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_manipulator.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_manipulator_base.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/trackball_behavior.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/orbit_behavior.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_rig.h
-    ${VNE_INCLUDE_DIR}/vertexnova/interaction/orbital_camera_behavior.h
-    ${VNE_INCLUDE_DIR}/vertexnova/interaction/free_look_behavior.h
-    ${VNE_INCLUDE_DIR}/vertexnova/interaction/ortho_2d_behavior.h
-    ${VNE_INCLUDE_DIR}/vertexnova/interaction/follow_behavior.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/orbital_camera_manipulator.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/free_look_manipulator.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/ortho_2d_manipulator.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/follow_manipulator.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/input_mapper.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/inspect_3d_controller.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/navigation_3d_controller.h

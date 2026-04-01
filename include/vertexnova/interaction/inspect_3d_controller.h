@@ -71,12 +71,12 @@ class ICamera;
 namespace vne::interaction {
 
 class InputMapper;
-class OrbitalCameraBehavior;
+class OrbitalCameraManipulator;
 
 /**
  * @brief High-level camera controller for object inspection.
  *
- * Wraps a CameraRig (OrbitalCameraBehavior) and an InputMapper with a sensible preset.
+ * Wraps a CameraRig (OrbitalCameraManipulator) and an InputMapper with a sensible preset.
  * Covers: 3D model viewers, CAD, scientific visualization, medical 3D.
  *
  * @threadsafe Not thread-safe. Call all methods from the same thread.
@@ -174,8 +174,8 @@ class VNE_INTERACTION_API Inspect3DController {
     /** Direct access to the underlying InputMapper for full rebind. */
     [[nodiscard]] InputMapper& inputMapper() noexcept;
 
-    /** Direct access to the underlying OrbitalCameraBehavior for fine-tuning. */
-    [[nodiscard]] OrbitalCameraBehavior& orbitalCameraBehavior() noexcept;
+    /** Direct access to the underlying OrbitalCameraManipulator for fine-tuning. */
+    [[nodiscard]] OrbitalCameraManipulator& orbitalCameraManipulator() noexcept;
 
    private:
     void rebuildRules() noexcept;

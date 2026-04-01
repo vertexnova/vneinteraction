@@ -10,7 +10,7 @@
 #include "vertexnova/interaction/navigation_3d_controller.h"
 
 #include "vertexnova/interaction/input_mapper.h"
-#include "vertexnova/interaction/free_look_behavior.h"
+#include "vertexnova/interaction/free_look_manipulator.h"
 
 #include "controller_event_dispatch.h"
 #include "vertexnova/events/key_event.h"
@@ -32,7 +32,7 @@ using namespace vne;
 struct Navigation3DController::Impl {
     CameraRig rig;
     InputMapper mapper;
-    std::shared_ptr<FreeLookBehavior> free_look;  // shared ownership; also in rig
+    std::shared_ptr<FreeLookManipulator> free_look;  // shared ownership; also in rig
 
     NavigateMode mode = NavigateMode::eFps;
 
@@ -179,10 +179,10 @@ void Navigation3DController::reset() noexcept {
 InputMapper& Navigation3DController::inputMapper() noexcept {
     return impl_->mapper;
 }
-FreeLookBehavior& Navigation3DController::freeLookBehavior() noexcept {
+FreeLookManipulator& Navigation3DController::freeLookManipulator() noexcept {
     return *impl_->free_look;
 }
-OrbitalCameraBehavior* Navigation3DController::orbitalCameraBehavior() noexcept {
+OrbitalCameraManipulator* Navigation3DController::orbitalCameraManipulator() noexcept {
     return nullptr;
 }
 
@@ -197,10 +197,10 @@ void Navigation3DController::rebuild() noexcept {
     float sprint_mult = impl_->free_look ? impl_->free_look->getSprintMultiplier() : 4.0f;
     float slow_mult = impl_->free_look ? impl_->free_look->getSlowMultiplier() : 0.2f;
 
-    impl_->rig.clearBehaviors();
+    impl_->rig.clearManipulators();
     impl_->free_look = nullptr;
 
-    impl_->free_look = std::make_shared<FreeLookBehavior>();
+    impl_->free_look = std::make_shared<FreeLookManipulator>();
     impl_->free_look->setMoveSpeed(move_speed);
     impl_->free_look->setMouseSensitivity(sensitivity);
     impl_->free_look->setSprintMultiplier(sprint_mult);
@@ -215,7 +215,7 @@ void Navigation3DController::rebuild() noexcept {
             break;
     }
 
-    impl_->rig.addBehavior(impl_->free_look);
+    impl_->rig.addManipulator(impl_->free_look);
 
     // Re-attach camera and viewport
     if (impl_->camera)

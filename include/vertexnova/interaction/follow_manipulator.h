@@ -10,15 +10,15 @@
  */
 
 /**
- * @file follow_behavior.h
- * @brief FollowBehavior — autonomous smooth target-following camera behavior.
+ * @file follow_manipulator.h
+ * @brief FollowManipulator — autonomous smooth target-following camera behavior.
  *
  * The camera smoothly moves toward `target + offset` each frame using
  * exponential approach. Target can be fixed or from a callback.
  * Handles eZoomAtCursor and eResetView actions.
  */
 
-#include "vertexnova/interaction/camera_behavior_base.h"
+#include "vertexnova/interaction/camera_manipulator_base.h"
 #include "vertexnova/interaction/interaction_types.h"
 
 #include "vertexnova/scene/camera/perspective_camera.h"
@@ -49,18 +49,18 @@ namespace vne::interaction {
  *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
  */
-class VNE_INTERACTION_API FollowBehavior final : public CameraBehaviorBase {
+class VNE_INTERACTION_API FollowManipulator final : public CameraManipulatorBase {
    public:
-    FollowBehavior() noexcept = default;
-    ~FollowBehavior() noexcept override = default;
+    FollowManipulator() noexcept = default;
+    ~FollowManipulator() noexcept override = default;
 
-    FollowBehavior(const FollowBehavior&) = delete;
-    FollowBehavior& operator=(const FollowBehavior&) = delete;
-    FollowBehavior(FollowBehavior&&) noexcept = default;
-    FollowBehavior& operator=(FollowBehavior&&) noexcept = default;
+    FollowManipulator(const FollowManipulator&) = delete;
+    FollowManipulator& operator=(const FollowManipulator&) = delete;
+    FollowManipulator(FollowManipulator&&) noexcept = default;
+    FollowManipulator& operator=(FollowManipulator&&) noexcept = default;
 
     // -------------------------------------------------------------------------
-    // ICameraBehavior
+    // ICameraManipulator
     // -------------------------------------------------------------------------
 
     /**
@@ -81,7 +81,7 @@ class VNE_INTERACTION_API FollowBehavior final : public CameraBehaviorBase {
     /** No stateful interaction to reset; no-op. */
     void resetState() noexcept override {}
 
-    // isEnabled / setEnabled inherited from CameraBehaviorBase
+    // isEnabled / setEnabled inherited from CameraManipulatorBase
 
     // -------------------------------------------------------------------------
     // Follow-specific API
@@ -128,7 +128,7 @@ class VNE_INTERACTION_API FollowBehavior final : public CameraBehaviorBase {
     [[nodiscard]] float getZoomSpeed() const noexcept { return zoom_speed_; }
 
     // setZoomMethod / getZoomMethod / setFovZoomSpeed / getFovZoomSpeed / getZoomScale
-    // are inherited from CameraBehaviorBase.
+    // are inherited from CameraManipulatorBase.
 
     /** Get world units per pixel. */
     [[nodiscard]] float getWorldUnitsPerPixel() const noexcept;
@@ -150,10 +150,10 @@ class VNE_INTERACTION_API FollowBehavior final : public CameraBehaviorBase {
    private:
     void applyDolly(float factor, float mx, float my) noexcept override;
 
-    // perspCamera() / orthoCamera() inherited from CameraBehaviorBase
+    // perspCamera() / orthoCamera() inherited from CameraManipulatorBase
 
-    // camera_, enabled_, viewport_ inherited from CameraBehaviorBase
-    // zoom_method_, zoom_scale_, fov_zoom_speed_ inherited from CameraBehaviorBase
+    // camera_, enabled_, viewport_ inherited from CameraManipulatorBase
+    // zoom_method_, zoom_scale_, fov_zoom_speed_ inherited from CameraManipulatorBase
 
     vne::math::Vec3f target_world_{0.0f, 0.0f, 0.0f};
     vne::math::Vec3f offset_world_{0.0f, 2.0f, 5.0f};

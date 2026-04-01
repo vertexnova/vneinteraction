@@ -10,7 +10,7 @@
  */
 
 #include "vertexnova/interaction/trackball_behavior.h"
-#include "vertexnova/interaction/behavior_utils.h"
+#include "vertexnova/interaction/manipulator_utils.h"
 
 #include <vertexnova/logging/logging.h>
 

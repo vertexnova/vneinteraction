@@ -53,7 +53,7 @@ int main() {
     navigate.onResize(1280.0f, 720.0f);
     navigate.setMode(vne::interaction::NavigateMode::eFps);
 
-    // 3. FollowController — end-effector follow-cam (FollowBehavior)
+    // 3. FollowController — end-effector follow-cam (FollowManipulator)
     vne::interaction::FollowController follow;
     follow.setCamera(camera);
     follow.onResize(1280.0f, 720.0f);

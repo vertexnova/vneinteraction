@@ -10,7 +10,7 @@
 #include "vertexnova/interaction/ortho_2d_controller.h"
 
 #include "vertexnova/interaction/input_mapper.h"
-#include "vertexnova/interaction/ortho_2d_behavior.h"
+#include "vertexnova/interaction/ortho_2d_manipulator.h"
 
 #include "controller_event_dispatch.h"
 
@@ -31,7 +31,7 @@ using namespace vne;
 struct Ortho2DController::Impl {
     CameraRig rig;
     InputMapper mapper;
-    std::shared_ptr<Ortho2DBehavior> ortho2d_behavior;
+    std::shared_ptr<Ortho2DManipulator> ortho2d_behavior;
 
     std::shared_ptr<vne::scene::ICamera> camera;
     float viewport_w = 1280.0f;
@@ -46,8 +46,8 @@ struct Ortho2DController::Impl {
 
 Ortho2DController::Ortho2DController()
     : impl_(std::make_unique<Impl>()) {
-    impl_->ortho2d_behavior = std::make_shared<Ortho2DBehavior>();
-    impl_->rig.addBehavior(impl_->ortho2d_behavior);
+    impl_->ortho2d_behavior = std::make_shared<Ortho2DManipulator>();
+    impl_->rig.addManipulator(impl_->ortho2d_behavior);
 
     // Capture raw Impl* so the callback stays valid across moves.
     impl_->mapper.setActionCallback([impl = impl_.get()](CameraActionType a, const CameraCommandPayload& p, double dt) {
@@ -132,7 +132,7 @@ void Ortho2DController::reset() noexcept {
 InputMapper& Ortho2DController::inputMapper() noexcept {
     return impl_->mapper;
 }
-Ortho2DBehavior& Ortho2DController::ortho2DBehavior() noexcept {
+Ortho2DManipulator& Ortho2DController::ortho2DManipulator() noexcept {
     return *impl_->ortho2d_behavior;
 }
 
@@ -176,7 +176,7 @@ void Ortho2DController::rebuildRules() noexcept {
     }
 
     if (rotation_enabled_) {
-        // RMB = in-plane rotate (eRotateDelta handled by Ortho2DBehavior)
+        // RMB = in-plane rotate (eRotateDelta handled by Ortho2DManipulator)
         rules.push_back({
             .trigger = InputRule::Trigger::eMouseButton,
             .code = static_cast<int>(MouseButton::eRight),

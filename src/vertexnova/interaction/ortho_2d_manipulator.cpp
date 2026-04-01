@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/interaction/ortho_2d_behavior.h"
+#include "vertexnova/interaction/ortho_2d_manipulator.h"
 
 #include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/orthographic_camera.h"
@@ -56,28 +56,28 @@ void scalePanVelocityWithOrthoExtentChange(vne::math::Vec3f& pan_velocity,
 }  // namespace
 
 // ---------------------------------------------------------------------------
-// ICameraBehavior: setCamera / onResize
+// ICameraManipulator: setCamera / onResize
 // ---------------------------------------------------------------------------
 
-void Ortho2DBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
-    CameraBehaviorBase::setCamera(std::move(camera));
+void Ortho2DManipulator::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
+    CameraManipulatorBase::setCamera(std::move(camera));
     if (!camera_) {
-        VNE_LOG_DEBUG << "Ortho2DBehavior: camera detached (null camera)";
+        VNE_LOG_DEBUG << "Ortho2DManipulator: camera detached (null camera)";
     }
 }
 
-void Ortho2DBehavior::onResize(float width_px, float height_px) noexcept {
-    CameraBehaviorBase::onResize(width_px, height_px);
+void Ortho2DManipulator::onResize(float width_px, float height_px) noexcept {
+    CameraManipulatorBase::onResize(width_px, height_px);
 }
 
 // ---------------------------------------------------------------------------
 // Pan
 // ---------------------------------------------------------------------------
 
-void Ortho2DBehavior::pan(float delta_x_px, float delta_y_px, double delta_time) noexcept {
+void Ortho2DManipulator::pan(float delta_x_px, float delta_y_px, double delta_time) noexcept {
     auto ortho = orthoCamera();
     if (!ortho) {
-        VNE_LOG_WARN << "Ortho2DBehavior: pan called without orthographic camera";
+        VNE_LOG_WARN << "Ortho2DManipulator: pan called without orthographic camera";
         return;
     }
     const vne::math::Vec3f eye = ortho->getPosition();
@@ -110,15 +110,15 @@ void Ortho2DBehavior::pan(float delta_x_px, float delta_y_px, double delta_time)
 // In-plane rotation (slice spin about view axis through target)
 // ---------------------------------------------------------------------------
 
-void Ortho2DBehavior::rotateInPlane(float delta_x_px, float /*delta_y_px*/) noexcept {
+void Ortho2DManipulator::rotateInPlane(float delta_x_px, float /*delta_y_px*/) noexcept {
     auto ortho = orthoCamera();
     if (!ortho) {
-        VNE_LOG_WARN << "Ortho2DBehavior: rotateInPlane called without orthographic camera";
+        VNE_LOG_WARN << "Ortho2DManipulator: rotateInPlane called without orthographic camera";
         return;
     }
     const float angle_rad = delta_x_px * rotation_deg_per_px_ * kDegToRad;
     if (!std::isfinite(angle_rad)) {
-        VNE_LOG_ERROR << "Ortho2DBehavior: rotateInPlane non-finite angle (delta_x_px=" << delta_x_px
+        VNE_LOG_ERROR << "Ortho2DManipulator: rotateInPlane non-finite angle (delta_x_px=" << delta_x_px
                       << ", rotation_deg_per_px=" << rotation_deg_per_px_ << ")";
         return;
     }
@@ -131,7 +131,7 @@ void Ortho2DBehavior::rotateInPlane(float delta_x_px, float /*delta_y_px*/) noex
     vne::math::Vec3f axis = target - eye;
     const float axis_len = axis.length();
     if (axis_len < kEpsilon) {
-        VNE_LOG_WARN << "Ortho2DBehavior: rotateInPlane degenerate view axis (eye coincident with target)";
+        VNE_LOG_WARN << "Ortho2DManipulator: rotateInPlane degenerate view axis (eye coincident with target)";
         return;
     }
     axis = axis / axis_len;
@@ -151,17 +151,17 @@ void Ortho2DBehavior::rotateInPlane(float delta_x_px, float /*delta_y_px*/) noex
 // Inertia
 // ---------------------------------------------------------------------------
 
-void Ortho2DBehavior::applyInertia(double delta_time) noexcept {
+void Ortho2DManipulator::applyInertia(double delta_time) noexcept {
     auto ortho = orthoCamera();
     if (!ortho) {
-        VNE_LOG_DEBUG << "Ortho2DBehavior: applyInertia skipped (no orthographic camera)";
+        VNE_LOG_DEBUG << "Ortho2DManipulator: applyInertia skipped (no orthographic camera)";
         return;
     }
     if (delta_time <= 0.0) {
         return;
     }
     if (!std::isfinite(static_cast<double>(delta_time))) {
-        VNE_LOG_ERROR << "Ortho2DBehavior: applyInertia non-finite delta_time";
+        VNE_LOG_ERROR << "Ortho2DManipulator: applyInertia non-finite delta_time";
         return;
     }
     if (pan_velocity_.length() < kPanVelocityThreshold) {
@@ -180,10 +180,10 @@ void Ortho2DBehavior::applyInertia(double delta_time) noexcept {
 // fitToAABB / getWorldUnitsPerPixel / resetState
 // ---------------------------------------------------------------------------
 
-void Ortho2DBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept {
+void Ortho2DManipulator::fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept {
     auto ortho = orthoCamera();
     if (!ortho) {
-        VNE_LOG_WARN << "Ortho2DBehavior: fitToAABB called without orthographic camera";
+        VNE_LOG_WARN << "Ortho2DManipulator: fitToAABB called without orthographic camera";
         return;
     }
     const vne::math::Vec3f center = (min_world + max_world) * 0.5f;
@@ -234,12 +234,12 @@ void Ortho2DBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::ma
     ortho->updateMatrices();
 }
 
-float Ortho2DBehavior::getWorldUnitsPerPixel() const noexcept {
+float Ortho2DManipulator::getWorldUnitsPerPixel() const noexcept {
     auto ortho = orthoCamera();
     return ortho ? (ortho->getHeight() / viewport().height) : 0.0f;
 }
 
-void Ortho2DBehavior::resetState() noexcept {
+void Ortho2DManipulator::resetState() noexcept {
     panning_ = false;
     rotating_ = false;
     pan_velocity_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
@@ -249,7 +249,7 @@ void Ortho2DBehavior::resetState() noexcept {
 // onUpdate
 // ---------------------------------------------------------------------------
 
-void Ortho2DBehavior::onUpdate(double delta_time) noexcept {
+void Ortho2DManipulator::onUpdate(double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }
@@ -262,7 +262,7 @@ void Ortho2DBehavior::onUpdate(double delta_time) noexcept {
 // onAction
 // ---------------------------------------------------------------------------
 
-bool Ortho2DBehavior::onAction(CameraActionType action,
+bool Ortho2DManipulator::onAction(CameraActionType action,
                                const CameraCommandPayload& payload,
                                double delta_time) noexcept {
     if (!enabled_ || !camera_) {

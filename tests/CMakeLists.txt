@@ -53,11 +53,11 @@ set(TEST_SOURCES
     main.cpp
     trackball_behavior_test.cpp
     orbit_behavior_test.cpp
-    behavior_regression_test.cpp
-    orbital_camera_behavior_test.cpp
-    free_look_behavior_test.cpp
-    ortho_2d_behavior_test.cpp
-    follow_behavior_test.cpp
+    manipulator_regression_test.cpp
+    orbital_camera_manipulator_test.cpp
+    free_look_manipulator_test.cpp
+    ortho_2d_manipulator_test.cpp
+    follow_manipulator_test.cpp
     input_mapper_test.cpp
     camera_rig_test.cpp
     inspect_3d_controller_test.cpp

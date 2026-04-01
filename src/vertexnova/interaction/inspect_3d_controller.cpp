@@ -10,7 +10,7 @@
 #include "vertexnova/interaction/inspect_3d_controller.h"
 
 #include "vertexnova/interaction/input_mapper.h"
-#include "vertexnova/interaction/orbital_camera_behavior.h"
+#include "vertexnova/interaction/orbital_camera_manipulator.h"
 
 #include "controller_event_dispatch.h"
 
@@ -33,7 +33,7 @@ using namespace vne;
 struct Inspect3DController::Impl {
     CameraRig rig;
     InputMapper mapper;
-    std::shared_ptr<OrbitalCameraBehavior> orbit;  // shared ownership; also in rig
+    std::shared_ptr<OrbitalCameraManipulator> orbit;  // shared ownership; also in rig
 
     std::shared_ptr<vne::scene::ICamera> camera;
     float viewport_w = 1280.0f;
@@ -130,9 +130,9 @@ static std::vector<InputRule> buildInspectRules(bool rotation, bool pivot_on_dou
 
 Inspect3DController::Inspect3DController()
     : impl_(std::make_unique<Impl>()) {
-    impl_->orbit = std::make_shared<OrbitalCameraBehavior>();
+    impl_->orbit = std::make_shared<OrbitalCameraManipulator>();
     impl_->orbit->setRotationMode(OrbitRotationMode::eOrbit);
-    impl_->rig.addBehavior(impl_->orbit);
+    impl_->rig.addManipulator(impl_->orbit);
 
     // Wire mapper ->rig. Capture raw Impl* so the callback stays valid across moves.
     impl_->mapper.setActionCallback([impl = impl_.get()](CameraActionType a, const CameraCommandPayload& p, double dt) {
@@ -269,7 +269,7 @@ InputMapper& Inspect3DController::inputMapper() noexcept {
     return impl_->mapper;
 }
 
-OrbitalCameraBehavior& Inspect3DController::orbitalCameraBehavior() noexcept {
+OrbitalCameraManipulator& Inspect3DController::orbitalCameraManipulator() noexcept {
     return *impl_->orbit;
 }
 

@@ -12,7 +12,7 @@
 
 /**
  * @file trackball_behavior.h
- * @brief Screen-space virtual trackball (trackball): maps cursor positions to a unit sphere and derives rotations.
+ * @brief Screen-space virtual trackball (arcball): maps cursor positions to a unit sphere and derives rotations.
  *
  * @par ProjectionMode::eHyperbolic (default)
  * Isotropic mapping using `min(viewport width, height)`, inner spherical cap
@@ -28,7 +28,7 @@
  * @ref OrbitBehavior owns yaw/pitch (degrees), pitch limits, and Euler drag inertia in one type.
  * @ref TrackballBehavior owns **sphere mapping** and **ball-space** frame deltas (@ref BallFrameDelta via
  * @ref TrackballBehavior::ballFrameDeltaFromSpheres). Integrating release inertia into the orbit
- * **orientation quaternion** (world-space axis, rad/s) stays in @c OrbitalCameraBehavior because
+ * **orientation quaternion** (world-space axis, rad/s) stays in @c OrbitalCameraManipulator because
  * it requires the current camera/orientation basis — same split as mapping ball axes to world.
  */
 
@@ -51,7 +51,7 @@ struct BallFrameDelta {
 };
 
 /**
- * @brief Virtual trackball for quaternion orbit rotation (rotation only; pan lives on @c OrbitalCameraBehavior).
+ * @brief Virtual trackball for quaternion orbit rotation (rotation only; pan lives on @c OrbitalCameraManipulator).
  *
  * Call @ref setViewport when the drawable size changes. For a drag, call @ref beginDrag at
  * pointer down, then each move: @ref cumulativeDeltaQuaternion for the rotation from drag start
@@ -76,14 +76,14 @@ class VNE_INTERACTION_API TrackballBehavior {
     TrackballBehavior() noexcept = default;
 
     /**
-     * @brief Update pixel size (e.g. from @ref CameraBehaviorBase::onResize).
+     * @brief Update pixel size (e.g. from @ref CameraManipulatorBase::onResize).
      * @param size_px: (width, height) in pixels.
      */
     void setViewport(const vne::math::Vec2f& size_px) noexcept;
 
     /**
      * @brief Graphics API for window → NDC mapping in @ref project (default OpenGL).
-     * Must match @c ICamera::getGraphicsApi() / @ref CameraBehaviorBase::graphicsApi().
+     * Must match @c ICamera::getGraphicsApi() / @ref CameraManipulatorBase::graphicsApi().
      */
     void setGraphicsApi(vne::math::GraphicsApi api) noexcept { graphics_api_ = api; }
     [[nodiscard]] vne::math::GraphicsApi getGraphicsApi() const noexcept { return graphics_api_; }

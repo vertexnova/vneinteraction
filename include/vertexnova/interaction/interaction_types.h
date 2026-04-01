@@ -11,7 +11,7 @@
 
 /**
  * @file interaction_types.h
- * @brief Types, enums, and structs for camera interaction (behaviors, gestures, bindings).
+ * @brief Types, enums, and structs for camera interaction (manipulators, orbit/trackball behaviors, gestures, bindings).
  */
 
 #include "vertexnova/interaction/export.h"
@@ -47,7 +47,7 @@ enum class ZoomMethod : std::uint8_t {
     eDollyToCoi = 2,  //!< Move camera along view direction toward center of interest
 };
 
-/** Rotation algorithm for orbit-style camera (OrbitalCameraBehavior, Inspect3DController). */
+/** Rotation algorithm for orbit-style camera (OrbitalCameraManipulator, Inspect3DController). */
 enum class OrbitRotationMode : std::uint8_t {
     eOrbit = 0,      //!< Classic orbit (Euler yaw/pitch), pitch clamped [-89°, 89°]
     eTrackball = 1,  //!< Quaternion / virtual-trackball rotation (smooth, no gimbal lock)
@@ -57,7 +57,7 @@ enum class OrbitRotationMode : std::uint8_t {
  * @brief Pivot control mode for orbit-style camera behaviors.
  *
  * Determines which point in world space the camera orbits around.
- * Used by OrbitalCameraBehavior and Inspect3DController.
+ * Used by OrbitalCameraManipulator and Inspect3DController.
  */
 enum class OrbitPivotMode : std::uint8_t {
     eCoi = 0,         //!< Pan moves COI in the view plane; camera looks at COI (default).
@@ -94,7 +94,7 @@ enum class GestureAction : std::uint8_t {
     ePan = 1,       //!< Pan (button + drag)
     eZoom = 2,      //!< Zoom (scroll wheel)
     eLook = 3,      //!< FPS-style look (button + drag)
-    eSetPivot = 4,  //!< Set orbit pivot via double-click (maps to orbit COI behavior; see OrbitalCameraBehavior)
+    eSetPivot = 4,  //!< Set orbit pivot via double-click (maps to orbit COI; see OrbitalCameraManipulator)
 };
 
 /**
@@ -121,7 +121,7 @@ struct VNE_INTERACTION_API TouchPinch final {
 };
 
 // -----------------------------------------------------------------------------
-// Camera action / command layer (intent between input and behavior)
+// Camera action / command layer (intent between input and manipulator)
 // -----------------------------------------------------------------------------
 enum class CameraActionType : std::uint8_t {
     eNone = 0,  //!< Sentinel: no action for this event phase (used in InputRule)
@@ -225,7 +225,7 @@ struct VNE_INTERACTION_API OrbitInteractionState {
 };
 
 // -----------------------------------------------------------------------------
-// Internal camera state (behaviors operate on these, then apply to ICamera)
+// Internal camera state (manipulators operate on these, then apply to ICamera)
 // -----------------------------------------------------------------------------
 #ifdef _MSC_VER
 #pragma warning(push)

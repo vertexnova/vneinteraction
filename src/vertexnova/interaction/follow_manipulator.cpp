@@ -4,8 +4,8 @@
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/interaction/follow_behavior.h"
-#include "vertexnova/interaction/behavior_utils.h"
+#include "vertexnova/interaction/follow_manipulator.h"
+#include "vertexnova/interaction/manipulator_utils.h"
 
 #include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/perspective_camera.h"
@@ -32,34 +32,34 @@ constexpr float kEpsilon = 1e-6f;
 }  // namespace
 
 // ---------------------------------------------------------------------------
-// ICameraBehavior: setCamera / onResize
+// ICameraManipulator: setCamera / onResize
 // ---------------------------------------------------------------------------
 
-void FollowBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
-    CameraBehaviorBase::setCamera(std::move(camera));
+void FollowManipulator::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
+    CameraManipulatorBase::setCamera(std::move(camera));
     if (!camera_) {
-        VNE_LOG_DEBUG << "FollowBehavior: camera detached (null camera)";
+        VNE_LOG_DEBUG << "FollowManipulator: camera detached (null camera)";
     }
 }
 
-void FollowBehavior::onResize(float width_px, float height_px) noexcept {
-    CameraBehaviorBase::onResize(width_px, height_px);
+void FollowManipulator::onResize(float width_px, float height_px) noexcept {
+    CameraManipulatorBase::onResize(width_px, height_px);
 }
 
-void FollowBehavior::setOffset(const vne::math::Vec3f& offset) noexcept {
+void FollowManipulator::setOffset(const vne::math::Vec3f& offset) noexcept {
     if (offset.length() > kOffsetMinLength) {
         offset_world_ = offset;
     } else {
-        VNE_LOG_WARN << "FollowBehavior: setOffset ignored — offset length " << offset.length() << " is below minimum "
+        VNE_LOG_WARN << "FollowManipulator: setOffset ignored — offset length " << offset.length() << " is below minimum "
                      << kOffsetMinLength;
     }
 }
 
-void FollowBehavior::setWorldUp(const vne::math::Vec3f& up) noexcept {
+void FollowManipulator::setWorldUp(const vne::math::Vec3f& up) noexcept {
     if (up.length() > kEpsilon) {
         world_up_ = up.normalized();
     } else {
-        VNE_LOG_WARN << "FollowBehavior: setWorldUp called with zero-length vector, ignoring";
+        VNE_LOG_WARN << "FollowManipulator: setWorldUp called with zero-length vector, ignoring";
     }
 }
 
@@ -67,7 +67,7 @@ void FollowBehavior::setWorldUp(const vne::math::Vec3f& up) noexcept {
 // Target
 // ---------------------------------------------------------------------------
 
-vne::math::Vec3f FollowBehavior::getTargetWorld() const noexcept {
+vne::math::Vec3f FollowManipulator::getTargetWorld() const noexcept {
     return target_provider_ ? target_provider_() : target_world_;
 }
 
@@ -75,11 +75,11 @@ vne::math::Vec3f FollowBehavior::getTargetWorld() const noexcept {
 // fitToAABB / getWorldUnitsPerPixel
 // ---------------------------------------------------------------------------
 
-void FollowBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept {
+void FollowManipulator::fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept {
     target_world_ = (min_world + max_world) * 0.5f;
 }
 
-float FollowBehavior::getWorldUnitsPerPixel() const noexcept {
+float FollowManipulator::getWorldUnitsPerPixel() const noexcept {
     if (auto ortho = orthoCamera()) {
         return ortho->getHeight() / viewport().height;
     }
@@ -95,7 +95,7 @@ float FollowBehavior::getWorldUnitsPerPixel() const noexcept {
 // Zoom (applyDolly: offset scaling for eDollyToCoi; eSceneScale / eChangeFov via base dispatchZoom)
 // ---------------------------------------------------------------------------
 
-void FollowBehavior::applyDolly(float factor, float /*mx*/, float /*my*/) noexcept {
+void FollowManipulator::applyDolly(float factor, float /*mx*/, float /*my*/) noexcept {
     if (!camera_ || factor <= 0.0f) {
         return;
     }
@@ -111,7 +111,7 @@ void FollowBehavior::applyDolly(float factor, float /*mx*/, float /*my*/) noexce
 // onUpdate
 // ---------------------------------------------------------------------------
 
-void FollowBehavior::onUpdate(double delta_time) noexcept {
+void FollowManipulator::onUpdate(double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }
@@ -145,7 +145,7 @@ void FollowBehavior::onUpdate(double delta_time) noexcept {
 // onAction
 // ---------------------------------------------------------------------------
 
-bool FollowBehavior::onAction(CameraActionType action,
+bool FollowManipulator::onAction(CameraActionType action,
                               const CameraCommandPayload& payload,
                               double /*delta_time*/) noexcept {
     if (!enabled_ || !camera_) {
@@ -157,7 +157,7 @@ bool FollowBehavior::onAction(CameraActionType action,
                 dispatchZoom(payload.zoom_factor, payload.x_px, payload.y_px);
                 return true;
             }
-            VNE_LOG_DEBUG << "FollowBehavior: ignoring zoom with factor=" << payload.zoom_factor;
+            VNE_LOG_DEBUG << "FollowManipulator: ignoring zoom with factor=" << payload.zoom_factor;
             return false;
 
         case CameraActionType::eResetView:

@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/interaction/behavior_utils.h"
+#include "vertexnova/interaction/manipulator_utils.h"
 
 namespace vne::interaction {
 

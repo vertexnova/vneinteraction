@@ -10,7 +10,7 @@
 #include "vertexnova/interaction/follow_controller.h"
 
 #include "vertexnova/interaction/input_mapper.h"
-#include "vertexnova/interaction/follow_behavior.h"
+#include "vertexnova/interaction/follow_manipulator.h"
 
 #include "vertexnova/events/mouse_event.h"
 
@@ -27,7 +27,7 @@ using namespace vne;
 struct FollowController::Impl {
     CameraRig rig;
     InputMapper mapper;
-    std::shared_ptr<FollowBehavior> follow;
+    std::shared_ptr<FollowManipulator> follow;
 
     std::shared_ptr<vne::scene::ICamera> camera;
     float viewport_w = 1280.0f;
@@ -45,8 +45,8 @@ struct FollowController::Impl {
 
 FollowController::FollowController()
     : impl_(std::make_unique<Impl>()) {
-    impl_->follow = std::make_shared<FollowBehavior>();
-    impl_->rig.addBehavior(impl_->follow);
+    impl_->follow = std::make_shared<FollowManipulator>();
+    impl_->rig.addManipulator(impl_->follow);
 
     // Scroll = zoom (optional, user may want to adjust distance)
     impl_->mapper.addRule({
@@ -166,7 +166,7 @@ void FollowController::reset() noexcept {
 InputMapper& FollowController::inputMapper() noexcept {
     return impl_->mapper;
 }
-FollowBehavior& FollowController::followBehavior() noexcept {
+FollowManipulator& FollowController::followManipulator() noexcept {
     return *impl_->follow;
 }
 

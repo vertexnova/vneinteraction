@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License")
  * --------------------------------------------------------------------- */
 
-#include "vertexnova/interaction/follow_behavior.h"
+#include "vertexnova/interaction/follow_manipulator.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
 
@@ -16,8 +16,8 @@ static std::shared_ptr<vne::scene::PerspectiveCamera> makePerspCamera() {
         vne::scene::PerspectiveCameraParameters(45.0f, 16.0f / 9.0f, 0.1f, 1000.0f));
 }
 
-TEST(FollowBehavior, SetTargetWorld) {
-    vne::interaction::FollowBehavior b;
+TEST(FollowManipulator, SetTargetWorld) {
+    vne::interaction::FollowManipulator b;
     b.setTargetWorld(vne::math::Vec3f(1.0f, 2.0f, 3.0f));
     const auto t = b.getTargetWorld();
     EXPECT_FLOAT_EQ(t.x(), 1.0f);
@@ -25,19 +25,19 @@ TEST(FollowBehavior, SetTargetWorld) {
     EXPECT_FLOAT_EQ(t.z(), 3.0f);
 }
 
-TEST(FollowBehavior, SetTargetProvider) {
-    vne::interaction::FollowBehavior b;
+TEST(FollowManipulator, SetTargetProvider) {
+    vne::interaction::FollowManipulator b;
     b.setTargetProvider([]() { return vne::math::Vec3f(5.0f, 0.0f, 0.0f); });
     const auto t = b.getTargetWorld();
     EXPECT_FLOAT_EQ(t.x(), 5.0f);
 }
 
-TEST(FollowBehavior, CameraMovesTowardTarget) {
+TEST(FollowManipulator, CameraMovesTowardTarget) {
     auto cam = makePerspCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 10.0f));
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
-    vne::interaction::FollowBehavior b;
+    vne::interaction::FollowManipulator b;
     b.setCamera(cam);
     b.onResize(1280.0f, 720.0f);
     b.setTargetWorld(vne::math::Vec3f(100.0f, 0.0f, 0.0f));
@@ -51,13 +51,13 @@ TEST(FollowBehavior, CameraMovesTowardTarget) {
     EXPECT_GT((pos_after - pos_before).length(), 0.1f);
 }
 
-TEST(FollowBehavior, ViewDirectionAntiParallelToOffset) {
+TEST(FollowManipulator, ViewDirectionAntiParallelToOffset) {
     auto cam = makePerspCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 0.0f));
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, -1.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
     cam->updateMatrices();
 
-    vne::interaction::FollowBehavior b;
+    vne::interaction::FollowManipulator b;
     b.setCamera(cam);
     b.onResize(1280.0f, 720.0f);
     b.setTargetWorld(vne::math::Vec3f(100.0f, 0.0f, 0.0f));

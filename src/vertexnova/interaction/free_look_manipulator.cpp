@@ -4,8 +4,8 @@
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/interaction/free_look_behavior.h"
-#include "vertexnova/interaction/behavior_utils.h"
+#include "vertexnova/interaction/free_look_manipulator.h"
+#include "vertexnova/interaction/manipulator_utils.h"
 
 #include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/perspective_camera.h"
@@ -38,7 +38,7 @@ constexpr float kFitToAabbMargin = 1.1f;      // 10 % breathing room added to FO
 // Up-vector policy
 // ---------------------------------------------------------------------------
 
-vne::math::Vec3f FreeLookBehavior::upVector() const noexcept {
+vne::math::Vec3f FreeLookManipulator::upVector() const noexcept {
     if (mode_ == FreeLookMode::eFps) {
         // FPS: fixed world up
         return world_up_;
@@ -52,13 +52,13 @@ vne::math::Vec3f FreeLookBehavior::upVector() const noexcept {
 }
 
 // ---------------------------------------------------------------------------
-// ICameraBehavior: setCamera / onResize
+// ICameraManipulator: setCamera / onResize
 // ---------------------------------------------------------------------------
 
-void FreeLookBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
-    CameraBehaviorBase::setCamera(std::move(camera));
+void FreeLookManipulator::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
+    CameraManipulatorBase::setCamera(std::move(camera));
     if (!camera_) {
-        VNE_LOG_DEBUG << "FreeLookBehavior: camera detached (null camera)";
+        VNE_LOG_DEBUG << "FreeLookManipulator: camera detached (null camera)";
         angles_dirty_ = true;
         return;
     }
@@ -66,15 +66,15 @@ void FreeLookBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) no
     angles_dirty_ = false;
 }
 
-void FreeLookBehavior::onResize(float width_px, float height_px) noexcept {
-    CameraBehaviorBase::onResize(width_px, height_px);
+void FreeLookManipulator::onResize(float width_px, float height_px) noexcept {
+    CameraManipulatorBase::onResize(width_px, height_px);
 }
 
 // ---------------------------------------------------------------------------
 // Movement math (copied from FreeCameraBase)
 // ---------------------------------------------------------------------------
 
-vne::math::Vec3f FreeLookBehavior::front() const noexcept {
+vne::math::Vec3f FreeLookManipulator::front() const noexcept {
     const vne::math::Vec3f up = upVector();
     vne::math::Vec3f ref_fwd, ref_right;
     buildReferenceFrame(up, ref_fwd, ref_right);
@@ -88,13 +88,13 @@ vne::math::Vec3f FreeLookBehavior::front() const noexcept {
     return (len < kEpsilon) ? ref_fwd : (f / len);
 }
 
-vne::math::Vec3f FreeLookBehavior::right(const vne::math::Vec3f& front_vec) const noexcept {
+vne::math::Vec3f FreeLookManipulator::right(const vne::math::Vec3f& front_vec) const noexcept {
     vne::math::Vec3f r = front_vec.cross(upVector());
     const float len = r.length();
     return (len < kEpsilon) ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : (r / len);
 }
 
-vne::math::Vec3f FreeLookBehavior::orthoPanUp(const vne::math::Vec3f& view_dir,
+vne::math::Vec3f FreeLookManipulator::orthoPanUp(const vne::math::Vec3f& view_dir,
                                               const vne::math::Vec3f& vertical_hint) const noexcept {
     const vne::math::Vec3f f =
         view_dir.length() < kEpsilon ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : view_dir.normalized();
@@ -123,11 +123,11 @@ vne::math::Vec3f FreeLookBehavior::orthoPanUp(const vne::math::Vec3f& view_dir,
     return u / len;
 }
 
-vne::math::Vec3f FreeLookBehavior::orthoPanUp(const vne::math::Vec3f& view_dir) const noexcept {
+vne::math::Vec3f FreeLookManipulator::orthoPanUp(const vne::math::Vec3f& view_dir) const noexcept {
     return orthoPanUp(view_dir, upVector());
 }
 
-vne::math::Vec3f FreeLookBehavior::orthoPanUp(const vne::scene::OrthographicCamera& ortho,
+vne::math::Vec3f FreeLookManipulator::orthoPanUp(const vne::scene::OrthographicCamera& ortho,
                                               const vne::math::Vec3f& vertical_hint) const noexcept {
     const vne::math::Vec3f view_raw = ortho.getTarget() - ortho.getPosition();
     const float view_len = view_raw.length();
@@ -135,7 +135,7 @@ vne::math::Vec3f FreeLookBehavior::orthoPanUp(const vne::scene::OrthographicCame
     return orthoPanUp(view_dir, vertical_hint);
 }
 
-void FreeLookBehavior::syncAnglesFromCamera() noexcept {
+void FreeLookManipulator::syncAnglesFromCamera() noexcept {
     if (!camera_) {
         return;
     }
@@ -164,7 +164,7 @@ void FreeLookBehavior::syncAnglesFromCamera() noexcept {
     yaw_deg_ = vne::math::radToDeg(vne::math::atan2(horiz_n.dot(ref_right), horiz_n.dot(ref_fwd)));
 }
 
-void FreeLookBehavior::ensureAnglesSynced() noexcept {
+void FreeLookManipulator::ensureAnglesSynced() noexcept {
     if (!angles_dirty_ || !camera_) {
         return;
     }
@@ -172,7 +172,7 @@ void FreeLookBehavior::ensureAnglesSynced() noexcept {
     angles_dirty_ = false;
 }
 
-void FreeLookBehavior::applyAnglesToCamera() noexcept {
+void FreeLookManipulator::applyAnglesToCamera() noexcept {
     if (!camera_) {
         return;
     }
@@ -202,13 +202,13 @@ void FreeLookBehavior::applyAnglesToCamera() noexcept {
     camera_->updateMatrices();
 }
 
-void FreeLookBehavior::applyDolly(float factor, float mx, float my) noexcept {
+void FreeLookManipulator::applyDolly(float factor, float mx, float my) noexcept {
     // Ortho: delegate to base cursor-anchored zoom.
     if (orthoCamera()) {
-        CameraBehaviorBase::applyDolly(factor, mx, my);
+        CameraManipulatorBase::applyDolly(factor, mx, my);
         return;
     }
-    // Perspective: dolly along view. zoom_speed_ is an exponent on scroll_factor (same as OrbitalCameraBehavior);
+    // Perspective: dolly along view. zoom_speed_ is an exponent on scroll_factor (same as OrbitalCameraManipulator);
     // step = (1 − pow(factor, zoom_speed_)) × eye–target distance — small scroll deltas stay small.
     if (!camera_) {
         return;
@@ -227,11 +227,11 @@ void FreeLookBehavior::applyDolly(float factor, float mx, float my) noexcept {
 // setWorldUp
 // ---------------------------------------------------------------------------
 
-void FreeLookBehavior::setWorldUp(const vne::math::Vec3f& up) noexcept {
+void FreeLookManipulator::setWorldUp(const vne::math::Vec3f& up) noexcept {
     if (up.length() > kEpsilon) {
         world_up_ = up.normalized();
     } else {
-        VNE_LOG_WARN << "FreeLookBehavior: setWorldUp called with zero-length vector, ignoring";
+        VNE_LOG_WARN << "FreeLookManipulator: setWorldUp called with zero-length vector, ignoring";
     }
 }
 
@@ -239,7 +239,7 @@ void FreeLookBehavior::setWorldUp(const vne::math::Vec3f& up) noexcept {
 // getWorldUnitsPerPixel / fitToAABB
 // ---------------------------------------------------------------------------
 
-float FreeLookBehavior::getWorldUnitsPerPixel() const noexcept {
+float FreeLookManipulator::getWorldUnitsPerPixel() const noexcept {
     if (auto persp = perspCamera()) {
         const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
         return 2.0f * vne::math::tan(fov_y_rad * 0.5f) / viewport().height;
@@ -247,7 +247,7 @@ float FreeLookBehavior::getWorldUnitsPerPixel() const noexcept {
     return 1.0f;
 }
 
-void FreeLookBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept {
+void FreeLookManipulator::fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept {
     if (!camera_) {
         return;
     }
@@ -275,7 +275,7 @@ void FreeLookBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::m
 // resetState
 // ---------------------------------------------------------------------------
 
-void FreeLookBehavior::resetState() noexcept {
+void FreeLookManipulator::resetState() noexcept {
     input_state_ = FreeLookInputState{};
     syncAnglesFromCamera();
     angles_dirty_ = false;
@@ -285,7 +285,7 @@ void FreeLookBehavior::resetState() noexcept {
 // onUpdate
 // ---------------------------------------------------------------------------
 
-void FreeLookBehavior::onUpdate(double delta_time) noexcept {
+void FreeLookManipulator::onUpdate(double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }
@@ -389,7 +389,7 @@ void FreeLookBehavior::onUpdate(double delta_time) noexcept {
 // onAction
 // ---------------------------------------------------------------------------
 
-bool FreeLookBehavior::onAction(CameraActionType action,
+bool FreeLookManipulator::onAction(CameraActionType action,
                                 const CameraCommandPayload& payload,
                                 double /*delta_time*/) noexcept {
     if (!enabled_) {

@@ -2,7 +2,7 @@
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
- * Example 01: Library info — version query and behavior system overview.
+ * Example 01: Library info — version query and camera manipulator overview.
  * ----------------------------------------------------------------------
  */
 
@@ -17,8 +17,9 @@ int main() {
 
     VNE_LOG_INFO << "VneInteraction " << vne::interaction::get_version();
 
-    VNE_LOG_INFO << "Behaviors: OrbitalCameraBehavior (trackball / orbit), FreeLookBehavior (FPS / Fly), "
-                 << "Ortho2DBehavior (orthographic 2D pan+zoom+rotate), FollowBehavior (smooth follow)";
+    VNE_LOG_INFO << "Manipulators: OrbitalCameraManipulator (trackball / orbit), FreeLookManipulator (FPS / Fly), "
+                 << "Ortho2DManipulator (orthographic 2D pan+zoom+rotate), FollowManipulator (smooth follow); "
+                 << "orbit/trackball math: OrbitBehavior, TrackballBehavior";
 
     VNE_LOG_INFO << "InputMapper presets: orbitPreset(), fpsPreset(), gamePreset(), cadPreset(), orthoPreset()";
 

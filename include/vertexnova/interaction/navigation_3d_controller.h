@@ -52,8 +52,8 @@ class ICamera;
 namespace vne::interaction {
 
 class InputMapper;
-class FreeLookBehavior;
-class OrbitalCameraBehavior;
+class FreeLookManipulator;
+class OrbitalCameraManipulator;
 
 /** Navigation mode for Navigation3DController. */
 enum class NavigateMode : std::uint8_t {
@@ -64,7 +64,7 @@ enum class NavigateMode : std::uint8_t {
 /**
  * @brief High-level camera controller for 3D environment traversal.
  *
- * Wraps a CameraRig (FreeLookBehavior) and an InputMapper with a sensible preset per mode.
+ * Wraps a CameraRig (FreeLookManipulator) and an InputMapper with a sensible preset per mode.
  *
  * Covers: FPS games, flight/space sims, architectural walkthroughs,
  * game editors, drone simulators.
@@ -132,13 +132,13 @@ class VNE_INTERACTION_API Navigation3DController {
     // -------------------------------------------------------------------------
 
     [[nodiscard]] InputMapper& inputMapper() noexcept;
-    [[nodiscard]] FreeLookBehavior& freeLookBehavior() noexcept;
+    [[nodiscard]] FreeLookManipulator& freeLookManipulator() noexcept;
 
     /**
      * @brief Former hook for hybrid orbit + free-look; always returns nullptr.
      * @deprecated Use Inspect3DController for orbit-style inspection, or compose CameraRig manually.
      */
-    [[nodiscard]] OrbitalCameraBehavior* orbitalCameraBehavior() noexcept;
+    [[nodiscard]] OrbitalCameraManipulator* orbitalCameraManipulator() noexcept;
 
    private:
     void rebuild() noexcept;

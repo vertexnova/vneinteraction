@@ -21,7 +21,7 @@
  * ctrl.setCamera(camera);
  * // Follow a dynamic transform (only translation from the matrix is used for the target point):
  * ctrl.setTarget([&]{ return player.worldTransform(); });
- * ctrl.setOffset({0.0f, 2.0f, 5.0f});   // world space: same default semantics as FollowBehavior
+ * ctrl.setOffset({0.0f, 2.0f, 5.0f});   // world space: same default semantics as FollowManipulator
  * ctrl.setLag(0.1f);                    // smooth follow
  * @endcode
  *
@@ -52,17 +52,17 @@ class ICamera;
 namespace vne::interaction {
 
 class InputMapper;
-class FollowBehavior;
+class FollowManipulator;
 
 /**
  * @brief High-level camera controller for smooth target following.
  *
- * Wraps a CameraRig (FollowBehavior). No user input is required;
+ * Wraps a CameraRig (FollowManipulator). No user input is required;
  * the camera autonomously tracks the target transform each frame.
  *
  * Covers: third-person game cameras, cinematic rigs, vehicle chase cams.
  * Target orientation from @c Mat4f is not used to rotate the offset — only the
- * translation column; offset is world-space (see @ref FollowBehavior::setOffset).
+ * translation column; offset is world-space (see @ref FollowManipulator::setOffset).
  *
  * @threadsafe Not thread-safe. Call all methods from the same thread.
  */
@@ -118,7 +118,7 @@ class VNE_INTERACTION_API FollowController {
 
     /**
      * @brief World-space vector from target position to desired eye: @c desired_eye = target + offset.
-     * Not rotated by target orientation; see @ref FollowBehavior::setOffset for axis convention.
+     * Not rotated by target orientation; see @ref FollowManipulator::setOffset for axis convention.
      */
     void setOffset(const vne::math::Vec3f& world_offset) noexcept;
     [[nodiscard]] vne::math::Vec3f getOffset() const noexcept;
@@ -141,7 +141,7 @@ class VNE_INTERACTION_API FollowController {
     // -------------------------------------------------------------------------
 
     [[nodiscard]] InputMapper& inputMapper() noexcept;
-    [[nodiscard]] FollowBehavior& followBehavior() noexcept;
+    [[nodiscard]] FollowManipulator& followManipulator() noexcept;
 
    private:
     struct Impl;

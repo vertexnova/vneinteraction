@@ -4,8 +4,8 @@
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/interaction/camera_behavior_base.h"
-#include "vertexnova/interaction/behavior_utils.h"
+#include "vertexnova/interaction/camera_manipulator_base.h"
+#include "vertexnova/interaction/manipulator_utils.h"
 
 #include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/orthographic_camera.h"
@@ -25,10 +25,10 @@ constexpr float kZoomOrthoHalfMax = 1e6f;
 }  // namespace
 
 // ---------------------------------------------------------------------------
-// ICameraBehavior — overrides that need implementation
+// ICameraManipulator — overrides that need implementation
 // ---------------------------------------------------------------------------
 
-void CameraBehaviorBase::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
+void CameraManipulatorBase::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
     camera_ = std::move(camera);
     if (camera_) {
         zoom_scale_ = vne::math::clamp(camera_->getSceneScale(), kSceneScaleMin, kSceneScaleMax);
@@ -39,11 +39,11 @@ void CameraBehaviorBase::setCamera(std::shared_ptr<vne::scene::ICamera> camera) 
 // Public API
 // ---------------------------------------------------------------------------
 
-void CameraBehaviorBase::setFovZoomSpeed(float speed) noexcept {
+void CameraManipulatorBase::setFovZoomSpeed(float speed) noexcept {
     fov_zoom_speed_ = std::max(0.01f, speed);
 }
 
-void CameraBehaviorBase::setZoomMethod(ZoomMethod method) noexcept {
+void CameraManipulatorBase::setZoomMethod(ZoomMethod method) noexcept {
     const ZoomMethod prev = zoom_method_;
     zoom_method_ = method;
     if (prev == ZoomMethod::eSceneScale && method != ZoomMethod::eSceneScale && camera_) {
@@ -57,15 +57,15 @@ void CameraBehaviorBase::setZoomMethod(ZoomMethod method) noexcept {
 // Camera type helpers
 // ---------------------------------------------------------------------------
 
-std::shared_ptr<vne::scene::PerspectiveCamera> CameraBehaviorBase::perspCamera() const noexcept {
+std::shared_ptr<vne::scene::PerspectiveCamera> CameraManipulatorBase::perspCamera() const noexcept {
     return std::dynamic_pointer_cast<vne::scene::PerspectiveCamera>(camera_);
 }
 
-std::shared_ptr<vne::scene::OrthographicCamera> CameraBehaviorBase::orthoCamera() const noexcept {
+std::shared_ptr<vne::scene::OrthographicCamera> CameraManipulatorBase::orthoCamera() const noexcept {
     return std::dynamic_pointer_cast<vne::scene::OrthographicCamera>(camera_);
 }
 
-vne::math::GraphicsApi CameraBehaviorBase::graphicsApi() const noexcept {
+vne::math::GraphicsApi CameraManipulatorBase::graphicsApi() const noexcept {
     return camera_ ? camera_->getGraphicsApi() : vne::math::GraphicsApi::eOpenGL;
 }
 
@@ -73,7 +73,7 @@ vne::math::GraphicsApi CameraBehaviorBase::graphicsApi() const noexcept {
 // Zoom dispatch
 // ---------------------------------------------------------------------------
 
-void CameraBehaviorBase::dispatchZoom(float factor, float mx, float my) noexcept {
+void CameraManipulatorBase::dispatchZoom(float factor, float mx, float my) noexcept {
     if (!camera_ || factor <= 0.0f || !std::isfinite(factor)) {
         return;
     }
@@ -90,7 +90,7 @@ void CameraBehaviorBase::dispatchZoom(float factor, float mx, float my) noexcept
     }
 }
 
-void CameraBehaviorBase::applyDolly(float factor, float mx, float my) noexcept {
+void CameraManipulatorBase::applyDolly(float factor, float mx, float my) noexcept {
     // Default: handle ortho cursor-anchored zoom; persp no-op (behaviors override).
     if (orthoCamera()) {
         applyOrthoZoomToCursor(factor, mx, my);
@@ -101,7 +101,7 @@ void CameraBehaviorBase::applyDolly(float factor, float mx, float my) noexcept {
 // applyFovZoom
 // ---------------------------------------------------------------------------
 
-void CameraBehaviorBase::applyFovZoom(float factor) noexcept {
+void CameraManipulatorBase::applyFovZoom(float factor) noexcept {
     if (!camera_ || factor <= 0.0f || !std::isfinite(factor)) {
         return;
     }
@@ -128,7 +128,7 @@ void CameraBehaviorBase::applyFovZoom(float factor) noexcept {
 // applySceneScaleZoom
 // ---------------------------------------------------------------------------
 
-void CameraBehaviorBase::applySceneScaleZoom(float factor) noexcept {
+void CameraManipulatorBase::applySceneScaleZoom(float factor) noexcept {
     if (!camera_ || factor <= 0.0f || !std::isfinite(factor)) {
         return;
     }
@@ -141,7 +141,7 @@ void CameraBehaviorBase::applySceneScaleZoom(float factor) noexcept {
 // applyOrthoZoomToCursor
 // ---------------------------------------------------------------------------
 
-void CameraBehaviorBase::applyOrthoZoomToCursor(float factor, float mx, float my) noexcept {
+void CameraManipulatorBase::applyOrthoZoomToCursor(float factor, float mx, float my) noexcept {
     auto ortho = orthoCamera();
     if (!ortho || viewport().width <= 0.0f || viewport().height <= 0.0f) {
         return;

@@ -10,15 +10,15 @@
  */
 
 /**
- * @file orbital_camera_behavior.h
- * @brief OrbitalCameraBehavior — orbit camera behavior with Euler or virtual-trackball rotation (ICameraBehavior).
+ * @file orbital_camera_manipulator.h
+ * @brief OrbitalCameraManipulator — orbit camera behavior with Euler or virtual-trackball rotation (ICameraManipulator).
  *
  * Supports both Euler (classic orbit) and quaternion virtual-trackball rotation modes,
  * and three pivot modes (COI, ViewCenter, Fixed). Handles rotate, pan, zoom,
  * inertia, and fitToAABB.
  */
 
-#include "vertexnova/interaction/camera_behavior_base.h"
+#include "vertexnova/interaction/camera_manipulator_base.h"
 #include "vertexnova/interaction/orbit_behavior.h"
 #include "vertexnova/interaction/trackball_behavior.h"
 #include "vertexnova/interaction/interaction_types.h"
@@ -40,11 +40,11 @@ namespace vne::interaction {
 /**
  * @brief Orbital camera behavior (Euler orbit or virtual-trackball rotation).
  *
- * Implements ICameraBehavior for orbit-style interaction. Handles rotate, pan, and zoom
+ * Implements ICameraManipulator for orbit-style interaction. Handles rotate, pan, and zoom
  * actions. Supports inertia via exponential decay.
  *
  * - RotationMode::eOrbit   — classic yaw/pitch orbit, pitch clamped to [-89°, 89°] (raw window deltas, deg/pixel)
- * - RotationMode::eTrackball — arcball quaternion; sphere mapping uses @ref CameraBehaviorBase::graphicsApi()
+ * - RotationMode::eTrackball — arcball quaternion; sphere mapping uses @ref CameraManipulatorBase::graphicsApi()
  *   (same NDC path as pan and zoom-to-cursor)
  * - Pan — view-plane motion from @c mouseWindowDeltaToNDCDelta × frustum half-extents at the camera (API-aware)
  * - PivotMode::eCoi — orbit center follows pan in the view plane (see @ref OrbitPivotMode).
@@ -53,19 +53,19 @@ namespace vne::interaction {
  *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
  */
-class VNE_INTERACTION_API OrbitalCameraBehavior final : public CameraBehaviorBase {
+class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipulatorBase {
    public:
     /** Construct with default settings (eOrbit mode, eCoi pivot, Y-up). */
-    OrbitalCameraBehavior() noexcept;
-    ~OrbitalCameraBehavior() noexcept override = default;
+    OrbitalCameraManipulator() noexcept;
+    ~OrbitalCameraManipulator() noexcept override = default;
 
-    OrbitalCameraBehavior(const OrbitalCameraBehavior&) = delete;
-    OrbitalCameraBehavior& operator=(const OrbitalCameraBehavior&) = delete;
-    OrbitalCameraBehavior(OrbitalCameraBehavior&&) noexcept = default;
-    OrbitalCameraBehavior& operator=(OrbitalCameraBehavior&&) noexcept = default;
+    OrbitalCameraManipulator(const OrbitalCameraManipulator&) = delete;
+    OrbitalCameraManipulator& operator=(const OrbitalCameraManipulator&) = delete;
+    OrbitalCameraManipulator(OrbitalCameraManipulator&&) noexcept = default;
+    OrbitalCameraManipulator& operator=(OrbitalCameraManipulator&&) noexcept = default;
 
     // -------------------------------------------------------------------------
-    // ICameraBehavior
+    // ICameraManipulator
     // -------------------------------------------------------------------------
 
     /**
@@ -87,7 +87,7 @@ class VNE_INTERACTION_API OrbitalCameraBehavior final : public CameraBehaviorBas
     /** Reset all interaction state (velocities, drag tracking). */
     void resetState() noexcept override;
 
-    // isEnabled / setEnabled inherited from CameraBehaviorBase
+    // isEnabled / setEnabled inherited from CameraManipulatorBase
 
     // -------------------------------------------------------------------------
     // Orbit / trackball-specific API
@@ -150,7 +150,7 @@ class VNE_INTERACTION_API OrbitalCameraBehavior final : public CameraBehaviorBas
     [[nodiscard]] float getZoomSpeed() const noexcept { return zoom_speed_; }
 
     // setZoomMethod / getZoomMethod / setFovZoomSpeed / getFovZoomSpeed / getZoomScale
-    // are inherited from CameraBehaviorBase.
+    // are inherited from CameraManipulatorBase.
 
     /**
      * Set rotation speed multiplier (>= 0). Scales Euler yaw/pitch (deg/pixel). For trackball mode, the
@@ -249,8 +249,8 @@ class VNE_INTERACTION_API OrbitalCameraBehavior final : public CameraBehaviorBas
     [[nodiscard]] bool isOrthographic() const noexcept;
 
     // ---- state ------------------------------------------------------------------
-    // camera_, enabled_, viewport_ inherited from CameraBehaviorBase
-    // zoom_method_, zoom_scale_, fov_zoom_speed_ inherited from CameraBehaviorBase
+    // camera_, enabled_, viewport_ inherited from CameraManipulatorBase
+    // zoom_method_, zoom_scale_, fov_zoom_speed_ inherited from CameraManipulatorBase
 
     OrbitRotationMode rotation_mode_ = OrbitRotationMode::eOrbit;
     OrbitPivotMode pivot_mode_ = OrbitPivotMode::eCoi;

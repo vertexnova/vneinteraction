@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <strong>Camera interaction library (behaviors and controllers) for the VertexNova ecosystem</strong>
+  <strong>Camera interaction library (manipulators, orbit/trackball behaviors, and controllers) for the VertexNova ecosystem</strong>
 </p>
 
 <p align="center">
@@ -21,21 +21,21 @@
 
 ## About
 
-VneInteraction provides composable camera behaviors and high-level controllers for the [VertexNova](https://github.com/vertexnova) stack. It does not implement rendering, windowing, or an event system — it consumes events (e.g. from [vneevents](https://github.com/vertexnova/vneevents)) that your application feeds in, and drives cameras from [vnescene](https://github.com/vertexnova/vnescene).
+VneInteraction provides composable camera manipulators (plus `TrackballBehavior` / `OrbitBehavior` math helpers) and high-level controllers for the [VertexNova](https://github.com/vertexnova) stack. It does not implement rendering, windowing, or an event system — it consumes events (e.g. from [vneevents](https://github.com/vertexnova/vneevents)) that your application feeds in, and drives cameras from [vnescene](https://github.com/vertexnova/vnescene).
 
 VneInteraction is a C++20 library offering:
 
-- **Behaviors**: `OrbitalCameraBehavior`, `FreeLookBehavior`, `Ortho2DBehavior`, `FollowBehavior` — each implements `ICameraBehavior` and works with `vne::scene::ICamera` (perspective or orthographic).
-- **Controllers**: `Inspect3DController`, `Navigation3DController`, `Ortho2DController`, `FollowController` — high-level wrappers that combine behaviors with `InputMapper` and event handling.
+- **Manipulators**: `OrbitalCameraManipulator`, `FreeLookManipulator`, `Ortho2DManipulator`, `FollowManipulator` — each implements `ICameraManipulator` and works with `vne::scene::ICamera` (perspective or orthographic). Orbit Euler and trackball sphere math remain `OrbitBehavior` / `TrackballBehavior`.
+- **Controllers**: `Inspect3DController`, `Navigation3DController`, `Ortho2DController`, `FollowController` — high-level wrappers that combine manipulators with `InputMapper` and event handling.
 - **InputMapper**: Maps mouse, keyboard, and touch events to `CameraActionType` via configurable `InputRule` presets (orbit, FPS, game, CAD, ortho).
-- **CameraRig**: Multi-behavior container for custom compositions.
+- **CameraRig**: Multi-manipulator container for custom compositions.
 - **Event-based**: Controllers expose `onEvent(event, delta_time)` and `onUpdate(delta_time)`; compatible with vneevents or any event source.
 
 It depends on **vnescene** (and transitively **vnemath**) for cameras and math, and **vneevents** for event types. Tests use Google Test; examples optionally use **vnelogging**.
 
 ## Features
 
-- **Behaviors**: `OrbitalCameraBehavior`, `FreeLookBehavior`, `Ortho2DBehavior`, `FollowBehavior` — rotation modes (Euler/Quaternion), pivot modes, zoom methods, inertia, fit-to-AABB.
+- **Manipulators**: `OrbitalCameraManipulator`, `FreeLookManipulator`, `Ortho2DManipulator`, `FollowManipulator` — rotation modes (Euler/Quaternion), pivot modes, zoom methods, inertia, fit-to-AABB.
 - **Controllers**: `Inspect3DController` (3D inspection), `Navigation3DController` (FPS/Fly modes), `Ortho2DController` (2D slices, maps), `FollowController` (target following).
 - **InputMapper**: Presets (`orbitPreset`, `fpsPreset`, `gamePreset`, `cadPreset`, `orthoPreset`) and custom `InputRule` configuration.
 - **Types**: `CameraActionType`, `CameraCommandPayload`, `InputRule`, `ZoomMethod`, `OrbitPivotMode`, `NavigateMode`, etc. in `interaction_types.h`.
@@ -153,13 +153,13 @@ int main() {
 }
 ```
 
-See [examples/01_library_info](examples/01_library_info) for version and behavior listing, and [examples/02_medical_3d_inspect](examples/02_medical_3d_inspect) for a minimal Inspect3DController example.
+See [examples/01_library_info](examples/01_library_info) for version and manipulator listing, and [examples/02_medical_3d_inspect](examples/02_medical_3d_inspect) for a minimal Inspect3DController example.
 
 ## Examples
 
 | Example | Description |
 |---------|-------------|
-| [01_library_info](examples/01_library_info) | Version info; list all behavior types and presets |
+| [01_library_info](examples/01_library_info) | Version info; list manipulator types and presets |
 | [02_medical_3d_inspect](examples/02_medical_3d_inspect) | Inspect3DController — 3D inspection, Euler orbit (default) or trackball, landmark pivot, fitToAABB |
 | [03_medical_2d_slices](examples/03_medical_2d_slices) | Ortho2DController — pan, scroll-zoom, ortho camera |
 | [04_game_editor_camera](examples/04_game_editor_camera) | Navigation3DController — FPS and Fly, WASD + mouse look (sprint) |

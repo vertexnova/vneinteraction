@@ -2,42 +2,43 @@
 
 ## Overview
 
-The Interaction module provides composable camera behaviors and high-level controllers for camera interaction. It is designed for use with [vnescene](https://github.com/vertexnova/vnescene) cameras and [vneevents](https://github.com/vertexnova/vneevents) for event types. It does not implement windowing or rendering.
+The Interaction module provides composable camera manipulators, orbit/trackball behavior helpers, and high-level controllers for camera interaction. It is designed for use with [vnescene](https://github.com/vertexnova/vnescene) cameras and [vneevents](https://github.com/vertexnova/vneevents) for event types. It does not implement windowing or rendering.
 
 **Key characteristics:**
 
 - **Event-based**: Controllers consume `vne::events::Event` objects (mouse, keyboard, touch) and expose `onEvent(event, delta_time)` and `onUpdate(delta_time)`.
-- **Behaviors**: Each behavior implements `ICameraBehavior`, holds a `std::shared_ptr<vne::scene::ICamera>`, and processes `CameraActionType` actions (orbit, pan, zoom, move, look, etc.).
-- **Controllers**: High-level wrappers (`Inspect3DController`, `Navigation3DController`, `Ortho2DController`, `FollowController`) combine behaviors with `InputMapper` and event handling.
-- **Composable**: `CameraRig` holds multiple behaviors; each receives every action independently. Enables hybrid setups (e.g. orbit + free-look for game editors).
+- **Manipulators**: Each manipulator implements `ICameraManipulator`, holds a `std::shared_ptr<vne::scene::ICamera>`, and processes `CameraActionType` actions (orbit, pan, zoom, move, look, etc.). **`OrbitBehavior`** and **`TrackballBehavior`** are focused math helpers used by `OrbitalCameraManipulator` (not registered on `CameraRig` themselves).
+- **Controllers**: High-level wrappers (`Inspect3DController`, `Navigation3DController`, `Ortho2DController`, `FollowController`) combine manipulators with `InputMapper` and event handling.
+- **Composable**: `CameraRig` holds multiple manipulators; each receives every action independently. Enables hybrid setups (e.g. orbit + free-look for game editors).
 
 ## Architecture
 
-- **Public API** (`include/vertexnova/interaction/`): `camera_behavior.h`, `camera_rig.h`, `orbital_camera_behavior.h`, `free_look_behavior.h`, `ortho_2d_behavior.h`, `follow_behavior.h`, `input_mapper.h`, `inspect_3d_controller.h`, `navigation_3d_controller.h`, `ortho_2d_controller.h`, `follow_controller.h`, `interaction_types.h`, `interaction.h` (umbrella), `version.h`.
-- **Implementation** (`src/vertexnova/interaction/`): One `.cpp` per behavior and controller plus `input_mapper.cpp`, `camera_rig.cpp`, and `version.cpp`.
+- **Public API** (`include/vertexnova/interaction/`): `orbit_behavior.h`, `trackball_behavior.h`, `camera_manipulator.h`, `camera_manipulator_base.h`, `camera_rig.h`, `orbital_camera_manipulator.h`, `free_look_manipulator.h`, `ortho_2d_manipulator.h`, `follow_manipulator.h`, `input_mapper.h`, `inspect_3d_controller.h`, `navigation_3d_controller.h`, `ortho_2d_controller.h`, `follow_controller.h`, `interaction_types.h`, `interaction.h` (umbrella), `version.h`.
+- **Implementation** (`src/vertexnova/interaction/`): One `.cpp` per manipulator and controller plus `input_mapper.cpp`, `camera_rig.cpp`, `manipulator_utils.cpp`, and `version.cpp`.
 - **Dependencies**: **vnescene** (cameras, `ICamera`, `PerspectiveCamera`, `OrthographicCamera`, `CameraFactory`), **vneevents** (event types), **vnemath** (vectors, quaternions, matrices; pulled in via vnescene).
 
 ## Key Components
 
-### Behaviors (ICameraBehavior)
+### Manipulators (ICameraManipulator)
 
-- **camera_behavior.h**: `ICameraBehavior` — interface: `onAction`, `onUpdate`, `setCamera`, `onResize`, `resetState`, `isEnabled`, `setEnabled`.
-- **orbital_camera_behavior.h**: `OrbitalCameraBehavior` — orbit around a center of interest; Euler or Quaternion rotation; pivot modes (COI, ViewCenter, Fixed); pan, zoom, inertia, fitToAABB.
-- **free_look_behavior.h**: `FreeLookBehavior` — FPS or Fly mode; WASD movement, mouse look, sprint/slow modifiers.
-- **ortho_2d_behavior.h**: `Ortho2DBehavior` — orthographic camera only; pan, zoom-to-cursor, optional in-plane rotation; inertia.
-- **follow_behavior.h**: `FollowBehavior` — follow a target (static or from provider); smooth damping; offset.
+- **camera_manipulator.h**: `ICameraManipulator` — interface: `onAction`, `onUpdate`, `setCamera`, `onResize`, `resetState`, `isEnabled`, `setEnabled`.
+- **camera_manipulator_base.h**: `CameraManipulatorBase` — shared zoom dispatch and helpers for concrete manipulators.
+- **orbital_camera_manipulator.h**: `OrbitalCameraManipulator` — orbit around a center of interest; Euler or Quaternion rotation; pivot modes (COI, ViewCenter, Fixed); pan, zoom, inertia, fitToAABB.
+- **free_look_manipulator.h**: `FreeLookManipulator` — FPS or Fly mode; WASD movement, mouse look, sprint/slow modifiers.
+- **ortho_2d_manipulator.h**: `Ortho2DManipulator` — orthographic camera only; pan, zoom-to-cursor, optional in-plane rotation; inertia.
+- **follow_manipulator.h**: `FollowManipulator` — follow a target (static or from provider); smooth damping; offset.
 
 ### Controllers
 
-- **inspect_3d_controller.h**: `Inspect3DController` — 3D inspection (medical, CAD); wraps `OrbitalCameraBehavior` + `InputMapper` with orbit preset; pivot, DOF toggles, fitToAABB.
-- **navigation_3d_controller.h**: `Navigation3DController` — 3D environment traversal; FPS or Fly mode; wraps `FreeLookBehavior` + `InputMapper` (`fpsPreset`).
-- **ortho_2d_controller.h**: `Ortho2DController` — 2D orthographic viewports (slices, maps); wraps `Ortho2DBehavior` + `InputMapper` with ortho preset.
-- **follow_controller.h**: `FollowController` — target-follow camera; wraps `FollowBehavior`; no user input required.
+- **inspect_3d_controller.h**: `Inspect3DController` — 3D inspection (medical, CAD); wraps `OrbitalCameraManipulator` + `InputMapper` with orbit preset; pivot, DOF toggles, fitToAABB.
+- **navigation_3d_controller.h**: `Navigation3DController` — 3D environment traversal; FPS or Fly mode; wraps `FreeLookManipulator` + `InputMapper` (`fpsPreset`).
+- **ortho_2d_controller.h**: `Ortho2DController` — 2D orthographic viewports (slices, maps); wraps `Ortho2DManipulator` + `InputMapper` with ortho preset.
+- **follow_controller.h**: `FollowController` — target-follow camera; wraps `FollowManipulator`; no user input required.
 
 ### Input and Rig
 
 - **input_mapper.h**: `InputMapper` — maps mouse/keyboard/touch events to `CameraActionType` via `InputRule`; presets: `orbitPreset`, `fpsPreset`, `gamePreset`, `cadPreset`, `orthoPreset`.
-- **camera_rig.h**: `CameraRig` — multi-behavior container; `onAction`, `onUpdate`, `setCamera`, `onResize`, `resetState`; factory methods: `makeOrbit`, `makeTrackball`, `makeFps`, `makeFly`, `makeOrtho2D`, `makeFollow`, `make2D`.
+- **camera_rig.h**: `CameraRig` — multi-manipulator container; `onAction`, `onUpdate`, `setCamera`, `onResize`, `resetState`; `addManipulator` / `manipulators()` / `clearManipulators`; factory methods: `makeOrbit`, `makeTrackball`, `makeFps`, `makeFly`, `makeOrtho2D`, `makeFollow`, `make2D`.
 
 ### Types
 

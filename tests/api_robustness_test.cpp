@@ -2,16 +2,16 @@
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
- * Behavioral correctness and API robustness tests for the new behavior system.
+ * Behavioral correctness and API robustness tests for the camera manipulator system.
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/interaction/camera_behavior.h"
+#include "vertexnova/interaction/camera_manipulator.h"
 #include "vertexnova/interaction/inspect_3d_controller.h"
 #include "vertexnova/interaction/interaction_types.h"
 #include "vertexnova/interaction/navigation_3d_controller.h"
-#include "vertexnova/interaction/orbital_camera_behavior.h"
-#include "vertexnova/interaction/ortho_2d_behavior.h"
+#include "vertexnova/interaction/orbital_camera_manipulator.h"
+#include "vertexnova/interaction/ortho_2d_manipulator.h"
 #include "vertexnova/interaction/ortho_2d_controller.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
@@ -36,23 +36,23 @@ static std::shared_ptr<vne::scene::OrthographicCamera> makeOrthoCamera() {
         vne::scene::OrthographicCameraParameters(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 1000.0f));
 }
 
-TEST(ApiRobustness, OrbitalCameraBehaviorIsEnabledDefaultTrue) {
-    vne::interaction::OrbitalCameraBehavior b;
+TEST(ApiRobustness, OrbitalCameraManipulatorIsEnabledDefaultTrue) {
+    vne::interaction::OrbitalCameraManipulator b;
     EXPECT_TRUE(b.isEnabled());
 }
 
-TEST(ApiRobustness, OrbitalCameraBehaviorSetEnabledFalseReflected) {
-    vne::interaction::OrbitalCameraBehavior b;
+TEST(ApiRobustness, OrbitalCameraManipulatorSetEnabledFalseReflected) {
+    vne::interaction::OrbitalCameraManipulator b;
     b.setEnabled(false);
     EXPECT_FALSE(b.isEnabled());
 }
 
-TEST(ApiRobustness, DisabledOrbitalCameraBehaviorDoesNotMoveCamera) {
+TEST(ApiRobustness, DisabledOrbitalCameraManipulatorDoesNotMoveCamera) {
     auto cam = makePerspCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
-    vne::interaction::OrbitalCameraBehavior b;
+    vne::interaction::OrbitalCameraManipulator b;
     b.setCamera(cam);
     b.onResize(1280.0f, 720.0f);
     b.setEnabled(false);
@@ -72,7 +72,7 @@ TEST(ApiRobustness, DisabledOrbitalCameraBehaviorDoesNotMoveCamera) {
 }
 
 TEST(ApiRobustness, SetViewportSizeZeroClamped) {
-    vne::interaction::OrbitalCameraBehavior b;
+    vne::interaction::OrbitalCameraManipulator b;
     auto cam = makePerspCamera();
     b.setCamera(cam);
     b.onResize(0.0f, 0.0f);
@@ -89,7 +89,7 @@ TEST(ApiRobustness, DetachThenUpdateAndActionSafe) {
     p.delta_x_px = 10.0f;
     p.zoom_factor = 1.1f;
 
-    vne::interaction::OrbitalCameraBehavior b;
+    vne::interaction::OrbitalCameraManipulator b;
     b.setCamera(cam);
     b.onResize(1280.0f, 720.0f);
     b.setCamera(nullptr);  // detach
@@ -129,17 +129,17 @@ TEST(ApiRobustness, Inspect3DControllerScrollZoom) {
     vne::interaction::Inspect3DController ctrl;
     ctrl.setCamera(cam);
     ctrl.onResize(1280.0f, 720.0f);
-    ctrl.orbitalCameraBehavior().setZoomSpeed(2.0f);
-    ctrl.orbitalCameraBehavior().setZoomMethod(vne::interaction::ZoomMethod::eDollyToCoi);
+    ctrl.orbitalCameraManipulator().setZoomSpeed(2.0f);
+    ctrl.orbitalCameraManipulator().setZoomMethod(vne::interaction::ZoomMethod::eDollyToCoi);
 
-    const float dist_before = ctrl.orbitalCameraBehavior().getOrbitDistance();
+    const float dist_before = ctrl.orbitalCameraManipulator().getOrbitDistance();
     vne::events::MouseMovedEvent pos(640.0, 360.0);
     ctrl.onEvent(pos, 0.016);
     vne::events::MouseScrolledEvent scroll(0.0, 1.0);
     ctrl.onEvent(scroll, 0.016);
     ctrl.onUpdate(0.016);
 
-    const float dist_after = ctrl.orbitalCameraBehavior().getOrbitDistance();
+    const float dist_after = ctrl.orbitalCameraManipulator().getOrbitDistance();
     EXPECT_LT(dist_after, dist_before);
 }
 
@@ -153,7 +153,7 @@ TEST(ApiRobustness, FitToAABBPositionsCOI) {
     const vne::math::Vec3f max_w(10.0f, 10.0f, 10.0f);
     ctrl.fitToAABB(min_w, max_w);
 
-    const auto coi = ctrl.orbitalCameraBehavior().getCenterOfInterestWorld();
+    const auto coi = ctrl.orbitalCameraManipulator().getCenterOfInterestWorld();
     const vne::math::Vec3f center = (min_w + max_w) * 0.5f;
     EXPECT_NEAR(coi.x(), center.x(), 1e-2f);
     EXPECT_NEAR(coi.y(), center.y(), 1e-2f);
@@ -165,7 +165,7 @@ TEST(ApiRobustness, Ortho2DControllerScrollChangesExtents) {
     vne::interaction::Ortho2DController ctrl;
     ctrl.setCamera(ortho);
     ctrl.onResize(1280.0f, 720.0f);
-    ctrl.ortho2DBehavior().setZoomMethod(vne::interaction::ZoomMethod::eDollyToCoi);
+    ctrl.ortho2DManipulator().setZoomMethod(vne::interaction::ZoomMethod::eDollyToCoi);
 
     const float extent_before = ortho->getWidth();
     vne::events::MouseMovedEvent pos(640.0, 360.0);

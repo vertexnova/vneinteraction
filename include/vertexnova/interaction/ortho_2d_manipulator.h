@@ -10,8 +10,8 @@
  */
 
 /**
- * @file ortho_2d_behavior.h
- * @brief Ortho2DBehavior — orthographic 2D viewport: pan, zoom-to-cursor, optional in-plane rotation.
+ * @file ortho_2d_manipulator.h
+ * @brief Ortho2DManipulator — orthographic 2D viewport: pan, zoom-to-cursor, optional in-plane rotation.
  *
  * For orthographic viewports. Handles eBeginPan, ePanDelta, eEndPan, eZoomAtCursor, eResetView,
  * and when the input layer emits rotate actions: eBeginRotate, eRotateDelta, eEndRotate
@@ -19,7 +19,7 @@
  * pan velocity.
  */
 
-#include "vertexnova/interaction/camera_behavior_base.h"
+#include "vertexnova/interaction/camera_manipulator_base.h"
 #include "vertexnova/interaction/interaction_types.h"
 
 #include <vertexnova/math/core/core.h>
@@ -41,18 +41,18 @@ namespace vne::interaction {
  *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
  */
-class VNE_INTERACTION_API Ortho2DBehavior final : public CameraBehaviorBase {
+class VNE_INTERACTION_API Ortho2DManipulator final : public CameraManipulatorBase {
    public:
-    Ortho2DBehavior() noexcept = default;
-    ~Ortho2DBehavior() noexcept override = default;
+    Ortho2DManipulator() noexcept = default;
+    ~Ortho2DManipulator() noexcept override = default;
 
-    Ortho2DBehavior(const Ortho2DBehavior&) = delete;
-    Ortho2DBehavior& operator=(const Ortho2DBehavior&) = delete;
-    Ortho2DBehavior(Ortho2DBehavior&&) noexcept = default;
-    Ortho2DBehavior& operator=(Ortho2DBehavior&&) noexcept = default;
+    Ortho2DManipulator(const Ortho2DManipulator&) = delete;
+    Ortho2DManipulator& operator=(const Ortho2DManipulator&) = delete;
+    Ortho2DManipulator(Ortho2DManipulator&&) noexcept = default;
+    Ortho2DManipulator& operator=(Ortho2DManipulator&&) noexcept = default;
 
     // -------------------------------------------------------------------------
-    // ICameraBehavior
+    // ICameraManipulator
     // -------------------------------------------------------------------------
 
     /**
@@ -74,7 +74,7 @@ class VNE_INTERACTION_API Ortho2DBehavior final : public CameraBehaviorBase {
     /** Reset pan inertia and interaction flags. */
     void resetState() noexcept override;
 
-    // isEnabled / setEnabled inherited from CameraBehaviorBase
+    // isEnabled / setEnabled inherited from CameraManipulatorBase
 
     // -------------------------------------------------------------------------
     // Ortho2D-specific API
@@ -85,7 +85,7 @@ class VNE_INTERACTION_API Ortho2DBehavior final : public CameraBehaviorBase {
     [[nodiscard]] float getZoomSpeed() const noexcept { return zoom_speed_; }
 
     // setZoomMethod / getZoomMethod / setFovZoomSpeed / getFovZoomSpeed / getZoomScale
-    // are inherited from CameraBehaviorBase.
+    // are inherited from CameraManipulatorBase.
 
     /** Set pan inertia damping (>= 0). */
     void setPanDamping(float damping) noexcept { pan_damping_ = std::max(0.0f, damping); }
@@ -93,7 +93,7 @@ class VNE_INTERACTION_API Ortho2DBehavior final : public CameraBehaviorBase {
 
     /**
      * @brief In-plane rotation sensitivity in degrees per horizontal pixel (>= 0).
-     * Matches the default feel of OrbitalCameraBehavior::rotation_speed_ (0.2 deg/px).
+     * Matches the default feel of OrbitalCameraManipulator::rotation_speed_ (0.2 deg/px).
      */
     void setRotationSensitivityDegreesPerPixel(float deg_per_px) noexcept {
         rotation_deg_per_px_ = std::max(0.0f, deg_per_px);
@@ -115,8 +115,8 @@ class VNE_INTERACTION_API Ortho2DBehavior final : public CameraBehaviorBase {
     void rotateInPlane(float delta_x_px, float delta_y_px) noexcept;
     void applyInertia(double delta_time) noexcept;
 
-    // orthoCamera() inherited from CameraBehaviorBase
-    // applyDolly() default in CameraBehaviorBase handles ortho zoom-to-cursor
+    // orthoCamera() inherited from CameraManipulatorBase
+    // applyDolly() default in CameraManipulatorBase handles ortho zoom-to-cursor
 
     float zoom_speed_ = 1.1f;
     float pan_damping_ = 10.0f;
