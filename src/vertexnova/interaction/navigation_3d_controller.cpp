@@ -227,6 +227,12 @@ void Navigation3DController::rebuild() noexcept {
     // Capture raw Impl* so the callback stays valid across moves.
     impl_->mapper.setActionCallback([impl = impl_.get()](CameraActionType a, const CameraCommandPayload& p, double dt) {
         impl->rig.onAction(a, p, dt);
+        // fpsPreset() does not emit orbit gestures (eBeginRotate / eBeginPan). Scroll and touch pinch map to
+        // eZoomAtCursor; after zoom/dolly the camera pose changes—mark yaw/pitch stale so FreeLook's next
+        // ensureAnglesSynced (update / movement / look) matches the rig.
+        if (impl->free_look && a == CameraActionType::eZoomAtCursor) {
+            impl->free_look->markAnglesDirty();
+        }
     });
 }
 

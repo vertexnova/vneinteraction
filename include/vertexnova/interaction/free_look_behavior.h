@@ -155,6 +155,9 @@ class VNE_INTERACTION_API FreeLookBehavior final : public CameraBehaviorBase {
      */
     void fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept;
 
+    /** Mark angles as stale (e.g. external camera move). @ref ensureAnglesSynced runs before look/zoom/fit paths. */
+    void markAnglesDirty() noexcept { angles_dirty_ = true; }
+
    private:
     // ---- up-vector policy (FPS vs Fly) --------------------------------------
     [[nodiscard]] vne::math::Vec3f upVector() const noexcept;
@@ -165,7 +168,22 @@ class VNE_INTERACTION_API FreeLookBehavior final : public CameraBehaviorBase {
     /** Camera up projected onto the plane perpendicular to view (for ortho WASD pan). */
     [[nodiscard]] vne::math::Vec3f orthoPanUp(const vne::math::Vec3f& view_dir) const noexcept;
 
+    /**
+     * Image-plane "up" for W/S from @p view_dir, using @p vertical_hint in degenerate fallbacks (e.g. world up for
+     * orthographic keyboard pan instead of fly-mode camera up).
+     */
+    [[nodiscard]] vne::math::Vec3f orthoPanUp(const vne::math::Vec3f& view_dir,
+                                              const vne::math::Vec3f& vertical_hint) const noexcept;
+
+    /**
+     * Orthographic cameras: image-plane up for W/S (view from @p ortho), fallbacks use @p vertical_hint.
+     */
+    [[nodiscard]] vne::math::Vec3f orthoPanUp(const vne::scene::OrthographicCamera& ortho,
+                                              const vne::math::Vec3f& vertical_hint) const noexcept;
+
     void syncAnglesFromCamera() noexcept;
+    /** If @ref angles_dirty_ and a camera is set, sync yaw/pitch from the camera pose and clear the flag. */
+    void ensureAnglesSynced() noexcept;
     void applyAnglesToCamera() noexcept;
     void applyDolly(float factor, float mx, float my) noexcept override;
 
@@ -186,6 +204,7 @@ class VNE_INTERACTION_API FreeLookBehavior final : public CameraBehaviorBase {
     float slow_mult_ = 0.2f;
     float zoom_speed_ = 1.1f;
     bool handle_zoom_ = true;
+    bool angles_dirty_ = true;
 
     FreeLookInputState input_state_;
 };

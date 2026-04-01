@@ -59,8 +59,11 @@ void FreeLookBehavior::setCamera(std::shared_ptr<vne::scene::ICamera> camera) no
     CameraBehaviorBase::setCamera(std::move(camera));
     if (!camera_) {
         VNE_LOG_DEBUG << "FreeLookBehavior: camera detached (null camera)";
+        angles_dirty_ = true;
+        return;
     }
     syncAnglesFromCamera();
+    angles_dirty_ = false;
 }
 
 void FreeLookBehavior::onResize(float width_px, float height_px) noexcept {
@@ -91,7 +94,8 @@ vne::math::Vec3f FreeLookBehavior::right(const vne::math::Vec3f& front_vec) cons
     return (len < kEpsilon) ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : (r / len);
 }
 
-vne::math::Vec3f FreeLookBehavior::orthoPanUp(const vne::math::Vec3f& view_dir) const noexcept {
+vne::math::Vec3f FreeLookBehavior::orthoPanUp(const vne::math::Vec3f& view_dir,
+                                              const vne::math::Vec3f& vertical_hint) const noexcept {
     const vne::math::Vec3f f =
         view_dir.length() < kEpsilon ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : view_dir.normalized();
     vne::math::Vec3f u = camera_->getUp();
@@ -103,13 +107,13 @@ vne::math::Vec3f FreeLookBehavior::orthoPanUp(const vne::math::Vec3f& view_dir) 
         len = u.length();
     }
     if (len < kEpsilon) {
-        vne::math::Vec3f w = upVector();
+        vne::math::Vec3f w = vertical_hint;
         u = w - f * w.dot(f);
         len = u.length();
     }
     if (len < kEpsilon) {
         vne::math::Vec3f ref_fwd, ref_right;
-        buildReferenceFrame(upVector(), ref_fwd, ref_right);
+        buildReferenceFrame(vertical_hint, ref_fwd, ref_right);
         u = ref_fwd - f * ref_fwd.dot(f);
         len = u.length();
     }
@@ -117,6 +121,18 @@ vne::math::Vec3f FreeLookBehavior::orthoPanUp(const vne::math::Vec3f& view_dir) 
         return vne::math::Vec3f(0.0f, 1.0f, 0.0f);
     }
     return u / len;
+}
+
+vne::math::Vec3f FreeLookBehavior::orthoPanUp(const vne::math::Vec3f& view_dir) const noexcept {
+    return orthoPanUp(view_dir, upVector());
+}
+
+vne::math::Vec3f FreeLookBehavior::orthoPanUp(const vne::scene::OrthographicCamera& ortho,
+                                              const vne::math::Vec3f& vertical_hint) const noexcept {
+    const vne::math::Vec3f view_raw = ortho.getTarget() - ortho.getPosition();
+    const float view_len = view_raw.length();
+    const vne::math::Vec3f view_dir = (view_len >= kEpsilon) ? (view_raw / view_len) : front();
+    return orthoPanUp(view_dir, vertical_hint);
 }
 
 void FreeLookBehavior::syncAnglesFromCamera() noexcept {
@@ -146,6 +162,14 @@ void FreeLookBehavior::syncAnglesFromCamera() noexcept {
     vne::math::Vec3f ref_fwd, ref_right;
     buildReferenceFrame(up, ref_fwd, ref_right);
     yaw_deg_ = vne::math::radToDeg(vne::math::atan2(horiz_n.dot(ref_right), horiz_n.dot(ref_fwd)));
+}
+
+void FreeLookBehavior::ensureAnglesSynced() noexcept {
+    if (!angles_dirty_ || !camera_) {
+        return;
+    }
+    syncAnglesFromCamera();
+    angles_dirty_ = false;
 }
 
 void FreeLookBehavior::applyAnglesToCamera() noexcept {
@@ -189,6 +213,7 @@ void FreeLookBehavior::applyDolly(float factor, float mx, float my) noexcept {
     if (!camera_) {
         return;
     }
+    ensureAnglesSynced();
     const vne::math::Vec3f f = front();
     const float current_dist = (camera_->getTarget() - camera_->getPosition()).length();
     const float effective_factor = std::pow(factor, zoom_speed_);
@@ -226,6 +251,7 @@ void FreeLookBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::m
     if (!camera_) {
         return;
     }
+    ensureAnglesSynced();
     const vne::math::Vec3f center = (min_world + max_world) * 0.5f;
     float radius = (max_world - min_world).length() * 0.5f;
     if (radius < kEpsilon) {
@@ -252,6 +278,7 @@ void FreeLookBehavior::fitToAABB(const vne::math::Vec3f& min_world, const vne::m
 void FreeLookBehavior::resetState() noexcept {
     input_state_ = FreeLookInputState{};
     syncAnglesFromCamera();
+    angles_dirty_ = false;
 }
 
 // ---------------------------------------------------------------------------
@@ -262,49 +289,79 @@ void FreeLookBehavior::onUpdate(double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }
+    // Refresh yaw/pitch before the dt guard so zero-dt ticks still clear angles_dirty_ (see ensureAnglesSynced).
+    ensureAnglesSynced();
     const float dt = static_cast<float>(delta_time);
     if (dt <= 0.0f) {
         return;
     }
-    const vne::math::Vec3f f = front();
-    const vne::math::Vec3f up = upVector();
-    // Perspective: W/S along full view f (includes pitch); A/D strafe via f × upVector(). That pairing is
-    // conventional for FPS fly; after pitch, forward vs strafe need not match the camera image axes —
-    // a skewed / odd feel can show up in perspective too, not only ortho.
-    // Orthographic: translating along the view changes only depth in projection (W/S feel dead), so W/S
-    // use screen-up (orthoPanUp). Strafe uses f × screen_up so W/S and A/D share one lookAt-aligned basis.
-    vne::math::Vec3f r;
+    // Derive movement basis from the live camera pose.
+    // FPS: perspective uses view-matrix axes; ortho/other use world up for vertical and orthoPanUp hints.
+    // Fly: vertical moves use @ref upVector() (roll-aware) so Q/E matches the camera basis with forward/right.
     vne::math::Vec3f forward_axis;
-    if (orthoCamera()) {
-        const vne::math::Vec3f screen_up = orthoPanUp(f);
-        vne::math::Vec3f r_try = f.cross(screen_up);
+    vne::math::Vec3f right_axis;
+    vne::math::Vec3f vertical_axis;
+    const vne::math::Vec3f world_up_n = [&]() {
+        const float wl = world_up_.length();
+        return (wl >= kEpsilon) ? (world_up_ / wl) : vne::math::Vec3f(0.0f, 1.0f, 0.0f);
+    }();
+    if (mode_ == FreeLookMode::eFly) {
+        vne::math::Vec3f u = upVector();
+        const float ul = u.length();
+        vertical_axis = (ul >= kEpsilon) ? (u / ul) : world_up_n;
+    }
+    if (auto persp = perspCamera()) {
+        forward_axis = persp->getForward();
+        right_axis = persp->getRight();
+        if (mode_ == FreeLookMode::eFps) {
+            vne::math::Vec3f u = persp->getUp();
+            const float ul = u.length();
+            if (ul >= kEpsilon) {
+                vertical_axis = u / ul;
+            } else {
+                const vne::math::Vec3f from_basis = right_axis.cross(forward_axis);
+                const float bl = from_basis.length();
+                vertical_axis = (bl >= kEpsilon) ? (from_basis / bl) : world_up_n;
+            }
+        }
+    } else if (auto ortho = orthoCamera()) {
+        if (mode_ == FreeLookMode::eFps) {
+            vertical_axis = world_up_n;
+        }
+        const vne::math::Vec3f view_raw = ortho->getTarget() - ortho->getPosition();
+        const float view_len = view_raw.length();
+        const vne::math::Vec3f view_dir = (view_len >= kEpsilon) ? (view_raw / view_len) : front();
+        forward_axis = orthoPanUp(*ortho, vertical_axis);
+        const vne::math::Vec3f r_try = view_dir.cross(forward_axis);
         const float r_len = r_try.length();
-        r = (r_len >= kEpsilon) ? (r_try / r_len) : right(f);
-        forward_axis = screen_up;
+        right_axis = (r_len >= kEpsilon) ? (r_try / r_len) : right(view_dir);
     } else {
-        r = right(f);
-        forward_axis = f;
+        if (mode_ == FreeLookMode::eFps) {
+            vertical_axis = world_up_n;
+        }
+        const vne::math::Vec3f f_raw = camera_->getTarget() - camera_->getPosition();
+        const float f_len = f_raw.length();
+        const vne::math::Vec3f view_dir = (f_len >= kEpsilon) ? (f_raw / f_len) : front();
+        forward_axis = orthoPanUp(view_dir, vertical_axis);
+        const vne::math::Vec3f r_try = view_dir.cross(forward_axis);
+        const float r_len = r_try.length();
+        right_axis = (r_len >= kEpsilon) ? (r_try / r_len) : right(view_dir);
     }
     vne::math::Vec3f move(0.0f, 0.0f, 0.0f);
-    if (input_state_.move_forward) {
+    if (input_state_.move_forward)
         move += forward_axis;
-    }
-    if (input_state_.move_backward) {
+    if (input_state_.move_backward)
         move -= forward_axis;
-    }
-    if (input_state_.move_right) {
-        move += r;
-    }
-    if (input_state_.move_left) {
-        move -= r;
-    }
-    if (input_state_.move_up) {
-        move += up;
-    }
-    if (input_state_.move_down) {
-        move -= up;
-    }
-    if (move.length() <= kEpsilon) {
+    if (input_state_.move_right)
+        move += right_axis;
+    if (input_state_.move_left)
+        move -= right_axis;
+    if (input_state_.move_up)
+        move += vertical_axis;
+    if (input_state_.move_down)
+        move -= vertical_axis;
+    const float move_len = move.length();
+    if (move_len <= kEpsilon) {
         return;
     }
     float speed = move_speed_;
@@ -318,9 +375,13 @@ void FreeLookBehavior::onUpdate(double delta_time) noexcept {
     // screen when scene scale changes (perspective and orthographic).
     const float scene_s = camera_->getSceneScale();
     const float scene_comp = (scene_s > kEpsilon) ? (1.0f / scene_s) : 1.0f;
-    move = move.normalized() * (speed * dt * scene_comp);
-    camera_->setPosition(camera_->getPosition() + move);
-    camera_->setTarget(camera_->getTarget() + move);
+    move = (move / move_len) * (speed * dt * scene_comp);
+    const vne::math::Vec3f pos_before = camera_->getPosition();
+    const vne::math::Vec3f tgt_before = camera_->getTarget();
+    const vne::math::Vec3f view_offset = tgt_before - pos_before;
+    const vne::math::Vec3f pos_new = pos_before + move;
+    camera_->setPosition(pos_new);
+    camera_->setTarget(pos_new + view_offset);
     camera_->updateMatrices();
 }
 
@@ -336,6 +397,7 @@ bool FreeLookBehavior::onAction(CameraActionType action,
     }
     switch (action) {
         case CameraActionType::eBeginLook:
+            ensureAnglesSynced();
             input_state_.looking = true;
             return true;
 
@@ -345,6 +407,7 @@ bool FreeLookBehavior::onAction(CameraActionType action,
 
         case CameraActionType::eLookDelta:
             if (camera_ && input_state_.looking) {
+                ensureAnglesSynced();
                 yaw_deg_ += payload.delta_x_px * mouse_sensitivity_;
                 pitch_deg_ -= payload.delta_y_px * mouse_sensitivity_;
                 if (mode_ == FreeLookMode::eFps) {

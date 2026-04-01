@@ -201,7 +201,10 @@ vne::math::Vec3f OrbitalCameraBehavior::computeFront() const noexcept {
 // ---------------------------------------------------------------------------
 
 void OrbitalCameraBehavior::syncCoiAndDistanceFromCamera() noexcept {
-    coi_world_ = camera_->getTarget();
+    // eFixed: pivot is a stable world landmark — do not re-derive COI from the camera target or panning breaks.
+    if (pivot_mode_ != OrbitPivotMode::eFixed) {
+        coi_world_ = camera_->getTarget();
+    }
     orbit_distance_ = std::max((camera_->getPosition() - coi_world_).length(), kMinOrbitDistance);
 }
 
@@ -303,6 +306,7 @@ void OrbitalCameraBehavior::beginRotate(float x_px, float y_px) noexcept {
     const vne::math::Vec2f vp(viewport().width, viewport().height);
     trackball_.setViewport(vp);
     trackball_.setGraphicsApi(graphicsApi());
+    syncFromCamera();
     trackball_.beginDrag(vne::math::Vec2f(x_px, y_px));
     orientation_at_drag_start_ = orientation_;
     orbit_behavior_.beginDrag();
@@ -374,6 +378,7 @@ void OrbitalCameraBehavior::beginPan(float x_px, float y_px) noexcept {
     interaction_.last_x_px = x_px;
     interaction_.last_y_px = y_px;
     inertia_pan_velocity_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
+    syncFromCamera();
 }
 
 void OrbitalCameraBehavior::applyPanDeltaWorld(const vne::math::Vec3f& delta_world) noexcept {
@@ -479,6 +484,9 @@ void OrbitalCameraBehavior::applyDolly(float factor, float mx, float my) noexcep
     if (!camera_) {
         return;
     }
+    // syncCoiAndDistanceFromCamera() skips pulling coi_world_ from camera_->getTarget() when pivot is eFixed
+    // (after fixed-mode pan, target may differ from the landmark COI).
+    syncFromCamera();
     // Do not use CameraBehaviorBase::applyDolly for perspective — base is ortho-only (raw factor).
     // Orbit needs orbit_distance_, COI shift, and applyOrthoZoomToCursor(pow factor).
     const float effective_factor = std::pow(factor, zoom_speed_);
@@ -504,13 +512,13 @@ void OrbitalCameraBehavior::applyDolly(float factor, float mx, float my) noexcep
             const vne::math::Vec3f cursor_world = coi_world_ + r * (ndc.x() * half_w) + u * (ndc.y() * half_h);
             const vne::math::Vec3f to_cursor = cursor_world - coi_world_;
             const float shift_t = (1.0f - effective_factor) * kZoomToCursorStrength;
-            if (to_cursor.length() < old_dist * 2.0f) {
+            if (to_cursor.length() < old_dist * 2.0f && pivot_mode_ != OrbitPivotMode::eFixed) {
                 coi_world_ += to_cursor * shift_t;
             }
         }
         applyToCamera();
-        // Zoom-to-cursor moves COI; lookAt may adjust up. Euler yaw/pitch stay valid; trackball orientation_
-        // must match the realized camera (same need as after any COI change in trackball mode).
+        // Zoom-to-cursor moves COI (except eFixed); lookAt may adjust up. Euler yaw/pitch stay valid; trackball
+        // orientation_ must match the realized camera (same need as after any COI change in trackball mode).
         if (rotation_mode_ == OrbitRotationMode::eTrackball) {
             syncFromCamera();
         }
