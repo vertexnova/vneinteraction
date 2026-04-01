@@ -517,8 +517,8 @@ void OrbitalCameraBehavior::applyDolly(float factor, float mx, float my) noexcep
             }
         }
         applyToCamera();
-        // Zoom-to-cursor moves COI (except eFixed); lookAt may adjust up. Euler yaw/pitch stay valid; trackball orientation_
-        // must match the realized camera (same need as after any COI change in trackball mode).
+        // Zoom-to-cursor moves COI (except eFixed); lookAt may adjust up. Euler yaw/pitch stay valid; trackball
+        // orientation_ must match the realized camera (same need as after any COI change in trackball mode).
         if (rotation_mode_ == OrbitRotationMode::eTrackball) {
             syncFromCamera();
         }
