@@ -9,8 +9,8 @@
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/interaction/trackball_behavior.h"
-#include "view_math.h"
+#include "trackball_behavior.h"
+#include "../view_math.h"
 
 #include <vertexnova/logging/logging.h>
 

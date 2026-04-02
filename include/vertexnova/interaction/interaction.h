@@ -13,8 +13,7 @@
  * @brief Umbrella include for the VertexNova interaction library.
  *
  * Pulls in manipulators, @ref CameraRig, high-level controllers, @ref InputMapper,
- * @ref interaction_types.h, and orbit/trackball math helpers (@ref OrbitBehavior,
- * @ref TrackballBehavior).
+ * and @ref interaction_types.h.
  *
  * @par Usage
  * Prefer `#include <vertexnova/interaction/interaction.h>` once per translation unit
@@ -48,6 +47,3 @@
 #include "vertexnova/interaction/ortho_2d_controller.h"
 #include "vertexnova/interaction/follow_controller.h"
 
-// Rotation / trackball math (public while still in include/)
-#include "vertexnova/interaction/orbit_behavior.h"
-#include "vertexnova/interaction/trackball_behavior.h"

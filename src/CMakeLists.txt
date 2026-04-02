@@ -13,8 +13,8 @@ set(SOURCE_FILES
     vertexnova/interaction/input_mapper.cpp
     vertexnova/interaction/camera_math.cpp
     vertexnova/interaction/camera_manipulator_base.cpp
-    vertexnova/interaction/trackball_behavior.cpp
-    vertexnova/interaction/orbit_behavior.cpp
+    vertexnova/interaction/detail/orbit_behavior.cpp
+    vertexnova/interaction/detail/trackball_behavior.cpp
     vertexnova/interaction/orbital_camera_manipulator.cpp
     vertexnova/interaction/free_look_manipulator.cpp
     vertexnova/interaction/ortho_2d_manipulator.cpp

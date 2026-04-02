@@ -32,8 +32,6 @@
  */
 
 #include "vertexnova/interaction/camera_manipulator_base.h"
-#include "vertexnova/interaction/orbit_behavior.h"
-#include "vertexnova/interaction/trackball_behavior.h"
 #include "vertexnova/interaction/interaction_types.h"
 
 #include "vertexnova/scene/camera/orthographic_camera.h"
@@ -116,9 +114,9 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
     /** Get the current rotation algorithm. */
     [[nodiscard]] OrbitalRotationMode getRotationMode() const noexcept { return rotation_mode_; }
 
-    /** Trackball screen-to-sphere mapping (default: @ref TrackballBehavior::ProjectionMode::eHyperbolic). */
-    void setTrackballProjectionMode(TrackballBehavior::ProjectionMode mode) noexcept;
-    [[nodiscard]] TrackballBehavior::ProjectionMode getTrackballProjectionMode() const noexcept;
+    /** Trackball screen-to-sphere mapping (default: @ref TrackballProjectionMode::eHyperbolic). */
+    void setTrackballProjectionMode(TrackballProjectionMode mode) noexcept;
+    [[nodiscard]] TrackballProjectionMode getTrackballProjectionMode() const noexcept;
 
     /** Set the pivot control mode (@ref OrbitPivotMode). */
     void setPivotMode(OrbitPivotMode mode) noexcept { pivot_mode_ = mode; }
@@ -282,9 +280,8 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
     // Rotation strategy (Euler or Trackball); replaces per-mode state fields.
     std::unique_ptr<IRotationStrategy> rotation_strategy_;
 
-    /** Trackball sphere mapping; used when building a trackball strategy and while in Euler mode (set before switch).
-     */
-    TrackballBehavior::ProjectionMode trackball_projection_mode_ = TrackballBehavior::ProjectionMode::eHyperbolic;
+    /** Trackball sphere mapping; cached for strategy rebuild and pre-switch configuration. */
+    TrackballProjectionMode trackball_projection_mode_ = TrackballProjectionMode::eHyperbolic;
 
     // Pan inertia
     vne::math::Vec3f inertia_pan_velocity_{0.0f, 0.0f, 0.0f};

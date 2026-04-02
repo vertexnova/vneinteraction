@@ -79,6 +79,15 @@ enum class OrbitalRotationMode : std::uint8_t {
 };
 
 /**
+ * @brief Screen-to-sphere projection mode for virtual trackball rotation.
+ * @see OrbitalCameraManipulator::setTrackballProjectionMode
+ */
+enum class TrackballProjectionMode : std::uint8_t {
+    eHyperbolic = 0,  //!< Spherical cap + hyperbolic continuation (default; isotropic feel)
+    eRim = 1,         //!< Hemisphere inside unit disk; equatorial rim beyond it
+};
+
+/**
  * @brief Pivot control mode for orbit-style camera behaviors.
  *
  * Determines which point in world space the camera orbits around.

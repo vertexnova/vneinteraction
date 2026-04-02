@@ -15,7 +15,7 @@
 
 #include "rotation_strategy.h"
 
-#include "vertexnova/interaction/orbit_behavior.h"
+#include "orbit_behavior.h"
 
 namespace vne::interaction {
 

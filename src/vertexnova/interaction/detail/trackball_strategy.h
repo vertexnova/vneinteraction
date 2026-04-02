@@ -16,7 +16,7 @@
 
 #include "rotation_strategy.h"
 
-#include "vertexnova/interaction/trackball_behavior.h"
+#include "trackball_behavior.h"
 
 #include <vertexnova/math/core/math_utils.h>
 #include <vertexnova/math/easing.h>

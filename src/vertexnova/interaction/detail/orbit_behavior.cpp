@@ -9,9 +9,9 @@
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/interaction/orbit_behavior.h"
+#include "orbit_behavior.h"
 
-#include "camera_math.h"
+#include "../camera_math.h"
 
 #include <vertexnova/math/core/math_utils.h>
 #include <vertexnova/math/easing.h>

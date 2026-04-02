@@ -60,7 +60,7 @@ namespace vne::interaction {
  * - When the camera is moved externally: @ref syncFromViewDirection to recover yaw/pitch.
  * - For framing presets: @ref setYawPitch or adjust limits with @ref setPitchLimits.
  */
-class VNE_INTERACTION_API OrbitBehavior {
+class OrbitBehavior {
    public:
     /**
      * @brief Default lower pitch bound (degrees).
