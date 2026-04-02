@@ -86,6 +86,12 @@ void Ortho2DController::onUpdate(double dt) noexcept {
 // ---------------------------------------------------------------------------
 
 void Ortho2DController::setRotationEnabled(bool enabled) noexcept {
+    // End in-flight rotate before clearing rules / manipulator flags so Ortho2DManipulator
+    // does not stay latched (eEndRotate is ignored once rotate_enabled_ is false).
+    if (!enabled && rotation_enabled_ && impl_->ortho2d_behavior) {
+        const CameraCommandPayload p{};
+        impl_->core.rig.onAction(CameraActionType::eEndRotate, p, 0.0);
+    }
     rotation_enabled_ = enabled;
     if (impl_->ortho2d_behavior) {
         impl_->ortho2d_behavior->setRotateEnabled(enabled);
@@ -94,6 +100,10 @@ void Ortho2DController::setRotationEnabled(bool enabled) noexcept {
 }
 
 void Ortho2DController::setPanEnabled(bool enabled) noexcept {
+    if (!enabled && pan_enabled_ && impl_->ortho2d_behavior) {
+        const CameraCommandPayload p{};
+        impl_->core.rig.onAction(CameraActionType::eEndPan, p, 0.0);
+    }
     pan_enabled_ = enabled;
     if (impl_->ortho2d_behavior) {
         impl_->ortho2d_behavior->setPanEnabled(enabled);

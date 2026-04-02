@@ -289,14 +289,13 @@ bool Ortho2DManipulator::onAction(CameraActionType action,
             return true;
 
         case CameraActionType::eEndPan:
-            if (!pan_enabled_) {
-                return false;
-            }
+            // Always clear latch so a synthetic or late release cannot leave panning_ stuck
+            // after pan_enabled_ was turned off.
             panning_ = false;
             if (!pan_inertia_enabled_) {
                 pan_velocity_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
             }
-            return true;
+            return pan_enabled_;
 
         case CameraActionType::eBeginRotate:
             if (!rotate_enabled_) {
@@ -314,11 +313,8 @@ bool Ortho2DManipulator::onAction(CameraActionType action,
             return true;
 
         case CameraActionType::eEndRotate:
-            if (!rotate_enabled_) {
-                return false;
-            }
             rotating_ = false;
-            return true;
+            return rotate_enabled_;
 
         case CameraActionType::eZoomAtCursor:
             if (payload.zoom_factor > 0.0f && payload.zoom_factor != 1.0f && std::isfinite(payload.zoom_factor)) {

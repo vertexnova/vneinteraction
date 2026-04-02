@@ -50,4 +50,44 @@ TEST(Ortho2DController, OnEventNoCrash) {
     EXPECT_NO_FATAL_FAILURE(ctrl.onEvent(scroll));
 }
 
+TEST(Ortho2DController, DisablePanOrRotationMidGestureEndsManipulatorLatch) {
+    constexpr double kDt = 0.016;
+    auto cam = makeOrthoCamera();
+
+    {
+        vne::interaction::Ortho2DController ctrl;
+        ctrl.setCamera(cam);
+        ctrl.onResize(512.0f, 512.0f);
+        ctrl.onEvent(vne::events::MouseMovedEvent(256.0, 256.0), kDt);
+        ctrl.onEvent(
+            vne::events::MouseButtonPressedEvent(vne::events::MouseButton::eLeft, 0, 256.0, 256.0), kDt);
+        ctrl.onEvent(vne::events::MouseMovedEvent(300.0, 260.0), kDt);
+        EXPECT_NO_FATAL_FAILURE(ctrl.setPanEnabled(false));
+        for (int i = 0; i < 5; ++i) {
+            ctrl.onUpdate(kDt);
+        }
+        EXPECT_NO_FATAL_FAILURE(ctrl.setPanEnabled(true));
+        ctrl.onEvent(
+            vne::events::MouseButtonReleasedEvent(vne::events::MouseButton::eLeft, 0, 300.0, 260.0), kDt);
+    }
+
+    {
+        vne::interaction::Ortho2DController ctrl;
+        ctrl.setCamera(cam);
+        ctrl.onResize(512.0f, 512.0f);
+        ctrl.setRotationEnabled(true);
+        ctrl.onEvent(vne::events::MouseMovedEvent(256.0, 256.0), kDt);
+        ctrl.onEvent(
+            vne::events::MouseButtonPressedEvent(vne::events::MouseButton::eRight, 0, 256.0, 256.0), kDt);
+        ctrl.onEvent(vne::events::MouseMovedEvent(280.0, 240.0), kDt);
+        EXPECT_NO_FATAL_FAILURE(ctrl.setRotationEnabled(false));
+        for (int i = 0; i < 5; ++i) {
+            ctrl.onUpdate(kDt);
+        }
+        EXPECT_NO_FATAL_FAILURE(ctrl.setRotationEnabled(true));
+        ctrl.onEvent(
+            vne::events::MouseButtonReleasedEvent(vne::events::MouseButton::eRight, 0, 280.0, 240.0), kDt);
+    }
+}
+
 }  // namespace vne_interaction_test

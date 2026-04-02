@@ -140,21 +140,23 @@ struct InspectRuleConfig {
 static std::vector<InputRule> buildInspectRules(const InspectRuleConfig& impl) {
     std::vector<InputRule> rules;
 
+    const int rotate_button = static_cast<int>(impl.rotate_bind_.button);
+
     if (impl.rotation_enabled) {
-        const int rb = static_cast<int>(impl.rotate_bind_.button);
         const int rmod = static_cast<int>(impl.rotate_bind_.modifier_mask);
-        rules.push_back(makeMouseButtonRule(rb,
+        rules.push_back(makeMouseButtonRule(rotate_button,
                                             rmod,
                                             CameraActionType::eBeginRotate,
                                             CameraActionType::eEndRotate,
                                             CameraActionType::eRotateDelta));
-        if (impl.pan_alt_modifier_ != events::ModifierKey::eModNone) {
-            rules.push_back(makeMouseButtonRule(rb,
-                                                static_cast<int>(impl.pan_alt_modifier_),
-                                                CameraActionType::eBeginPan,
-                                                CameraActionType::eEndPan,
-                                                CameraActionType::ePanDelta));
-        }
+    }
+
+    if (impl.pan_enabled && impl.pan_alt_modifier_ != events::ModifierKey::eModNone) {
+        rules.push_back(makeMouseButtonRule(rotate_button,
+                                            static_cast<int>(impl.pan_alt_modifier_),
+                                            CameraActionType::eBeginPan,
+                                            CameraActionType::eEndPan,
+                                            CameraActionType::ePanDelta));
     }
 
     if (impl.pivot_on_double_click_enabled) {

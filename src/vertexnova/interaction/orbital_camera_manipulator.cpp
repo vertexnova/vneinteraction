@@ -874,7 +874,8 @@ bool OrbitalCameraManipulator::onAction(CameraActionType action,
             return false;
 
         case CameraActionType::eEndRotate:
-            if (!rotate_enabled_) {
+            // Unwind gesture even if rotate_enabled_ flipped mid-drag; begin/delta stay gated.
+            if (!interaction_.rotating) {
                 return false;
             }
             endRotate(delta_time);
@@ -900,7 +901,7 @@ bool OrbitalCameraManipulator::onAction(CameraActionType action,
             return false;
 
         case CameraActionType::eEndPan:
-            if (!pan_enabled_) {
+            if (!interaction_.panning) {
                 return false;
             }
             endPan(delta_time);
