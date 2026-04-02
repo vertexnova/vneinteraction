@@ -44,7 +44,9 @@ struct CursorState {
  *          eMouseButtonDoubleClicked, eMouseScrolled,
  *          eTouchPress, eTouchMove, eTouchRelease.
  *
- * Key events are NOT handled here — Navigation3DController processes those itself.
+ * Key events are NOT handled here. Controllers that use modifier-gated mouse/scroll rules must call
+ * `InputMapper::onKey` for key press / repeat / release before this function so Shift/Ctrl/Alt state stays
+ * in sync (same pattern as the 3D navigation and inspect controllers).
  *
  * @param mapper   The InputMapper to forward translated events to
  * @param cursor   Mutable cursor tracking state (updated in-place)

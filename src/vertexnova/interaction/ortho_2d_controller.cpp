@@ -14,6 +14,7 @@
 
 #include "camera_controller_context.h"
 
+#include <vertexnova/events/key_event.h>
 #include <vertexnova/logging/logging.h>
 
 #include <vector>
@@ -88,6 +89,21 @@ void Ortho2DController::onResize(float w, float h) noexcept {
 // ---------------------------------------------------------------------------
 
 void Ortho2DController::onEvent(const events::Event& event, double delta_time) noexcept {
+    switch (event.type()) {
+        case events::EventType::eKeyPressed:
+        case events::EventType::eKeyRepeat: {
+            const auto& e = static_cast<const events::KeyEvent&>(event);
+            impl_->core.mapper.onKey(static_cast<int>(e.keyCode()), true, delta_time);
+            return;
+        }
+        case events::EventType::eKeyReleased: {
+            const auto& e = static_cast<const events::KeyEvent&>(event);
+            impl_->core.mapper.onKey(static_cast<int>(e.keyCode()), false, delta_time);
+            return;
+        }
+        default:
+            break;
+    }
     dispatchMouseEvents(impl_->core.mapper, impl_->core.cursor, event, delta_time);
 }
 

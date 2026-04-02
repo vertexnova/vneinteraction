@@ -79,6 +79,7 @@ class VNE_INTERACTION_API Ortho2DController : public ICameraController {
     // Per-frame
     // -------------------------------------------------------------------------
 
+    /** Forwards pointer, scroll, touch, and key events (keys update mapper modifier state for Shift/Ctrl/Alt bindings). */
     void onEvent(const vne::events::Event& event, double delta_time = 0.0) noexcept override;
     void onUpdate(double delta_time) noexcept override;
 

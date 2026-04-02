@@ -4,6 +4,7 @@
  * --------------------------------------------------------------------- */
 
 #include "vertexnova/interaction/ortho_2d_controller.h"
+#include "vertexnova/events/key_event.h"
 #include "vertexnova/events/mouse_event.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
@@ -35,6 +36,34 @@ TEST(Ortho2DController, FitToAABB) {
     ctrl.onResize(512.0f, 512.0f);
 
     EXPECT_NO_FATAL_FAILURE(ctrl.fitToAABB(vne::math::Vec3f(-2.0f, -2.0f, 0.0f), vne::math::Vec3f(2.0f, 2.0f, 0.0f)));
+}
+
+TEST(Ortho2DController, ModifierPanBindingRequiresKeyEvents) {
+    constexpr double kDt = 0.016;
+    vne::interaction::Ortho2DController ctrl;
+    auto cam = makeOrthoCamera();
+    ctrl.setCamera(cam);
+    ctrl.onResize(512.0f, 512.0f);
+    ctrl.setPanButton(vne::events::MouseButton::eLeft, vne::events::ModifierKey::eModShift);
+
+    const vne::math::Vec3f target_before = cam->getTarget();
+
+    ctrl.onEvent(vne::events::MouseMovedEvent(256.0, 256.0), kDt);
+    ctrl.onEvent(vne::events::MouseButtonPressedEvent(vne::events::MouseButton::eLeft, 0, 256.0, 256.0), kDt);
+    ctrl.onEvent(vne::events::MouseMovedEvent(356.0, 256.0), kDt);
+    ctrl.onEvent(vne::events::MouseButtonReleasedEvent(vne::events::MouseButton::eLeft, 0, 356.0, 256.0), kDt);
+
+    EXPECT_NEAR(cam->getTarget().x(), target_before.x(), 1e-4f)
+        << "LMB pan without Shift should not match Shift+LMB rule";
+
+    ctrl.onEvent(vne::events::KeyPressedEvent(vne::events::KeyCode::eLeftShift), kDt);
+    ctrl.onEvent(vne::events::MouseButtonPressedEvent(vne::events::MouseButton::eLeft, 0, 256.0, 256.0), kDt);
+    ctrl.onEvent(vne::events::MouseMovedEvent(156.0, 256.0), kDt);
+    ctrl.onEvent(vne::events::MouseButtonReleasedEvent(vne::events::MouseButton::eLeft, 0, 156.0, 256.0), kDt);
+    ctrl.onEvent(vne::events::KeyReleasedEvent(vne::events::KeyCode::eLeftShift), kDt);
+
+    EXPECT_GT(std::abs(cam->getTarget().x() - target_before.x()), 0.01f)
+        << "Shift+LMB drag should pan once mapper receives shift key events";
 }
 
 TEST(Ortho2DController, OnEventNoCrash) {
