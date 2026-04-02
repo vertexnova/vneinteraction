@@ -126,8 +126,4 @@ CameraRig CameraRig::makeFollow() {
     return rig;
 }
 
-CameraRig CameraRig::make2D() {
-    return makeOrtho2D();
-}
-
 }  // namespace vne::interaction

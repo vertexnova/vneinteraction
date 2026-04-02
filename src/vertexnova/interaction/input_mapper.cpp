@@ -300,9 +300,7 @@ void InputMapper::resetState() noexcept {
     std::fill(std::begin(active_button_rule_), std::end(active_button_rule_), -1);
     std::fill(std::begin(active_key_), std::end(active_key_), false);
     std::fill(std::begin(active_key_rule_), std::end(active_key_rule_), -1);
-    mod_shift_ = false;
-    mod_ctrl_ = false;
-    mod_alt_ = false;
+    modifiers_ = 0;
 }
 
 void InputMapper::emit(CameraActionType action, const CameraCommandPayload& payload, double dt) noexcept {
@@ -317,8 +315,7 @@ void InputMapper::emit(CameraActionType action, const CameraCommandPayload& payl
 }
 
 bool InputMapper::modifiersMatch(int mask) const noexcept {
-    const int current = (mod_shift_ ? kModShift : 0) | (mod_ctrl_ ? kModCtrl : 0) | (mod_alt_ ? kModAlt : 0);
-    return (current & mask) == mask;
+    return (modifiers_ & mask) == mask;
 }
 
 void InputMapper::onMouseButton(int button, bool pressed, float x, float y, double dt) noexcept {
@@ -406,16 +403,22 @@ void InputMapper::onKey(int key, bool pressed, double dt) noexcept {
         return;
     }
 
-    // Update modifier state
+    // Update modifier bitmask
+    auto setModBit = [&](int bit) {
+        if (pressed)
+            modifiers_ |= bit;
+        else
+            modifiers_ &= ~bit;
+    };
     if (key == static_cast<int>(events::KeyCode::eLeftShift) || key == static_cast<int>(events::KeyCode::eRightShift)) {
-        mod_shift_ = pressed;
+        setModBit(kModShift);
     }
     if (key == static_cast<int>(events::KeyCode::eLeftControl)
         || key == static_cast<int>(events::KeyCode::eRightControl)) {
-        mod_ctrl_ = pressed;
+        setModBit(kModCtrl);
     }
     if (key == static_cast<int>(events::KeyCode::eLeftAlt) || key == static_cast<int>(events::KeyCode::eRightAlt)) {
-        mod_alt_ = pressed;
+        setModBit(kModAlt);
     }
 
     // Track active key state

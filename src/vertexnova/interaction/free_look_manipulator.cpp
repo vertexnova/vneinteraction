@@ -5,7 +5,7 @@
  */
 
 #include "vertexnova/interaction/free_look_manipulator.h"
-#include "vertexnova/interaction/manipulator_utils.h"
+#include "view_math.h"
 
 #include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/perspective_camera.h"

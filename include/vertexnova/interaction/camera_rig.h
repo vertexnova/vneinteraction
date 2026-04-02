@@ -142,9 +142,6 @@ class VNE_INTERACTION_API CameraRig {
     /** Follow rig: FollowManipulator (autonomous smooth target following). */
     static CameraRig makeFollow();
 
-    /** 2D rig: Ortho2DManipulator (alias for makeOrtho2D). */
-    static CameraRig make2D();
-
    private:
     std::vector<std::shared_ptr<ICameraManipulator>> manipulators_;
 };

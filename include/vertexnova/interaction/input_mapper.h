@@ -231,9 +231,7 @@ class VNE_INTERACTION_API InputMapper {
     int active_key_rule_[kMaxKeys] =
         {};  //!< Filled with @c -1 in @ref resetState; rule index for key press/release pairing.
 
-    bool mod_shift_ = false;  //!< Shift held (updated in @ref onKey).
-    bool mod_ctrl_ = false;   //!< Ctrl held.
-    bool mod_alt_ = false;    //!< Alt held.
+    int modifiers_ = 0;  //!< Current modifier bitmask (kModShift | kModCtrl | kModAlt); updated in @ref onKey.
 };
 
 }  // namespace vne::interaction

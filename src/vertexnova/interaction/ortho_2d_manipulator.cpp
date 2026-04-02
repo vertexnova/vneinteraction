@@ -313,6 +313,7 @@ bool Ortho2DManipulator::onAction(CameraActionType action,
             return true;
 
         case CameraActionType::eEndRotate:
+            // Always clear latch (same idea as eEndPan); return value reflects rotate_enabled_ for callers.
             rotating_ = false;
             return rotate_enabled_;
 

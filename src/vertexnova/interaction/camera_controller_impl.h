@@ -10,7 +10,7 @@
  */
 
 /**
- * @file camera_controller_context.h
+ * @file camera_controller_impl.h
  * @brief Shared rig + mapper + camera + viewport + cursor for high-level controllers.
  *
  * Controllers set @ref InputMapper::setActionCallback themselves (often with a custom
@@ -21,7 +21,7 @@
 #include "vertexnova/interaction/camera_rig.h"
 #include "vertexnova/interaction/input_mapper.h"
 
-#include "controller_event_dispatch.h"
+#include "input_event_translator.h"
 
 #include <memory>
 

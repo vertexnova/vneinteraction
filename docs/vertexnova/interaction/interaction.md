@@ -38,7 +38,7 @@ The Interaction module provides composable camera manipulators, orbit/trackball 
 ### Input and Rig
 
 - **input_mapper.h**: `InputMapper` — maps mouse/keyboard/touch events to `CameraActionType` via `InputRule`; presets: `orbitPreset`, `fpsPreset`, `gamePreset`, `cadPreset`, `orthoPreset`.
-- **camera_rig.h**: `CameraRig` — multi-manipulator container; `onAction`, `onUpdate`, `setCamera`, `onResize`, `resetState`; `addManipulator` / `manipulators()` / `clearManipulators`; factory methods: `makeOrbit`, `makeTrackball`, `makeFps`, `makeFly`, `makeOrtho2D`, `makeFollow`, `make2D`.
+- **camera_rig.h**: `CameraRig` — multi-manipulator container; `onAction`, `onUpdate`, `setCamera`, `onResize`, `resetState`; `addManipulator` / `manipulators()` / `clearManipulators`; factory methods: `makeOrbit`, `makeTrackball`, `makeFps`, `makeFly`, `makeOrtho2D`, `makeFollow`.
 
 ### Types
 

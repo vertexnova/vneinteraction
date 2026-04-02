@@ -12,7 +12,7 @@
 #include "vertexnova/interaction/input_mapper.h"
 #include "vertexnova/interaction/ortho_2d_manipulator.h"
 
-#include "camera_controller_context.h"
+#include "camera_controller_impl.h"
 
 #include <vertexnova/events/key_event.h>
 #include <vertexnova/logging/logging.h>
@@ -116,8 +116,8 @@ void Ortho2DController::onUpdate(double dt) noexcept {
 // ---------------------------------------------------------------------------
 
 void Ortho2DController::setRotationEnabled(bool enabled) noexcept {
-    // End in-flight rotate before clearing rules / manipulator flags so Ortho2DManipulator
-    // does not stay latched (eEndRotate is ignored once rotate_enabled_ is false).
+    // End in-flight rotate before clearing rules / manipulator flags. Ortho2DManipulator always clears
+    // rotating_ on eEndRotate; eBeginRotate / eRotateDelta remain gated by rotate_enabled_.
     if (!enabled && rotation_enabled_ && impl_->ortho2d_behavior) {
         const CameraCommandPayload p{};
         impl_->core.rig.onAction(CameraActionType::eEndRotate, p, 0.0);

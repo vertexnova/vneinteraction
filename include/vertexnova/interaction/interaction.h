@@ -22,18 +22,32 @@
  * dependency set (faster builds).
  */
 
+// Sub-headers (can be included individually for minimal dependencies)
+#include "vertexnova/interaction/camera_action.h"
+#include "vertexnova/interaction/camera_state.h"
+#include "vertexnova/interaction/input_binding.h"
+
+// Full umbrella types (behavioral enums + re-exports all sub-headers above)
+#include "vertexnova/interaction/interaction_types.h"
+
+// Manipulators
+#include "vertexnova/interaction/camera_manipulator.h"
+#include "vertexnova/interaction/orbital_camera_manipulator.h"
+#include "vertexnova/interaction/free_look_manipulator.h"
+#include "vertexnova/interaction/ortho_2d_manipulator.h"
+#include "vertexnova/interaction/follow_manipulator.h"
+
+// Rig, mapper, controller interface
+#include "vertexnova/interaction/camera_rig.h"
+#include "vertexnova/interaction/input_mapper.h"
+#include "vertexnova/interaction/camera_controller.h"
+
+// High-level controllers
+#include "vertexnova/interaction/inspect_3d_controller.h"
+#include "vertexnova/interaction/navigation_3d_controller.h"
+#include "vertexnova/interaction/ortho_2d_controller.h"
+#include "vertexnova/interaction/follow_controller.h"
+
+// Rotation / trackball math (public while still in include/)
 #include "vertexnova/interaction/orbit_behavior.h"
 #include "vertexnova/interaction/trackball_behavior.h"
-#include "vertexnova/interaction/camera_manipulator.h"
-#include "vertexnova/interaction/camera_rig.h"
-#include "vertexnova/interaction/camera_controller.h"
-#include "vertexnova/interaction/follow_controller.h"
-#include "vertexnova/interaction/free_look_manipulator.h"
-#include "vertexnova/interaction/inspect_3d_controller.h"
-#include "vertexnova/interaction/input_mapper.h"
-#include "vertexnova/interaction/interaction_types.h"
-#include "vertexnova/interaction/navigation_3d_controller.h"
-#include "vertexnova/interaction/orbital_camera_manipulator.h"
-#include "vertexnova/interaction/ortho_2d_manipulator.h"
-#include "vertexnova/interaction/ortho_2d_controller.h"
-#include "vertexnova/interaction/follow_manipulator.h"

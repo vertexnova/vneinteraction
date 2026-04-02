@@ -44,6 +44,10 @@
 #include <algorithm>
 #include <memory>
 
+namespace vne::interaction {
+class IRotationStrategy;
+}  // namespace vne::interaction
+
 namespace vne::scene {
 class ICamera;
 }
@@ -71,7 +75,7 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
    public:
     /** Construct with default settings (eOrbit mode, eCoi pivot, Y-up). */
     OrbitalCameraManipulator() noexcept;
-    ~OrbitalCameraManipulator() noexcept override = default;
+    ~OrbitalCameraManipulator() noexcept override;
 
     OrbitalCameraManipulator(const OrbitalCameraManipulator&) = delete;
     OrbitalCameraManipulator& operator=(const OrbitalCameraManipulator&) = delete;
@@ -107,18 +111,14 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
     // Orbit / trackball-specific API
     // -------------------------------------------------------------------------
 
-    /** Set the rotation algorithm (eOrbit or eTrackball). */
-    void setRotationMode(OrbitRotationMode mode) noexcept { rotation_mode_ = mode; }
+    /** Set the rotation algorithm (eOrbit or eTrackball); rebuilds the strategy if changed. */
+    void setRotationMode(OrbitRotationMode mode) noexcept;
     /** Get the current rotation algorithm. */
     [[nodiscard]] OrbitRotationMode getRotationMode() const noexcept { return rotation_mode_; }
 
     /** Trackball screen-to-sphere mapping (default: @ref TrackballBehavior::ProjectionMode::eHyperbolic). */
-    void setTrackballProjectionMode(TrackballBehavior::ProjectionMode mode) noexcept {
-        trackball_.setProjectionMode(mode);
-    }
-    [[nodiscard]] TrackballBehavior::ProjectionMode getTrackballProjectionMode() const noexcept {
-        return trackball_.getProjectionMode();
-    }
+    void setTrackballProjectionMode(TrackballBehavior::ProjectionMode mode) noexcept;
+    [[nodiscard]] TrackballBehavior::ProjectionMode getTrackballProjectionMode() const noexcept;
 
     /** Set the pivot control mode (@ref OrbitPivotMode). */
     void setPivotMode(OrbitPivotMode mode) noexcept { pivot_mode_ = mode; }
@@ -170,7 +170,7 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
      * Set rotation speed multiplier (>= 0). Scales Euler yaw/pitch (deg/pixel). For trackball mode, the
      * effective angle scale is rotation_speed × trackball_rotation_scale (see setTrackballRotationScale).
      */
-    void setRotationSpeed(float speed) noexcept { rotation_speed_ = std::max(0.0f, speed); }
+    void setRotationSpeed(float speed) noexcept;
     [[nodiscard]] float getRotationSpeed() const noexcept { return rotation_speed_; }
 
     /**
@@ -178,7 +178,7 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
      * quaternion angle by rotation_speed, while Euler uses deg/pixel — the defaults match feel across
      * modes. Default 2.5.
      */
-    void setTrackballRotationScale(float scale) noexcept { trackball_rotation_scale_ = std::max(0.0f, scale); }
+    void setTrackballRotationScale(float scale) noexcept;
     [[nodiscard]] float getTrackballRotationScale() const noexcept { return trackball_rotation_scale_; }
 
     /** Set pan speed multiplier (>= 0). */
@@ -228,27 +228,20 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
 
    private:
     // ---- helpers shared by both rotation modes --------------------------------
-    [[nodiscard]] vne::math::Vec3f computeFront() const noexcept;
+    [[nodiscard]] vne::math::Vec3f computeFront() noexcept;
     [[nodiscard]] vne::math::Vec3f computeRight(const vne::math::Vec3f& front) const noexcept;
     [[nodiscard]] vne::math::Vec3f computeUp(const vne::math::Vec3f& front,
                                              const vne::math::Vec3f& right) const noexcept;
 
     void syncFromCamera() noexcept;
-    /** Eye at COI + orientation * distance (trackball / arcball-style), like CameraManipulator::getMatrix + look-at. */
-    void applyTrackballOrbitToCamera() noexcept;
-    /** Eye at COI − front * distance from yaw/pitch orbit state. */
-    void applyEulerOrbitToCamera() noexcept;
     void applyToCamera() noexcept;
     void onPivotChanged() noexcept;
 
     void syncCoiAndDistanceFromCamera() noexcept;
-    void syncTrackballOrientationFromCamera() noexcept;
-    void syncEulerYawPitchFromCamera() noexcept;
 
     // ---- rotation ---------------------------------------------------------------
     void beginRotate(float x_px, float y_px) noexcept;
-    void dragRotateEuler(float delta_x_px, float delta_y_px, double delta_time) noexcept;
-    void dragRotateTrackball(float x_px, float y_px, double delta_time) noexcept;
+    void dragRotate(float x_px, float y_px, float delta_x_px, float delta_y_px, double delta_time) noexcept;
     void endRotate(double delta_time) noexcept;
 
     // ---- pan --------------------------------------------------------------------
@@ -269,10 +262,6 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
     // ---- inertia ----------------------------------------------------------------
     void applyInertia(double delta_time) noexcept;
     void doPanInertia(double delta_time) noexcept;
-    void updateTrackballDragInertiaFromFrame(const vne::math::Vec3f& prev_sphere,
-                                             const vne::math::Vec3f& curr_sphere,
-                                             float trackball_rot_scale,
-                                             double delta_time) noexcept;
 
     // ---- camera helpers ---------------------------------------------------------
     [[nodiscard]] bool isPerspective() const noexcept;
@@ -290,16 +279,8 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
     vne::math::Vec3f coi_world_{0.0f, 0.0f, 0.0f};
     float orbit_distance_ = 5.0f;
 
-    // Euler rotation (classic yaw/pitch around world-up reference)
-    OrbitBehavior orbit_behavior_;
-
-    // Trackball (eTrackball) rotation state
-    vne::math::Quatf orientation_;
-    vne::math::Quatf orientation_at_drag_start_;
-    TrackballBehavior trackball_;
-    uint32_t normalize_counter_ = 0;
-    float inertia_rot_speed_ = 0.0f;  // trackball angular speed (rad/s)
-    vne::math::Vec3f inertia_rot_axis_{0.0f, 1.0f, 0.0f};
+    // Rotation strategy (Euler or Trackball); replaces per-mode state fields.
+    std::unique_ptr<IRotationStrategy> rotation_strategy_;
 
     // Pan inertia
     vne::math::Vec3f inertia_pan_velocity_{0.0f, 0.0f, 0.0f};

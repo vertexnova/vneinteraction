@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/interaction/manipulator_utils.h"
+#include "view_math.h"
 
 namespace vne::interaction {
 

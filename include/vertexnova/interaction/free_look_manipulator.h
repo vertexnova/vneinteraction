@@ -18,7 +18,7 @@
  * trackball quaternion rotation).
  *
  * @par Movement model
- * WASD movement + mouse look. Two modes:
+ * WASD movement + mouse look. Two modes (see @ref FreeLookMode in interaction_types.h):
  * - FreeLookMode::eFps — world up fixed, pitch clamped [-89°, 89°]
  * - FreeLookMode::eFly  — unconstrained, up follows camera
  *
@@ -43,12 +43,6 @@ class ICamera;
 }
 
 namespace vne::interaction {
-
-/** Movement mode for FreeLookManipulator. */
-enum class FreeLookMode : std::uint8_t {
-    eFps = 0,  //!< FPS: world-up fixed, pitch clamped [-89°, 89°] (default)
-    eFly = 1,  //!< Fly: unconstrained, up follows camera
-};
 
 /**
  * @brief Free-look camera manipulator supporting FPS and Fly movement modes.

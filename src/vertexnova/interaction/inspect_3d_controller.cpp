@@ -12,7 +12,7 @@
 #include "vertexnova/interaction/input_mapper.h"
 #include "vertexnova/interaction/orbital_camera_manipulator.h"
 
-#include "camera_controller_context.h"
+#include "camera_controller_impl.h"
 
 #include <vertexnova/events/key_event.h>
 #include <vertexnova/logging/logging.h>
@@ -332,6 +332,10 @@ OrbitPivotMode Inspect3DController::getPivotMode() const noexcept {
 // ---------------------------------------------------------------------------
 
 void Inspect3DController::setRotationEnabled(bool enabled) noexcept {
+    if (!enabled && impl_->rotation_enabled && impl_->orbit) {
+        const CameraCommandPayload p{};
+        impl_->core.rig.onAction(CameraActionType::eEndRotate, p, 0.0);
+    }
     impl_->rotation_enabled = enabled;
     if (impl_->orbit) {
         impl_->orbit->setRotateEnabled(enabled);
@@ -353,6 +357,10 @@ bool Inspect3DController::isPivotOnDoubleClickEnabled() const noexcept {
 }
 
 void Inspect3DController::setPanEnabled(bool enabled) noexcept {
+    if (!enabled && impl_->pan_enabled && impl_->orbit) {
+        const CameraCommandPayload p{};
+        impl_->core.rig.onAction(CameraActionType::eEndPan, p, 0.0);
+    }
     impl_->pan_enabled = enabled;
     if (impl_->orbit) {
         impl_->orbit->setPanEnabled(enabled);
@@ -464,6 +472,8 @@ void Inspect3DController::fitToAABB(const vne::math::Vec3f& mn, const vne::math:
 
 void Inspect3DController::reset() noexcept {
     impl_->core.resetRigAndInteraction();
+    impl_->interaction_scale_ = 1.0f;
+    impl_->applyOrbitSpeeds();
 }
 
 // ---------------------------------------------------------------------------
@@ -496,6 +506,13 @@ void Inspect3DController::rebuildRules() noexcept {
     cfg.pivot_double_click_ = impl_->pivot_double_click_;
     cfg.increase_interaction_key_ = impl_->increase_interaction_key_;
     cfg.decrease_interaction_key_ = impl_->decrease_interaction_key_;
+
+    // setRules clears mapper active-button/key tracking; a drag in progress would never get a matching
+    // release rule. Unwind orbit gestures so inertia/onUpdate is not stuck behind latched rotate/pan.
+    const CameraCommandPayload empty{};
+    impl_->core.rig.onAction(CameraActionType::eEndRotate, empty, 0.0);
+    impl_->core.rig.onAction(CameraActionType::eEndPan, empty, 0.0);
+
     impl_->core.mapper.setRules(buildInspectRules(cfg));
 }
 

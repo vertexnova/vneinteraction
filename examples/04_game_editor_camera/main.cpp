@@ -40,7 +40,7 @@ int main() {
     const float cy = 360.0f;
 
     // FPS mode: WASD + look
-    ctrl.setMode(vne::interaction::NavigateMode::eFps);
+    ctrl.setMode(vne::interaction::FreeLookMode::eFps);
     vne::events::MouseButtonPressedEvent look_press(vne::events::MouseButton::eRight,
                                                     0,
                                                     static_cast<double>(cx),
@@ -59,7 +59,7 @@ int main() {
     on_event(look_release, dt);
 
     // Fly mode: same input preset (RMB look, WASD); unconstrained up / roll
-    ctrl.setMode(vne::interaction::NavigateMode::eFly);
+    ctrl.setMode(vne::interaction::FreeLookMode::eFly);
     on_event(look_press, dt);
     on_event(look_move, dt);
     for (int i = 0; i < 10; ++i) {

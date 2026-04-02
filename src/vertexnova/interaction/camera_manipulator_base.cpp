@@ -5,7 +5,7 @@
  */
 
 #include "vertexnova/interaction/camera_manipulator_base.h"
-#include "vertexnova/interaction/manipulator_utils.h"
+#include "view_math.h"
 
 #include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/orthographic_camera.h"

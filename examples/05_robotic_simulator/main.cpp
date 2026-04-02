@@ -51,7 +51,7 @@ int main() {
     vne::interaction::Navigation3DController navigate;
     navigate.setCamera(camera);
     navigate.onResize(1280.0f, 720.0f);
-    navigate.setMode(vne::interaction::NavigateMode::eFps);
+    navigate.setMode(vne::interaction::FreeLookMode::eFps);
 
     // 3. FollowController — end-effector follow-cam (FollowManipulator)
     vne::interaction::FollowController follow;

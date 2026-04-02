@@ -22,15 +22,15 @@ static std::shared_ptr<vne::scene::PerspectiveCamera> makePerspCamera() {
 
 TEST(Navigation3DController, DefaultFpsMode) {
     vne::interaction::Navigation3DController ctrl;
-    EXPECT_EQ(ctrl.getMode(), vne::interaction::NavigateMode::eFps);
+    EXPECT_EQ(ctrl.getMode(), vne::interaction::FreeLookMode::eFps);
 }
 
 TEST(Navigation3DController, SetMode) {
     vne::interaction::Navigation3DController ctrl;
-    ctrl.setMode(vne::interaction::NavigateMode::eFly);
-    EXPECT_EQ(ctrl.getMode(), vne::interaction::NavigateMode::eFly);
-    ctrl.setMode(vne::interaction::NavigateMode::eFps);
-    EXPECT_EQ(ctrl.getMode(), vne::interaction::NavigateMode::eFps);
+    ctrl.setMode(vne::interaction::FreeLookMode::eFly);
+    EXPECT_EQ(ctrl.getMode(), vne::interaction::FreeLookMode::eFly);
+    ctrl.setMode(vne::interaction::FreeLookMode::eFps);
+    EXPECT_EQ(ctrl.getMode(), vne::interaction::FreeLookMode::eFps);
 }
 
 TEST(Navigation3DController, FreeLookManipulatorEscapeHatchStableAcrossRebuild) {
@@ -43,22 +43,11 @@ TEST(Navigation3DController, FreeLookManipulatorEscapeHatchStableAcrossRebuild) 
     ctrl.setMoveSpeed(7.0f);
     EXPECT_FLOAT_EQ(fl.getMoveSpeed(), 7.0f);
 
-    ctrl.setMode(vne::interaction::NavigateMode::eFly);
+    ctrl.setMode(vne::interaction::FreeLookMode::eFly);
     EXPECT_EQ(&ctrl.freeLookManipulator(), &fl);
 
     ctrl.freeLookManipulator().setMouseSensitivity(0.22f);
     EXPECT_FLOAT_EQ(fl.getMouseSensitivity(), 0.22f);
-}
-
-TEST(Navigation3DController, OrbitalCameraManipulatorAlwaysNull) {
-    vne::interaction::Navigation3DController ctrl;
-    auto cam = makePerspCamera();
-    ctrl.setCamera(cam);
-    ctrl.onResize(1280.0f, 720.0f);
-    ctrl.setMode(vne::interaction::NavigateMode::eFps);
-    EXPECT_EQ(ctrl.orbitalCameraManipulator(), nullptr);
-    ctrl.setMode(vne::interaction::NavigateMode::eFly);
-    EXPECT_EQ(ctrl.orbitalCameraManipulator(), nullptr);
 }
 
 TEST(Navigation3DController, OnEventNoCrash) {

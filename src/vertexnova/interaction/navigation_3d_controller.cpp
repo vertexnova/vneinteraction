@@ -12,7 +12,7 @@
 #include "vertexnova/interaction/input_mapper.h"
 #include "vertexnova/interaction/free_look_manipulator.h"
 
-#include "camera_controller_context.h"
+#include "camera_controller_impl.h"
 #include "vertexnova/events/key_event.h"
 
 #include <vertexnova/logging/logging.h>
@@ -35,7 +35,7 @@ struct Navigation3DController::Impl {
     CameraControllerContext core;
     std::shared_ptr<FreeLookManipulator> free_look;  // shared ownership; also in rig
 
-    NavigateMode mode = NavigateMode::eFps;
+    FreeLookMode mode = FreeLookMode::eFps;
 
     KeyBinding move_forward_{events::KeyCode::eW, events::ModifierKey::eModNone};
     KeyBinding move_backward_{events::KeyCode::eS, events::ModifierKey::eModNone};
@@ -145,12 +145,12 @@ void Navigation3DController::onUpdate(double dt) noexcept {
 // Mode
 // ---------------------------------------------------------------------------
 
-void Navigation3DController::setMode(NavigateMode mode) noexcept {
+void Navigation3DController::setMode(FreeLookMode mode) noexcept {
     impl_->mode = mode;
     rebuild();
 }
 
-NavigateMode Navigation3DController::getMode() const noexcept {
+FreeLookMode Navigation3DController::getMode() const noexcept {
     return impl_->mode;
 }
 
@@ -303,9 +303,6 @@ InputMapper& Navigation3DController::inputMapper() noexcept {
 FreeLookManipulator& Navigation3DController::freeLookManipulator() noexcept {
     return *impl_->free_look;
 }
-OrbitalCameraManipulator* Navigation3DController::orbitalCameraManipulator() noexcept {
-    return nullptr;
-}
 
 // ---------------------------------------------------------------------------
 // Private rebuild — called on construction and mode switch
@@ -318,10 +315,10 @@ void Navigation3DController::rebuild() noexcept {
     }
 
     switch (impl_->mode) {
-        case NavigateMode::eFps:
+        case FreeLookMode::eFps:
             impl_->free_look->setConstrainWorldUp(true);
             break;
-        case NavigateMode::eFly:
+        case FreeLookMode::eFly:
             impl_->free_look->setConstrainWorldUp(false);
             break;
     }
@@ -428,6 +425,12 @@ void Navigation3DController::rebuild() noexcept {
                                     CameraActionType::eDecreaseMoveSpeed,
                                     CameraActionType::eNone));
     }
+
+    // setRules calls resetState on the mapper — active key/button indices are cleared. A key still held
+    // across rebuild would never get a paired release rule match; clear manipulator input latches first
+    // so move / look / modifier flags cannot stick (e.g. continuous strafe after setMode while W is down).
+    impl_->core.rig.resetState();
+
     impl_->core.mapper.setRules(rules);
     // Capture raw Impl* so the callback stays valid across moves.
     impl_->core.mapper.setActionCallback(

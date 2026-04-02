@@ -12,7 +12,7 @@
 #include "vertexnova/interaction/input_mapper.h"
 #include "vertexnova/interaction/follow_manipulator.h"
 
-#include "camera_controller_context.h"
+#include "camera_controller_impl.h"
 
 #include <cmath>
 

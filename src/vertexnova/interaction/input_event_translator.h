@@ -4,17 +4,20 @@
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
  * Author:    Ajeet Singh Yadav
- * Created:   March 2026
+ * Created:   April 2026
  * Autodoc:   no  (internal — excluded from install, not part of the public API)
  * ----------------------------------------------------------------------
  */
 
 /**
- * @file controller_event_dispatch.h
- * @brief dispatchMouseEvents — shared mouse/touch event→InputMapper bridge.
+ * @file input_event_translator.h
+ * @brief dispatchMouseEvents — shared mouse/touch Event→InputMapper translator.
  *
- * Eliminates the verbatim copy of the mouse/touch switch-case that appeared
- * in Inspect3DController, Navigation3DController, and Ortho2DController.
+ * Translates raw vne::events::Event types (mouse button, move, scroll, touch)
+ * into InputMapper method calls. Eliminates the verbatim copy of the mouse/touch
+ * switch-case that appeared in Inspect3DController, Navigation3DController, and
+ * Ortho2DController.
+ *
  * Internal header — explicitly excluded from the CMake install rule.
  */
 
@@ -38,15 +41,15 @@ struct CursorState {
 };
 
 /**
- * @brief Dispatch mouse and touch events to an InputMapper.
+ * @brief Translate mouse and touch events to InputMapper calls.
  *
  * Handles: eMouseMoved, eMouseButtonPressed, eMouseButtonReleased,
  *          eMouseButtonDoubleClicked, eMouseScrolled,
  *          eTouchPress, eTouchMove, eTouchRelease.
  *
  * Key events are NOT handled here. Controllers that use modifier-gated mouse/scroll rules must call
- * `InputMapper::onKey` for key press / repeat / release before this function so Shift/Ctrl/Alt state stays
- * in sync (same pattern as the 3D navigation and inspect controllers).
+ * `InputMapper::onKey` for key press / repeat / release before this function so Shift/Ctrl/Alt state
+ * stays in sync (same pattern as the 3D navigation and inspect controllers).
  *
  * @param mapper   The InputMapper to forward translated events to
  * @param cursor   Mutable cursor tracking state (updated in-place)
