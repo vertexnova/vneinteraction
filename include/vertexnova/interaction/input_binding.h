@@ -5,6 +5,7 @@
  *
  * Author:    Ajeet Singh Yadav
  * Created:   April 2026
+ *
  * Autodoc:   yes
  * ----------------------------------------------------------------------
  */
@@ -27,11 +28,11 @@
 
 namespace vne::interaction {
 
-/** Mouse button: use vne::events::MouseButton (eLeft, eRight, eMiddle) for compatibility. */
+//! Mouse button: use vne::events::MouseButton (eLeft, eRight, eMiddle) for compatibility.
 using MouseButton = vne::events::MouseButton;
 
-/** Modifier key bitmask constants for InputRule::modifier_mask. */
-static constexpr int kModNone = 0;
+//! Modifier key bitmask constants for InputRule::modifier_mask.
+static constexpr int kModNone = 0;        //!< No modifier key held
 static constexpr int kModShift = 1 << 0;  //!< Shift key held
 static constexpr int kModCtrl = 1 << 1;   //!< Ctrl key held
 static constexpr int kModAlt = 1 << 2;    //!< Alt key held
@@ -86,12 +87,12 @@ struct VNE_INTERACTION_API TouchPinch final {
 struct VNE_INTERACTION_API InputRule {
     /** What kind of input triggers this rule. */
     enum class Trigger : std::uint8_t {
-        eMouseButton,    //!< Mouse button; code = MouseButton int (0=left, 1=right, 2=middle)
-        eKey,            //!< Keyboard key; code = vne::events::KeyCode:: value (e.g. KeyCode::eW)
-        eScroll,         //!< Mouse scroll wheel; code = 0
-        eTouchPan,       //!< Touch pan gesture; code = 0
-        eTouchPinch,     //!< Touch pinch gesture; code = 0
-        eMouseDblClick,  //!< Mouse button double-click; code = MouseButton int
+        eMouseButton = 0,    //!< Mouse button; code = MouseButton int (0=left, 1=right, 2=middle)
+        eKey = 1,            //!< Keyboard key; code = vne::events::KeyCode:: value (e.g. KeyCode::eW)
+        eScroll = 2,         //!< Mouse scroll wheel; code = 0
+        eTouchPan = 3,       //!< Touch pan gesture; code = 0
+        eTouchPinch = 4,     //!< Touch pinch gesture; code = 0
+        eMouseDblClick = 5,  //!< Mouse button double-click; code = MouseButton int
     };
 
     Trigger trigger = Trigger::eMouseButton;
