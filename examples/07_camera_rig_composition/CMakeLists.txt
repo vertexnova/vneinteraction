@@ -1,0 +1,1 @@
+vne_add_example(07_camera_rig_composition)

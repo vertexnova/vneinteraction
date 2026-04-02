@@ -2,12 +2,24 @@
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
- * Example 05: Robotic simulator — Inspect3DController (robot/tool inspection),
- * Navigation3DController (environment), FollowController (end-effector view).
+ * Example 05: Robotic simulator — multi-controller switching
+ *
+ * Demonstrates:
+ *   - Three view modes on one camera:
+ *       Inspect3DController  — inspect robot arm / tool in orbit
+ *       Navigation3DController — walk the environment (FPS)
+ *       FollowController      — end-effector chase cam
+ *   - Runtime controller switching (Tab-key pattern)
+ *   - FollowController with dynamic callback target (Vec3f provider)
+ *   - FollowController with static world-space target
+ *   - FollowManipulator damping: responsive vs cinematic
+ *   - Shared camera state across all three controllers
+ *   - reset() on controller switch to clear stale drag state
  * ----------------------------------------------------------------------
  */
 
 #include "vertexnova/interaction/follow_controller.h"
+#include "vertexnova/interaction/follow_manipulator.h"
 #include "vertexnova/interaction/inspect_3d_controller.h"
 #include "vertexnova/interaction/navigation_3d_controller.h"
 #include "vertexnova/scene/camera/camera_factory.h"
@@ -16,55 +28,203 @@
 #include "common/input_simulation.h"
 #include "common/logging_guard.h"
 
+#include <cmath>
+
+static constexpr double kDt  = 1.0 / 60.0;
+static constexpr float  kVpW = 1280.0f;
+static constexpr float  kVpH = 720.0f;
+static constexpr float  kCx  = kVpW / 2.0f;
+static constexpr float  kCy  = kVpH / 2.0f;
+
+// Simulated robot end-effector position (circular path, radius 2, height 1.5)
+static vne::math::Vec3f simulatedEndEffector(double t) {
+    return {
+        static_cast<float>(2.0 * std::cos(t)),
+        1.5f,
+        static_cast<float>(2.0 * std::sin(t))
+    };
+}
+
 int main() {
     vne::interaction::examples::LoggingGuard logging_guard;
 
+    // ── Shared perspective camera ─────────────────────────────────────────────
     auto camera = vne::scene::CameraFactory::createPerspective(
-        vne::scene::PerspectiveCameraParameters(45.0f, 16.0f / 9.0f, 0.1f, 1000.0f));
-    camera->setPosition(vne::math::Vec3f(0.0f, 2.0f, 6.0f));
-    camera->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
+        vne::scene::PerspectiveCameraParameters(50.0f, kVpW / kVpH, 0.01f, 500.0f));
+    camera->setPosition(vne::math::Vec3f(0.0f, 3.0f, 8.0f));
+    camera->lookAt(vne::math::Vec3f(0.0f, 1.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
-    // 1. Inspect3DController — inspect robot arm / tool / anatomy
-    vne::interaction::Inspect3DController inspect;
-    inspect.setCamera(camera);
-    inspect.onResize(1280.0f, 720.0f);
-    inspect.setPivot(vne::math::Vec3f(0.0f, 0.5f, 0.0f));  // robot base
-    inspect.setPivotMode(vne::interaction::OrbitPivotMode::eFixed);
-
-    auto on_inspect = [&inspect](const vne::events::Event& e, double dt) { inspect.onEvent(e, dt); };
-
-    constexpr double dt = 1.0 / 60.0;
-    vne::interaction::examples::simulateMouseDrag(on_inspect,
-                                                  vne::events::MouseButton::eLeft,
-                                                  640.0f,
-                                                  360.0f,
-                                                  60.0f,
-                                                  40.0f,
-                                                  15,
-                                                  dt);
-
-    for (int i = 0; i < 15; ++i) {
-        inspect.onUpdate(dt);
-    }
-
-    // 2. Navigation3DController — move through environment
+    // ── Three controllers sharing the same camera ─────────────────────────────
+    vne::interaction::Inspect3DController    inspect;
     vne::interaction::Navigation3DController navigate;
-    navigate.setCamera(camera);
-    navigate.onResize(1280.0f, 720.0f);
-    navigate.setMode(vne::interaction::FreeLookMode::eFps);
+    vne::interaction::FollowController       follow;
 
-    // 3. FollowController — end-effector follow-cam (FollowManipulator)
-    vne::interaction::FollowController follow;
-    follow.setCamera(camera);
-    follow.onResize(1280.0f, 720.0f);
-    vne::math::Mat4f target_xform = vne::math::Mat4f::translate(vne::math::Vec3f(0.5f, 0.8f, 0.2f));
-    follow.setTarget(target_xform);
-    follow.setLag(0.15f);
-
-    for (int i = 0; i < 30; ++i) {
-        follow.onUpdate(dt);
+    for (auto* c : {
+            static_cast<vne::interaction::ICameraController*>(&inspect),
+            static_cast<vne::interaction::ICameraController*>(&navigate),
+            static_cast<vne::interaction::ICameraController*>(&follow)}) {
+        c->setCamera(camera);
+        c->onResize(kVpW, kVpH);
     }
 
-    VNE_LOG_INFO << "Robotic simulator: Inspect3DController + Navigation3DController + FollowController — done.";
+    // ── Inspect: orbit around robot base, fixed pivot ─────────────────────────
+    inspect.setPivot(vne::math::Vec3f(0.0f, 0.5f, 0.0f));
+    inspect.setPivotMode(vne::interaction::OrbitPivotMode::eFixed);
+    inspect.setRotationInertiaEnabled(true);
+    inspect.orbitalCameraManipulator().setRotationDamping(5.0f);
+
+    // ── Navigate: FPS, reasonable speed for a workshop floor ─────────────────
+    navigate.setMode(vne::interaction::FreeLookMode::eFps);
+    navigate.setMoveSpeed(3.0f);
+    navigate.setSprintMultiplier(5.0f);
+
+    // ── Follow: callback-based — end-effector chase ───────────────────────────
+    // FollowController exposes setTarget(TargetCallback) which takes a Mat4f;
+    // FollowManipulator uses Vec3f provider via followManipulator() escape hatch.
+    double sim_time = 0.0;
+    follow.followManipulator().setTargetProvider([&sim_time]() {
+        return simulatedEndEffector(sim_time);
+    });
+    follow.setOffset(vne::math::Vec3f(0.0f, 1.5f, 4.0f));  // above + behind effector
+    follow.setLag(0.12f);   // cinematic smoothing
+
+    VNE_LOG_INFO << "  follow_lag=" << follow.getLag()
+                 << "  follow_offset=(" << follow.getOffset().x() << "," << follow.getOffset().y() << ","
+                 << follow.getOffset().z() << ")"
+                 << "  follow_damping=" << follow.followManipulator().getDamping();
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Section A: Inspect mode — orbit robot arm
+    // ─────────────────────────────────────────────────────────────────────────
+    VNE_LOG_INFO << "--- A: Inspect mode (orbit robot arm) ---";
+    {
+        auto on_event = [&](const vne::events::Event& e, double dt) { inspect.onEvent(e, dt); };
+
+        vne::interaction::examples::simulateMouseDrag(on_event,
+            vne::events::MouseButton::eLeft, kCx, kCy, 120.0f, 30.0f, 25, kDt);
+        for (int i = 0; i < 40; ++i) inspect.onUpdate(kDt);
+
+        const auto pos = camera->getPosition();
+        VNE_LOG_INFO << "  After inspect orbit — eye=("
+                     << pos.x() << "," << pos.y() << "," << pos.z() << ")";
+
+        // Fit to the arm's bounding box
+        inspect.fitToAABB(vne::math::Vec3f(-1.0f, 0.0f, -1.0f),
+                          vne::math::Vec3f( 1.0f, 2.0f,  1.0f));
+        for (int i = 0; i < 60; ++i) inspect.onUpdate(kDt);
+        VNE_LOG_INFO << "  After fitToAABB";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Section B: Switch → Navigate (Tab pattern)
+    //   On switch: reset() clears stale drag/key state from the previous controller.
+    // ─────────────────────────────────────────────────────────────────────────
+    VNE_LOG_INFO << "--- B: Switch to Navigate (FPS walk) ---";
+    inspect.reset();    // clear orbit inertia velocity before handing off
+    navigate.reset();   // sync angles from current camera pose
+
+    {
+        auto on_event = [&](const vne::events::Event& e, double dt) { navigate.onEvent(e, dt); };
+
+        // Hold RMB to look, walk forward
+        vne::events::MouseButtonPressedEvent rmb(
+            vne::events::MouseButton::eRight, 0,
+            static_cast<double>(kCx), static_cast<double>(kCy));
+        on_event(rmb, kDt);
+        vne::events::MouseMovedEvent look(
+            static_cast<double>(kCx + 20.0f), static_cast<double>(kCy - 10.0f));
+        on_event(look, kDt);
+
+        vne::interaction::examples::simulateKeyHold(on_event, vne::events::KeyCode::eW, 30, kDt,
+            [&](double dt) { navigate.onUpdate(dt); });
+
+        vne::events::MouseButtonReleasedEvent rmb_rel(
+            vne::events::MouseButton::eRight, 0,
+            static_cast<double>(kCx + 20.0f), static_cast<double>(kCy - 10.0f));
+        on_event(rmb_rel, kDt);
+
+        const auto pos = camera->getPosition();
+        VNE_LOG_INFO << "  After FPS walk — eye=("
+                     << pos.x() << "," << pos.y() << "," << pos.z() << ")";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Section C: Switch → Follow (end-effector chase cam)
+    // ─────────────────────────────────────────────────────────────────────────
+    VNE_LOG_INFO << "--- C: Switch to Follow (end-effector chase) ---";
+    navigate.reset();
+
+    // Simulate 120 frames (~2 s) of end-effector motion
+    for (int i = 0; i < 120; ++i) {
+        sim_time += kDt;
+        follow.onUpdate(kDt);
+    }
+    {
+        const auto pos = camera->getPosition();
+        const auto eff = simulatedEndEffector(sim_time);
+        VNE_LOG_INFO << "  effector=(" << eff.x() << "," << eff.y() << "," << eff.z() << ")"
+                     << "  eye=(" << pos.x() << "," << pos.y() << "," << pos.z() << ")";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Section D: Follow damping comparison — responsive vs cinematic
+    // ─────────────────────────────────────────────────────────────────────────
+    VNE_LOG_INFO << "--- D: Damping comparison ---";
+
+    // Responsive: high damping (fast catch-up)
+    follow.followManipulator().setDamping(20.0f);
+    for (int i = 0; i < 30; ++i) {
+        sim_time += kDt;
+        follow.onUpdate(kDt);
+    }
+    {
+        const auto pos = camera->getPosition();
+        VNE_LOG_INFO << "  Responsive (damping=20): eye=(" << pos.x() << "," << pos.y() << "," << pos.z()
+                     << ")";
+    }
+
+    // Cinematic: low damping (slow, floaty)
+    follow.followManipulator().setDamping(1.5f);
+    for (int i = 0; i < 30; ++i) {
+        sim_time += kDt;
+        follow.onUpdate(kDt);
+    }
+    {
+        const auto pos = camera->getPosition();
+        VNE_LOG_INFO << "  Cinematic (damping=1.5): eye=(" << pos.x() << "," << pos.y() << "," << pos.z()
+                     << ")";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Section E: Static world-space target (robot base, not moving)
+    // ─────────────────────────────────────────────────────────────────────────
+    VNE_LOG_INFO << "--- E: Static target (robot base) ---";
+    follow.followManipulator().setTargetWorld(vne::math::Vec3f(0.0f, 0.5f, 0.0f));
+    follow.setOffset(vne::math::Vec3f(0.0f, 2.0f, 5.0f));
+    follow.followManipulator().setDamping(6.0f);
+
+    for (int i = 0; i < 60; ++i) follow.onUpdate(kDt);
+    {
+        const auto pos = camera->getPosition();
+        VNE_LOG_INFO << "  Static target settled: eye=(" << pos.x() << "," << pos.y() << "," << pos.z()
+                     << ")";
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Section F: Switch back to inspect — reset first
+    // ─────────────────────────────────────────────────────────────────────────
+    VNE_LOG_INFO << "--- F: Switch back to inspect ---";
+    follow.reset();
+    inspect.reset();
+
+    {
+        auto on_event = [&](const vne::events::Event& e, double dt) { inspect.onEvent(e, dt); };
+        vne::interaction::examples::simulateMouseDrag(on_event,
+            vne::events::MouseButton::eLeft, kCx, kCy, -60.0f, 20.0f, 15, kDt);
+        for (int i = 0; i < 20; ++i) inspect.onUpdate(kDt);
+        VNE_LOG_INFO << "  Back in inspect — orbit works";
+    }
+
+    VNE_LOG_INFO << "05_robotic_simulator: done.";
     return 0;
 }

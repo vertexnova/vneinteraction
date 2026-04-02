@@ -16,9 +16,9 @@ namespace vne_interaction_test {
 
 TEST(OrbitalCameraManipulator, SetTrackballProjectionMode) {
     vne::interaction::OrbitalCameraManipulator b;
-    EXPECT_EQ(b.getTrackballProjectionMode(), vne::interaction::TrackballBehavior::ProjectionMode::eHyperbolic);
-    b.setTrackballProjectionMode(vne::interaction::TrackballBehavior::ProjectionMode::eRim);
-    EXPECT_EQ(b.getTrackballProjectionMode(), vne::interaction::TrackballBehavior::ProjectionMode::eRim);
+    EXPECT_EQ(b.getTrackballProjectionMode(), vne::interaction::    TrackballProjectionMode::eHyperbolic);
+    b.setTrackballProjectionMode(vne::interaction::TrackballProjectionMode::eRim);
+    EXPECT_EQ(b.getTrackballProjectionMode(), vne::interaction::TrackballProjectionMode::eRim);
 }
 
 static std::shared_ptr<vne::scene::PerspectiveCamera> makePerspCamera() {
