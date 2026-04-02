@@ -442,31 +442,32 @@ void Navigation3DController::rebuild() noexcept {
     }
     impl_->core.mapper.setRules(rules);
     // Capture raw Impl* so the callback stays valid across moves.
-    impl_->core.mapper.setActionCallback([impl = impl_.get()](CameraActionType a, const CameraCommandPayload& p, double dt) {
-        if (a == CameraActionType::eIncreaseMoveSpeed && p.pressed) {
-            if (impl->free_look) {
-                const float current = impl->free_look->getMoveSpeed();
-                impl->free_look->setMoveSpeed(
-                    std::clamp(current + impl->move_speed_step_, impl->move_speed_min_, impl->move_speed_max_));
+    impl_->core.mapper.setActionCallback(
+        [impl = impl_.get()](CameraActionType a, const CameraCommandPayload& p, double dt) {
+            if (a == CameraActionType::eIncreaseMoveSpeed && p.pressed) {
+                if (impl->free_look) {
+                    const float current = impl->free_look->getMoveSpeed();
+                    impl->free_look->setMoveSpeed(
+                        std::clamp(current + impl->move_speed_step_, impl->move_speed_min_, impl->move_speed_max_));
+                }
+                return;
             }
-            return;
-        }
-        if (a == CameraActionType::eDecreaseMoveSpeed && p.pressed) {
-            if (impl->free_look) {
-                const float current = impl->free_look->getMoveSpeed();
-                impl->free_look->setMoveSpeed(
-                    std::clamp(current - impl->move_speed_step_, impl->move_speed_min_, impl->move_speed_max_));
+            if (a == CameraActionType::eDecreaseMoveSpeed && p.pressed) {
+                if (impl->free_look) {
+                    const float current = impl->free_look->getMoveSpeed();
+                    impl->free_look->setMoveSpeed(
+                        std::clamp(current - impl->move_speed_step_, impl->move_speed_min_, impl->move_speed_max_));
+                }
+                return;
             }
-            return;
-        }
-        impl->core.rig.onAction(a, p, dt);
-        // fpsPreset() does not emit orbit gestures (eBeginRotate / eBeginPan). Scroll and touch pinch map to
-        // eZoomAtCursor; after zoom/dolly the camera pose changes—mark yaw/pitch stale so FreeLook's next
-        // ensureAnglesSynced (update / movement / look) matches the rig.
-        if (impl->free_look && a == CameraActionType::eZoomAtCursor) {
-            impl->free_look->markAnglesDirty();
-        }
-    });
+            impl->core.rig.onAction(a, p, dt);
+            // fpsPreset() does not emit orbit gestures (eBeginRotate / eBeginPan). Scroll and touch pinch map to
+            // eZoomAtCursor; after zoom/dolly the camera pose changes—mark yaw/pitch stale so FreeLook's next
+            // ensureAnglesSynced (update / movement / look) matches the rig.
+            if (impl->free_look && a == CameraActionType::eZoomAtCursor) {
+                impl->free_look->markAnglesDirty();
+            }
+        });
 }
 
 }  // namespace vne::interaction

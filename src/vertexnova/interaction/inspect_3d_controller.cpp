@@ -224,17 +224,18 @@ Inspect3DController::Inspect3DController()
     impl_->user_zoom_speed_ = impl_->orbit->getZoomSpeed();
     impl_->applyOrbitSpeeds();
 
-    impl_->core.mapper.setActionCallback([impl = impl_.get()](CameraActionType a, const CameraCommandPayload& p, double dt) {
-        if (a == CameraActionType::eIncreaseInteractionSpeed) {
-            impl->bumpInteractionScale(impl->interaction_speed_step_);
-            return;
-        }
-        if (a == CameraActionType::eDecreaseInteractionSpeed) {
-            impl->bumpInteractionScale(1.0f / impl->interaction_speed_step_);
-            return;
-        }
-        impl->core.rig.onAction(a, p, dt);
-    });
+    impl_->core.mapper.setActionCallback(
+        [impl = impl_.get()](CameraActionType a, const CameraCommandPayload& p, double dt) {
+            if (a == CameraActionType::eIncreaseInteractionSpeed) {
+                impl->bumpInteractionScale(impl->interaction_speed_step_);
+                return;
+            }
+            if (a == CameraActionType::eDecreaseInteractionSpeed) {
+                impl->bumpInteractionScale(1.0f / impl->interaction_speed_step_);
+                return;
+            }
+            impl->core.rig.onAction(a, p, dt);
+        });
 
     rebuildRules();
 }

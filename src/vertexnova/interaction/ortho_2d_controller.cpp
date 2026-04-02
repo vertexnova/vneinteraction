@@ -43,9 +43,9 @@ Ortho2DController::Ortho2DController()
     impl_->core.rig.addManipulator(impl_->ortho2d_behavior);
 
     // Capture raw Impl* so the callback stays valid across moves.
-    impl_->core.mapper.setActionCallback([impl = impl_.get()](CameraActionType a, const CameraCommandPayload& p, double dt) {
-        impl->core.rig.onAction(a, p, dt);
-    });
+    impl_->core.mapper.setActionCallback([impl = impl_.get()](CameraActionType a,
+                                                              const CameraCommandPayload& p,
+                                                              double dt) { impl->core.rig.onAction(a, p, dt); });
 
     rebuildRules();
 }
