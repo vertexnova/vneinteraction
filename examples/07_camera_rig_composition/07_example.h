@@ -1,23 +1,23 @@
+#pragma once
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
- * Example 07: CameraRig composition
+ * Author:    Ajeet Singh Yadav
+ * Created:   April 2026
  *
- * Demonstrates:
- *   - CameraRig factory methods (makeOrbit, makeTrackball, makeFps, makeFly,
- *     makeOrtho2D, makeFollow)
- *   - addManipulator() for a hybrid orbit + fly rig
- *   - removeManipulator() to hot-swap a manipulator at runtime
- *   - clearManipulators() and manual rebuild
- *   - setEnabled() on individual manipulators (mute one, keep the other)
- *   - setHandleZoom(false) on FreeLookManipulator to avoid double-zoom
- *   - Direct onAction() dispatch (bypass controller / mapper)
- *   - resetState() on the rig
+ * Autodoc:   no
  * ----------------------------------------------------------------------
  */
 
-#pragma once
+/**
+ * @file 07_example.h
+ * @brief Example 07 — CameraRig composition: factories, hybrid rigs, and runtime manipulator edits.
+ *
+ * Demonstrates factory methods, addManipulator for hybrid orbit + fly, removeManipulator hot-swap,
+ * clearManipulators and rebuild, per-manipulator setEnabled, setHandleZoom(false) to avoid
+ * double-zoom, direct onAction(), and resetState().
+ */
 
 namespace vne::interaction::examples {
 

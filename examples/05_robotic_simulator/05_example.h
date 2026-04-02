@@ -1,24 +1,22 @@
+#pragma once
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
- * Example 05: Robotic simulator — multi-controller switching
+ * Author:    Ajeet Singh Yadav
+ * Created:   April 2026
  *
- * Demonstrates:
- *   - Three view modes on one camera:
- *       Inspect3DController  — inspect robot arm / tool in orbit
- *       Navigation3DController — walk the environment (FPS)
- *       FollowController      — end-effector chase cam
- *   - Runtime controller switching (Tab-key pattern)
- *   - FollowController with dynamic callback target (Vec3f provider)
- *   - FollowController with static world-space target
- *   - FollowManipulator damping: responsive vs cinematic
- *   - Shared camera state across all three controllers
- *   - reset() on controller switch to clear stale drag state
+ * Autodoc:   no
  * ----------------------------------------------------------------------
  */
 
-#pragma once
+/**
+ * @file 05_example.h
+ * @brief Example 05 — robotic simulator: Inspect3D, Navigation3D, and Follow on one camera.
+ *
+ * Demonstrates runtime controller switching, FollowController with dynamic and static targets,
+ * damping comparison, shared camera state, and reset() when switching modes.
+ */
 
 namespace vne::interaction::examples {
 

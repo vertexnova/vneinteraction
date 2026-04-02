@@ -1,25 +1,24 @@
+#pragma once
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
- * Example 08: Camera state save / restore
+ * Author:    Ajeet Singh Yadav
+ * Created:   April 2026
  *
- * Demonstrates:
- *   - OrbitCameraState  — save/restore Euler orbit (COI, distance, yaw, pitch, up)
- *   - TrackballCameraState — save/restore quaternion trackball (COI, distance, quat, up)
- *   - FreeCameraState   — save/restore free-look (position, yaw, pitch, up_hint)
- *   - Typical "undo/bookmark" pattern: save before interaction, restore to jump back
- *   - Reading live state from OrbitalCameraManipulator fields
- *   - Reading live state from FreeLookManipulator fields
- *   - FreeLookInputState — querying held-key snapshot (diagnostic use)
- *   - OrbitalInteractionState — not exported as snapshot; shown via manipulator API
- *
- * Note: camera_state.h structs are plain data — no serialize/deserialize helpers
- * are provided by the library. Persistence to disk is the application's job.
+ * Autodoc:   no
  * ----------------------------------------------------------------------
  */
 
-#pragma once
+/**
+ * @file 08_example.h
+ * @brief Example 08 — save and restore camera state (orbit, trackball, free-look) and related snapshots.
+ *
+ * Covers OrbitCameraState, TrackballCameraState, FreeCameraState bookmark/undo patterns, reading
+ * live fields from OrbitalCameraManipulator and FreeLookManipulator, FreeLookInputState diagnostics,
+ * and OrbitalInteractionState via the manipulator API. Library structs are plain data; persistence
+ * is application-defined.
+ */
 
 namespace vne::interaction::examples {
 

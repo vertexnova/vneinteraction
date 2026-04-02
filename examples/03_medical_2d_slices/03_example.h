@@ -1,23 +1,23 @@
+#pragma once
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
- * Example 03: Medical 2D slices — Ortho2DController
+ * Author:    Ajeet Singh Yadav
+ * Created:   April 2026
  *
- * Demonstrates:
- *   - Orthographic camera setup
- *   - Default pan (LMB drag) and zoom-at-cursor (scroll)
- *   - Enable in-plane rotation for slice reorientation
- *   - Pan inertia enable/disable and damping
- *   - Zoom sensitivity tuning
- *   - Button rebinding (MMB pan, RMB rotate)
- *   - ZoomMethod variants via ortho2DManipulator() escape hatch
- *   - fitToAABB to frame a DICOM slice region
- *   - reset()
+ * Autodoc:   no
  * ----------------------------------------------------------------------
  */
 
-#pragma once
+/**
+ * @file 03_example.h
+ * @brief Example 03 — medical 2D slices using Ortho2DController (headless simulated input).
+ *
+ * Demonstrates orthographic setup, default pan and scroll zoom, optional in-plane rotation,
+ * pan inertia and zoom sensitivity, button rebinding, ZoomMethod via ortho2DManipulator(),
+ * fitToAABB for a slice region, and reset().
+ */
 
 namespace vne::interaction::examples {
 

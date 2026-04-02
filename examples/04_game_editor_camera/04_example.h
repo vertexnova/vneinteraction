@@ -1,24 +1,23 @@
+#pragma once
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
- * Example 04: Game / editor camera — Navigation3DController
+ * Author:    Ajeet Singh Yadav
+ * Created:   April 2026
  *
- * Demonstrates:
- *   - FPS mode (world-up constrained, pitch clamped ±89°)
- *   - Fly mode (unconstrained 6-DoF)
- *   - WASD + look, sprint, slow modifiers
- *   - Full 6-DoF key bindings: up/down (E/Q by default)
- *   - Key rebinding (arrow keys, custom look button)
- *   - DOF gating: setLookEnabled / setMoveEnabled / setZoomEnabled
- *   - Discrete speed-step keys (]/[ to adjust move speed in-flight)
- *   - freeLookManipulator() escape hatch for direct tuning
- *   - ZoomMethod variants
- *   - fitToAABB and reset()
+ * Autodoc:   no
  * ----------------------------------------------------------------------
  */
 
-#pragma once
+/**
+ * @file 04_example.h
+ * @brief Example 04 — game / editor camera using Navigation3DController (headless simulated input).
+ *
+ * Demonstrates FPS vs Fly modes, WASD + look with sprint/slow, full 6-DoF bindings and rebinding,
+ * DOF gating, discrete speed-step keys, freeLookManipulator() tuning, ZoomMethod variants,
+ * fitToAABB, and reset().
+ */
 
 namespace vne::interaction::examples {
 

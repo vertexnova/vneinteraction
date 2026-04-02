@@ -1,24 +1,23 @@
+#pragma once
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
- * Example 06: Custom input bindings — InputMapper
+ * Author:    Ajeet Singh Yadav
+ * Created:   April 2026
  *
- * Demonstrates:
- *   - All five built-in presets (orbit, fps, game, cad, ortho)
- *   - bindGesture() — rebind rotate/pan/look to a different button
- *   - bindScroll() — rebind scroll-zoom modifier
- *   - bindDoubleClick() — rebind double-click pivot action
- *   - bindKey() / unbindKey() — add/remove keyboard rules
- *   - unbindGesture() — remove an action entirely
- *   - Direct InputRule construction — full low-level control
- *   - addRule() / clearRules() workflow
- *   - resetState() on focus loss
- *   - ActionCallback wiring to CameraRig::onAction
+ * Autodoc:   no
  * ----------------------------------------------------------------------
  */
 
-#pragma once
+/**
+ * @file 06_example.h
+ * @brief Example 06 — custom input bindings with InputMapper and Inspect3DController.
+ *
+ * Demonstrates presets, bindGesture / bindScroll / bindDoubleClick / bindKey / unbindKey /
+ * unbindGesture, direct InputRule construction, addRule / clearRules, direct mouse and key
+ * dispatch, touch pan and pinch, and resetState on focus loss.
+ */
 
 namespace vne::interaction::examples {
 

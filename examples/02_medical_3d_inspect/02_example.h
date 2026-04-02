@@ -1,23 +1,23 @@
+#pragma once
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
- * Example 02: Medical 3D inspect — Inspect3DController
+ * Author:    Ajeet Singh Yadav
+ * Created:   April 2026
  *
- * Demonstrates:
- *   - Euler orbit (default) and trackball rotation modes
- *   - Rotation / pan / zoom DOF toggles
- *   - Landmark (fixed) pivot for anatomy-anchored rotation
- *   - Inertia enable/disable and damping tuning
- *   - Three ZoomMethod variants (scene scale, FOV, dolly)
- *   - fitToAABB with smooth animation frames
- *   - View direction presets (top, front, iso)
- *   - Interaction speed step keys (optional)
- *   - orbitalCameraManipulator() escape hatch for fine-grained tuning
+ * Autodoc:   no
  * ----------------------------------------------------------------------
  */
 
-#pragma once
+/**
+ * @file 02_example.h
+ * @brief Example 02 — medical 3D inspect using Inspect3DController (headless simulated input).
+ *
+ * Demonstrates Euler orbit vs trackball, DOF toggles, fixed landmark pivot, inertia and damping,
+ * all ZoomMethod variants, fitToAABB, view presets, interaction speed-step keys, and
+ * orbitalCameraManipulator() for fine-grained tuning.
+ */
 
 namespace vne::interaction::examples {
 
