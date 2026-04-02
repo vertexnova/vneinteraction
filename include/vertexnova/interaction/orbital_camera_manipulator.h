@@ -77,8 +77,9 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
 
     OrbitalCameraManipulator(const OrbitalCameraManipulator&) = delete;
     OrbitalCameraManipulator& operator=(const OrbitalCameraManipulator&) = delete;
-    OrbitalCameraManipulator(OrbitalCameraManipulator&&) noexcept = default;
-    OrbitalCameraManipulator& operator=(OrbitalCameraManipulator&&) noexcept = default;
+    // Move defined in .cpp: std::unique_ptr<IRotationStrategy> requires a complete type there (MSVC).
+    OrbitalCameraManipulator(OrbitalCameraManipulator&&) noexcept;
+    OrbitalCameraManipulator& operator=(OrbitalCameraManipulator&&) noexcept;
 
     // -------------------------------------------------------------------------
     // ICameraManipulator

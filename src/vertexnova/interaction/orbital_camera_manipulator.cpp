@@ -104,6 +104,10 @@ OrbitalCameraManipulator::OrbitalCameraManipulator() noexcept
 
 OrbitalCameraManipulator::~OrbitalCameraManipulator() noexcept = default;
 
+OrbitalCameraManipulator::OrbitalCameraManipulator(OrbitalCameraManipulator&&) noexcept = default;
+
+OrbitalCameraManipulator& OrbitalCameraManipulator::operator=(OrbitalCameraManipulator&&) noexcept = default;
+
 // ---------------------------------------------------------------------------
 // Camera helpers
 // ---------------------------------------------------------------------------
