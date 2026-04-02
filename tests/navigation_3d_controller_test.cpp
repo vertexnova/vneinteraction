@@ -125,12 +125,14 @@ TEST(Navigation3DIntegration, MouseLeftWhileLooking_DecreasesForwardX) {
     Nav3dIntegrationSetup s;
     const vne::math::Vec3f fwd_before = forwardFromCamera(*s.cam);
 
-    s.ctrl.onEvent(
-        vne::events::MouseButtonPressedEvent(vne::events::MouseButton::eRight, 0, static_cast<double>(kCx),
-                                             static_cast<double>(kCy)),
-        kDt);
+    s.ctrl.onEvent(vne::events::MouseButtonPressedEvent(vne::events::MouseButton::eRight,
+                                                        0,
+                                                        static_cast<double>(kCx),
+                                                        static_cast<double>(kCy)),
+                   kDt);
     s.ctrl.onEvent(vne::events::MouseMovedEvent(static_cast<double>(kCx - 80.0f), static_cast<double>(kCy)), kDt);
-    s.ctrl.onEvent(vne::events::MouseButtonReleasedEvent(vne::events::MouseButton::eRight, 0,
+    s.ctrl.onEvent(vne::events::MouseButtonReleasedEvent(vne::events::MouseButton::eRight,
+                                                         0,
                                                          static_cast<double>(kCx - 80.0f),
                                                          static_cast<double>(kCy)),
                    kDt);
@@ -144,12 +146,14 @@ TEST(Navigation3DIntegration, MouseRightWhileLooking_IncreasesForwardX) {
     Nav3dIntegrationSetup s;
     const vne::math::Vec3f fwd_before = forwardFromCamera(*s.cam);
 
-    s.ctrl.onEvent(
-        vne::events::MouseButtonPressedEvent(vne::events::MouseButton::eRight, 0, static_cast<double>(kCx),
-                                             static_cast<double>(kCy)),
-        kDt);
+    s.ctrl.onEvent(vne::events::MouseButtonPressedEvent(vne::events::MouseButton::eRight,
+                                                        0,
+                                                        static_cast<double>(kCx),
+                                                        static_cast<double>(kCy)),
+                   kDt);
     s.ctrl.onEvent(vne::events::MouseMovedEvent(static_cast<double>(kCx + 80.0f), static_cast<double>(kCy)), kDt);
-    s.ctrl.onEvent(vne::events::MouseButtonReleasedEvent(vne::events::MouseButton::eRight, 0,
+    s.ctrl.onEvent(vne::events::MouseButtonReleasedEvent(vne::events::MouseButton::eRight,
+                                                         0,
                                                          static_cast<double>(kCx + 80.0f),
                                                          static_cast<double>(kCy)),
                    kDt);
@@ -163,12 +167,14 @@ TEST(Navigation3DIntegration, MouseDownWhileLooking_DecreasesForwardY) {
     Nav3dIntegrationSetup s;
     const vne::math::Vec3f fwd_before = forwardFromCamera(*s.cam);
 
-    s.ctrl.onEvent(
-        vne::events::MouseButtonPressedEvent(vne::events::MouseButton::eRight, 0, static_cast<double>(kCx),
-                                             static_cast<double>(kCy)),
-        kDt);
+    s.ctrl.onEvent(vne::events::MouseButtonPressedEvent(vne::events::MouseButton::eRight,
+                                                        0,
+                                                        static_cast<double>(kCx),
+                                                        static_cast<double>(kCy)),
+                   kDt);
     s.ctrl.onEvent(vne::events::MouseMovedEvent(static_cast<double>(kCx), static_cast<double>(kCy + 50.0f)), kDt);
-    s.ctrl.onEvent(vne::events::MouseButtonReleasedEvent(vne::events::MouseButton::eRight, 0,
+    s.ctrl.onEvent(vne::events::MouseButtonReleasedEvent(vne::events::MouseButton::eRight,
+                                                         0,
                                                          static_cast<double>(kCx),
                                                          static_cast<double>(kCy + 50.0f)),
                    kDt);
@@ -289,12 +295,14 @@ TEST(Navigation3DIntegration, SetLookEnabledFalse_IgnoresMouseLook) {
     s.ctrl.setLookEnabled(false);
     const vne::math::Vec3f fwd_before = forwardFromCamera(*s.cam);
 
-    s.ctrl.onEvent(
-        vne::events::MouseButtonPressedEvent(vne::events::MouseButton::eRight, 0, static_cast<double>(kCx),
-                                             static_cast<double>(kCy)),
-        kDt);
+    s.ctrl.onEvent(vne::events::MouseButtonPressedEvent(vne::events::MouseButton::eRight,
+                                                        0,
+                                                        static_cast<double>(kCx),
+                                                        static_cast<double>(kCy)),
+                   kDt);
     s.ctrl.onEvent(vne::events::MouseMovedEvent(static_cast<double>(kCx + 120.0f), static_cast<double>(kCy)), kDt);
-    s.ctrl.onEvent(vne::events::MouseButtonReleasedEvent(vne::events::MouseButton::eRight, 0,
+    s.ctrl.onEvent(vne::events::MouseButtonReleasedEvent(vne::events::MouseButton::eRight,
+                                                         0,
                                                          static_cast<double>(kCx + 120.0f),
                                                          static_cast<double>(kCy)),
                    kDt);
