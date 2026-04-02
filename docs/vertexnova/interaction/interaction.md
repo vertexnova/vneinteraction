@@ -24,7 +24,38 @@ The **Vertexnova Interaction** library provides composable camera **manipulators
 | vne::math | Vectors, quaternions, matrices (pulled in via scene and public headers). |
 | vne::logging | Optional diagnostic logging; the library uses categorized log macros internally. |
 
-If the image above does not load, export `diagrams/context.drawio` to `diagrams/context.png` using Draw.io (same workflow as [vnelogging’s diagram export notes](../../../deps/internal/vnelogging/docs/vertexnova/logging/diagrams/README.md)).
+**Diagram colors** — Draw.io sources in `diagrams/` use the [VertexNova visual style](https://learnvertexnova.com/docs/docs/misc/visual-style/) **primary palette** for slides and diagrams (canvas `#1C1C1E`, panels `#2C2C2E` / `#3A3A3C`, borders `#48484A`, accent orange `#E8622A` on tint `#2E1A07`, secondary stroke `#F28C5E`, text `#EBEBF0` / muted `#AEAEB2`).
+
+If a PNG does not load, export the matching `.drawio` from [diagrams.net](https://app.diagrams.net) (same workflow as [vnelogging’s diagram export notes](../../../deps/internal/vnelogging/docs/vertexnova/logging/diagrams/README.md)).
+
+![UML class relationships](diagrams/class.png)
+
+**Figure 2 — Class diagram (major types and relationships)**
+
+| Group | Types |
+|-------|--------|
+| Interfaces | `ICameraManipulator`, `ICameraController`, internal `IRotationStrategy` for orbit modes. |
+| Base / rig / mapper | `CameraManipulatorBase`, `CameraRig`, `InputMapper`. |
+| Manipulators | `OrbitalCameraManipulator`, `FreeLookManipulator`, `Ortho2DManipulator`, `FollowManipulator`. |
+| Controllers | `Inspect3DController`, `Navigation3DController`, `Ortho2DController`, `FollowController`. |
+| Orbit internals | `EulerOrbitStrategy`, `TrackballStrategy` (composition from `OrbitalCameraManipulator`). |
+
+Export `diagrams/class.drawio` → `diagrams/class.png`.
+
+![Runtime pipeline](diagrams/runtime-pipeline.png)
+
+**Figure 3 — Runtime pipeline (per event and per frame)**
+
+| Stage | Role |
+|-------|------|
+| Events | `vne::events::Event` delivered into the active controller. |
+| Controller | Forwards to `InputMapper`; registers callback → `CameraRig::onAction`. |
+| InputMapper | Emits `CameraActionType` + `CameraCommandPayload`. |
+| CameraRig | Multicasts `onAction` / `onUpdate` to every manipulator. |
+| Manipulators | Update pose, COI, zoom, or ortho extents. |
+| Camera | `vne::scene::ICamera` stores the result for rendering and picking. |
+
+The first page of `diagrams/runtime.drawio` (**1. Runtime pipeline**) is the source for this figure; export it to `diagrams/runtime-pipeline.png`. The same file’s other tabs (**2. Orbit rotate**, **3. FPS move + look**) are optional exports for deeper sequence-style views.
 
 ## Architecture
 
@@ -41,24 +72,14 @@ The design is **layered**: application and events sit above controllers; control
 
 ![Component diagram](diagrams/component.png)
 
-**Figure 2 — Public API vs implementation (layer view)**
+**Figure 4 — Public API vs implementation (layer view)**
 
 | Swimlane | Contents |
 |----------|----------|
 | Public API | `interaction.h`, type headers (`interaction_types.h`, `camera_action.h`, `input_binding.h`, `camera_state.h`), controllers, `CameraRig`, `InputMapper`, manipulators, `ICameraManipulator` / `ICameraController`. |
 | Implementation | `input_event_translator`, controller context helpers, rotation strategies (`IRotationStrategy`, Euler/trackball), `OrbitBehavior` / `TrackballBehavior`, `camera_math` / `view_math`, and per-class `.cpp` files. |
 
-Export `diagrams/component.drawio` → `diagrams/component.png` when needed.
-
-### Runtime flow (per event / per frame)
-
-Typical flow: **events → controller → `InputMapper` → action callback → `CameraRig::onAction` → each manipulator → camera**. Each frame, **controller → rig → manipulator `onUpdate`** handles inertia, fit-to-AABB animation, and similar continuous behavior.
-
-Multi-page **runtime** diagrams (pipeline, orbit path, FPS path) live in `diagrams/runtime.drawio` (open in [diagrams.net](https://app.diagrams.net)); export tabs to PNG if you want to embed them elsewhere.
-
-### Class-oriented view
-
-A broader UML-style view of types and relationships is in `diagrams/class.drawio` (export to `diagrams/class.png` for embedding).
+Export `diagrams/component.drawio` → `diagrams/component.png`.
 
 ## Intent model (events → actions)
 
