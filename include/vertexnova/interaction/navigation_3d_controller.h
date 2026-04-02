@@ -35,6 +35,9 @@
  * @endcode
  *
  * Defaults match common viewport tools (e.g. Isaac Sim style): **Shift** = sprint, **Ctrl** = slow while moving.
+ *
+ * For direct `FreeLookManipulator` access (sensitivity, mode, etc.), use @ref freeLookManipulator(); that reference
+ * stays valid across @ref setMode and internal input-rule rebuilds.
  */
 
 #include "vertexnova/interaction/export.h"
@@ -184,13 +187,6 @@ class VNE_INTERACTION_API Navigation3DController : public ICameraController {
 
     [[nodiscard]] InputMapper& inputMapper() noexcept;
     [[nodiscard]] FreeLookManipulator& freeLookManipulator() noexcept;
-
-    /**
-     * @brief Deprecated alias for @ref freeLookManipulator.
-     * @deprecated Use @ref freeLookManipulator(); will be removed in the next release.
-     */
-    [[nodiscard, deprecated("Use freeLookManipulator(); will be removed in the next release.")]]
-    FreeLookManipulator& freeLookBehavior() noexcept { return freeLookManipulator(); }
 
     /**
      * @brief Former hook for hybrid orbit + free-look; always returns nullptr.

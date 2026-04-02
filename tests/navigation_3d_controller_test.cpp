@@ -3,6 +3,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License")
  * --------------------------------------------------------------------- */
 
+#include "vertexnova/interaction/free_look_manipulator.h"
 #include "vertexnova/interaction/navigation_3d_controller.h"
 #include "vertexnova/events/key_event.h"
 #include "vertexnova/events/mouse_event.h"
@@ -30,6 +31,23 @@ TEST(Navigation3DController, SetMode) {
     EXPECT_EQ(ctrl.getMode(), vne::interaction::NavigateMode::eFly);
     ctrl.setMode(vne::interaction::NavigateMode::eFps);
     EXPECT_EQ(ctrl.getMode(), vne::interaction::NavigateMode::eFps);
+}
+
+TEST(Navigation3DController, FreeLookManipulatorEscapeHatchStableAcrossRebuild) {
+    vne::interaction::Navigation3DController ctrl;
+    auto cam = makePerspCamera();
+    ctrl.setCamera(cam);
+    ctrl.onResize(1280.0f, 720.0f);
+
+    vne::interaction::FreeLookManipulator& fl = ctrl.freeLookManipulator();
+    ctrl.setMoveSpeed(7.0f);
+    EXPECT_FLOAT_EQ(fl.getMoveSpeed(), 7.0f);
+
+    ctrl.setMode(vne::interaction::NavigateMode::eFly);
+    EXPECT_EQ(&ctrl.freeLookManipulator(), &fl);
+
+    ctrl.freeLookManipulator().setMouseSensitivity(0.22f);
+    EXPECT_FLOAT_EQ(fl.getMouseSensitivity(), 0.22f);
 }
 
 TEST(Navigation3DController, OrbitalCameraManipulatorAlwaysNull) {

@@ -29,6 +29,8 @@ int main() {
     ctrl.onResize(1280.0f, 720.0f);
     ctrl.setMoveSpeed(5.0f);
     ctrl.setSprintMultiplier(3.0f);
+    // Escape hatch: same FreeLookManipulator instance for direct tuning (survives setMode / rule rebuilds).
+    ctrl.freeLookManipulator().setMouseSensitivity(0.18f);
 
     auto on_event = [&ctrl](const vne::events::Event& e, double dt) { ctrl.onEvent(e, dt); };
 
