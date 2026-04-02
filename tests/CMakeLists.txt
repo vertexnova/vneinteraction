@@ -19,8 +19,8 @@ if(EXISTS "${PROJECT_SOURCE_DIR}/deps/external/googletest/CMakeLists.txt")
     message(STATUS "Using Google Test from deps/external/googletest (v1.17.0)")
     add_subdirectory(${PROJECT_SOURCE_DIR}/deps/external/googletest ${CMAKE_BINARY_DIR}/deps/external/googletest)
     include(GoogleTest)
-    # Link against gtest (no built-in main) so we can provide our own main
-    set(GTEST_LIBRARIES gtest gmock)
+    # Link gmock only — it depends on gtest (PUBLIC); listing both duplicates libgtest on the link line (ld warning on macOS).
+    set(GTEST_LIBRARIES gmock)
     set(GTEST_INCLUDE_DIRS
         ${PROJECT_SOURCE_DIR}/deps/external/googletest/googletest/include
         ${PROJECT_SOURCE_DIR}/deps/external/googletest/googlemock/include
@@ -29,8 +29,8 @@ else()
     find_package(GTest QUIET)
     if(GTest_FOUND)
         message(STATUS "Using system Google Test")
-        # Use gtest without main to allow a custom test main
-        set(GTEST_LIBRARIES GTest::gtest GTest::gmock)
+        # GTest::gmock pulls in gtest; avoid listing both (duplicate static libs on link line).
+        set(GTEST_LIBRARIES GTest::gmock)
         set(GTEST_INCLUDE_DIRS "")
     else()
         message(STATUS "deps/external/googletest not found, using FetchContent")
@@ -41,7 +41,7 @@ else()
             GIT_TAG        v1.17.0
         )
         FetchContent_MakeAvailable(googletest)
-        set(GTEST_LIBRARIES gtest gmock)
+        set(GTEST_LIBRARIES gmock)
         set(GTEST_INCLUDE_DIRS ${googletest_SOURCE_DIR}/googletest/include ${googletest_SOURCE_DIR}/googlemock/include)
     endif()
 endif()
@@ -84,7 +84,6 @@ target_link_libraries(vneinteraction_tests
     PRIVATE
         ${GTEST_LIBRARIES}
         vne::interaction
-        vne::logging
 )
 
 if(MSVC)
