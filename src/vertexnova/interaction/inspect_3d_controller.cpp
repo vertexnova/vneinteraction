@@ -36,7 +36,7 @@ struct Inspect3DController::Impl {
     CameraControllerContext core;
     std::shared_ptr<OrbitalCameraManipulator> orbit;
 
-    OrbitRotationMode rotation_mode = OrbitRotationMode::eOrbit;
+    OrbitalRotationMode rotation_mode = OrbitalRotationMode::eOrbit;
     bool rotation_enabled = true;
     bool pivot_on_double_click_enabled = true;
     bool pan_enabled = true;
@@ -218,7 +218,7 @@ static std::vector<InputRule> buildInspectRules(const InspectRuleConfig& impl) {
 Inspect3DController::Inspect3DController()
     : impl_(std::make_unique<Impl>()) {
     impl_->orbit = std::make_shared<OrbitalCameraManipulator>();
-    impl_->orbit->setRotationMode(OrbitRotationMode::eOrbit);
+    impl_->orbit->setRotationMode(OrbitalRotationMode::eOrbit);
     impl_->core.rig.addManipulator(impl_->orbit);
 
     impl_->user_rotation_speed_ = impl_->orbit->getRotationSpeed();
@@ -292,14 +292,14 @@ void Inspect3DController::onUpdate(double dt) noexcept {
 // Rotation mode
 // ---------------------------------------------------------------------------
 
-void Inspect3DController::setRotationMode(OrbitRotationMode mode) noexcept {
+void Inspect3DController::setRotationMode(OrbitalRotationMode mode) noexcept {
     impl_->rotation_mode = mode;
     if (impl_->orbit) {
         impl_->orbit->setRotationMode(mode);
     }
 }
 
-OrbitRotationMode Inspect3DController::getRotationMode() const noexcept {
+OrbitalRotationMode Inspect3DController::getRotationMode() const noexcept {
     return impl_->rotation_mode;
 }
 

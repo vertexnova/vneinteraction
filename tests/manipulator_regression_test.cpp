@@ -138,7 +138,7 @@ TEST(ManipulatorRegression, OrbitPan_Perspective_DragDownMovesCoiAlongUp) {
     persp->updateMatrices();
 
     vne::interaction::OrbitalCameraManipulator b;
-    b.setRotationMode(vne::interaction::OrbitRotationMode::eOrbit);
+    b.setRotationMode(vne::interaction::OrbitalRotationMode::eOrbit);
     b.setCamera(persp);
     b.onResize(200.0f, 200.0f);
 
@@ -167,7 +167,7 @@ TEST(ManipulatorRegression, OrbitPan_Orthographic_DragDownMovesCoiAlongUp) {
     ortho->updateMatrices();
 
     vne::interaction::OrbitalCameraManipulator b;
-    b.setRotationMode(vne::interaction::OrbitRotationMode::eOrbit);
+    b.setRotationMode(vne::interaction::OrbitalRotationMode::eOrbit);
     b.setCamera(ortho);
     b.onResize(200.0f, 200.0f);
 
@@ -259,7 +259,7 @@ TEST(ManipulatorRegression, OrbitEuler_PositiveYawTurnsRight) {
     persp->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
     vne::interaction::OrbitalCameraManipulator b;
-    b.setRotationMode(vne::interaction::OrbitRotationMode::eOrbit);
+    b.setRotationMode(vne::interaction::OrbitalRotationMode::eOrbit);
     b.setCamera(persp);
     b.onResize(800.0f, 600.0f);
 
@@ -284,7 +284,7 @@ TEST(ManipulatorRegression, OrbitalCamera_HorizontalDragMatchesEulerSign) {
     persp->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
     vne::interaction::OrbitalCameraManipulator b;
-    b.setRotationMode(vne::interaction::OrbitRotationMode::eTrackball);
+    b.setRotationMode(vne::interaction::OrbitalRotationMode::eTrackball);
     b.setCamera(persp);
     b.onResize(800.0f, 600.0f);
 

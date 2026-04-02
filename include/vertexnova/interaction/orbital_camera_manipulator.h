@@ -18,8 +18,8 @@
  * - @ref TrackballBehavior for screen-to-sphere mapping and ball-space deltas
  *
  * @par Rotation modes
- * - @c OrbitRotationMode::eOrbit: classic yaw/pitch orbit around @c world_up.
- * - @c OrbitRotationMode::eTrackball: quaternion orbit via virtual trackball.
+ * - @c OrbitalRotationMode::eOrbit: classic yaw/pitch orbit around @c world_up.
+ * - @c OrbitalRotationMode::eTrackball: quaternion orbit via virtual trackball.
  *
  * @par Pivot modes
  * - @c OrbitPivotMode::eCoi: pivot follows pan in view plane.
@@ -112,9 +112,9 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
     // -------------------------------------------------------------------------
 
     /** Set the rotation algorithm (eOrbit or eTrackball); rebuilds the strategy if changed. */
-    void setRotationMode(OrbitRotationMode mode) noexcept;
+    void setRotationMode(OrbitalRotationMode mode) noexcept;
     /** Get the current rotation algorithm. */
-    [[nodiscard]] OrbitRotationMode getRotationMode() const noexcept { return rotation_mode_; }
+    [[nodiscard]] OrbitalRotationMode getRotationMode() const noexcept { return rotation_mode_; }
 
     /** Trackball screen-to-sphere mapping (default: @ref TrackballBehavior::ProjectionMode::eHyperbolic). */
     void setTrackballProjectionMode(TrackballBehavior::ProjectionMode mode) noexcept;
@@ -174,7 +174,7 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
     [[nodiscard]] float getRotationSpeed() const noexcept { return rotation_speed_; }
 
     /**
-     * Extra scale applied only in @c OrbitRotationMode::eTrackball (>= 0). The trackball path scales
+     * Extra scale applied only in @c OrbitalRotationMode::eTrackball (>= 0). The trackball path scales
      * quaternion angle by rotation_speed, while Euler uses deg/pixel — the defaults match feel across
      * modes. Default 2.5.
      */
@@ -271,7 +271,7 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
     // camera_, enabled_, viewport_ inherited from CameraManipulatorBase
     // zoom_method_, zoom_scale_, fov_zoom_speed_ inherited from CameraManipulatorBase
 
-    OrbitRotationMode rotation_mode_ = OrbitRotationMode::eOrbit;
+    OrbitalRotationMode rotation_mode_ = OrbitalRotationMode::eOrbit;
     OrbitPivotMode pivot_mode_ = OrbitPivotMode::eCoi;
 
     // Common orbit state

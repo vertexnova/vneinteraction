@@ -27,7 +27,8 @@ int main() {
     ctrl.onResize(1280.0f, 720.0f);
 
     VNE_LOG_INFO << "Rotation mode: "
-                 << (ctrl.getRotationMode() == vne::interaction::OrbitRotationMode::eTrackball ? "trackball" : "orbit");
+                 << (ctrl.getRotationMode() == vne::interaction::OrbitalRotationMode::eTrackball ? "trackball"
+                                                                                                 : "orbit");
 
     // Landmark-centered inspection (medical use case)
     ctrl.setPivot(vne::math::Vec3f(0.5f, 0.3f, 0.0f));  // e.g. anatomical landmark

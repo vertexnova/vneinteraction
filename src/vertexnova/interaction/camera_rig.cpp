@@ -93,7 +93,7 @@ CameraRig CameraRig::makeOrbit() {
 CameraRig CameraRig::makeTrackball() {
     CameraRig rig;
     auto m = std::make_shared<OrbitalCameraManipulator>();
-    m->setRotationMode(OrbitRotationMode::eTrackball);
+    m->setRotationMode(OrbitalRotationMode::eTrackball);
     rig.addManipulator(std::move(m));
     return rig;
 }

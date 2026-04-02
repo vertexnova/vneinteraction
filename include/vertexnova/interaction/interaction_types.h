@@ -5,6 +5,7 @@
  *
  * Author:    Ajeet Singh Yadav
  * Created:   March 2026
+ *
  * Autodoc:   yes
  * ----------------------------------------------------------------------
  */
@@ -14,7 +15,7 @@
  * @brief Umbrella header for all shared interaction types.
  *
  * Includes:
- * - Behavioral enums: @ref FreeLookMode, @ref ZoomMethod, @ref OrbitRotationMode,
+ * - Behavioral enums: @ref FreeLookMode, @ref ZoomMethod, @ref OrbitalRotationMode,
  *   @ref OrbitPivotMode, @ref UpAxis, @ref ViewDirection, @ref CenterOfInterestSpace
  * - @ref camera_action.h — @ref CameraActionType, @ref CameraCommandPayload, @ref GestureAction
  * - @ref input_binding.h — @ref InputRule, @ref MouseBinding, @ref KeyBinding, touch structs,
@@ -72,7 +73,7 @@ enum class FreeLookMode : std::uint8_t {
 };
 
 /** Rotation algorithm for orbit-style camera (OrbitalCameraManipulator, Inspect3DController). */
-enum class OrbitRotationMode : std::uint8_t {
+enum class OrbitalRotationMode : std::uint8_t {
     eOrbit = 0,      //!< Classic orbit (Euler yaw/pitch), pitch clamped [-89°, 89°]
     eTrackball = 1,  //!< Quaternion / virtual-trackball rotation (smooth, no gimbal lock)
 };
