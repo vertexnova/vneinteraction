@@ -156,16 +156,26 @@ One **`.cpp` per public class** where applicable, plus `input_mapper.cpp`, `came
 
 ## Usage examples
 
+The examples below progress from the simplest one-controller setup to advanced composition patterns.
+All snippets assume:
+
+```cpp
+#include <vertexnova/interaction/interaction.h>
+// camera factory lives in:
+#include <vertexnova/scene/camera/camera.h>
+```
+
 ### Use-case quick reference
 
-| Use case | Controller | Key configuration |
-|----------|------------|-------------------|
-| 3D inspection (CAD, medical) | `Inspect3DController` | Default Euler orbit; switch to trackball with `setRotationMode(eTrackball)`; lock pivot with `setPivotMode(eFixed)`. |
-| 2D slice / map view | `Ortho2DController` | Requires orthographic camera; opt-in in-plane rotate with `setRotationEnabled(true)`. |
-| FPS / fly-through | `Navigation3DController` | `setMode(FreeLookMode::eFps)` for world-up constraint, `eFly` for unconstrained. |
-| Follow / cinematic | `FollowController` | Provide a `TargetCallback` returning a world-space `Mat4f` each frame. |
-| Editor dual-mode | `Inspect3DController` + `Navigation3DController` | Switch the active controller on a hotkey; share the same `ICamera`. |
-| Custom rig | `CameraRig` + manipulators | Build a rig from `CameraRig::make*()` factories; add extra manipulators for specialised interactions. |
+| Use case | Recommended controller | Default bindings |
+|---|---|---|
+| 3D model viewer / CAD / medical | `Inspect3DController` | LMB=orbit, RMB/MMB=pan, scroll=zoom, double-click LMB=set pivot |
+| FPS walkthrough / game editor | `Navigation3DController` (eFps) | WASD+mouse look, RMB=look, scroll=zoom, Shift=sprint, Ctrl=slow |
+| Flight / space / drone sim | `Navigation3DController` (eFly) | Same as FPS, pitch unconstrained |
+| 2D slice / map / diagram | `Ortho2DController` | RMB/MMB=pan, scroll=zoom |
+| Cinematic follow / third-person | `FollowController` | No user input; target-driven |
+| Hybrid editor (orbit + walk) | `Inspect3DController` + `Navigation3DController` | Hot-key toggle; both share one `ICamera` |
+| Custom rig (advanced) | `CameraRig` directly | Compose any manipulators; wire your own `InputMapper` |
 
 ---
 
