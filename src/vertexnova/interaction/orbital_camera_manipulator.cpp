@@ -912,7 +912,6 @@ bool OrbitalCameraManipulator::onAction(CameraActionType action,
                 dispatchZoom(payload.zoom_factor, payload.x_px, payload.y_px);
                 return true;
             }
-            VNE_LOG_DEBUG << "OrbitalCameraManipulator: ignoring zoom with factor=" << payload.zoom_factor;
             return false;
 
         case CameraActionType::eOrbitPanModifier:

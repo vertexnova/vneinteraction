@@ -120,8 +120,7 @@ namespace {
 CREATE_VNE_LOGGER_CATEGORY("vne.interaction.input_mapper");
 
 /** Bits allowed in @ref InputRule::modifier_mask (Shift/Ctrl/Alt). */
-constexpr unsigned kKnownModifierBits =
-    static_cast<unsigned>(kModShift | kModCtrl | kModAlt);
+constexpr unsigned kKnownModifierBits = static_cast<unsigned>(kModShift | kModCtrl | kModAlt);
 
 /**
  * @brief Specificity score for choosing among rules that all satisfy @ref InputMapper::modifiersMatch.
@@ -141,7 +140,7 @@ constexpr unsigned kKnownModifierBits =
  *
  * Among matches, prefers the highest @ref modifierMaskSpecificity; on a tie, the smallest index wins.
  */
-template <typename Pred>
+template<typename Pred>
 [[nodiscard]] int pickBestRuleIndexByModifierSpecificity(const std::vector<InputRule>& rules, Pred&& pred) noexcept {
     int best_i = -1;
     int best_score = -1;
@@ -331,8 +330,7 @@ void InputMapper::onMouseButton(int button, bool pressed, float x, float y, doub
     if (pressed) {
         // Among all matching button rules, pick the most specific modifier chord (e.g. Shift+LMB over LMB).
         const int i = pickBestRuleIndexByModifierSpecificity(rules_, [this, button](const InputRule& r, int) {
-            return r.trigger == InputRule::Trigger::eMouseButton && r.code == button
-                   && modifiersMatch(r.modifier_mask);
+            return r.trigger == InputRule::Trigger::eMouseButton && r.code == button && modifiersMatch(r.modifier_mask);
         });
         if (i >= 0) {
             const auto& r = rules_[static_cast<std::size_t>(i)];
@@ -357,8 +355,7 @@ void InputMapper::onMouseDoubleClick(int button, float x, float y, double dt) no
     payload.y_px = y;
 
     const int i = pickBestRuleIndexByModifierSpecificity(rules_, [this, button](const InputRule& r, int) {
-        return r.trigger == InputRule::Trigger::eMouseDblClick && r.code == button
-               && modifiersMatch(r.modifier_mask);
+        return r.trigger == InputRule::Trigger::eMouseDblClick && r.code == button && modifiersMatch(r.modifier_mask);
     });
     if (i >= 0) {
         emit(rules_[static_cast<std::size_t>(i)].on_press, payload, dt);

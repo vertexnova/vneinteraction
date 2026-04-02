@@ -212,8 +212,9 @@ struct VNE_INTERACTION_API InputRule {
     };
 
     Trigger trigger = Trigger::eMouseButton;
-    int code = 0;                  //!< Button index or key code; 0 for scroll/touch
-    int modifier_mask = kModNone;  //!< Required modifier bitmask (non-negative; only @c kModShift|kModCtrl|kModAlt); 0 = none required
+    int code = 0;  //!< Button index or key code; 0 for scroll/touch
+    int modifier_mask =
+        kModNone;  //!< Required modifier bitmask (non-negative; only @c kModShift|kModCtrl|kModAlt); 0 = none required
 
     CameraActionType on_press = CameraActionType::eNone;    //!< Emitted on press / double-click
     CameraActionType on_release = CameraActionType::eNone;  //!< Emitted on release

@@ -186,6 +186,13 @@ class VNE_INTERACTION_API Navigation3DController : public ICameraController {
     [[nodiscard]] FreeLookManipulator& freeLookManipulator() noexcept;
 
     /**
+     * @brief Deprecated alias for @ref freeLookManipulator.
+     * @deprecated Use @ref freeLookManipulator(); will be removed in the next release.
+     */
+    [[nodiscard, deprecated("Use freeLookManipulator(); will be removed in the next release.")]]
+    FreeLookManipulator& freeLookBehavior() noexcept { return freeLookManipulator(); }
+
+    /**
      * @brief Former hook for hybrid orbit + free-look; always returns nullptr.
      * @deprecated Use Inspect3DController for orbit-style inspection, or compose CameraRig manually.
      */

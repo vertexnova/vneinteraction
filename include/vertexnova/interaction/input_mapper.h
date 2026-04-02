@@ -227,8 +227,9 @@ class VNE_INTERACTION_API InputMapper {
     static constexpr int kMaxKeys = 512;   //!< Key code range tracked (0..511).
     int active_button_rule_[kMaxButtons] = {
         -1, -1, -1, -1, -1, -1, -1, -1};  //!< Per-button index into @a rules_, or @c -1 if none.
-    bool active_key_[kMaxKeys] = {};  //!< Per-key held flags for @c InputRule::Trigger::eKey.
-    int active_key_rule_[kMaxKeys] = {};  //!< Filled with @c -1 in @ref resetState; rule index for key press/release pairing.
+    bool active_key_[kMaxKeys] = {};      //!< Per-key held flags for @c InputRule::Trigger::eKey.
+    int active_key_rule_[kMaxKeys] =
+        {};  //!< Filled with @c -1 in @ref resetState; rule index for key press/release pairing.
 
     bool mod_shift_ = false;  //!< Shift held (updated in @ref onKey).
     bool mod_ctrl_ = false;   //!< Ctrl held.

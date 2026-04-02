@@ -98,4 +98,10 @@ class VNE_INTERACTION_API ICameraManipulator {
     virtual void setEnabled(bool enabled) noexcept = 0;
 };
 
+/**
+ * @brief Deprecated alias for @ref ICameraManipulator.
+ * @deprecated Use @ref ICameraManipulator. Will be removed in a future release.
+ */
+using ICameraBehavior [[deprecated("Use ICameraManipulator instead")]] = ICameraManipulator;
+
 }  // namespace vne::interaction

@@ -16,8 +16,22 @@
 
 #include <vertexnova/logging/logging.h>
 
+#include <vector>
+
 namespace {
 CREATE_VNE_LOGGER_CATEGORY("vne.interaction.ortho_2d");
+
+[[nodiscard]] bool hasMouseButtonChord(const std::vector<vne::interaction::InputRule>& rules,
+                                       int button,
+                                       int modifier_mask) noexcept {
+    using vne::interaction::InputRule;
+    for (const auto& r : rules) {
+        if (r.trigger == InputRule::Trigger::eMouseButton && r.code == button && r.modifier_mask == modifier_mask) {
+            return true;
+        }
+    }
+    return false;
+}
 }  // namespace
 
 namespace vne::interaction {
@@ -188,21 +202,27 @@ void Ortho2DController::rebuildRules() noexcept {
     std::vector<InputRule> rules;
 
     if (pan_enabled_) {
+        const int pan_btn = static_cast<int>(pan_binding_.button);
+        const int pan_mod = static_cast<int>(pan_binding_.modifier_mask);
         rules.push_back({
             .trigger = InputRule::Trigger::eMouseButton,
-            .code = static_cast<int>(pan_binding_.button),
-            .modifier_mask = static_cast<int>(pan_binding_.modifier_mask),
+            .code = pan_btn,
+            .modifier_mask = pan_mod,
             .on_press = CameraActionType::eBeginPan,
             .on_release = CameraActionType::eEndPan,
             .on_delta = CameraActionType::ePanDelta,
         });
-        rules.push_back({
-            .trigger = InputRule::Trigger::eMouseButton,
-            .code = static_cast<int>(MouseButton::eMiddle),
-            .on_press = CameraActionType::eBeginPan,
-            .on_release = CameraActionType::eEndPan,
-            .on_delta = CameraActionType::ePanDelta,
-        });
+        const int mid_btn = static_cast<int>(MouseButton::eMiddle);
+        if (!hasMouseButtonChord(rules, mid_btn, kModNone)) {
+            rules.push_back({
+                .trigger = InputRule::Trigger::eMouseButton,
+                .code = mid_btn,
+                .modifier_mask = kModNone,
+                .on_press = CameraActionType::eBeginPan,
+                .on_release = CameraActionType::eEndPan,
+                .on_delta = CameraActionType::ePanDelta,
+            });
+        }
         rules.push_back({
             .trigger = InputRule::Trigger::eTouchPan,
             .on_delta = CameraActionType::ePanDelta,
@@ -222,15 +242,18 @@ void Ortho2DController::rebuildRules() noexcept {
     }
 
     if (rotation_enabled_) {
-        // RMB = in-plane rotate (eRotateDelta handled by Ortho2DManipulator)
-        rules.push_back({
-            .trigger = InputRule::Trigger::eMouseButton,
-            .code = static_cast<int>(rotate_binding_.button),
-            .modifier_mask = static_cast<int>(rotate_binding_.modifier_mask),
-            .on_press = CameraActionType::eBeginRotate,
-            .on_release = CameraActionType::eEndRotate,
-            .on_delta = CameraActionType::eRotateDelta,
-        });
+        const int rot_btn = static_cast<int>(rotate_binding_.button);
+        const int rot_mod = static_cast<int>(rotate_binding_.modifier_mask);
+        if (!hasMouseButtonChord(rules, rot_btn, rot_mod)) {
+            rules.push_back({
+                .trigger = InputRule::Trigger::eMouseButton,
+                .code = rot_btn,
+                .modifier_mask = rot_mod,
+                .on_press = CameraActionType::eBeginRotate,
+                .on_release = CameraActionType::eEndRotate,
+                .on_delta = CameraActionType::eRotateDelta,
+            });
+        }
     }
 
     impl_->core.mapper.setRules(rules);

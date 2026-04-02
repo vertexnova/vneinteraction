@@ -42,11 +42,11 @@
 namespace vne::interaction {
 
 namespace detail {
-constexpr float kBehaviorUtilsEpsilon = 1e-6f;
+constexpr float kManipulatorUtilsEpsilon = 1e-6f;
 }
 
 // -----------------------------------------------------------------------------
-// buildReferenceFrame — inline (used by tests and behaviors)
+// buildReferenceFrame — inline (used by tests and manipulators)
 // -----------------------------------------------------------------------------
 
 /**
@@ -60,10 +60,10 @@ inline void buildReferenceFrame(const vne::math::Vec3f& world_up,
         (std::abs(world_up.y()) > 0.9f) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : vne::math::Vec3f(0.0f, -1.0f, 0.0f);
     ref_fwd = candidate - world_up * candidate.dot(world_up);
     const float fwd_len = ref_fwd.length();
-    ref_fwd = (fwd_len < detail::kBehaviorUtilsEpsilon) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : (ref_fwd / fwd_len);
+    ref_fwd = (fwd_len < detail::kManipulatorUtilsEpsilon) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : (ref_fwd / fwd_len);
     ref_right = ref_fwd.cross(world_up);
     const float right_len = ref_right.length();
-    if (right_len > detail::kBehaviorUtilsEpsilon) {
+    if (right_len > detail::kManipulatorUtilsEpsilon) {
         ref_right /= right_len;
     } else {
         ref_right = vne::math::Vec3f(1.0f, 0.0f, 0.0f);
@@ -71,7 +71,7 @@ inline void buildReferenceFrame(const vne::math::Vec3f& world_up,
 }
 
 // -----------------------------------------------------------------------------
-// mouseToNDC — inline (used by tests and behaviors)
+// mouseToNDC — inline (used by tests and manipulators)
 // -----------------------------------------------------------------------------
 
 /**
@@ -86,7 +86,7 @@ inline void buildReferenceFrame(const vne::math::Vec3f& world_up,
 }
 
 // -----------------------------------------------------------------------------
-// worldUnderCursorOrtho — inline (used by tests and behaviors)
+// worldUnderCursorOrtho — inline (used by tests and manipulators)
 // -----------------------------------------------------------------------------
 
 /**
@@ -100,11 +100,11 @@ inline void buildReferenceFrame(const vne::math::Vec3f& world_up,
     const vne::math::Vec3f target = ortho.getTarget();
     vne::math::Vec3f front = target - ortho.getPosition();
     const float front_len = front.length();
-    front = (front_len < detail::kBehaviorUtilsEpsilon) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : (front / front_len);
+    front = (front_len < detail::kManipulatorUtilsEpsilon) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : (front / front_len);
     const vne::math::Vec3f up = ortho.getUp().normalized();
     vne::math::Vec3f r = front.cross(up);
     const float r_len = r.length();
-    r = (r_len < detail::kBehaviorUtilsEpsilon) ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : (r / r_len);
+    r = (r_len < detail::kManipulatorUtilsEpsilon) ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : (r / r_len);
     return target + r * (ndc_x * half_w) + up * (ndc_y * half_h);
 }
 

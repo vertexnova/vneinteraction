@@ -312,20 +312,10 @@ OrbitalCameraManipulator* Navigation3DController::orbitalCameraManipulator() noe
 // ---------------------------------------------------------------------------
 
 void Navigation3DController::rebuild() noexcept {
-    // Snapshot current speed settings before clearing
-    float move_speed = impl_->free_look ? impl_->free_look->getMoveSpeed() : 3.0f;
-    float sensitivity = impl_->free_look ? impl_->free_look->getMouseSensitivity() : 0.15f;
-    float sprint_mult = impl_->free_look ? impl_->free_look->getSprintMultiplier() : 4.0f;
-    float slow_mult = impl_->free_look ? impl_->free_look->getSlowMultiplier() : 0.2f;
-
-    impl_->core.rig.clearManipulators();
-    impl_->free_look = nullptr;
-
-    impl_->free_look = std::make_shared<FreeLookManipulator>();
-    impl_->free_look->setMoveSpeed(move_speed);
-    impl_->free_look->setMouseSensitivity(sensitivity);
-    impl_->free_look->setSprintMultiplier(sprint_mult);
-    impl_->free_look->setSlowMultiplier(slow_mult);
+    if (!impl_->free_look) {
+        impl_->free_look = std::make_shared<FreeLookManipulator>();
+        impl_->core.rig.addManipulator(impl_->free_look);
+    }
 
     switch (impl_->mode) {
         case NavigateMode::eFps:
@@ -335,8 +325,6 @@ void Navigation3DController::rebuild() noexcept {
             impl_->free_look->setConstrainWorldUp(false);
             break;
     }
-
-    impl_->core.rig.addManipulator(impl_->free_look);
 
     // Re-attach camera and viewport
     if (impl_->core.camera) {
