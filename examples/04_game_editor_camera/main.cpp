@@ -7,6 +7,7 @@
  * ----------------------------------------------------------------------
  */
 
+#include "vertexnova/interaction/free_look_manipulator.h"
 #include "vertexnova/interaction/navigation_3d_controller.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
