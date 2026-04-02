@@ -62,11 +62,7 @@ struct BallFrameDelta {
  */
 class VNE_INTERACTION_API TrackballBehavior {
    public:
-    /**
-     * @brief Screen-to-sphere mapping. Default: @ref eHyperbolic.
-     * @enum eHyperbolic: Spherical cap, then hyperbolic continuation outside the cap.
-     * @enum eRim: Hemisphere inside the unit disk; equatorial rim (z = 0) beyond it.
-     */
+    /** Screen-to-sphere mapping; see @ref ProjectionMode::eHyperbolic / @ref ProjectionMode::eRim. */
     enum class ProjectionMode {
         eHyperbolic = 0,  //!< Spherical cap, then hyperbolic continuation outside the cap.
         eRim = 1          //!< Hemisphere inside the unit disk; equatorial rim (z = 0) beyond it.
@@ -82,21 +78,26 @@ class VNE_INTERACTION_API TrackballBehavior {
     void setViewport(const vne::math::Vec2f& size_px) noexcept;
 
     /**
-     * @brief Graphics API for window → NDC mapping in @ref project (default OpenGL).
-     * Must match @c ICamera::getGraphicsApi() / @ref CameraManipulatorBase::graphicsApi().
+     * @brief Window → NDC convention for @ref project (default OpenGL).
+     * @param api Must match \c vne::scene::ICamera::getGraphicsApi() / @ref CameraManipulatorBase::graphicsApi().
      */
     void setGraphicsApi(vne::math::GraphicsApi api) noexcept { graphics_api_ = api; }
+
+    /**
+     * @brief Graphics API used for window → NDC in @ref project.
+     * @return Same convention as @ref setGraphicsApi.
+     */
     [[nodiscard]] vne::math::GraphicsApi getGraphicsApi() const noexcept { return graphics_api_; }
 
     /**
-     * @brief Set the projection mode.
-     * @param mode: The projection mode.
+     * @brief Set screen-to-sphere @ref ProjectionMode.
+     * @param mode Mapping mode (@ref ProjectionMode::eHyperbolic or @ref ProjectionMode::eRim).
      */
     void setProjectionMode(ProjectionMode mode) noexcept { projection_mode_ = mode; }
 
     /**
-     * @brief Get the projection mode.
-     * @return The projection mode.
+     * @brief Current @ref ProjectionMode.
+     * @return Active projection mode.
      */
     [[nodiscard]] ProjectionMode getProjectionMode() const noexcept { return projection_mode_; }
 
@@ -174,8 +175,8 @@ class VNE_INTERACTION_API TrackballBehavior {
 
    private:
     vne::math::Vec2f viewport_px_{};  //!< Viewport size in pixels (width = x, height = y).
-    vne::math::GraphicsApi graphics_api_{vne::math::GraphicsApi::eOpenGL};
-    ProjectionMode projection_mode_ = ProjectionMode::eHyperbolic;  //!< Projection mode.
+    vne::math::GraphicsApi graphics_api_{vne::math::GraphicsApi::eOpenGL};  //!< NDC convention for @ref project.
+    ProjectionMode projection_mode_ = ProjectionMode::eHyperbolic;  //!< Active @ref ProjectionMode.
     vne::math::Vec3f drag_start_on_sphere_{0.0f, 0.0f, 1.0f};       //!< Drag start on sphere.
     vne::math::Vec2f last_cursor_px_{};  //!< Previous pointer position for frame-to-frame inertia (x, y pixels).
 };

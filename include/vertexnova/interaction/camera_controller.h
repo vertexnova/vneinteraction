@@ -72,6 +72,7 @@ class VNE_INTERACTION_API ICameraController {
      * @brief Feed one UI/window event (mouse, key, touch).
      * @param event       vneevents event reference.
      * @param delta_time  Optional per-event time step; default @c 0.0 if unknown.
+     * @note Many platforms omit a per-event timestep; @c 0.0 is valid.
      */
     virtual void onEvent(const vne::events::Event& event, double delta_time = 0.0) noexcept = 0;
 };

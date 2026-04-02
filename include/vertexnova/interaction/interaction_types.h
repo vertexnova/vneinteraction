@@ -116,8 +116,8 @@ enum class GestureAction : std::uint8_t {
  * Uses vne::events::ModifierKey for modifier_mask (eModNone, eModShift, eModCtrl, eModAlt).
  */
 struct VNE_INTERACTION_API MouseBinding {
-    MouseButton button = MouseButton::eLeft;
-    vne::events::ModifierKey modifier_mask = vne::events::ModifierKey::eModNone;
+    MouseButton button = MouseButton::eLeft;  //!< Mouse button for this binding.
+    vne::events::ModifierKey modifier_mask = vne::events::ModifierKey::eModNone;  //!< Required modifiers; @c eModNone = none.
 };
 
 /**
@@ -126,8 +126,8 @@ struct VNE_INTERACTION_API MouseBinding {
  * Used by controllers and @ref InputMapper::bindKey for data-driven key rules.
  */
 struct VNE_INTERACTION_API KeyBinding {
-    vne::events::KeyCode key = vne::events::KeyCode::eUnknown;
-    vne::events::ModifierKey modifier_mask = vne::events::ModifierKey::eModNone;
+    vne::events::KeyCode key = vne::events::KeyCode::eUnknown;  //!< Key for this binding.
+    vne::events::ModifierKey modifier_mask = vne::events::ModifierKey::eModNone;  //!< Required modifiers; @c eModNone = none.
 };
 
 /** Touch pan gesture data with screen pixel deltas. */
@@ -166,7 +166,7 @@ enum class CameraActionType : std::uint8_t {
     eMoveDown = 16,
     eSprintModifier = 17,
     eSlowModifier = 18,
-    eOrbitPanModifier = 19,  // shift: orbit uses for pan-alias, free uses SprintModifier
+    eOrbitPanModifier = 19,  //!< Orbit: Shift+LMB pan alias; navigation: sprint-like where mapped.
     eResetView = 20,
     eSetPivotAtCursor =
         21,  //!< Double-click: set COI along view direction (camera + front * orbit distance); payload x/y ignored

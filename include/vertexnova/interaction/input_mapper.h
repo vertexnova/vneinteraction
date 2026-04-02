@@ -46,10 +46,10 @@
 namespace vne::interaction {
 
 /**
- * @brief Sink for commands emitted when an @ref InputRule matches.
+ * @brief Callback when an @ref InputRule matches and emits an action.
  * @param action     Semantic action (see @ref CameraActionType).
  * @param payload    Pointer position, deltas, zoom factor, and press state as applicable.
- * @param delta_time Time delta in seconds (from the UI; may be 0 for discrete events).
+ * @param delta_time Time delta in seconds from the UI (may be @c 0 for discrete events).
  */
 using ActionCallback = std::function<void(CameraActionType, const CameraCommandPayload&, double)>;
 
@@ -81,15 +81,14 @@ class VNE_INTERACTION_API InputMapper {
 
     /**
      * @brief Register the handler for emitted actions.
-     * @note Must be set before processing any input; otherwise actions are logged and dropped.
+     * @param cb Callback invoked from @ref emit; replaces any previous callback.
+     * @note Must be set before processing input; otherwise actions are logged and dropped.
      */
     void setActionCallback(ActionCallback cb) { callback_ = std::move(cb); }
 
-    // --- Input event entry points (usually from controller event dispatch) ---
-
     /**
      * @brief Mouse button press or release.
-     * @param button  Mouse button index (same encoding as @c vne::events::MouseButton).
+     * @param button  Button index (same encoding as @c vne::events::MouseButton).
      * @param pressed @c true on press, @c false on release.
      * @param x       Cursor X in pixels.
      * @param y       Cursor Y in pixels.
@@ -98,8 +97,8 @@ class VNE_INTERACTION_API InputMapper {
     void onMouseButton(int button, bool pressed, float x, float y, double dt) noexcept;
 
     /**
-     * @brief Mouse double-click (e.g. pivot / COI gestures).
-     * @param button Mouse button index.
+     * @brief Mouse double-click (e.g. pivot / COI rules).
+     * @param button Button index.
      * @param x      Cursor X in pixels.
      * @param y      Cursor Y in pixels.
      * @param dt     Time delta in seconds.
@@ -108,27 +107,27 @@ class VNE_INTERACTION_API InputMapper {
 
     /**
      * @brief Pointer motion; may emit drag deltas for active button/key rules.
-     * @param x   Cursor X in pixels.
-     * @param y   Cursor Y in pixels.
-     * @param dx  Delta X in pixels since last move.
-     * @param dy  Delta Y in pixels since last move.
-     * @param dt  Time delta in seconds.
+     * @param x  Cursor X in pixels.
+     * @param y  Cursor Y in pixels.
+     * @param dx Delta X in pixels since last move.
+     * @param dy Delta Y in pixels since last move.
+     * @param dt Time delta in seconds.
      */
     void onMouseMove(float x, float y, float dx, float dy, double dt) noexcept;
 
     /**
      * @brief Scroll wheel or trackpad scroll.
-     * @param scroll_x Horizontal scroll (lines or device units).
-     * @param scroll_y Vertical scroll (lines or device units).
-     * @param mouse_x  Cursor X in pixels (for zoom-at-cursor).
+     * @param scroll_x Horizontal scroll (device units).
+     * @param scroll_y Vertical scroll (device units).
+     * @param mouse_x  Cursor X in pixels (zoom-at-cursor).
      * @param mouse_y  Cursor Y in pixels.
      * @param dt       Time delta in seconds.
      */
     void onMouseScroll(float scroll_x, float scroll_y, float mouse_x, float mouse_y, double dt) noexcept;
 
     /**
-     * @brief Key press or release; updates modifier state and movement keys per rules.
-     * @param key     Key code (see @c vne::events::KeyCode).
+     * @brief Key press or release; updates modifier state and key-held rules.
+     * @param key     Key code (@c vne::events::KeyCode).
      * @param pressed @c true on press, @c false on release.
      * @param dt      Time delta in seconds.
      */
@@ -148,7 +147,10 @@ class VNE_INTERACTION_API InputMapper {
      */
     void onTouchPinch(const TouchPinch& pinch, double dt) noexcept;
 
-    /** @brief Clear active button/key tracking and modifier-derived state used for chord matching. */
+    /**
+     * @brief Clear active button/key tracking and modifier chord state.
+     * @details Use on focus loss, mode change, or when the owning controller @c reset() runs.
+     */
     void resetState() noexcept;
 
     // -------------------------------------------------------------------------
@@ -215,24 +217,20 @@ class VNE_INTERACTION_API InputMapper {
 
    private:
     void emit(CameraActionType action, const CameraCommandPayload& payload, double dt) noexcept;
-
-    /** Returns true if the current modifier state satisfies the rule's modifier_mask. */
     [[nodiscard]] bool modifiersMatch(int mask) const noexcept;
 
-    std::vector<InputRule> rules_;
-    ActionCallback callback_;
+    std::vector<InputRule> rules_;  //!< Active rule table (@ref setRules / @ref addRule).
+    ActionCallback callback_;       //!< Sink for matched actions; empty until @ref setActionCallback.
 
-    // Active-press tracking: which button/key rules are currently held
-    // We store the rule index of each active mouse button slot (indexed by button code)
-    static constexpr int kMaxButtons = 8;
-    static constexpr int kMaxKeys = 512;                                      // tracks keys 0..511
-    int active_button_rule_[kMaxButtons] = {-1, -1, -1, -1, -1, -1, -1, -1};  // -1 = not active
-    bool active_key_[kMaxKeys] = {};
+    static constexpr int kMaxButtons = 8;   //!< Mouse button slots for @a active_button_rule_.
+    static constexpr int kMaxKeys = 512;    //!< Key code range tracked (0..511).
+    int active_button_rule_[kMaxButtons] = {-1, -1, -1, -1, -1, -1, -1,
+                                            -1};  //!< Per-button index into @a rules_, or @c -1 if none.
+    bool active_key_[kMaxKeys] = {};          //!< Per-key held flags for @c InputRule::Trigger::eKey.
 
-    // Current modifier state (updated by onKey)
-    bool mod_shift_ = false;
-    bool mod_ctrl_ = false;
-    bool mod_alt_ = false;
+    bool mod_shift_ = false;  //!< Shift held (updated in @ref onKey).
+    bool mod_ctrl_ = false;   //!< Ctrl held.
+    bool mod_alt_ = false;    //!< Alt held.
 };
 
 }  // namespace vne::interaction
