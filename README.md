@@ -165,12 +165,13 @@ See [examples/01_library_info](examples/01_library_info) for version and manipul
 | [04_game_editor_camera](examples/04_game_editor_camera) | Navigation3DController — FPS and Fly, WASD + mouse look (sprint) |
 | [05_robotic_simulator](examples/05_robotic_simulator) | Inspect3DController + Navigation3DController + FollowController |
 
-Build with `-DVNE_INTERACTION_EXAMPLES=ON` or use the dev preset (`-DVNE_INTERACTION_DEV=ON`). Run from `build/bin/examples/` (or `build/shared/Debug/bin/examples/` for Debug).
+Build with `-DVNE_INTERACTION_EXAMPLES=ON` or use the dev preset (`-DVNE_INTERACTION_DEV=ON`). Run example binaries from **`<your-cmake-binary-dir>/bin/examples/`** (for example `build/bin/examples/` after `cmake -B build`, or the same relative path under `build/<lib_type>/<config>/…` when using [scripts/README.md](scripts/README.md) platform scripts).
 
 ## Documentation
 
-- [API Documentation](docs/README.md) — Generate with Doxygen (`-DENABLE_DOXYGEN=ON`, then `cmake --build build --target vneinteraction_doc_doxygen`).
-- [Architecture & design](docs/vertexnova/interaction/interaction.md) — Module overview, components, and usage.
+- [Documentation index](docs/README.md) — Doxygen API docs, helper script, and links to design notes.
+- [Interaction architecture & usage](docs/vertexnova/interaction/interaction.md) — Module overview, diagrams, and integration.
+- [Review & roadmap](docs/vertexnova/tasks_plan/review_and_roadmap.md), [third-person follow (future)](docs/vertexnova/tasks_plan/third_person_follow_camera_future.md) — Planning notes.
 
 ## Platform Support
 
