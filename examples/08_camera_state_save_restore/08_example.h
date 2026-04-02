@@ -19,8 +19,10 @@
  * ----------------------------------------------------------------------
  */
 
-#include "08_example.h"
+#pragma once
 
-int main() {
-    return vne::interaction::examples::runCameraStateSaveRestoreExample();
-}
+namespace vne::interaction::examples {
+
+[[nodiscard]] int runCameraStateSaveRestoreExample();
+
+}  // namespace vne::interaction::examples

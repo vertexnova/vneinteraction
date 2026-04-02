@@ -1,1 +1,1 @@
-vne_add_example(03_medical_2d_slices)
+vne_add_example(03_medical_2d_slices 03_example.cpp)

@@ -1,6 +1,6 @@
 # VneInteraction — Examples
 
-Headless (no window, no GPU) examples that drive the library through its full public API using simulated input events. Each example is a self-contained `main.cpp` that builds and runs standalone.
+Headless (no window, no GPU) examples that drive the library through its full public API using simulated input events. Each example uses a thin `main.cpp` plus `NN_example.h` / `NN_example.cpp` (numbered like the folder, e.g. `01_example.*`), with the runnable logic in `namespace vne::interaction::examples`, and builds as a standalone executable.
 
 ## Building
 

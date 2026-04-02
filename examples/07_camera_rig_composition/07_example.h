@@ -17,8 +17,10 @@
  * ----------------------------------------------------------------------
  */
 
-#include "07_example.h"
+#pragma once
 
-int main() {
-    return vne::interaction::examples::runCameraRigCompositionExample();
-}
+namespace vne::interaction::examples {
+
+[[nodiscard]] int runCameraRigCompositionExample();
+
+}  // namespace vne::interaction::examples

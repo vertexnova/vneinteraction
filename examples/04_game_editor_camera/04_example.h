@@ -18,8 +18,10 @@
  * ----------------------------------------------------------------------
  */
 
-#include "04_example.h"
+#pragma once
 
-int main() {
-    return vne::interaction::examples::runGameEditorCameraExample();
-}
+namespace vne::interaction::examples {
+
+[[nodiscard]] int runGameEditorCameraExample();
+
+}  // namespace vne::interaction::examples

@@ -17,8 +17,10 @@
  * ----------------------------------------------------------------------
  */
 
-#include "03_example.h"
+#pragma once
 
-int main() {
-    return vne::interaction::examples::runMedical2dSlicesExample();
-}
+namespace vne::interaction::examples {
+
+[[nodiscard]] int runMedical2dSlicesExample();
+
+}  // namespace vne::interaction::examples

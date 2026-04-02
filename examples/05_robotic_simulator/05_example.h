@@ -18,8 +18,10 @@
  * ----------------------------------------------------------------------
  */
 
-#include "05_example.h"
+#pragma once
 
-int main() {
-    return vne::interaction::examples::runRoboticSimulatorExample();
-}
+namespace vne::interaction::examples {
+
+[[nodiscard]] int runRoboticSimulatorExample();
+
+}  // namespace vne::interaction::examples

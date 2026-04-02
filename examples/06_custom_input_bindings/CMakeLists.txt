@@ -1,1 +1,1 @@
-vne_add_example(06_custom_input_bindings)
+vne_add_example(06_custom_input_bindings 06_example.cpp)

@@ -11,7 +11,7 @@ endif()
 # Helper macro: register one example executable with standard settings.
 #------------------------------------------------------------------------------
 macro(vne_add_example target_name)
-    add_executable(${target_name} main.cpp)
+    add_executable(${target_name} main.cpp ${ARGN})
     target_link_libraries(${target_name} PRIVATE vne::interaction)
     target_include_directories(${target_name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
     set_target_properties(${target_name} PROPERTIES

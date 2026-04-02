@@ -1,1 +1,1 @@
-vne_add_example(04_game_editor_camera)
+vne_add_example(04_game_editor_camera 04_example.cpp)

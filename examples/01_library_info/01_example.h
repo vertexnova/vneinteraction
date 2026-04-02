@@ -7,8 +7,10 @@
  * ----------------------------------------------------------------------
  */
 
-#include "01_example.h"
+#pragma once
 
-int main() {
-    return vne::interaction::examples::runLibraryInfoExample();
-}
+namespace vne::interaction::examples {
+
+[[nodiscard]] int runLibraryInfoExample();
+
+}  // namespace vne::interaction::examples

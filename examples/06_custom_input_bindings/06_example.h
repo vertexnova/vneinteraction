@@ -18,8 +18,10 @@
  * ----------------------------------------------------------------------
  */
 
-#include "06_example.h"
+#pragma once
 
-int main() {
-    return vne::interaction::examples::runCustomInputBindingsExample();
-}
+namespace vne::interaction::examples {
+
+[[nodiscard]] int runCustomInputBindingsExample();
+
+}  // namespace vne::interaction::examples
