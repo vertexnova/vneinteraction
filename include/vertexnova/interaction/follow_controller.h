@@ -34,6 +34,7 @@
 
 #include "vertexnova/interaction/export.h"
 #include "vertexnova/interaction/interaction_types.h"
+#include "vertexnova/interaction/camera_controller.h"
 #include "vertexnova/interaction/camera_rig.h"
 
 #include <vertexnova/math/core/core.h>
@@ -66,7 +67,7 @@ class FollowManipulator;
  *
  * @threadsafe Not thread-safe. Call all methods from the same thread.
  */
-class VNE_INTERACTION_API FollowController {
+class VNE_INTERACTION_API FollowController : public ICameraController {
    public:
     /** Callback type returning the current target world transform. */
     using TargetCallback = std::function<vne::math::Mat4f()>;
@@ -83,18 +84,18 @@ class VNE_INTERACTION_API FollowController {
     // Core setup
     // -------------------------------------------------------------------------
 
-    void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept;
-    void onResize(float width_px, float height_px) noexcept;
+    void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;
+    void onResize(float width_px, float height_px) noexcept override;
 
     // -------------------------------------------------------------------------
     // Per-frame
     // -------------------------------------------------------------------------
 
     /** No user input is required; call onUpdate() each frame to advance tracking. */
-    void onUpdate(double delta_time) noexcept;
+    void onUpdate(double delta_time) noexcept override;
 
     /** Optional: feed events to allow user-controlled zoom or offset adjustment. */
-    void onEvent(const vne::events::Event& event) noexcept;
+    void onEvent(const vne::events::Event& event, double delta_time = 0.0) noexcept override;
 
     // -------------------------------------------------------------------------
     // Target

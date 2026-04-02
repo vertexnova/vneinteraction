@@ -32,6 +32,7 @@ set(HEADER_FILES
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/version.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/interaction_types.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_manipulator.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_controller.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_manipulator_base.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/trackball_behavior.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/orbit_behavior.h

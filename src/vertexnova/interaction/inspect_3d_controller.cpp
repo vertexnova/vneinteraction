@@ -12,7 +12,7 @@
 #include "vertexnova/interaction/input_mapper.h"
 #include "vertexnova/interaction/orbital_camera_manipulator.h"
 
-#include "controller_event_dispatch.h"
+#include "camera_controller_context.h"
 
 #include <vertexnova/events/key_event.h>
 #include <vertexnova/logging/logging.h>
@@ -33,13 +33,8 @@ using namespace vne;
 // ---------------------------------------------------------------------------
 
 struct Inspect3DController::Impl {
-    CameraRig rig;
-    InputMapper mapper;
+    CameraControllerContext core;
     std::shared_ptr<OrbitalCameraManipulator> orbit;
-
-    std::shared_ptr<vne::scene::ICamera> camera;
-    float viewport_w = 1280.0f;
-    float viewport_h = 720.0f;
 
     OrbitRotationMode rotation_mode = OrbitRotationMode::eOrbit;
     bool rotation_enabled = true;
@@ -62,8 +57,6 @@ struct Inspect3DController::Impl {
 
     events::KeyCode increase_interaction_key_ = events::KeyCode::eUnknown;
     events::KeyCode decrease_interaction_key_ = events::KeyCode::eUnknown;
-
-    CursorState cursor;
 
     void applyOrbitSpeeds() noexcept {
         if (!orbit) {
@@ -224,14 +217,14 @@ Inspect3DController::Inspect3DController()
     : impl_(std::make_unique<Impl>()) {
     impl_->orbit = std::make_shared<OrbitalCameraManipulator>();
     impl_->orbit->setRotationMode(OrbitRotationMode::eOrbit);
-    impl_->rig.addManipulator(impl_->orbit);
+    impl_->core.rig.addManipulator(impl_->orbit);
 
     impl_->user_rotation_speed_ = impl_->orbit->getRotationSpeed();
     impl_->user_pan_speed_ = impl_->orbit->getPanSpeed();
     impl_->user_zoom_speed_ = impl_->orbit->getZoomSpeed();
     impl_->applyOrbitSpeeds();
 
-    impl_->mapper.setActionCallback([impl = impl_.get()](CameraActionType a, const CameraCommandPayload& p, double dt) {
+    impl_->core.mapper.setActionCallback([impl = impl_.get()](CameraActionType a, const CameraCommandPayload& p, double dt) {
         if (a == CameraActionType::eIncreaseInteractionSpeed) {
             impl->bumpInteractionScale(impl->interaction_speed_step_);
             return;
@@ -240,7 +233,7 @@ Inspect3DController::Inspect3DController()
             impl->bumpInteractionScale(1.0f / impl->interaction_speed_step_);
             return;
         }
-        impl->rig.onAction(a, p, dt);
+        impl->core.rig.onAction(a, p, dt);
     });
 
     rebuildRules();
@@ -255,17 +248,14 @@ Inspect3DController& Inspect3DController::operator=(Inspect3DController&&) noexc
 // ---------------------------------------------------------------------------
 
 void Inspect3DController::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
-    impl_->camera = camera;
     if (!camera) {
         VNE_LOG_DEBUG << "Inspect3DController: camera detached (null camera)";
     }
-    impl_->rig.setCamera(camera);
+    impl_->core.setCamera(std::move(camera));
 }
 
 void Inspect3DController::onResize(float w, float h) noexcept {
-    impl_->viewport_w = w;
-    impl_->viewport_h = h;
-    impl_->rig.onResize(w, h);
+    impl_->core.onResize(w, h);
 }
 
 // ---------------------------------------------------------------------------
@@ -277,22 +267,22 @@ void Inspect3DController::onEvent(const events::Event& event, double delta_time)
         case events::EventType::eKeyPressed:
         case events::EventType::eKeyRepeat: {
             const auto& e = static_cast<const events::KeyEvent&>(event);
-            impl_->mapper.onKey(static_cast<int>(e.keyCode()), true, delta_time);
+            impl_->core.mapper.onKey(static_cast<int>(e.keyCode()), true, delta_time);
             return;
         }
         case events::EventType::eKeyReleased: {
             const auto& e = static_cast<const events::KeyEvent&>(event);
-            impl_->mapper.onKey(static_cast<int>(e.keyCode()), false, delta_time);
+            impl_->core.mapper.onKey(static_cast<int>(e.keyCode()), false, delta_time);
             return;
         }
         default:
             break;
     }
-    dispatchMouseEvents(impl_->mapper, impl_->cursor, event, delta_time);
+    dispatchMouseEvents(impl_->core.mapper, impl_->core.cursor, event, delta_time);
 }
 
 void Inspect3DController::onUpdate(double dt) noexcept {
-    impl_->rig.onUpdate(dt);
+    impl_->core.onUpdate(dt);
 }
 
 // ---------------------------------------------------------------------------
@@ -470,9 +460,7 @@ void Inspect3DController::fitToAABB(const vne::math::Vec3f& mn, const vne::math:
 }
 
 void Inspect3DController::reset() noexcept {
-    impl_->cursor = {};
-    impl_->rig.resetState();
-    impl_->mapper.resetState();
+    impl_->core.resetRigAndInteraction();
 }
 
 // ---------------------------------------------------------------------------
@@ -480,7 +468,7 @@ void Inspect3DController::reset() noexcept {
 // ---------------------------------------------------------------------------
 
 InputMapper& Inspect3DController::inputMapper() noexcept {
-    return impl_->mapper;
+    return impl_->core.mapper;
 }
 
 OrbitalCameraManipulator& Inspect3DController::orbitalCameraManipulator() noexcept {
@@ -505,7 +493,7 @@ void Inspect3DController::rebuildRules() noexcept {
     cfg.pivot_double_click_ = impl_->pivot_double_click_;
     cfg.increase_interaction_key_ = impl_->increase_interaction_key_;
     cfg.decrease_interaction_key_ = impl_->decrease_interaction_key_;
-    impl_->mapper.setRules(buildInspectRules(cfg));
+    impl_->core.mapper.setRules(buildInspectRules(cfg));
 }
 
 }  // namespace vne::interaction

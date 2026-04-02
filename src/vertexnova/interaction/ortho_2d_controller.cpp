@@ -12,7 +12,7 @@
 #include "vertexnova/interaction/input_mapper.h"
 #include "vertexnova/interaction/ortho_2d_manipulator.h"
 
-#include "controller_event_dispatch.h"
+#include "camera_controller_context.h"
 
 #include <vertexnova/logging/logging.h>
 
@@ -29,15 +29,8 @@ using namespace vne;
 // ---------------------------------------------------------------------------
 
 struct Ortho2DController::Impl {
-    CameraRig rig;
-    InputMapper mapper;
+    CameraControllerContext core;
     std::shared_ptr<Ortho2DManipulator> ortho2d_behavior;
-
-    std::shared_ptr<vne::scene::ICamera> camera;
-    float viewport_w = 1280.0f;
-    float viewport_h = 720.0f;
-
-    CursorState cursor;
 };
 
 // ---------------------------------------------------------------------------
@@ -47,11 +40,11 @@ struct Ortho2DController::Impl {
 Ortho2DController::Ortho2DController()
     : impl_(std::make_unique<Impl>()) {
     impl_->ortho2d_behavior = std::make_shared<Ortho2DManipulator>();
-    impl_->rig.addManipulator(impl_->ortho2d_behavior);
+    impl_->core.rig.addManipulator(impl_->ortho2d_behavior);
 
     // Capture raw Impl* so the callback stays valid across moves.
-    impl_->mapper.setActionCallback([impl = impl_.get()](CameraActionType a, const CameraCommandPayload& p, double dt) {
-        impl->rig.onAction(a, p, dt);
+    impl_->core.mapper.setActionCallback([impl = impl_.get()](CameraActionType a, const CameraCommandPayload& p, double dt) {
+        impl->core.rig.onAction(a, p, dt);
     });
 
     rebuildRules();
@@ -66,29 +59,26 @@ Ortho2DController& Ortho2DController::operator=(Ortho2DController&&) noexcept = 
 // ---------------------------------------------------------------------------
 
 void Ortho2DController::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
-    impl_->camera = camera;
     if (!camera) {
         VNE_LOG_DEBUG << "Ortho2DController: camera detached (null camera)";
     }
-    impl_->rig.setCamera(camera);
+    impl_->core.setCamera(std::move(camera));
 }
 
 void Ortho2DController::onResize(float w, float h) noexcept {
-    impl_->viewport_w = w;
-    impl_->viewport_h = h;
-    impl_->rig.onResize(w, h);
+    impl_->core.onResize(w, h);
 }
 
 // ---------------------------------------------------------------------------
 // Per-frame
 // ---------------------------------------------------------------------------
 
-void Ortho2DController::onEvent(const events::Event& event) noexcept {
-    dispatchMouseEvents(impl_->mapper, impl_->cursor, event, 0.0);
+void Ortho2DController::onEvent(const events::Event& event, double delta_time) noexcept {
+    dispatchMouseEvents(impl_->core.mapper, impl_->core.cursor, event, delta_time);
 }
 
 void Ortho2DController::onUpdate(double dt) noexcept {
-    impl_->rig.onUpdate(dt);
+    impl_->core.onUpdate(dt);
 }
 
 // ---------------------------------------------------------------------------
@@ -166,9 +156,7 @@ void Ortho2DController::fitToAABB(const vne::math::Vec3f& mn, const vne::math::V
 }
 
 void Ortho2DController::reset() noexcept {
-    impl_->cursor = {};
-    impl_->rig.resetState();
-    impl_->mapper.resetState();
+    impl_->core.resetRigAndInteraction();
 }
 
 // ---------------------------------------------------------------------------
@@ -176,7 +164,7 @@ void Ortho2DController::reset() noexcept {
 // ---------------------------------------------------------------------------
 
 InputMapper& Ortho2DController::inputMapper() noexcept {
-    return impl_->mapper;
+    return impl_->core.mapper;
 }
 Ortho2DManipulator& Ortho2DController::ortho2DManipulator() noexcept {
     return *impl_->ortho2d_behavior;
@@ -235,7 +223,7 @@ void Ortho2DController::rebuildRules() noexcept {
         });
     }
 
-    impl_->mapper.setRules(rules);
+    impl_->core.mapper.setRules(rules);
 }
 
 }  // namespace vne::interaction

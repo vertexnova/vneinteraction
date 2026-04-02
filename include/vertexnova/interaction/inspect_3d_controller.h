@@ -54,6 +54,7 @@
 
 #include "vertexnova/interaction/export.h"
 #include "vertexnova/interaction/interaction_types.h"
+#include "vertexnova/interaction/camera_controller.h"
 #include "vertexnova/interaction/camera_rig.h"
 
 #include <vertexnova/events/types.h>
@@ -82,7 +83,7 @@ class OrbitalCameraManipulator;
  *
  * @threadsafe Not thread-safe. Call all methods from the same thread.
  */
-class VNE_INTERACTION_API Inspect3DController {
+class VNE_INTERACTION_API Inspect3DController : public ICameraController {
    public:
     Inspect3DController();
     ~Inspect3DController();
@@ -97,20 +98,20 @@ class VNE_INTERACTION_API Inspect3DController {
     // -------------------------------------------------------------------------
 
     /** Attach a camera. Syncs internal state from its current position. */
-    void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept;
+    void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;
 
     /** Notify the controller of the viewport dimensions (pixels). */
-    void onResize(float width_px, float height_px) noexcept;
+    void onResize(float width_px, float height_px) noexcept override;
 
     // -------------------------------------------------------------------------
     // Per-frame
     // -------------------------------------------------------------------------
 
     /** Feed a vneevents event (mouse, keyboard, touch, double-click). */
-    void onEvent(const vne::events::Event& event, double delta_time = 0.0) noexcept;
+    void onEvent(const vne::events::Event& event, double delta_time = 0.0) noexcept override;
 
     /** Advance inertia and fit animation by delta_time seconds. */
-    void onUpdate(double delta_time) noexcept;
+    void onUpdate(double delta_time) noexcept override;
 
     // -------------------------------------------------------------------------
     // Rotation

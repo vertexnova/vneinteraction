@@ -31,6 +31,7 @@
 
 #include "vertexnova/interaction/export.h"
 #include "vertexnova/interaction/interaction_types.h"
+#include "vertexnova/interaction/camera_controller.h"
 #include "vertexnova/interaction/camera_rig.h"
 
 #include <vertexnova/events/types.h>
@@ -57,7 +58,7 @@ class Ortho2DManipulator;
  *
  * @threadsafe Not thread-safe. Call all methods from the same thread.
  */
-class VNE_INTERACTION_API Ortho2DController {
+class VNE_INTERACTION_API Ortho2DController : public ICameraController {
    public:
     Ortho2DController();
     ~Ortho2DController();
@@ -71,15 +72,15 @@ class VNE_INTERACTION_API Ortho2DController {
     // Core setup
     // -------------------------------------------------------------------------
 
-    void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept;
-    void onResize(float width_px, float height_px) noexcept;
+    void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;
+    void onResize(float width_px, float height_px) noexcept override;
 
     // -------------------------------------------------------------------------
     // Per-frame
     // -------------------------------------------------------------------------
 
-    void onEvent(const vne::events::Event& event) noexcept;
-    void onUpdate(double delta_time) noexcept;
+    void onEvent(const vne::events::Event& event, double delta_time = 0.0) noexcept override;
+    void onUpdate(double delta_time) noexcept override;
 
     // -------------------------------------------------------------------------
     // DOF

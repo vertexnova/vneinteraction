@@ -12,7 +12,7 @@
 #include "vertexnova/interaction/input_mapper.h"
 #include "vertexnova/interaction/free_look_manipulator.h"
 
-#include "controller_event_dispatch.h"
+#include "camera_controller_context.h"
 #include "vertexnova/events/key_event.h"
 
 #include <vertexnova/logging/logging.h>
@@ -32,15 +32,10 @@ using namespace vne;
 // ---------------------------------------------------------------------------
 
 struct Navigation3DController::Impl {
-    CameraRig rig;
-    InputMapper mapper;
+    CameraControllerContext core;
     std::shared_ptr<FreeLookManipulator> free_look;  // shared ownership; also in rig
 
     NavigateMode mode = NavigateMode::eFps;
-
-    std::shared_ptr<vne::scene::ICamera> camera;
-    float viewport_w = 1280.0f;
-    float viewport_h = 720.0f;
 
     KeyBinding move_forward_{events::KeyCode::eW, events::ModifierKey::eModNone};
     KeyBinding move_backward_{events::KeyCode::eS, events::ModifierKey::eModNone};
@@ -62,8 +57,6 @@ struct Navigation3DController::Impl {
     float move_speed_step_ = 0.25f;
     float move_speed_min_ = 0.1f;
     float move_speed_max_ = 1000.0f;
-
-    CursorState cursor;
 };
 
 namespace {
@@ -108,19 +101,16 @@ Navigation3DController& Navigation3DController::operator=(Navigation3DController
 // ---------------------------------------------------------------------------
 
 void Navigation3DController::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
-    impl_->camera = camera;
     if (!camera) {
         VNE_LOG_DEBUG << "Navigation3DController: camera detached (null camera)";
     }
-    impl_->rig.setCamera(camera);
+    impl_->core.setCamera(std::move(camera));
 }
 
 void Navigation3DController::onResize(float w, float h) noexcept {
     const float clamped_w = (w < 1.0f) ? 1.0f : w;
     const float clamped_h = (h < 1.0f) ? 1.0f : h;
-    impl_->viewport_w = clamped_w;
-    impl_->viewport_h = clamped_h;
-    impl_->rig.onResize(clamped_w, clamped_h);
+    impl_->core.onResize(clamped_w, clamped_h);
 }
 
 // ---------------------------------------------------------------------------
@@ -133,22 +123,22 @@ void Navigation3DController::onEvent(const events::Event& event, double delta_ti
         case events::EventType::eKeyPressed:
         case events::EventType::eKeyRepeat: {
             const auto& e = static_cast<const events::KeyEvent&>(event);
-            impl_->mapper.onKey(static_cast<int>(e.keyCode()), true, delta_time);
+            impl_->core.mapper.onKey(static_cast<int>(e.keyCode()), true, delta_time);
             return;
         }
         case events::EventType::eKeyReleased: {
             const auto& e = static_cast<const events::KeyEvent&>(event);
-            impl_->mapper.onKey(static_cast<int>(e.keyCode()), false, delta_time);
+            impl_->core.mapper.onKey(static_cast<int>(e.keyCode()), false, delta_time);
             return;
         }
         default:
             break;
     }
-    dispatchMouseEvents(impl_->mapper, impl_->cursor, event, delta_time);
+    dispatchMouseEvents(impl_->core.mapper, impl_->core.cursor, event, delta_time);
 }
 
 void Navigation3DController::onUpdate(double dt) noexcept {
-    impl_->rig.onUpdate(dt);
+    impl_->core.onUpdate(dt);
 }
 
 // ---------------------------------------------------------------------------
@@ -300,9 +290,7 @@ void Navigation3DController::fitToAABB(const vne::math::Vec3f& mn, const vne::ma
 }
 
 void Navigation3DController::reset() noexcept {
-    impl_->cursor = {};
-    impl_->rig.resetState();
-    impl_->mapper.resetState();
+    impl_->core.resetRigAndInteraction();
 }
 
 // ---------------------------------------------------------------------------
@@ -310,7 +298,7 @@ void Navigation3DController::reset() noexcept {
 // ---------------------------------------------------------------------------
 
 InputMapper& Navigation3DController::inputMapper() noexcept {
-    return impl_->mapper;
+    return impl_->core.mapper;
 }
 FreeLookManipulator& Navigation3DController::freeLookManipulator() noexcept {
     return *impl_->free_look;
@@ -330,7 +318,7 @@ void Navigation3DController::rebuild() noexcept {
     float sprint_mult = impl_->free_look ? impl_->free_look->getSprintMultiplier() : 4.0f;
     float slow_mult = impl_->free_look ? impl_->free_look->getSlowMultiplier() : 0.2f;
 
-    impl_->rig.clearManipulators();
+    impl_->core.rig.clearManipulators();
     impl_->free_look = nullptr;
 
     impl_->free_look = std::make_shared<FreeLookManipulator>();
@@ -348,13 +336,13 @@ void Navigation3DController::rebuild() noexcept {
             break;
     }
 
-    impl_->rig.addManipulator(impl_->free_look);
+    impl_->core.rig.addManipulator(impl_->free_look);
 
     // Re-attach camera and viewport
-    if (impl_->camera) {
-        impl_->rig.setCamera(impl_->camera);
+    if (impl_->core.camera) {
+        impl_->core.rig.setCamera(impl_->core.camera);
     }
-    impl_->rig.onResize(impl_->viewport_w, impl_->viewport_h);
+    impl_->core.rig.onResize(impl_->core.viewport_w, impl_->core.viewport_h);
 
     std::vector<InputRule> rules;
     if (impl_->look_enabled_) {
@@ -452,9 +440,9 @@ void Navigation3DController::rebuild() noexcept {
                                     CameraActionType::eDecreaseMoveSpeed,
                                     CameraActionType::eNone));
     }
-    impl_->mapper.setRules(rules);
+    impl_->core.mapper.setRules(rules);
     // Capture raw Impl* so the callback stays valid across moves.
-    impl_->mapper.setActionCallback([impl = impl_.get()](CameraActionType a, const CameraCommandPayload& p, double dt) {
+    impl_->core.mapper.setActionCallback([impl = impl_.get()](CameraActionType a, const CameraCommandPayload& p, double dt) {
         if (a == CameraActionType::eIncreaseMoveSpeed && p.pressed) {
             if (impl->free_look) {
                 const float current = impl->free_look->getMoveSpeed();
@@ -471,7 +459,7 @@ void Navigation3DController::rebuild() noexcept {
             }
             return;
         }
-        impl->rig.onAction(a, p, dt);
+        impl->core.rig.onAction(a, p, dt);
         // fpsPreset() does not emit orbit gestures (eBeginRotate / eBeginPan). Scroll and touch pinch map to
         // eZoomAtCursor; after zoom/dolly the camera pose changes—mark yaw/pitch stale so FreeLook's next
         // ensureAnglesSynced (update / movement / look) matches the rig.

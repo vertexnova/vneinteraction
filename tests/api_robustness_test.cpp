@@ -6,6 +6,7 @@
  * ----------------------------------------------------------------------
  */
 
+#include "vertexnova/interaction/camera_controller.h"
 #include "vertexnova/interaction/camera_manipulator.h"
 #include "vertexnova/interaction/inspect_3d_controller.h"
 #include "vertexnova/interaction/interaction_types.h"
@@ -158,6 +159,29 @@ TEST(ApiRobustness, FitToAABBPositionsCOI) {
     EXPECT_NEAR(coi.x(), center.x(), 1e-2f);
     EXPECT_NEAR(coi.y(), center.y(), 1e-2f);
     EXPECT_NEAR(coi.z(), center.z(), 1e-2f);
+}
+
+TEST(ApiRobustness, ICameraControllerPolymorphicSmoke) {
+    std::unique_ptr<vne::interaction::ICameraController> c =
+        std::make_unique<vne::interaction::Inspect3DController>();
+    c->setCamera(makePerspCamera());
+    c->onResize(800.0f, 600.0f);
+    vne::events::MouseMovedEvent move(100.0, 100.0);
+    EXPECT_NO_FATAL_FAILURE(c->onEvent(move, 0.016));
+    EXPECT_NO_FATAL_FAILURE(c->onUpdate(0.016));
+}
+
+TEST(ApiRobustness, Ortho2DControllerResetClearsMapperState) {
+    auto ortho = makeOrthoCamera();
+    vne::interaction::Ortho2DController ctrl;
+    ctrl.setCamera(ortho);
+    ctrl.onResize(512.0f, 512.0f);
+    vne::events::MouseButtonPressedEvent press(vne::events::MouseButton::eRight, 0, 128.0, 128.0);
+    ctrl.onEvent(press, 0.016);
+    ctrl.reset();
+    vne::events::MouseMovedEvent move(200.0, 200.0);
+    EXPECT_NO_FATAL_FAILURE(ctrl.onEvent(move, 0.016));
+    EXPECT_NO_FATAL_FAILURE(ctrl.onUpdate(0.016));
 }
 
 TEST(ApiRobustness, Ortho2DControllerScrollChangesExtents) {

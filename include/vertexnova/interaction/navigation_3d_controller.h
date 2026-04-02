@@ -39,6 +39,7 @@
 
 #include "vertexnova/interaction/export.h"
 #include "vertexnova/interaction/interaction_types.h"
+#include "vertexnova/interaction/camera_controller.h"
 #include "vertexnova/interaction/camera_rig.h"
 
 #include <vertexnova/events/types.h>
@@ -74,7 +75,7 @@ enum class NavigateMode : std::uint8_t {
  *
  * @threadsafe Not thread-safe. Call all methods from the same thread.
  */
-class VNE_INTERACTION_API Navigation3DController {
+class VNE_INTERACTION_API Navigation3DController : public ICameraController {
    public:
     Navigation3DController();
     ~Navigation3DController();
@@ -88,15 +89,15 @@ class VNE_INTERACTION_API Navigation3DController {
     // Core setup
     // -------------------------------------------------------------------------
 
-    void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept;
-    void onResize(float width_px, float height_px) noexcept;
+    void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;
+    void onResize(float width_px, float height_px) noexcept override;
 
     // -------------------------------------------------------------------------
     // Per-frame
     // -------------------------------------------------------------------------
 
-    void onEvent(const vne::events::Event& event, double delta_time = 0.0) noexcept;
-    void onUpdate(double delta_time) noexcept;
+    void onEvent(const vne::events::Event& event, double delta_time = 0.0) noexcept override;
+    void onUpdate(double delta_time) noexcept override;
 
     // -------------------------------------------------------------------------
     // Mode

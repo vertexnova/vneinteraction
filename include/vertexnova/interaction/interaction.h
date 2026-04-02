@@ -18,6 +18,7 @@
 #include "vertexnova/interaction/trackball_behavior.h"
 #include "vertexnova/interaction/camera_manipulator.h"
 #include "vertexnova/interaction/camera_rig.h"
+#include "vertexnova/interaction/camera_controller.h"
 #include "vertexnova/interaction/follow_controller.h"
 #include "vertexnova/interaction/free_look_manipulator.h"
 #include "vertexnova/interaction/inspect_3d_controller.h"

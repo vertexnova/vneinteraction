@@ -12,7 +12,7 @@
 #include "vertexnova/interaction/input_mapper.h"
 #include "vertexnova/interaction/follow_manipulator.h"
 
-#include "vertexnova/events/mouse_event.h"
+#include "camera_controller_context.h"
 
 #include <cmath>
 
@@ -25,16 +25,8 @@ using namespace vne;
 // ---------------------------------------------------------------------------
 
 struct FollowController::Impl {
-    CameraRig rig;
-    InputMapper mapper;
+    CameraControllerContext core;
     std::shared_ptr<FollowManipulator> follow;
-
-    std::shared_ptr<vne::scene::ICamera> camera;
-    float viewport_w = 1280.0f;
-    float viewport_h = 720.0f;
-
-    double last_x = 0.0;
-    double last_y = 0.0;
 
     FollowController::TargetCallback target_cb;
 };
@@ -46,17 +38,17 @@ struct FollowController::Impl {
 FollowController::FollowController()
     : impl_(std::make_unique<Impl>()) {
     impl_->follow = std::make_shared<FollowManipulator>();
-    impl_->rig.addManipulator(impl_->follow);
+    impl_->core.rig.addManipulator(impl_->follow);
 
     // Scroll = zoom (optional, user may want to adjust distance)
-    impl_->mapper.addRule({
+    impl_->core.mapper.addRule({
         .trigger = InputRule::Trigger::eScroll,
         .on_delta = CameraActionType::eZoomAtCursor,
     });
 
     // Capture raw Impl* so the callback stays valid across moves.
-    impl_->mapper.setActionCallback([impl = impl_.get()](CameraActionType a, const CameraCommandPayload& p, double dt) {
-        impl->rig.onAction(a, p, dt);
+    impl_->core.mapper.setActionCallback([impl = impl_.get()](CameraActionType a, const CameraCommandPayload& p, double dt) {
+        impl->core.rig.onAction(a, p, dt);
     });
 }
 
@@ -69,14 +61,11 @@ FollowController& FollowController::operator=(FollowController&&) noexcept = def
 // ---------------------------------------------------------------------------
 
 void FollowController::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
-    impl_->camera = camera;
-    impl_->rig.setCamera(camera);
+    impl_->core.setCamera(std::move(camera));
 }
 
 void FollowController::onResize(float w, float h) noexcept {
-    impl_->viewport_w = w;
-    impl_->viewport_h = h;
-    impl_->rig.onResize(w, h);
+    impl_->core.onResize(w, h);
 }
 
 // ---------------------------------------------------------------------------
@@ -90,20 +79,11 @@ void FollowController::onUpdate(double dt) noexcept {
         // Extract translation column
         impl_->follow->setTargetWorld({t[3][0], t[3][1], t[3][2]});
     }
-    impl_->rig.onUpdate(dt);
+    impl_->core.onUpdate(dt);
 }
 
-void FollowController::onEvent(const events::Event& event) noexcept {
-    constexpr double kDt = 0.0;
-
-    if (event.type() == events::EventType::eMouseScrolled) {
-        const auto& e = static_cast<const events::MouseScrolledEvent&>(event);
-        impl_->mapper.onMouseScroll(static_cast<float>(e.xOffset()),
-                                    static_cast<float>(e.yOffset()),
-                                    static_cast<float>(impl_->last_x),
-                                    static_cast<float>(impl_->last_y),
-                                    kDt);
-    }
+void FollowController::onEvent(const events::Event& event, double delta_time) noexcept {
+    dispatchMouseEvents(impl_->core.mapper, impl_->core.cursor, event, delta_time);
 }
 
 // ---------------------------------------------------------------------------
@@ -157,8 +137,7 @@ float FollowController::getLag() const noexcept {
 // ---------------------------------------------------------------------------
 
 void FollowController::reset() noexcept {
-    impl_->rig.resetState();
-    impl_->mapper.resetState();
+    impl_->core.resetRigAndInteraction();
 }
 
 // ---------------------------------------------------------------------------
@@ -166,7 +145,7 @@ void FollowController::reset() noexcept {
 // ---------------------------------------------------------------------------
 
 InputMapper& FollowController::inputMapper() noexcept {
-    return impl_->mapper;
+    return impl_->core.mapper;
 }
 FollowManipulator& FollowController::followManipulator() noexcept {
     return *impl_->follow;
