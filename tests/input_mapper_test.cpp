@@ -183,6 +183,63 @@ TEST(InputMapper, OnMouseScroll_PassesMousePositionInPayload) {
     EXPECT_FLOAT_EQ(captured.y_px, 456.0f);
 }
 
+TEST(InputMapper, OrbitPreset_ShiftLeftClickSelectsPanOverRotate) {
+    vne::interaction::InputMapper m;
+    m.setRules(vne::interaction::InputMapper::orbitPreset());
+    vne::interaction::CameraActionType last = vne::interaction::CameraActionType::eNone;
+    m.setActionCallback([&last](vne::interaction::CameraActionType a,
+                                const vne::interaction::CameraCommandPayload&,
+                                double) { last = a; });
+
+    const int k_left = static_cast<int>(vne::events::MouseButton::eLeft);
+    m.onKey(static_cast<int>(vne::events::KeyCode::eLeftShift), true, 0.0);
+    m.onMouseButton(k_left, true, 0.0f, 0.0f, 0.0);
+    EXPECT_EQ(last, vne::interaction::CameraActionType::eBeginPan);
+}
+
+TEST(InputMapper, CadPreset_ShiftMiddleClickSelectsRotateOverPan) {
+    vne::interaction::InputMapper m;
+    m.setRules(vne::interaction::InputMapper::cadPreset());
+    vne::interaction::CameraActionType last = vne::interaction::CameraActionType::eNone;
+    m.setActionCallback([&last](vne::interaction::CameraActionType a,
+                                const vne::interaction::CameraCommandPayload&,
+                                double) { last = a; });
+
+    const int k_middle = static_cast<int>(vne::events::MouseButton::eMiddle);
+    m.onKey(static_cast<int>(vne::events::KeyCode::eLeftShift), true, 0.0);
+    m.onMouseButton(k_middle, true, 0.0f, 0.0f, 0.0);
+    EXPECT_EQ(last, vne::interaction::CameraActionType::eBeginRotate);
+}
+
+TEST(InputMapper, EqualModifierSpecificityUsesEarlierRule) {
+    vne::interaction::InputMapper m;
+    const int k_left = static_cast<int>(vne::events::MouseButton::eLeft);
+
+    vne::interaction::InputRule first{};
+    first.trigger = vne::interaction::InputRule::Trigger::eMouseButton;
+    first.code = k_left;
+    first.modifier_mask = vne::interaction::kModShift;
+    first.on_press = vne::interaction::CameraActionType::eBeginPan;
+    first.on_release = vne::interaction::CameraActionType::eEndPan;
+    first.on_delta = vne::interaction::CameraActionType::ePanDelta;
+
+    vne::interaction::InputRule second = first;
+    second.on_press = vne::interaction::CameraActionType::eBeginRotate;
+    second.on_release = vne::interaction::CameraActionType::eEndRotate;
+    second.on_delta = vne::interaction::CameraActionType::eRotateDelta;
+
+    m.setRules(std::vector<vne::interaction::InputRule>{first, second});
+
+    vne::interaction::CameraActionType last = vne::interaction::CameraActionType::eNone;
+    m.setActionCallback([&last](vne::interaction::CameraActionType a,
+                                const vne::interaction::CameraCommandPayload&,
+                                double) { last = a; });
+
+    m.onKey(static_cast<int>(vne::events::KeyCode::eLeftShift), true, 0.0);
+    m.onMouseButton(k_left, true, 0.0f, 0.0f, 0.0);
+    EXPECT_EQ(last, vne::interaction::CameraActionType::eBeginPan);
+}
+
 TEST(InputMapper, KeyReleaseUsesRuleFromPressWhenModifiersChange) {
     vne::interaction::InputMapper m;
     const int k_w = static_cast<int>(vne::events::KeyCode::eW);

@@ -13,6 +13,7 @@
 #include <vertexnova/logging/logging.h>
 
 #include <algorithm>
+#include <bit>
 #include <cassert>
 #include <cmath>
 #include <cstring>
@@ -117,6 +118,47 @@ void InputMapper::clearRules() {
 
 namespace {
 CREATE_VNE_LOGGER_CATEGORY("vne.interaction.input_mapper");
+
+/** Bits allowed in @ref InputRule::modifier_mask (Shift/Ctrl/Alt). */
+constexpr unsigned kKnownModifierBits =
+    static_cast<unsigned>(kModShift | kModCtrl | kModAlt);
+
+/**
+ * @brief Specificity score for choosing among rules that all satisfy @ref InputMapper::modifiersMatch.
+ *
+ * Higher score = stricter chord (more modifiers required). Tie-break uses lower rule index.
+ * @note Masks must be non-negative and use only @c kKnownModifierBits; asserted in debug builds.
+ */
+[[nodiscard]] int modifierMaskSpecificity(int mask) noexcept {
+    assert(mask >= 0);
+    const unsigned raw = static_cast<unsigned>(mask);
+    assert((raw & ~kKnownModifierBits) == 0U);
+    return std::popcount(raw & kKnownModifierBits);
+}
+
+/**
+ * @brief Index of the best matching rule, or @c -1 if @p pred matches none.
+ *
+ * Among matches, prefers the highest @ref modifierMaskSpecificity; on a tie, the smallest index wins.
+ */
+template <typename Pred>
+[[nodiscard]] int pickBestRuleIndexByModifierSpecificity(const std::vector<InputRule>& rules, Pred&& pred) noexcept {
+    int best_i = -1;
+    int best_score = -1;
+    const int n = static_cast<int>(rules.size());
+    for (int i = 0; i < n; ++i) {
+        const auto& r = rules[static_cast<std::size_t>(i)];
+        if (!pred(r, i)) {
+            continue;
+        }
+        const int score = modifierMaskSpecificity(r.modifier_mask);
+        if (best_i < 0 || score > best_score || (score == best_score && i < best_i)) {
+            best_i = i;
+            best_score = score;
+        }
+    }
+    return best_i;
+}
 
 bool isRotateRule(const InputRule& r) {
     return r.trigger == InputRule::Trigger::eMouseButton && r.on_press == CameraActionType::eBeginRotate
@@ -287,24 +329,17 @@ void InputMapper::onMouseButton(int button, bool pressed, float x, float y, doub
     payload.pressed = pressed;
 
     if (pressed) {
-        // Find the first matching button rule with the right modifier
-        for (int i = 0; i < static_cast<int>(rules_.size()); ++i) {
+        // Among all matching button rules, pick the most specific modifier chord (e.g. Shift+LMB over LMB).
+        const int i = pickBestRuleIndexByModifierSpecificity(rules_, [this, button](const InputRule& r, int) {
+            return r.trigger == InputRule::Trigger::eMouseButton && r.code == button
+                   && modifiersMatch(r.modifier_mask);
+        });
+        if (i >= 0) {
             const auto& r = rules_[static_cast<std::size_t>(i)];
-            if (r.trigger != InputRule::Trigger::eMouseButton) {
-                continue;
-            }
-            if (r.code != button) {
-                continue;
-            }
-            if (!modifiersMatch(r.modifier_mask)) {
-                continue;
-            }
-            // Activate this rule for this button slot
             if (button >= 0 && button < kMaxButtons) {
                 active_button_rule_[button] = i;
             }
             emit(r.on_press, payload, dt);
-            break;  // only first matching rule fires
         }
     } else {
         // Release: fire on_release for the previously active rule
@@ -321,18 +356,12 @@ void InputMapper::onMouseDoubleClick(int button, float x, float y, double dt) no
     payload.x_px = x;
     payload.y_px = y;
 
-    for (const auto& r : rules_) {
-        if (r.trigger != InputRule::Trigger::eMouseDblClick) {
-            continue;
-        }
-        if (r.code != button) {
-            continue;
-        }
-        if (!modifiersMatch(r.modifier_mask)) {
-            continue;
-        }
-        emit(r.on_press, payload, dt);
-        break;
+    const int i = pickBestRuleIndexByModifierSpecificity(rules_, [this, button](const InputRule& r, int) {
+        return r.trigger == InputRule::Trigger::eMouseDblClick && r.code == button
+               && modifiersMatch(r.modifier_mask);
+    });
+    if (i >= 0) {
+        emit(rules_[static_cast<std::size_t>(i)].on_press, payload, dt);
     }
 }
 
@@ -366,15 +395,11 @@ void InputMapper::onMouseScroll(float /*scroll_x*/, float scroll_y, float mouse_
     factor = std::clamp(factor, kWheelZoomFactorMin, kWheelZoomFactorMax);
     payload.zoom_factor = factor;
 
-    for (const auto& r : rules_) {
-        if (r.trigger != InputRule::Trigger::eScroll) {
-            continue;
-        }
-        if (!modifiersMatch(r.modifier_mask)) {
-            continue;
-        }
-        emit(r.on_delta, payload, dt);
-        break;
+    const int i = pickBestRuleIndexByModifierSpecificity(rules_, [this](const InputRule& r, int) {
+        return r.trigger == InputRule::Trigger::eScroll && modifiersMatch(r.modifier_mask);
+    });
+    if (i >= 0) {
+        emit(rules_[static_cast<std::size_t>(i)].on_delta, payload, dt);
     }
 }
 
@@ -404,20 +429,13 @@ void InputMapper::onKey(int key, bool pressed, double dt) noexcept {
 
     if (pressed) {
         active_key_rule_[key] = -1;
-        for (int i = 0; i < static_cast<int>(rules_.size()); ++i) {
+        const int i = pickBestRuleIndexByModifierSpecificity(rules_, [this, key](const InputRule& r, int) {
+            return r.trigger == InputRule::Trigger::eKey && r.code == key && modifiersMatch(r.modifier_mask);
+        });
+        if (i >= 0) {
             const auto& r = rules_[static_cast<std::size_t>(i)];
-            if (r.trigger != InputRule::Trigger::eKey) {
-                continue;
-            }
-            if (r.code != key) {
-                continue;
-            }
-            if (!modifiersMatch(r.modifier_mask)) {
-                continue;
-            }
             active_key_rule_[key] = i;
             emit(r.on_press, payload, dt);
-            break;
         }
     } else {
         const int idx = active_key_rule_[key];
@@ -436,15 +454,11 @@ void InputMapper::onTouchPan(const TouchPan& pan, double dt) noexcept {
     payload.delta_x_px = pan.delta_x_px;
     payload.delta_y_px = pan.delta_y_px;
 
-    for (const auto& r : rules_) {
-        if (r.trigger != InputRule::Trigger::eTouchPan) {
-            continue;
-        }
-        if (!modifiersMatch(r.modifier_mask)) {
-            continue;
-        }
-        emit(r.on_delta, payload, dt);
-        break;
+    const int i = pickBestRuleIndexByModifierSpecificity(rules_, [this](const InputRule& r, int) {
+        return r.trigger == InputRule::Trigger::eTouchPan && modifiersMatch(r.modifier_mask);
+    });
+    if (i >= 0) {
+        emit(rules_[static_cast<std::size_t>(i)].on_delta, payload, dt);
     }
 }
 
@@ -457,15 +471,11 @@ void InputMapper::onTouchPinch(const TouchPinch& pinch, double dt) noexcept {
     payload.y_px = pinch.center_y_px;
     payload.zoom_factor = 1.0f / pinch.scale;
 
-    for (const auto& r : rules_) {
-        if (r.trigger != InputRule::Trigger::eTouchPinch) {
-            continue;
-        }
-        if (!modifiersMatch(r.modifier_mask)) {
-            continue;
-        }
-        emit(r.on_delta, payload, dt);
-        break;
+    const int i = pickBestRuleIndexByModifierSpecificity(rules_, [this](const InputRule& r, int) {
+        return r.trigger == InputRule::Trigger::eTouchPinch && modifiersMatch(r.modifier_mask);
+    });
+    if (i >= 0) {
+        emit(rules_[static_cast<std::size_t>(i)].on_delta, payload, dt);
     }
 }
 
@@ -479,18 +489,18 @@ std::vector<InputRule> InputMapper::orbitPreset() {
     const int kMiddle = static_cast<int>(MouseButton::eMiddle);
 
     return {
+        // Shift+LMB: pan (stricter chord than plain LMB)
+        makeButtonRule(kLeft,
+                       kModShift,
+                       CameraActionType::eBeginPan,
+                       CameraActionType::eEndPan,
+                       CameraActionType::ePanDelta),
         // LMB: rotate
         makeButtonRule(kLeft,
                        kModNone,
                        CameraActionType::eBeginRotate,
                        CameraActionType::eEndRotate,
                        CameraActionType::eRotateDelta),
-        // Shift+LMB: pan alias
-        makeButtonRule(kLeft,
-                       kModShift,
-                       CameraActionType::eBeginPan,
-                       CameraActionType::eEndPan,
-                       CameraActionType::ePanDelta),
         // RMB: pan
         makeButtonRule(kRight,
                        kModNone,
@@ -607,18 +617,18 @@ std::vector<InputRule> InputMapper::cadPreset() {
     const int kMiddle = static_cast<int>(MouseButton::eMiddle);
 
     return {
+        // Shift+MMB: rotate (wins over plain MMB when Shift is held)
+        makeButtonRule(kMiddle,
+                       kModShift,
+                       CameraActionType::eBeginRotate,
+                       CameraActionType::eEndRotate,
+                       CameraActionType::eRotateDelta),
         // MMB: pan
         makeButtonRule(kMiddle,
                        kModNone,
                        CameraActionType::eBeginPan,
                        CameraActionType::eEndPan,
                        CameraActionType::ePanDelta),
-        // Shift+MMB: rotate
-        makeButtonRule(kMiddle,
-                       kModShift,
-                       CameraActionType::eBeginRotate,
-                       CameraActionType::eEndRotate,
-                       CameraActionType::eRotateDelta),
         // Scroll: zoom
         makeScrollRule(CameraActionType::eZoomAtCursor),
         // Touch pan: pan

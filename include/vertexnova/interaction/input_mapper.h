@@ -24,6 +24,8 @@
  * Rules are data-driven: each @ref InputRule maps a trigger to @c on_press, @c on_release, and/or
  * @c on_delta. The mapper tracks which button/key rules are active so drag deltas only apply
  * while the correct chord is held. @ref resetState clears that tracking (focus loss, mode change).
+ * If multiple rules match the same trigger (e.g. same button), the strictest modifier chord wins
+ * (most required Shift/Ctrl/Alt bits); equal specificity uses the earlier rule in the list.
  *
  * @par Presets and rebinding
  * Static factories (@ref orbitPreset, @ref fpsPreset, …) return full rule vectors for common modes.
