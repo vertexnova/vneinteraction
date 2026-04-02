@@ -26,17 +26,18 @@
 #include "common/input_simulation.h"
 #include "common/logging_guard.h"
 
-static constexpr double kDt  = 1.0 / 60.0;
-static constexpr float  kVpW = 1280.0f;
-static constexpr float  kVpH = 720.0f;
-static constexpr float  kCx  = kVpW / 2.0f;
-static constexpr float  kCy  = kVpH / 2.0f;
+static constexpr double kDt = 1.0 / 60.0;
+static constexpr float kVpW = 1280.0f;
+static constexpr float kVpH = 720.0f;
+static constexpr float kCx = kVpW / 2.0f;
+static constexpr float kCy = kVpH / 2.0f;
 
 static void runUpdate(vne::interaction::Navigation3DController& ctrl,
                       std::shared_ptr<vne::scene::ICamera> camera,
                       int frames,
                       const char* label) {
-    for (int i = 0; i < frames; ++i) ctrl.onUpdate(kDt);
+    for (int i = 0; i < frames; ++i)
+        ctrl.onUpdate(kDt);
     const auto pos = camera->getPosition();
     VNE_LOG_INFO << label << " — eye=(" << pos.x() << "," << pos.y() << "," << pos.z() << ")";
 }
@@ -68,46 +69,49 @@ int main() {
     ctrl.setSlowMultiplier(0.15f);
 
     VNE_LOG_INFO << "  mode=" << (ctrl.getMode() == vne::interaction::FreeLookMode::eFps ? "eFps" : "eFly")
-                 << "  speed=" << ctrl.getMoveSpeed()
-                 << "  sensitivity=" << ctrl.getMouseSensitivity()
-                 << "  sprint=" << ctrl.getSprintMultiplier()
-                 << "  slow=" << ctrl.getSlowMultiplier();
+                 << "  speed=" << ctrl.getMoveSpeed() << "  sensitivity=" << ctrl.getMouseSensitivity()
+                 << "  sprint=" << ctrl.getSprintMultiplier() << "  slow=" << ctrl.getSlowMultiplier();
 
     // RMB press → begin look
-    vne::events::MouseButtonPressedEvent rmb_press(
-        vne::events::MouseButton::eRight, 0,
-        static_cast<double>(kCx), static_cast<double>(kCy));
+    vne::events::MouseButtonPressedEvent rmb_press(vne::events::MouseButton::eRight,
+                                                   0,
+                                                   static_cast<double>(kCx),
+                                                   static_cast<double>(kCy));
     on_event(rmb_press, kDt);
 
     // Mouse moved → look delta
-    vne::events::MouseMovedEvent look_move(
-        static_cast<double>(kCx + 30.0f), static_cast<double>(kCy - 15.0f));
+    vne::events::MouseMovedEvent look_move(static_cast<double>(kCx + 30.0f), static_cast<double>(kCy - 15.0f));
     on_event(look_move, kDt);
 
     // W held for 30 frames → move forward
-    vne::interaction::examples::simulateKeyHold(on_event, vne::events::KeyCode::eW, 30, kDt,
-        [&](double dt) { ctrl.onUpdate(dt); });
+    vne::interaction::examples::simulateKeyHold(on_event, vne::events::KeyCode::eW, 30, kDt, [&](double dt) {
+        ctrl.onUpdate(dt);
+    });
     runUpdate(ctrl, camera, 5, "FPS: W held 30 frames");
 
     // A held → strafe left
-    vne::interaction::examples::simulateKeyHold(on_event, vne::events::KeyCode::eA, 20, kDt,
-        [&](double dt) { ctrl.onUpdate(dt); });
+    vne::interaction::examples::simulateKeyHold(on_event, vne::events::KeyCode::eA, 20, kDt, [&](double dt) {
+        ctrl.onUpdate(dt);
+    });
     runUpdate(ctrl, camera, 5, "FPS: A strafe");
 
     // E held → move up
-    vne::interaction::examples::simulateKeyHold(on_event, vne::events::KeyCode::eE, 15, kDt,
-        [&](double dt) { ctrl.onUpdate(dt); });
+    vne::interaction::examples::simulateKeyHold(on_event, vne::events::KeyCode::eE, 15, kDt, [&](double dt) {
+        ctrl.onUpdate(dt);
+    });
     runUpdate(ctrl, camera, 5, "FPS: E move up");
 
     // Q held → move down
-    vne::interaction::examples::simulateKeyHold(on_event, vne::events::KeyCode::eQ, 15, kDt,
-        [&](double dt) { ctrl.onUpdate(dt); });
+    vne::interaction::examples::simulateKeyHold(on_event, vne::events::KeyCode::eQ, 15, kDt, [&](double dt) {
+        ctrl.onUpdate(dt);
+    });
     runUpdate(ctrl, camera, 5, "FPS: Q move down");
 
     // RMB release → end look
-    vne::events::MouseButtonReleasedEvent rmb_release(
-        vne::events::MouseButton::eRight, 0,
-        static_cast<double>(kCx + 30.0f), static_cast<double>(kCy - 15.0f));
+    vne::events::MouseButtonReleasedEvent rmb_release(vne::events::MouseButton::eRight,
+                                                      0,
+                                                      static_cast<double>(kCx + 30.0f),
+                                                      static_cast<double>(kCy - 15.0f));
     on_event(rmb_release, kDt);
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -119,8 +123,9 @@ int main() {
     // Shift + W = sprint
     vne::events::KeyPressedEvent shift_press(vne::events::KeyCode::eLeftShift);
     on_event(shift_press, kDt);
-    vne::interaction::examples::simulateKeyHold(on_event, vne::events::KeyCode::eW, 20, kDt,
-        [&](double dt) { ctrl.onUpdate(dt); });
+    vne::interaction::examples::simulateKeyHold(on_event, vne::events::KeyCode::eW, 20, kDt, [&](double dt) {
+        ctrl.onUpdate(dt);
+    });
     vne::events::KeyReleasedEvent shift_release(vne::events::KeyCode::eLeftShift);
     on_event(shift_release, kDt);
     runUpdate(ctrl, camera, 3, "Sprint W (Shift held)");
@@ -128,8 +133,9 @@ int main() {
     // Ctrl + W = slow
     vne::events::KeyPressedEvent ctrl_press(vne::events::KeyCode::eLeftControl);
     on_event(ctrl_press, kDt);
-    vne::interaction::examples::simulateKeyHold(on_event, vne::events::KeyCode::eW, 20, kDt,
-        [&](double dt) { ctrl.onUpdate(dt); });
+    vne::interaction::examples::simulateKeyHold(on_event, vne::events::KeyCode::eW, 20, kDt, [&](double dt) {
+        ctrl.onUpdate(dt);
+    });
     vne::events::KeyReleasedEvent ctrl_release(vne::events::KeyCode::eLeftControl);
     on_event(ctrl_release, kDt);
     runUpdate(ctrl, camera, 3, "Slow-walk W (Ctrl held)");
@@ -145,11 +151,11 @@ int main() {
 
     on_event(rmb_press, kDt);
     // Large vertical mouse delta: in Fly mode pitch can exceed ±89°
-    vne::events::MouseMovedEvent fly_look(
-        static_cast<double>(kCx), static_cast<double>(kCy - 200.0f));
+    vne::events::MouseMovedEvent fly_look(static_cast<double>(kCx), static_cast<double>(kCy - 200.0f));
     on_event(fly_look, kDt);
-    vne::interaction::examples::simulateKeyHold(on_event, vne::events::KeyCode::eW, 20, kDt,
-        [&](double dt) { ctrl.onUpdate(dt); });
+    vne::interaction::examples::simulateKeyHold(on_event, vne::events::KeyCode::eW, 20, kDt, [&](double dt) {
+        ctrl.onUpdate(dt);
+    });
     on_event(rmb_release, kDt);
     runUpdate(ctrl, camera, 5, "Fly mode: pitched past 90°");
 
@@ -171,15 +177,18 @@ int main() {
     // Override look to LMB
     ctrl.setLookButton(vne::events::MouseButton::eLeft);
 
-    vne::events::MouseButtonPressedEvent lmb_press(
-        vne::events::MouseButton::eLeft, 0,
-        static_cast<double>(kCx), static_cast<double>(kCy));
+    vne::events::MouseButtonPressedEvent lmb_press(vne::events::MouseButton::eLeft,
+                                                   0,
+                                                   static_cast<double>(kCx),
+                                                   static_cast<double>(kCy));
     on_event(lmb_press, kDt);
-    vne::interaction::examples::simulateKeyHold(on_event, vne::events::KeyCode::eUp, 20, kDt,
-        [&](double dt) { ctrl.onUpdate(dt); });
-    vne::events::MouseButtonReleasedEvent lmb_release(
-        vne::events::MouseButton::eLeft, 0,
-        static_cast<double>(kCx), static_cast<double>(kCy));
+    vne::interaction::examples::simulateKeyHold(on_event, vne::events::KeyCode::eUp, 20, kDt, [&](double dt) {
+        ctrl.onUpdate(dt);
+    });
+    vne::events::MouseButtonReleasedEvent lmb_release(vne::events::MouseButton::eLeft,
+                                                      0,
+                                                      static_cast<double>(kCx),
+                                                      static_cast<double>(kCy));
     on_event(lmb_release, kDt);
     runUpdate(ctrl, camera, 5, "Arrow key forward with LMB look");
 
@@ -200,16 +209,16 @@ int main() {
 
     ctrl.setMoveEnabled(false);
     VNE_LOG_INFO << "  move_enabled=" << ctrl.isMoveEnabled();
-    vne::interaction::examples::simulateKeyHold(on_event, vne::events::KeyCode::eW, 10, kDt,
-        [&](double dt) { ctrl.onUpdate(dt); });
+    vne::interaction::examples::simulateKeyHold(on_event, vne::events::KeyCode::eW, 10, kDt, [&](double dt) {
+        ctrl.onUpdate(dt);
+    });
     runUpdate(ctrl, camera, 3, "Move disabled — W ignored");
     ctrl.setMoveEnabled(true);
 
     ctrl.setLookEnabled(false);
     VNE_LOG_INFO << "  look_enabled=" << ctrl.isLookEnabled();
     on_event(rmb_press, kDt);
-    vne::events::MouseMovedEvent blocked_look(
-        static_cast<double>(kCx + 100.0f), static_cast<double>(kCy));
+    vne::events::MouseMovedEvent blocked_look(static_cast<double>(kCx + 100.0f), static_cast<double>(kCy));
     on_event(blocked_look, kDt);
     on_event(rmb_release, kDt);
     runUpdate(ctrl, camera, 3, "Look disabled — mouse delta ignored");
@@ -226,7 +235,7 @@ int main() {
     VNE_LOG_INFO << "--- F: Discrete speed-step keys (]/[) ---";
     ctrl.setIncreaseMoveSpeedKey(vne::events::KeyCode::eRightBracket);
     ctrl.setDecreaseMoveSpeedKey(vne::events::KeyCode::eLeftBracket);
-    ctrl.setMoveSpeedStep(2.0f);   // multiplicative factor per key press
+    ctrl.setMoveSpeedStep(2.0f);  // multiplicative factor per key press
     ctrl.setMoveSpeedMin(0.5f);
     ctrl.setMoveSpeedMax(500.0f);
 
@@ -234,15 +243,17 @@ int main() {
     // ] → increase speed twice
     for (int i = 0; i < 2; ++i) {
         vne::interaction::examples::simulateKeyHold(on_event,
-            vne::events::KeyCode::eRightBracket, 1, kDt,
-            [&](double dt) { ctrl.onUpdate(dt); });
+                                                    vne::events::KeyCode::eRightBracket,
+                                                    1,
+                                                    kDt,
+                                                    [&](double dt) { ctrl.onUpdate(dt); });
     }
     VNE_LOG_INFO << "  speed after 2× ]=" << ctrl.getMoveSpeed();
 
     // [ → decrease speed once
-    vne::interaction::examples::simulateKeyHold(on_event,
-        vne::events::KeyCode::eLeftBracket, 1, kDt,
-        [&](double dt) { ctrl.onUpdate(dt); });
+    vne::interaction::examples::simulateKeyHold(on_event, vne::events::KeyCode::eLeftBracket, 1, kDt, [&](double dt) {
+        ctrl.onUpdate(dt);
+    });
     VNE_LOG_INFO << "  speed after 1× [=" << ctrl.getMoveSpeed();
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -251,9 +262,8 @@ int main() {
     VNE_LOG_INFO << "--- G: freeLookManipulator() escape hatch ---";
     auto& manip = ctrl.freeLookManipulator();
 
-    VNE_LOG_INFO << "  handle_zoom=" << manip.getHandleZoom()
-                 << "  world_up=(" << manip.getWorldUp().x() << "," << manip.getWorldUp().y() << ","
-                 << manip.getWorldUp().z() << ")";
+    VNE_LOG_INFO << "  handle_zoom=" << manip.getHandleZoom() << "  world_up=(" << manip.getWorldUp().x() << ","
+                 << manip.getWorldUp().y() << "," << manip.getWorldUp().z() << ")";
 
     // Z-up world (CAD/scientific convention)
     manip.setWorldUp(vne::math::Vec3f(0.0f, 0.0f, 1.0f));
@@ -288,8 +298,7 @@ int main() {
     // Section I: fitToAABB and reset
     // ─────────────────────────────────────────────────────────────────────────
     VNE_LOG_INFO << "--- I: fitToAABB + reset ---";
-    ctrl.fitToAABB(vne::math::Vec3f(-20.0f, 0.0f, -20.0f),
-                   vne::math::Vec3f( 20.0f, 10.0f,  20.0f));
+    ctrl.fitToAABB(vne::math::Vec3f(-20.0f, 0.0f, -20.0f), vne::math::Vec3f(20.0f, 10.0f, 20.0f));
     runUpdate(ctrl, camera, 10, "After fitToAABB (scene bounds)");
 
     ctrl.reset();

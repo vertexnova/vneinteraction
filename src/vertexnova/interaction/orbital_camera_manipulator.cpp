@@ -810,9 +810,8 @@ void OrbitalCameraManipulator::setRotationMode(OrbitalRotationMode mode) noexcep
     TrackballProjectionMode proj = trackball_projection_mode_;
     if (previous == OrbitalRotationMode::eTrackball && rotation_strategy_) {
         const auto inner = static_cast<TrackballStrategy*>(rotation_strategy_.get())->trackball().getProjectionMode();
-        proj = (inner == TrackballBehavior::ProjectionMode::eRim)
-                   ? TrackballProjectionMode::eRim
-                   : TrackballProjectionMode::eHyperbolic;
+        proj = (inner == TrackballBehavior::ProjectionMode::eRim) ? TrackballProjectionMode::eRim
+                                                                  : TrackballProjectionMode::eHyperbolic;
     }
     trackball_projection_mode_ = proj;
     rotation_strategy_ = makeStrategy(mode);
@@ -832,9 +831,8 @@ void OrbitalCameraManipulator::setRotationMode(OrbitalRotationMode mode) noexcep
 void OrbitalCameraManipulator::setTrackballProjectionMode(TrackballProjectionMode mode) noexcept {
     trackball_projection_mode_ = mode;
     if (rotation_mode_ == OrbitalRotationMode::eTrackball && rotation_strategy_) {
-        const auto inner = (mode == TrackballProjectionMode::eRim)
-                               ? TrackballBehavior::ProjectionMode::eRim
-                               : TrackballBehavior::ProjectionMode::eHyperbolic;
+        const auto inner = (mode == TrackballProjectionMode::eRim) ? TrackballBehavior::ProjectionMode::eRim
+                                                                   : TrackballBehavior::ProjectionMode::eHyperbolic;
         static_cast<TrackballStrategy*>(rotation_strategy_.get())->trackball().setProjectionMode(inner);
     }
 }

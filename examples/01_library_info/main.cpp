@@ -26,8 +26,7 @@ int main() {
     {
         vne::interaction::Inspect3DController c;
         VNE_LOG_INFO << "Inspect3DController: rotation_mode="
-                     << (c.getRotationMode() == vne::interaction::OrbitalRotationMode::eOrbit ? "eOrbit"
-                                                                                               : "eTrackball")
+                     << (c.getRotationMode() == vne::interaction::OrbitalRotationMode::eOrbit ? "eOrbit" : "eTrackball")
                      << "  pivot_mode="
                      << (c.getPivotMode() == vne::interaction::OrbitPivotMode::eCoi     ? "eCoi"
                          : c.getPivotMode() == vne::interaction::OrbitPivotMode::eFixed ? "eFixed"
@@ -39,12 +38,9 @@ int main() {
         vne::interaction::Navigation3DController c;
         VNE_LOG_INFO << "Navigation3DController: mode="
                      << (c.getMode() == vne::interaction::FreeLookMode::eFps ? "eFps" : "eFly")
-                     << "  move_speed=" << c.getMoveSpeed()
-                     << "  sensitivity=" << c.getMouseSensitivity()
-                     << "  sprint=" << c.getSprintMultiplier()
-                     << "  slow=" << c.getSlowMultiplier()
-                     << "  look=" << c.isLookEnabled()
-                     << "  move=" << c.isMoveEnabled()
+                     << "  move_speed=" << c.getMoveSpeed() << "  sensitivity=" << c.getMouseSensitivity()
+                     << "  sprint=" << c.getSprintMultiplier() << "  slow=" << c.getSlowMultiplier()
+                     << "  look=" << c.isLookEnabled() << "  move=" << c.isMoveEnabled()
                      << "  zoom=" << c.isZoomEnabled();
     }
     {
@@ -53,9 +49,8 @@ int main() {
     }
     {
         vne::interaction::FollowController c;
-        VNE_LOG_INFO << "FollowController: lag=" << c.getLag()
-                     << "  offset=(" << c.getOffset().x() << "," << c.getOffset().y() << "," << c.getOffset().z()
-                     << ")";
+        VNE_LOG_INFO << "FollowController: lag=" << c.getLag() << "  offset=(" << c.getOffset().x() << ","
+                     << c.getOffset().y() << "," << c.getOffset().z() << ")";
     }
 
     // ── ZoomMethod enum ───────────────────────────────────────────────────────
@@ -66,34 +61,28 @@ int main() {
 
     // ── InputMapper presets ───────────────────────────────────────────────────
     // Each preset returns a vector<InputRule>; size confirms the preset is non-empty.
-    const auto orbit  = vne::interaction::InputMapper::orbitPreset();
-    const auto fps    = vne::interaction::InputMapper::fpsPreset();
-    const auto game   = vne::interaction::InputMapper::gamePreset();
-    const auto cad    = vne::interaction::InputMapper::cadPreset();
-    const auto ortho  = vne::interaction::InputMapper::orthoPreset();
+    const auto orbit = vne::interaction::InputMapper::orbitPreset();
+    const auto fps = vne::interaction::InputMapper::fpsPreset();
+    const auto game = vne::interaction::InputMapper::gamePreset();
+    const auto cad = vne::interaction::InputMapper::cadPreset();
+    const auto ortho = vne::interaction::InputMapper::orthoPreset();
 
     VNE_LOG_INFO << "InputMapper presets (rule counts):"
-                 << "  orbit=" << orbit.size()
-                 << "  fps=" << fps.size()
-                 << "  game=" << game.size()
-                 << "  cad=" << cad.size()
-                 << "  ortho=" << ortho.size();
+                 << "  orbit=" << orbit.size() << "  fps=" << fps.size() << "  game=" << game.size()
+                 << "  cad=" << cad.size() << "  ortho=" << ortho.size();
 
     // ── CameraRig factory methods ─────────────────────────────────────────────
-    auto rig_orbit    = vne::interaction::CameraRig::makeOrbit();
-    auto rig_tb       = vne::interaction::CameraRig::makeTrackball();
-    auto rig_fps      = vne::interaction::CameraRig::makeFps();
-    auto rig_fly      = vne::interaction::CameraRig::makeFly();
-    auto rig_ortho    = vne::interaction::CameraRig::makeOrtho2D();
-    auto rig_follow   = vne::interaction::CameraRig::makeFollow();
+    auto rig_orbit = vne::interaction::CameraRig::makeOrbit();
+    auto rig_tb = vne::interaction::CameraRig::makeTrackball();
+    auto rig_fps = vne::interaction::CameraRig::makeFps();
+    auto rig_fly = vne::interaction::CameraRig::makeFly();
+    auto rig_ortho = vne::interaction::CameraRig::makeOrtho2D();
+    auto rig_follow = vne::interaction::CameraRig::makeFollow();
 
     VNE_LOG_INFO << "CameraRig factories — manipulator counts:"
-                 << "  orbit=" << rig_orbit.manipulators().size()
-                 << "  trackball=" << rig_tb.manipulators().size()
-                 << "  fps=" << rig_fps.manipulators().size()
-                 << "  fly=" << rig_fly.manipulators().size()
-                 << "  ortho2d=" << rig_ortho.manipulators().size()
-                 << "  follow=" << rig_follow.manipulators().size();
+                 << "  orbit=" << rig_orbit.manipulators().size() << "  trackball=" << rig_tb.manipulators().size()
+                 << "  fps=" << rig_fps.manipulators().size() << "  fly=" << rig_fly.manipulators().size()
+                 << "  ortho2d=" << rig_ortho.manipulators().size() << "  follow=" << rig_follow.manipulators().size();
 
     // ── Rotation / pivot mode enums ───────────────────────────────────────────
     VNE_LOG_INFO << "OrbitalRotationMode:  eOrbit=" << static_cast<int>(vne::interaction::OrbitalRotationMode::eOrbit)

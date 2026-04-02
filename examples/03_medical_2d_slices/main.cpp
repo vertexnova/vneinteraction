@@ -25,11 +25,11 @@
 #include "common/input_simulation.h"
 #include "common/logging_guard.h"
 
-static constexpr double kDt  = 1.0 / 60.0;
-static constexpr float  kVpW = 512.0f;
-static constexpr float  kVpH = 512.0f;
-static constexpr float  kCx  = kVpW / 2.0f;
-static constexpr float  kCy  = kVpH / 2.0f;
+static constexpr double kDt = 1.0 / 60.0;
+static constexpr float kVpW = 512.0f;
+static constexpr float kVpH = 512.0f;
+static constexpr float kCx = kVpW / 2.0f;
+static constexpr float kCy = kVpH / 2.0f;
 
 static void runUpdate(vne::interaction::Ortho2DController& ctrl,
                       std::shared_ptr<vne::scene::ICamera> camera,
@@ -67,7 +67,13 @@ int main() {
 
     // Pan: LMB drag
     vne::interaction::examples::simulateMouseDrag(on_event,
-        vne::events::MouseButton::eLeft, kCx, kCy, -60.0f, 40.0f, 20, kDt);
+                                                  vne::events::MouseButton::eLeft,
+                                                  kCx,
+                                                  kCy,
+                                                  -60.0f,
+                                                  40.0f,
+                                                  20,
+                                                  kDt);
     runUpdate(ctrl, camera, 20, "After pan drag");
 
     // Zoom at cursor: scroll-in 4 ticks
@@ -83,13 +89,25 @@ int main() {
     ctrl.setPanSensitivity(12.0f);
 
     vne::interaction::examples::simulateMouseDrag(on_event,
-        vne::events::MouseButton::eLeft, kCx, kCy, 80.0f, 0.0f, 15, kDt);
+                                                  vne::events::MouseButton::eLeft,
+                                                  kCx,
+                                                  kCy,
+                                                  80.0f,
+                                                  0.0f,
+                                                  15,
+                                                  kDt);
     // Let inertia coast 30 frames then settle
     runUpdate(ctrl, camera, 30, "After pan release (inertia coasting)");
 
     ctrl.setPanInertiaEnabled(false);
     vne::interaction::examples::simulateMouseDrag(on_event,
-        vne::events::MouseButton::eLeft, kCx, kCy, 80.0f, 0.0f, 15, kDt);
+                                                  vne::events::MouseButton::eLeft,
+                                                  kCx,
+                                                  kCy,
+                                                  80.0f,
+                                                  0.0f,
+                                                  15,
+                                                  kDt);
     runUpdate(ctrl, camera, 10, "Inertia disabled — immediate stop");
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -114,7 +132,13 @@ int main() {
 
     // RMB drag — rotates the view in-plane (default rotate button is RMB)
     vne::interaction::examples::simulateMouseDrag(on_event,
-        vne::events::MouseButton::eRight, kCx, kCy, 50.0f, 0.0f, 20, kDt);
+                                                  vne::events::MouseButton::eRight,
+                                                  kCx,
+                                                  kCy,
+                                                  50.0f,
+                                                  0.0f,
+                                                  20,
+                                                  kDt);
     runUpdate(ctrl, camera, 15, "After in-plane rotation drag");
 
     ctrl.setRotationEnabled(false);
@@ -128,11 +152,23 @@ int main() {
     ctrl.setRotationEnabled(true);
 
     vne::interaction::examples::simulateMouseDrag(on_event,
-        vne::events::MouseButton::eMiddle, kCx, kCy, 30.0f, -20.0f, 12, kDt);
+                                                  vne::events::MouseButton::eMiddle,
+                                                  kCx,
+                                                  kCy,
+                                                  30.0f,
+                                                  -20.0f,
+                                                  12,
+                                                  kDt);
     runUpdate(ctrl, camera, 10, "MMB pan after rebind");
 
     vne::interaction::examples::simulateMouseDrag(on_event,
-        vne::events::MouseButton::eRight, kCx, kCy, 40.0f, 0.0f, 10, kDt);
+                                                  vne::events::MouseButton::eRight,
+                                                  kCx,
+                                                  kCy,
+                                                  40.0f,
+                                                  0.0f,
+                                                  10,
+                                                  kDt);
     runUpdate(ctrl, camera, 10, "RMB rotate after rebind");
 
     // Restore defaults
@@ -162,8 +198,7 @@ int main() {
     // Section G: fitToAABB — frame a DICOM slice region
     // ─────────────────────────────────────────────────────────────────────────
     VNE_LOG_INFO << "--- G: fitToAABB to DICOM region ---";
-    ctrl.fitToAABB(vne::math::Vec3f(-128.0f, -128.0f, -1.0f),
-                   vne::math::Vec3f( 128.0f,  128.0f,  1.0f));
+    ctrl.fitToAABB(vne::math::Vec3f(-128.0f, -128.0f, -1.0f), vne::math::Vec3f(128.0f, 128.0f, 1.0f));
     runUpdate(ctrl, camera, 60, "After fitToAABB 256×256 mm slice");
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -177,7 +212,13 @@ int main() {
 
     ctrl.setPanEnabled(false);
     vne::interaction::examples::simulateMouseDrag(on_event,
-        vne::events::MouseButton::eLeft, kCx, kCy, 50.0f, 0.0f, 10, kDt);
+                                                  vne::events::MouseButton::eLeft,
+                                                  kCx,
+                                                  kCy,
+                                                  50.0f,
+                                                  0.0f,
+                                                  10,
+                                                  kDt);
     runUpdate(ctrl, camera, 5, "Pan disabled — LMB drag ignored");
     ctrl.setPanEnabled(true);
 

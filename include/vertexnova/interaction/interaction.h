@@ -46,4 +46,3 @@
 #include "vertexnova/interaction/navigation_3d_controller.h"
 #include "vertexnova/interaction/ortho_2d_controller.h"
 #include "vertexnova/interaction/follow_controller.h"
-

@@ -29,11 +29,11 @@
 #include "common/input_simulation.h"
 #include "common/logging_guard.h"
 
-static constexpr double kDt  = 1.0 / 60.0;
-static constexpr float  kVpW = 1280.0f;
-static constexpr float  kVpH = 720.0f;
-static constexpr float  kCx  = kVpW / 2.0f;
-static constexpr float  kCy  = kVpH / 2.0f;
+static constexpr double kDt = 1.0 / 60.0;
+static constexpr float kVpW = 1280.0f;
+static constexpr float kVpH = 720.0f;
+static constexpr float kCx = kVpW / 2.0f;
+static constexpr float kCy = kVpH / 2.0f;
 
 int main() {
     vne::interaction::examples::LoggingGuard logging_guard;
@@ -48,9 +48,9 @@ int main() {
     // ─────────────────────────────────────────────────────────────────────────
     VNE_LOG_INFO << "--- A: Preset rule counts ---";
     VNE_LOG_INFO << "  orbit=" << vne::interaction::InputMapper::orbitPreset().size()
-                 << "  fps="   << vne::interaction::InputMapper::fpsPreset().size()
-                 << "  game="  << vne::interaction::InputMapper::gamePreset().size()
-                 << "  cad="   << vne::interaction::InputMapper::cadPreset().size()
+                 << "  fps=" << vne::interaction::InputMapper::fpsPreset().size()
+                 << "  game=" << vne::interaction::InputMapper::gamePreset().size()
+                 << "  cad=" << vne::interaction::InputMapper::cadPreset().size()
                  << "  ortho=" << vne::interaction::InputMapper::orthoPreset().size();
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -69,8 +69,7 @@ int main() {
         VNE_LOG_INFO << "  Applied cadPreset; rules=" << ctrl.inputMapper().rules().size();
 
         // Rebind rotate to Shift+MMB explicitly (already in CAD, shown for clarity)
-        ctrl.setRotateButton(vne::events::MouseButton::eMiddle,
-                             vne::events::ModifierKey::eModShift);
+        ctrl.setRotateButton(vne::events::MouseButton::eMiddle, vne::events::ModifierKey::eModShift);
 
         // Require Ctrl to zoom (only Ctrl+scroll zooms, plain scroll does nothing)
         ctrl.setZoomScrollModifier(vne::events::ModifierKey::eModCtrl);
@@ -84,10 +83,17 @@ int main() {
         vne::events::KeyPressedEvent shift(vne::events::KeyCode::eLeftShift);
         on_event(shift, kDt);
         vne::interaction::examples::simulateMouseDrag(on_event,
-            vne::events::MouseButton::eMiddle, kCx, kCy, 60.0f, 20.0f, 15, kDt);
+                                                      vne::events::MouseButton::eMiddle,
+                                                      kCx,
+                                                      kCy,
+                                                      60.0f,
+                                                      20.0f,
+                                                      15,
+                                                      kDt);
         vne::events::KeyReleasedEvent shift_rel(vne::events::KeyCode::eLeftShift);
         on_event(shift_rel, kDt);
-        for (int i = 0; i < 10; ++i) ctrl.onUpdate(kDt);
+        for (int i = 0; i < 10; ++i)
+            ctrl.onUpdate(kDt);
         VNE_LOG_INFO << "  CAD preset: Shift+MMB orbit done";
     }
 
@@ -102,23 +108,19 @@ int main() {
 
         // Move rotate from LMB to MMB
         mapper.bindGesture(vne::interaction::GestureAction::eRotate,
-                           {vne::events::MouseButton::eMiddle,
-                            vne::events::ModifierKey::eModNone});
+                           {vne::events::MouseButton::eMiddle, vne::events::ModifierKey::eModNone});
         VNE_LOG_INFO << "  After bindGesture(rotate→MMB): rules=" << mapper.rules().size();
 
         // Move pan from RMB to LMB
         mapper.bindGesture(vne::interaction::GestureAction::ePan,
-                           {vne::events::MouseButton::eLeft,
-                            vne::events::ModifierKey::eModNone});
+                           {vne::events::MouseButton::eLeft, vne::events::ModifierKey::eModNone});
 
         // Zoom only when Alt is held
-        mapper.bindScroll(vne::interaction::GestureAction::eZoom,
-                          vne::events::ModifierKey::eModAlt);
+        mapper.bindScroll(vne::interaction::GestureAction::eZoom, vne::events::ModifierKey::eModAlt);
         VNE_LOG_INFO << "  After Alt-scroll zoom: rules=" << mapper.rules().size();
 
         // Double-click MMB to set pivot
-        mapper.bindDoubleClick(vne::interaction::GestureAction::eSetPivot,
-                               vne::events::MouseButton::eMiddle);
+        mapper.bindDoubleClick(vne::interaction::GestureAction::eSetPivot, vne::events::MouseButton::eMiddle);
 
         // Remove zoom entirely (pen-tablet workflow with no scroll)
         mapper.unbindGesture(vne::interaction::GestureAction::eZoom);
@@ -166,7 +168,7 @@ int main() {
         using T = vne::interaction::InputRule::Trigger;
         using A = vne::interaction::CameraActionType;
 
-        const int kLeft   = static_cast<int>(vne::events::MouseButton::eLeft);
+        const int kLeft = static_cast<int>(vne::events::MouseButton::eLeft);
         const int kMiddle = static_cast<int>(vne::events::MouseButton::eMiddle);
 
         vne::interaction::InputMapper mapper;
@@ -174,38 +176,38 @@ int main() {
 
         // LMB → orbit
         R orbit_rule;
-        orbit_rule.trigger    = T::eMouseButton;
-        orbit_rule.code       = kLeft;
+        orbit_rule.trigger = T::eMouseButton;
+        orbit_rule.code = kLeft;
         orbit_rule.modifier_mask = vne::interaction::kModNone;
-        orbit_rule.on_press   = A::eBeginRotate;
+        orbit_rule.on_press = A::eBeginRotate;
         orbit_rule.on_release = A::eEndRotate;
-        orbit_rule.on_delta   = A::eRotateDelta;
+        orbit_rule.on_delta = A::eRotateDelta;
         mapper.addRule(orbit_rule);
 
         // MMB → pan
         R pan_rule;
-        pan_rule.trigger    = T::eMouseButton;
-        pan_rule.code       = kMiddle;
+        pan_rule.trigger = T::eMouseButton;
+        pan_rule.code = kMiddle;
         pan_rule.modifier_mask = vne::interaction::kModNone;
-        pan_rule.on_press   = A::eBeginPan;
+        pan_rule.on_press = A::eBeginPan;
         pan_rule.on_release = A::eEndPan;
-        pan_rule.on_delta   = A::ePanDelta;
+        pan_rule.on_delta = A::ePanDelta;
         mapper.addRule(pan_rule);
 
         // Scroll → zoom (no modifier required)
         R scroll_rule;
-        scroll_rule.trigger    = T::eScroll;
-        scroll_rule.code       = 0;
+        scroll_rule.trigger = T::eScroll;
+        scroll_rule.code = 0;
         scroll_rule.modifier_mask = vne::interaction::kModNone;
-        scroll_rule.on_delta   = A::eZoomAtCursor;
+        scroll_rule.on_delta = A::eZoomAtCursor;
         mapper.addRule(scroll_rule);
 
         // Double-click LMB → set pivot along view ray
         R dblclick_rule;
-        dblclick_rule.trigger    = T::eMouseDblClick;
-        dblclick_rule.code       = kLeft;
+        dblclick_rule.trigger = T::eMouseDblClick;
+        dblclick_rule.code = kLeft;
         dblclick_rule.modifier_mask = vne::interaction::kModNone;
-        dblclick_rule.on_press   = A::eSetPivotAtCursor;
+        dblclick_rule.on_press = A::eSetPivotAtCursor;
         mapper.addRule(dblclick_rule);
 
         VNE_LOG_INFO << "  Custom orbit rules from scratch: count=" << mapper.rules().size();
@@ -215,12 +217,9 @@ int main() {
         rig.setCamera(camera);
         rig.onResize(kVpW, kVpH);
 
-        mapper.setActionCallback(
-            [&rig](vne::interaction::CameraActionType action,
-                   const vne::interaction::CameraCommandPayload& payload,
-                   double dt) {
-                rig.onAction(action, payload, dt);
-            });
+        mapper.setActionCallback([&rig](vne::interaction::CameraActionType action,
+                                        const vne::interaction::CameraCommandPayload& payload,
+                                        double dt) { rig.onAction(action, payload, dt); });
 
         // Feed raw mapper input directly
         mapper.onMouseButton(kLeft, true, kCx, kCy, kDt);
@@ -233,8 +232,7 @@ int main() {
         rig.onUpdate(kDt);
 
         const auto pos = camera->getPosition();
-        VNE_LOG_INFO << "  After direct mapper drive — eye=("
-                     << pos.x() << "," << pos.y() << "," << pos.z() << ")";
+        VNE_LOG_INFO << "  After direct mapper drive — eye=(" << pos.x() << "," << pos.y() << "," << pos.z() << ")";
 
         // resetState: call on focus loss to clear held-button tracking
         mapper.resetState();
@@ -252,12 +250,9 @@ int main() {
         auto rig = vne::interaction::CameraRig::makeOrbit();
         rig.setCamera(camera);
         rig.onResize(kVpW, kVpH);
-        mapper.setActionCallback(
-            [&rig](vne::interaction::CameraActionType action,
-                   const vne::interaction::CameraCommandPayload& payload,
-                   double dt) {
-                rig.onAction(action, payload, dt);
-            });
+        mapper.setActionCallback([&rig](vne::interaction::CameraActionType action,
+                                        const vne::interaction::CameraCommandPayload& payload,
+                                        double dt) { rig.onAction(action, payload, dt); });
 
         // Touch pan (two-finger drag)
         vne::interaction::TouchPan pan_gesture;
@@ -271,7 +266,7 @@ int main() {
 
         // Touch pinch (two-finger pinch-to-zoom)
         vne::interaction::TouchPinch pinch_gesture;
-        pinch_gesture.scale = 0.9f;   // < 1 = zoom in
+        pinch_gesture.scale = 0.9f;  // < 1 = zoom in
         pinch_gesture.center_x_px = kCx;
         pinch_gesture.center_y_px = kCy;
         for (int i = 0; i < 5; ++i) {

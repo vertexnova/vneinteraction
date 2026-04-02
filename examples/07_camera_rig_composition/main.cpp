@@ -27,21 +27,24 @@
 #include "common/input_simulation.h"
 #include "common/logging_guard.h"
 
-static constexpr double kDt  = 1.0 / 60.0;
-static constexpr float  kVpW = 1280.0f;
-static constexpr float  kVpH = 720.0f;
-static constexpr float  kCx  = kVpW / 2.0f;
-static constexpr float  kCy  = kVpH / 2.0f;
+static constexpr double kDt = 1.0 / 60.0;
+static constexpr float kVpW = 1280.0f;
+static constexpr float kVpH = 720.0f;
+static constexpr float kCx = kVpW / 2.0f;
+static constexpr float kCy = kVpH / 2.0f;
 
 // Helper: emit one complete orbit-drag action sequence directly to a rig.
 static void directOrbitDrag(vne::interaction::CameraRig& rig, float dx, float dy) {
     using A = vne::interaction::CameraActionType;
     vne::interaction::CameraCommandPayload p;
 
-    p.x_px = kCx; p.y_px = kCy; p.pressed = true;
+    p.x_px = kCx;
+    p.y_px = kCy;
+    p.pressed = true;
     rig.onAction(A::eBeginRotate, p, kDt);
 
-    p.delta_x_px = dx; p.delta_y_px = dy;
+    p.delta_x_px = dx;
+    p.delta_y_px = dy;
     rig.onAction(A::eRotateDelta, p, kDt);
 
     p.pressed = false;
@@ -50,7 +53,8 @@ static void directOrbitDrag(vne::interaction::CameraRig& rig, float dx, float dy
 
 static void directZoom(vne::interaction::CameraRig& rig, float factor) {
     vne::interaction::CameraCommandPayload p;
-    p.x_px = kCx; p.y_px = kCy;
+    p.x_px = kCx;
+    p.y_px = kCy;
     p.zoom_factor = factor;
     rig.onAction(vne::interaction::CameraActionType::eZoomAtCursor, p, kDt);
 }
@@ -68,19 +72,16 @@ int main() {
     // ─────────────────────────────────────────────────────────────────────────
     VNE_LOG_INFO << "--- A: CameraRig factory methods ---";
     {
-        auto r_orbit  = vne::interaction::CameraRig::makeOrbit();
-        auto r_tb     = vne::interaction::CameraRig::makeTrackball();
-        auto r_fps    = vne::interaction::CameraRig::makeFps();
-        auto r_fly    = vne::interaction::CameraRig::makeFly();
-        auto r_ortho  = vne::interaction::CameraRig::makeOrtho2D();
+        auto r_orbit = vne::interaction::CameraRig::makeOrbit();
+        auto r_tb = vne::interaction::CameraRig::makeTrackball();
+        auto r_fps = vne::interaction::CameraRig::makeFps();
+        auto r_fly = vne::interaction::CameraRig::makeFly();
+        auto r_ortho = vne::interaction::CameraRig::makeOrtho2D();
         auto r_follow = vne::interaction::CameraRig::makeFollow();
 
-        VNE_LOG_INFO << "  orbit="   << r_orbit.manipulators().size()
-                     << "  tb="      << r_tb.manipulators().size()
-                     << "  fps="     << r_fps.manipulators().size()
-                     << "  fly="     << r_fly.manipulators().size()
-                     << "  ortho2d=" << r_ortho.manipulators().size()
-                     << "  follow="  << r_follow.manipulators().size();
+        VNE_LOG_INFO << "  orbit=" << r_orbit.manipulators().size() << "  tb=" << r_tb.manipulators().size()
+                     << "  fps=" << r_fps.manipulators().size() << "  fly=" << r_fly.manipulators().size()
+                     << "  ortho2d=" << r_ortho.manipulators().size() << "  follow=" << r_follow.manipulators().size();
 
         // Simple orbit factory drive via direct actions
         r_orbit.setCamera(camera);
@@ -90,8 +91,7 @@ int main() {
         directZoom(r_orbit, 0.9f);  // 0.9 < 1 = zoom in
         r_orbit.onUpdate(kDt);
         const auto pos = camera->getPosition();
-        VNE_LOG_INFO << "  makeOrbit direct drive — eye=("
-                     << pos.x() << "," << pos.y() << "," << pos.z() << ")";
+        VNE_LOG_INFO << "  makeOrbit direct drive — eye=(" << pos.x() << "," << pos.y() << "," << pos.z() << ")";
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -127,52 +127,53 @@ int main() {
         // Wire InputMapper with gamePreset (LMB=orbit, RMB=look, WASD=move, scroll=zoom)
         vne::interaction::InputMapper mapper;
         mapper.setRules(vne::interaction::InputMapper::gamePreset());
-        mapper.setActionCallback(
-            [&rig](vne::interaction::CameraActionType action,
-                   const vne::interaction::CameraCommandPayload& payload,
-                   double dt) {
-                rig.onAction(action, payload, dt);
-            });
+        mapper.setActionCallback([&rig](vne::interaction::CameraActionType action,
+                                        const vne::interaction::CameraCommandPayload& payload,
+                                        double dt) { rig.onAction(action, payload, dt); });
 
         auto on_event = [&](const vne::events::Event& e, double dt) {
             using ET = vne::events::EventType;
             switch (e.type()) {
                 case ET::eMouseButtonPressed: {
                     const auto& me = static_cast<const vne::events::MouseButtonPressedEvent&>(e);
-                    mapper.onMouseButton(static_cast<int>(me.button()), true,
+                    mapper.onMouseButton(static_cast<int>(me.button()),
+                                         true,
                                          static_cast<float>(me.x()),
-                                         static_cast<float>(me.y()), dt);
+                                         static_cast<float>(me.y()),
+                                         dt);
                     break;
                 }
                 case ET::eMouseButtonReleased: {
                     const auto& me = static_cast<const vne::events::MouseButtonReleasedEvent&>(e);
-                    mapper.onMouseButton(static_cast<int>(me.button()), false,
+                    mapper.onMouseButton(static_cast<int>(me.button()),
+                                         false,
                                          static_cast<float>(me.x()),
-                                         static_cast<float>(me.y()), dt);
+                                         static_cast<float>(me.y()),
+                                         dt);
                     break;
                 }
                 case ET::eMouseMoved: {
                     const auto& me = static_cast<const vne::events::MouseMovedEvent&>(e);
-                    mapper.onMouseMove(static_cast<float>(me.x()),
-                                       static_cast<float>(me.y()),
-                                       0.0f, 0.0f, dt);
+                    mapper.onMouseMove(static_cast<float>(me.x()), static_cast<float>(me.y()), 0.0f, 0.0f, dt);
                     break;
                 }
                 case ET::eMouseScrolled: {
                     const auto& me = static_cast<const vne::events::MouseScrolledEvent&>(e);
-                    mapper.onMouseScroll(static_cast<float>(me.x_offset()),
-                                         static_cast<float>(me.y_offset()),
-                                         kCx, kCy, dt);
+                    mapper.onMouseScroll(static_cast<float>(me.xOffset()),
+                                         static_cast<float>(me.yOffset()),
+                                         kCx,
+                                         kCy,
+                                         dt);
                     break;
                 }
                 case ET::eKeyPressed: {
                     const auto& ke = static_cast<const vne::events::KeyPressedEvent&>(e);
-                    mapper.onKey(static_cast<int>(ke.key_code()), true, dt);
+                    mapper.onKey(static_cast<int>(ke.keyCode()), true, dt);
                     break;
                 }
                 case ET::eKeyReleased: {
                     const auto& ke = static_cast<const vne::events::KeyReleasedEvent&>(e);
-                    mapper.onKey(static_cast<int>(ke.key_code()), false, dt);
+                    mapper.onKey(static_cast<int>(ke.keyCode()), false, dt);
                     break;
                 }
                 default:
@@ -182,22 +183,33 @@ int main() {
 
         // LMB orbit
         vne::interaction::examples::simulateMouseDrag(on_event,
-            vne::events::MouseButton::eLeft, kCx, kCy, 80.0f, 30.0f, 20, kDt);
-        for (int i = 0; i < 15; ++i) rig.onUpdate(kDt);
+                                                      vne::events::MouseButton::eLeft,
+                                                      kCx,
+                                                      kCy,
+                                                      80.0f,
+                                                      30.0f,
+                                                      20,
+                                                      kDt);
+        for (int i = 0; i < 15; ++i)
+            rig.onUpdate(kDt);
 
         // WASD fly while orbit is also active (fly takes effect; orbit ignores move actions)
-        vne::events::MouseButtonPressedEvent rmb(vne::events::MouseButton::eRight, 0,
-            static_cast<double>(kCx), static_cast<double>(kCy));
+        vne::events::MouseButtonPressedEvent rmb(vne::events::MouseButton::eRight,
+                                                 0,
+                                                 static_cast<double>(kCx),
+                                                 static_cast<double>(kCy));
         on_event(rmb, kDt);
-        vne::interaction::examples::simulateKeyHold(on_event, vne::events::KeyCode::eW, 20, kDt,
-            [&](double dt) { rig.onUpdate(dt); });
-        vne::events::MouseButtonReleasedEvent rmb_rel(vne::events::MouseButton::eRight, 0,
-            static_cast<double>(kCx), static_cast<double>(kCy));
+        vne::interaction::examples::simulateKeyHold(on_event, vne::events::KeyCode::eW, 20, kDt, [&](double dt) {
+            rig.onUpdate(dt);
+        });
+        vne::events::MouseButtonReleasedEvent rmb_rel(vne::events::MouseButton::eRight,
+                                                      0,
+                                                      static_cast<double>(kCx),
+                                                      static_cast<double>(kCy));
         on_event(rmb_rel, kDt);
 
         const auto pos = camera->getPosition();
-        VNE_LOG_INFO << "  Hybrid rig (orbit+fly): eye=("
-                     << pos.x() << "," << pos.y() << "," << pos.z() << ")";
+        VNE_LOG_INFO << "  Hybrid rig (orbit+fly): eye=(" << pos.x() << "," << pos.y() << "," << pos.z() << ")";
 
         // ── removeManipulator: hot-remove fly at runtime ───────────────────
         rig.removeManipulator(fly_manip);
@@ -213,7 +225,7 @@ int main() {
     VNE_LOG_INFO << "--- C: setEnabled() per manipulator ---";
     {
         auto orbit_manip = std::make_shared<vne::interaction::OrbitalCameraManipulator>();
-        auto fly_manip   = std::make_shared<vne::interaction::FreeLookManipulator>();
+        auto fly_manip = std::make_shared<vne::interaction::FreeLookManipulator>();
         fly_manip->setHandleZoom(false);
 
         vne::interaction::CameraRig rig;
@@ -224,8 +236,7 @@ int main() {
 
         // Disable fly — only orbit responds
         fly_manip->setEnabled(false);
-        VNE_LOG_INFO << "  fly enabled=" << fly_manip->isEnabled()
-                     << "  orbit enabled=" << orbit_manip->isEnabled();
+        VNE_LOG_INFO << "  fly enabled=" << fly_manip->isEnabled() << "  orbit enabled=" << orbit_manip->isEnabled();
 
         directOrbitDrag(rig, 50.0f, 10.0f);
         rig.onUpdate(kDt);
@@ -239,7 +250,8 @@ int main() {
         vne::interaction::CameraCommandPayload p;
         p.pressed = true;
         rig.onAction(A::eBeginLook, p, kDt);
-        p.delta_x_px = 10.0f; p.delta_y_px = -5.0f;
+        p.delta_x_px = 10.0f;
+        p.delta_y_px = -5.0f;
         rig.onAction(A::eLookDelta, p, kDt);
         p.pressed = false;
         rig.onAction(A::eEndLook, p, kDt);
@@ -270,7 +282,7 @@ int main() {
         auto m2 = std::make_shared<vne::interaction::OrbitalCameraManipulator>();
         m2->setRotationMode(vne::interaction::OrbitalRotationMode::eTrackball);
         rig.addManipulator(m2);
-        rig.setCamera(camera);   // re-attach camera after rebuild
+        rig.setCamera(camera);  // re-attach camera after rebuild
         rig.onResize(kVpW, kVpH);
         VNE_LOG_INFO << "  Rebuilt with trackball: count=" << rig.manipulators().size();
 
@@ -290,7 +302,9 @@ int main() {
 
         // Begin a drag but never send the release (simulate window focus loss)
         vne::interaction::CameraCommandPayload p;
-        p.x_px = kCx; p.y_px = kCy; p.pressed = true;
+        p.x_px = kCx;
+        p.y_px = kCy;
+        p.pressed = true;
         rig.onAction(vne::interaction::CameraActionType::eBeginRotate, p, kDt);
 
         // resetState clears the drag tracking so the next press starts cleanly

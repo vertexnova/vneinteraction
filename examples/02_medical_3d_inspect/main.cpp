@@ -25,11 +25,11 @@
 #include "common/input_simulation.h"
 #include "common/logging_guard.h"
 
-static constexpr double kDt    = 1.0 / 60.0;
-static constexpr float  kVpW   = 1280.0f;
-static constexpr float  kVpH   = 720.0f;
-static constexpr float  kCx    = kVpW / 2.0f;
-static constexpr float  kCy    = kVpH / 2.0f;
+static constexpr double kDt = 1.0 / 60.0;
+static constexpr float kVpW = 1280.0f;
+static constexpr float kVpH = 720.0f;
+static constexpr float kCx = kVpW / 2.0f;
+static constexpr float kCy = kVpH / 2.0f;
 
 // Helper: run N update frames and log the camera position.
 static void runUpdate(vne::interaction::Inspect3DController& ctrl,
@@ -80,17 +80,28 @@ int main() {
     manip.setPanDamping(8.0f);
 
     VNE_LOG_INFO << "  orbit_distance=" << manip.getOrbitDistance()
-                 << "  rotation_damping=" << manip.getRotationDamping()
-                 << "  pan_damping=" << manip.getPanDamping();
+                 << "  rotation_damping=" << manip.getRotationDamping() << "  pan_damping=" << manip.getPanDamping();
 
     // LMB drag — rotate
     vne::interaction::examples::simulateMouseDrag(on_event,
-        vne::events::MouseButton::eLeft, kCx, kCy, 100.0f, 50.0f, 30, kDt);
+                                                  vne::events::MouseButton::eLeft,
+                                                  kCx,
+                                                  kCy,
+                                                  100.0f,
+                                                  50.0f,
+                                                  30,
+                                                  kDt);
     runUpdate(ctrl, camera, 60, "Euler orbit after LMB drag + inertia decay");
 
     // RMB drag — pan
     vne::interaction::examples::simulateMouseDrag(on_event,
-        vne::events::MouseButton::eRight, kCx, kCy, -40.0f, 20.0f, 20, kDt);
+                                                  vne::events::MouseButton::eRight,
+                                                  kCx,
+                                                  kCy,
+                                                  -40.0f,
+                                                  20.0f,
+                                                  20,
+                                                  kDt);
     runUpdate(ctrl, camera, 30, "After RMB pan");
 
     // Scroll — zoom in (negative = in by library convention)
@@ -106,13 +117,25 @@ int main() {
     manip.setTrackballRotationScale(2.5f);
 
     vne::interaction::examples::simulateMouseDrag(on_event,
-        vne::events::MouseButton::eLeft, kCx, kCy, 80.0f, -30.0f, 20, kDt);
+                                                  vne::events::MouseButton::eLeft,
+                                                  kCx,
+                                                  kCy,
+                                                  80.0f,
+                                                  -30.0f,
+                                                  20,
+                                                  kDt);
     runUpdate(ctrl, camera, 20, "Trackball eHyperbolic drag");
 
     VNE_LOG_INFO << "--- B2: Trackball (eRim) ---";
     manip.setTrackballProjectionMode(vne::interaction::TrackballProjectionMode::eRim);
     vne::interaction::examples::simulateMouseDrag(on_event,
-        vne::events::MouseButton::eLeft, kVpW - 50.0f, kCy, -30.0f, 60.0f, 15, kDt);
+                                                  vne::events::MouseButton::eLeft,
+                                                  kVpW - 50.0f,
+                                                  kCy,
+                                                  -30.0f,
+                                                  60.0f,
+                                                  15,
+                                                  kDt);
     runUpdate(ctrl, camera, 15, "Trackball eRim edge drag");
 
     // Switch back to orbit for remaining sections
@@ -122,17 +145,22 @@ int main() {
     // Section C: Anatomy landmark — fixed pivot
     // ─────────────────────────────────────────────────────────────────────────
     VNE_LOG_INFO << "--- C: Fixed pivot at anatomical landmark ---";
-    ctrl.setPivot(vne::math::Vec3f(0.3f, 0.5f, 0.1f));         // landmark
-    ctrl.setPivotMode(vne::interaction::OrbitPivotMode::eFixed); // pan trucks eye without moving COI
-    ctrl.setPivotOnDoubleClickEnabled(false);                    // disable accidental pivot change
+    ctrl.setPivot(vne::math::Vec3f(0.3f, 0.5f, 0.1f));            // landmark
+    ctrl.setPivotMode(vne::interaction::OrbitPivotMode::eFixed);  // pan trucks eye without moving COI
+    ctrl.setPivotOnDoubleClickEnabled(false);                     // disable accidental pivot change
 
     vne::interaction::examples::simulateMouseDrag(on_event,
-        vne::events::MouseButton::eLeft, kCx, kCy, 120.0f, 0.0f, 25, kDt);
+                                                  vne::events::MouseButton::eLeft,
+                                                  kCx,
+                                                  kCy,
+                                                  120.0f,
+                                                  0.0f,
+                                                  25,
+                                                  kDt);
     runUpdate(ctrl, camera, 30, "Fixed-pivot orbit");
 
     const auto coi = manip.getCenterOfInterestWorld();
-    VNE_LOG_INFO << "  COI=" << coi.x() << "," << coi.y() << "," << coi.z()
-                 << "  (should remain near landmark)";
+    VNE_LOG_INFO << "  COI=" << coi.x() << "," << coi.y() << "," << coi.z() << "  (should remain near landmark)";
 
     // ─────────────────────────────────────────────────────────────────────────
     // Section D: DOF toggles
@@ -142,7 +170,13 @@ int main() {
     ctrl.setRotationEnabled(false);
     VNE_LOG_INFO << "  rotation_enabled=" << ctrl.isRotationEnabled();
     vne::interaction::examples::simulateMouseDrag(on_event,
-        vne::events::MouseButton::eLeft, kCx, kCy, 100.0f, 0.0f, 10, kDt);
+                                                  vne::events::MouseButton::eLeft,
+                                                  kCx,
+                                                  kCy,
+                                                  100.0f,
+                                                  0.0f,
+                                                  10,
+                                                  kDt);
     runUpdate(ctrl, camera, 5, "Rotation disabled — no orbit from LMB");
 
     ctrl.setRotationEnabled(true);
@@ -182,8 +216,7 @@ int main() {
     // Section F: fitToAABB + view direction presets
     // ─────────────────────────────────────────────────────────────────────────
     VNE_LOG_INFO << "--- F: fitToAABB + view presets ---";
-    ctrl.fitToAABB(vne::math::Vec3f(-1.5f, -1.5f, -1.5f),
-                   vne::math::Vec3f( 1.5f,  1.5f,  1.5f));
+    ctrl.fitToAABB(vne::math::Vec3f(-1.5f, -1.5f, -1.5f), vne::math::Vec3f(1.5f, 1.5f, 1.5f));
     runUpdate(ctrl, camera, 60, "After fitToAABB (60 frames of smooth anim)");
 
     manip.setViewDirection(vne::interaction::ViewDirection::eTop);
@@ -204,15 +237,15 @@ int main() {
     ctrl.setInteractionSpeedStep(1.2f);  // each press multiplies/divides sensitivity by 1.2
 
     // Simulate pressing ] three times → speed grows by 1.2^3
-    vne::interaction::examples::simulateKeyHold(on_event,
-        vne::events::KeyCode::eRightBracket, 1, kDt,
-        [&](double dt) { ctrl.onUpdate(dt); });
-    vne::interaction::examples::simulateKeyHold(on_event,
-        vne::events::KeyCode::eRightBracket, 1, kDt,
-        [&](double dt) { ctrl.onUpdate(dt); });
-    vne::interaction::examples::simulateKeyHold(on_event,
-        vne::events::KeyCode::eRightBracket, 1, kDt,
-        [&](double dt) { ctrl.onUpdate(dt); });
+    vne::interaction::examples::simulateKeyHold(on_event, vne::events::KeyCode::eRightBracket, 1, kDt, [&](double dt) {
+        ctrl.onUpdate(dt);
+    });
+    vne::interaction::examples::simulateKeyHold(on_event, vne::events::KeyCode::eRightBracket, 1, kDt, [&](double dt) {
+        ctrl.onUpdate(dt);
+    });
+    vne::interaction::examples::simulateKeyHold(on_event, vne::events::KeyCode::eRightBracket, 1, kDt, [&](double dt) {
+        ctrl.onUpdate(dt);
+    });
     VNE_LOG_INFO << "  After 3× ] presses: rotation_speed=" << manip.getRotationSpeed()
                  << "  pan_speed=" << manip.getPanSpeed();
 
