@@ -117,7 +117,8 @@ enum class GestureAction : std::uint8_t {
  */
 struct VNE_INTERACTION_API MouseBinding {
     MouseButton button = MouseButton::eLeft;  //!< Mouse button for this binding.
-    vne::events::ModifierKey modifier_mask = vne::events::ModifierKey::eModNone;  //!< Required modifiers; @c eModNone = none.
+    vne::events::ModifierKey modifier_mask =
+        vne::events::ModifierKey::eModNone;  //!< Required modifiers; @c eModNone = none.
 };
 
 /**
@@ -127,7 +128,8 @@ struct VNE_INTERACTION_API MouseBinding {
  */
 struct VNE_INTERACTION_API KeyBinding {
     vne::events::KeyCode key = vne::events::KeyCode::eUnknown;  //!< Key for this binding.
-    vne::events::ModifierKey modifier_mask = vne::events::ModifierKey::eModNone;  //!< Required modifiers; @c eModNone = none.
+    vne::events::ModifierKey modifier_mask =
+        vne::events::ModifierKey::eModNone;  //!< Required modifiers; @c eModNone = none.
 };
 
 /** Touch pan gesture data with screen pixel deltas. */

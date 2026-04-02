@@ -176,8 +176,8 @@ class VNE_INTERACTION_API TrackballBehavior {
    private:
     vne::math::Vec2f viewport_px_{};  //!< Viewport size in pixels (width = x, height = y).
     vne::math::GraphicsApi graphics_api_{vne::math::GraphicsApi::eOpenGL};  //!< NDC convention for @ref project.
-    ProjectionMode projection_mode_ = ProjectionMode::eHyperbolic;  //!< Active @ref ProjectionMode.
-    vne::math::Vec3f drag_start_on_sphere_{0.0f, 0.0f, 1.0f};       //!< Drag start on sphere.
+    ProjectionMode projection_mode_ = ProjectionMode::eHyperbolic;          //!< Active @ref ProjectionMode.
+    vne::math::Vec3f drag_start_on_sphere_{0.0f, 0.0f, 1.0f};               //!< Drag start on sphere.
     vne::math::Vec2f last_cursor_px_{};  //!< Previous pointer position for frame-to-frame inertia (x, y pixels).
 };
 
