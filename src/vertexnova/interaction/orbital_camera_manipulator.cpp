@@ -315,6 +315,9 @@ void OrbitalCameraManipulator::beginRotate(float x_px, float y_px) noexcept {
 
 void OrbitalCameraManipulator::dragRotateEuler(float delta_x_px, float delta_y_px, double delta_time) noexcept {
     orbit_behavior_.applyDrag(delta_x_px, delta_y_px, rotation_speed_, delta_time, kMinDeltaTimeForInertia);
+    if (!rotation_inertia_enabled_) {
+        orbit_behavior_.clearInertia();
+    }
     applyToCamera();
 }
 
@@ -322,6 +325,9 @@ void OrbitalCameraManipulator::updateTrackballDragInertiaFromFrame(const vne::ma
                                                                    const vne::math::Vec3f& curr_sphere,
                                                                    const float trackball_rot,
                                                                    const double delta_time) noexcept {
+    if (!rotation_inertia_enabled_) {
+        return;
+    }
     const BallFrameDelta fd = TrackballBehavior::ballFrameDeltaFromSpheres(prev_sphere, curr_sphere);
     if (delta_time < kMinDeltaTimeForInertia || !fd.valid || fd.angle_rad <= kInertiaRotAngleThreshold) {
         return;
@@ -367,6 +373,10 @@ void OrbitalCameraManipulator::dragRotateTrackball(float x_px, float y_px, doubl
 
 void OrbitalCameraManipulator::endRotate(double) noexcept {
     interaction_.rotating = false;
+    if (!rotation_inertia_enabled_) {
+        orbit_behavior_.clearInertia();
+        inertia_rot_speed_ = 0.0f;
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -398,6 +408,9 @@ void OrbitalCameraManipulator::applyPanDeltaWorld(const vne::math::Vec3f& delta_
 
 void OrbitalCameraManipulator::updatePanInertiaFromDragSample(const vne::math::Vec3f& delta_world,
                                                               double delta_time) noexcept {
+    if (!pan_inertia_enabled_) {
+        return;
+    }
     double min_inertia_dt = kMinDeltaTimeForInertia;
     if (!std::isfinite(min_inertia_dt)) {
         min_inertia_dt = kMinDeltaTimeForInertiaFloor;
@@ -452,6 +465,9 @@ void OrbitalCameraManipulator::dragPan(
 
 void OrbitalCameraManipulator::endPan(double) noexcept {
     interaction_.panning = false;
+    if (!pan_inertia_enabled_) {
+        inertia_pan_velocity_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
+    }
     if (pivot_mode_ == OrbitPivotMode::eViewCenter && camera_) {
         coi_world_ = camera_->getTarget();
         orbit_distance_ = std::max((camera_->getPosition() - coi_world_).length(), kMinOrbitDistance);
@@ -529,6 +545,9 @@ void OrbitalCameraManipulator::applyDolly(float factor, float mx, float my) noex
 // ---------------------------------------------------------------------------
 
 void OrbitalCameraManipulator::doPanInertia(double delta_time) noexcept {
+    if (!pan_inertia_enabled_) {
+        return;
+    }
     if (!std::isfinite(delta_time) || delta_time <= 0.0 || !camera_) {
         return;
     }
@@ -552,14 +571,14 @@ void OrbitalCameraManipulator::applyInertia(double delta_time) noexcept {
         bool rotation_applied = false;
         bool changed = false;
         vne::math::Vec3f pan_delta_fixed(0.0f, 0.0f, 0.0f);
-        if (std::abs(inertia_rot_speed_) > kInertiaRotSpeedThreshold) {
+        if (rotation_inertia_enabled_ && std::abs(inertia_rot_speed_) > kInertiaRotSpeedThreshold) {
             const vne::math::Quatf q = vne::math::Quatf::fromAxisAngle(inertia_rot_axis_, inertia_rot_speed_ * dt);
             orientation_ = (q * orientation_).normalized();
             inertia_rot_speed_ = vne::math::damp(inertia_rot_speed_, 0.0f, 1.0f / rot_damping_, dt);
             rotation_applied = true;
             changed = true;
         }
-        if (inertia_pan_velocity_.length() > kInertiaPanSpeedThreshold) {
+        if (pan_inertia_enabled_ && inertia_pan_velocity_.length() > kInertiaPanSpeedThreshold) {
             const vne::math::Vec3f delta = inertia_pan_velocity_ * dt;
             inertia_pan_velocity_ *= std::exp(-pan_damping_ * dt);
             if (pivot_mode_ == OrbitPivotMode::eFixed) {
@@ -581,7 +600,7 @@ void OrbitalCameraManipulator::applyInertia(double delta_time) noexcept {
             orbit_distance_ = std::max((camera_->getPosition() - coi_world_).length(), kMinOrbitDistance);
         }
     } else {
-        if (orbit_behavior_.stepInertia(dt, rot_damping_, kInertiaRotThreshold)) {
+        if (rotation_inertia_enabled_ && orbit_behavior_.stepInertia(dt, rot_damping_, kInertiaRotThreshold)) {
             applyToCamera();
         }
         doPanInertia(delta_time);
@@ -829,10 +848,16 @@ bool OrbitalCameraManipulator::onAction(CameraActionType action,
     }
     switch (action) {
         case CameraActionType::eBeginRotate:
+            if (!rotate_enabled_) {
+                return false;
+            }
             beginRotate(payload.x_px, payload.y_px);
             return true;
 
         case CameraActionType::eRotateDelta:
+            if (!rotate_enabled_) {
+                return false;
+            }
             if (interaction_.rotating) {
                 if (rotation_mode_ == OrbitRotationMode::eTrackball) {
                     // Trackball mode needs the running absolute screen position.
@@ -849,14 +874,23 @@ bool OrbitalCameraManipulator::onAction(CameraActionType action,
             return false;
 
         case CameraActionType::eEndRotate:
+            if (!rotate_enabled_) {
+                return false;
+            }
             endRotate(delta_time);
             return true;
 
         case CameraActionType::eBeginPan:
+            if (!pan_enabled_) {
+                return false;
+            }
             beginPan(payload.x_px, payload.y_px);
             return true;
 
         case CameraActionType::ePanDelta:
+            if (!pan_enabled_) {
+                return false;
+            }
             if (interaction_.panning) {
                 dragPan(payload.x_px, payload.y_px, payload.delta_x_px, payload.delta_y_px, delta_time);
                 interaction_.last_x_px = payload.x_px;
@@ -866,6 +900,9 @@ bool OrbitalCameraManipulator::onAction(CameraActionType action,
             return false;
 
         case CameraActionType::eEndPan:
+            if (!pan_enabled_) {
+                return false;
+            }
             endPan(delta_time);
             return true;
 

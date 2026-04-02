@@ -207,6 +207,29 @@ void InputMapper::bindDoubleClick(GestureAction action, MouseButton button, vne:
     resetState();
 }
 
+void InputMapper::bindKey(CameraActionType press_action,
+                          CameraActionType release_action,
+                          vne::events::KeyCode key,
+                          vne::events::ModifierKey modifier) {
+    unbindKey(press_action);
+    InputRule r;
+    r.trigger = InputRule::Trigger::eKey;
+    r.code = static_cast<int>(key);
+    r.modifier_mask = static_cast<int>(modifier);
+    r.on_press = press_action;
+    r.on_release = release_action;
+    r.on_delta = CameraActionType::eNone;
+    rules_.push_back(r);
+    resetState();
+}
+
+void InputMapper::unbindKey(CameraActionType press_action) {
+    eraseRules(rules_, [press_action](const InputRule& r) {
+        return r.trigger == InputRule::Trigger::eKey && r.on_press == press_action;
+    });
+    resetState();
+}
+
 void InputMapper::unbindGesture(GestureAction action) {
     switch (action) {
         case GestureAction::eRotate:

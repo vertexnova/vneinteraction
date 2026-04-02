@@ -33,12 +33,15 @@
  * ctrl.setMoveSpeed(10.0f);
  * ctrl.setSprintMultiplier(5.0f);
  * @endcode
+ *
+ * Defaults match common viewport tools (e.g. Isaac Sim style): **Shift** = sprint, **Ctrl** = slow while moving.
  */
 
 #include "vertexnova/interaction/export.h"
 #include "vertexnova/interaction/interaction_types.h"
 #include "vertexnova/interaction/camera_rig.h"
 
+#include <vertexnova/events/types.h>
 #include <memory>
 
 namespace vne::events {
@@ -118,6 +121,53 @@ class VNE_INTERACTION_API Navigation3DController {
 
     void setSlowMultiplier(float mult) noexcept;
     [[nodiscard]] float getSlowMultiplier() const noexcept;
+
+    // -------------------------------------------------------------------------
+    // Key / mouse bindings
+    // -------------------------------------------------------------------------
+
+    void setMoveForwardKey(vne::events::KeyCode key) noexcept;
+    void setMoveBackwardKey(vne::events::KeyCode key) noexcept;
+    void setMoveLeftKey(vne::events::KeyCode key) noexcept;
+    void setMoveRightKey(vne::events::KeyCode key) noexcept;
+    void setMoveUpKey(vne::events::KeyCode key) noexcept;
+    void setMoveDownKey(vne::events::KeyCode key) noexcept;
+
+    /**
+     * Single sprint key (replaces default Left/Right Shift pair).
+     * @param key eUnknown restores default Shift keys.
+     */
+    void setSpeedBoostKey(vne::events::KeyCode key) noexcept;
+
+    /**
+     * Single slow key (replaces default Left/Right Control pair).
+     * @param key eUnknown restores default Ctrl keys.
+     */
+    void setSlowKey(vne::events::KeyCode key) noexcept;
+
+    void setLookButton(MouseButton btn,
+                       vne::events::ModifierKey modifier = vne::events::ModifierKey::eModNone) noexcept;
+
+    // -------------------------------------------------------------------------
+    // DOF (input gating)
+    // -------------------------------------------------------------------------
+
+    void setLookEnabled(bool enabled) noexcept;
+    void setMoveEnabled(bool enabled) noexcept;
+    void setZoomEnabled(bool enabled) noexcept;
+    [[nodiscard]] bool isLookEnabled() const noexcept;
+    [[nodiscard]] bool isMoveEnabled() const noexcept;
+    [[nodiscard]] bool isZoomEnabled() const noexcept;
+
+    // -------------------------------------------------------------------------
+    // Optional discrete move-speed keys (unbound by default)
+    // -------------------------------------------------------------------------
+
+    void setIncreaseMoveSpeedKey(vne::events::KeyCode key) noexcept;
+    void setDecreaseMoveSpeedKey(vne::events::KeyCode key) noexcept;
+    void setMoveSpeedStep(float delta) noexcept;
+    void setMoveSpeedMin(float min_speed) noexcept;
+    void setMoveSpeedMax(float max_speed) noexcept;
 
     // -------------------------------------------------------------------------
     // Convenience

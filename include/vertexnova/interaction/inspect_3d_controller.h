@@ -56,6 +56,7 @@
 #include "vertexnova/interaction/interaction_types.h"
 #include "vertexnova/interaction/camera_rig.h"
 
+#include <vertexnova/events/types.h>
 #include <vertexnova/math/core/core.h>
 
 #include <memory>
@@ -156,6 +157,62 @@ class VNE_INTERACTION_API Inspect3DController {
     void setPanEnabled(bool enabled) noexcept;
     /** Enable or disable zoom (removes/restores zoom rules). */
     void setZoomEnabled(bool enabled) noexcept;
+
+    // -------------------------------------------------------------------------
+    // Bindings (primary API — avoids manual InputRule setup)
+    // -------------------------------------------------------------------------
+
+    /** Orbit drag button (default: LMB, no modifier). */
+    void setRotateButton(MouseButton btn,
+                         vne::events::ModifierKey modifier = vne::events::ModifierKey::eModNone) noexcept;
+
+    /** Primary pan button (default: RMB). */
+    void setPanButton(MouseButton btn, vne::events::ModifierKey modifier = vne::events::ModifierKey::eModNone) noexcept;
+
+    /** Secondary pan button (default: MMB). Set to the same as @ref setPanButton to omit. */
+    void setPanSecondaryButton(MouseButton btn,
+                               vne::events::ModifierKey modifier = vne::events::ModifierKey::eModNone) noexcept;
+
+    /**
+     * Modifier on the rotate button that means pan (default: Shift).
+     * Use eModNone to remove Shift+LMB-style pan alias.
+     */
+    void setPanAlternateModifier(vne::events::ModifierKey modifier) noexcept;
+
+    /** Scroll zoom only when this modifier is held (default: none = always zoom on scroll). */
+    void setZoomScrollModifier(vne::events::ModifierKey modifier) noexcept;
+
+    /** Double-click sets pivot (default: LMB, no modifier). */
+    void setPivotDoubleClickButton(MouseButton btn,
+                                   vne::events::ModifierKey modifier = vne::events::ModifierKey::eModNone) noexcept;
+
+    // -------------------------------------------------------------------------
+    // Sensitivity (delegates to OrbitalCameraManipulator)
+    // -------------------------------------------------------------------------
+
+    /** Rotation scale (Euler deg/pixel; trackball uses same base field). */
+    void setRotateSensitivity(float degrees_per_pixel) noexcept;
+    /** Pan speed multiplier. */
+    void setPanSensitivity(float multiplier) noexcept;
+    /** Zoom exponent (see OrbitalCameraManipulator::setZoomSpeed). */
+    void setZoomSensitivity(float multiplier) noexcept;
+
+    // -------------------------------------------------------------------------
+    // Inertia (delegates to OrbitalCameraManipulator)
+    // -------------------------------------------------------------------------
+
+    void setRotationInertiaEnabled(bool enabled) noexcept;
+    void setPanInertiaEnabled(bool enabled) noexcept;
+
+    // -------------------------------------------------------------------------
+    // Optional discrete interaction speed keys (unbound by default)
+    // -------------------------------------------------------------------------
+
+    /** eUnknown clears the binding. Scales rotate+pan speeds together. */
+    void setIncreaseInteractionSpeedKey(vne::events::KeyCode key) noexcept;
+    void setDecreaseInteractionSpeedKey(vne::events::KeyCode key) noexcept;
+    /** Per key press: multiply or divide interaction scale (default 1.1). */
+    void setInteractionSpeedStep(float factor) noexcept;
 
     // -------------------------------------------------------------------------
     // Convenience

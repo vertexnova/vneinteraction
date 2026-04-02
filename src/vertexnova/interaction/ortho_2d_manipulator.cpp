@@ -99,7 +99,7 @@ void Ortho2DManipulator::pan(float delta_x_px, float delta_y_px, double delta_ti
     ortho->setTarget(target + delta_world);
     ortho->updateMatrices();
 
-    if (delta_time > 0.0) {
+    if (pan_inertia_enabled_ && delta_time > 0.0) {
         const vne::math::Vec3f sample = delta_world / static_cast<float>(delta_time);
         const float blend = 1.0f - std::exp(-kPanVelocityBlendRate * static_cast<float>(delta_time));
         pan_velocity_ = pan_velocity_ + (sample - pan_velocity_) * blend;
@@ -152,6 +152,9 @@ void Ortho2DManipulator::rotateInPlane(float delta_x_px, float /*delta_y_px*/) n
 // ---------------------------------------------------------------------------
 
 void Ortho2DManipulator::applyInertia(double delta_time) noexcept {
+    if (!pan_inertia_enabled_) {
+        return;
+    }
     auto ortho = orthoCamera();
     if (!ortho) {
         VNE_LOG_DEBUG << "Ortho2DManipulator: applyInertia skipped (no orthographic camera)";
@@ -270,29 +273,50 @@ bool Ortho2DManipulator::onAction(CameraActionType action,
     }
     switch (action) {
         case CameraActionType::eBeginPan:
+            if (!pan_enabled_) {
+                return false;
+            }
             panning_ = true;
             pan_velocity_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
             return true;
 
         case CameraActionType::ePanDelta:
+            if (!pan_enabled_) {
+                return false;
+            }
             // Accept pan delta even when !panning_ (touch pan has no button)
             pan(payload.delta_x_px, payload.delta_y_px, delta_time);
             return true;
 
         case CameraActionType::eEndPan:
+            if (!pan_enabled_) {
+                return false;
+            }
             panning_ = false;
+            if (!pan_inertia_enabled_) {
+                pan_velocity_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
+            }
             return true;
 
         case CameraActionType::eBeginRotate:
+            if (!rotate_enabled_) {
+                return false;
+            }
             rotating_ = true;
             pan_velocity_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
             return true;
 
         case CameraActionType::eRotateDelta:
+            if (!rotate_enabled_) {
+                return false;
+            }
             rotateInPlane(payload.delta_x_px, payload.delta_y_px);
             return true;
 
         case CameraActionType::eEndRotate:
+            if (!rotate_enabled_) {
+                return false;
+            }
             rotating_ = false;
             return true;
 

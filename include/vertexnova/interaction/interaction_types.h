@@ -108,6 +108,16 @@ struct VNE_INTERACTION_API MouseBinding {
     vne::events::ModifierKey modifier_mask = vne::events::ModifierKey::eModNone;
 };
 
+/**
+ * @brief Keyboard key + optional modifier for rebindable actions.
+ *
+ * Used by controllers and @ref InputMapper::bindKey for data-driven key rules.
+ */
+struct VNE_INTERACTION_API KeyBinding {
+    vne::events::KeyCode key = vne::events::KeyCode::eUnknown;
+    vne::events::ModifierKey modifier_mask = vne::events::ModifierKey::eModNone;
+};
+
 /** Touch pan gesture data with screen pixel deltas. */
 struct VNE_INTERACTION_API TouchPan final {
     float delta_x_px = 0.0f;  //!< Horizontal pan delta in screen pixels
@@ -148,6 +158,10 @@ enum class CameraActionType : std::uint8_t {
     eResetView = 20,
     eSetPivotAtCursor =
         21,  //!< Double-click: set COI along view direction (camera + front * orbit distance); payload x/y ignored
+    eIncreaseMoveSpeed = 22,         //!< Discrete: increase FPS move speed (Navigation3DController)
+    eDecreaseMoveSpeed = 23,         //!< Discrete: decrease FPS move speed
+    eIncreaseInteractionSpeed = 24,  //!< Discrete: scale orbit pan/rotate sensitivity (Inspect3DController)
+    eDecreaseInteractionSpeed = 25,  //!< Discrete: scale orbit pan/rotate sensitivity down
 };
 
 // -----------------------------------------------------------------------------

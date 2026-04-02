@@ -100,6 +100,18 @@ class VNE_INTERACTION_API Ortho2DManipulator final : public CameraManipulatorBas
     void setPanDamping(float damping) noexcept { pan_damping_ = std::max(0.0f, damping); }
     [[nodiscard]] float getPanDamping() const noexcept { return pan_damping_; }
 
+    /** When false, pan release does not coast. Default: true. */
+    void setPanInertiaEnabled(bool enabled) noexcept { pan_inertia_enabled_ = enabled; }
+    [[nodiscard]] bool isPanInertiaEnabled() const noexcept { return pan_inertia_enabled_; }
+
+    /** When false, ignore rotate actions. */
+    void setRotateEnabled(bool enabled) noexcept { rotate_enabled_ = enabled; }
+    [[nodiscard]] bool isRotateEnabled() const noexcept { return rotate_enabled_; }
+
+    /** When false, ignore pan actions. */
+    void setPanEnabled(bool enabled) noexcept { pan_enabled_ = enabled; }
+    [[nodiscard]] bool isPanEnabled() const noexcept { return pan_enabled_; }
+
     /**
      * @brief In-plane rotation sensitivity in degrees per horizontal pixel (>= 0).
      * Matches the default feel of OrbitalCameraManipulator::rotation_speed_ (0.2 deg/px).
@@ -130,6 +142,10 @@ class VNE_INTERACTION_API Ortho2DManipulator final : public CameraManipulatorBas
     float zoom_speed_ = 1.1f;
     float pan_damping_ = 10.0f;
     float rotation_deg_per_px_ = 0.2f;
+
+    bool pan_inertia_enabled_ = true;
+    bool rotate_enabled_ = true;
+    bool pan_enabled_ = true;
 
     bool panning_ = false;
     bool rotating_ = false;

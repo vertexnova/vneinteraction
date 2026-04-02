@@ -97,17 +97,62 @@ void Ortho2DController::onUpdate(double dt) noexcept {
 
 void Ortho2DController::setRotationEnabled(bool enabled) noexcept {
     rotation_enabled_ = enabled;
+    if (impl_->ortho2d_behavior) {
+        impl_->ortho2d_behavior->setRotateEnabled(enabled);
+    }
     rebuildRules();
 }
 
 void Ortho2DController::setPanEnabled(bool enabled) noexcept {
     pan_enabled_ = enabled;
+    if (impl_->ortho2d_behavior) {
+        impl_->ortho2d_behavior->setPanEnabled(enabled);
+    }
     rebuildRules();
 }
 
 void Ortho2DController::setZoomEnabled(bool enabled) noexcept {
     zoom_enabled_ = enabled;
     rebuildRules();
+}
+
+void Ortho2DController::setPanButton(MouseButton btn, events::ModifierKey modifier) noexcept {
+    pan_binding_ = MouseBinding{btn, modifier};
+    rebuildRules();
+}
+
+void Ortho2DController::setRotateButton(MouseButton btn, events::ModifierKey modifier) noexcept {
+    rotate_binding_ = MouseBinding{btn, modifier};
+    rebuildRules();
+}
+
+void Ortho2DController::setZoomScrollModifier(events::ModifierKey modifier) noexcept {
+    zoom_scroll_modifier_ = modifier;
+    rebuildRules();
+}
+
+void Ortho2DController::setPanInertiaEnabled(bool enabled) noexcept {
+    if (impl_->ortho2d_behavior) {
+        impl_->ortho2d_behavior->setPanInertiaEnabled(enabled);
+    }
+}
+
+void Ortho2DController::setRotateSensitivity(float degrees_per_pixel) noexcept {
+    if (impl_->ortho2d_behavior) {
+        impl_->ortho2d_behavior->setRotationSensitivityDegreesPerPixel(degrees_per_pixel);
+    }
+}
+
+void Ortho2DController::setZoomSensitivity(float multiplier) noexcept {
+    if (impl_->ortho2d_behavior) {
+        impl_->ortho2d_behavior->setZoomSpeed(multiplier);
+    }
+}
+
+void Ortho2DController::setPanSensitivity(float damping) noexcept {
+    if (impl_->ortho2d_behavior) {
+        impl_->ortho2d_behavior->setPanDamping(damping);
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -147,7 +192,8 @@ void Ortho2DController::rebuildRules() noexcept {
     if (pan_enabled_) {
         rules.push_back({
             .trigger = InputRule::Trigger::eMouseButton,
-            .code = static_cast<int>(MouseButton::eLeft),
+            .code = static_cast<int>(pan_binding_.button),
+            .modifier_mask = static_cast<int>(pan_binding_.modifier_mask),
             .on_press = CameraActionType::eBeginPan,
             .on_release = CameraActionType::eEndPan,
             .on_delta = CameraActionType::ePanDelta,
@@ -168,6 +214,7 @@ void Ortho2DController::rebuildRules() noexcept {
     if (zoom_enabled_) {
         rules.push_back({
             .trigger = InputRule::Trigger::eScroll,
+            .modifier_mask = static_cast<int>(zoom_scroll_modifier_),
             .on_delta = CameraActionType::eZoomAtCursor,
         });
         rules.push_back({
@@ -180,7 +227,8 @@ void Ortho2DController::rebuildRules() noexcept {
         // RMB = in-plane rotate (eRotateDelta handled by Ortho2DManipulator)
         rules.push_back({
             .trigger = InputRule::Trigger::eMouseButton,
-            .code = static_cast<int>(MouseButton::eRight),
+            .code = static_cast<int>(rotate_binding_.button),
+            .modifier_mask = static_cast<int>(rotate_binding_.modifier_mask),
             .on_press = CameraActionType::eBeginRotate,
             .on_release = CameraActionType::eEndRotate,
             .on_delta = CameraActionType::eRotateDelta,

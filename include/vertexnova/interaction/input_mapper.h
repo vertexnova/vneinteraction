@@ -129,6 +129,17 @@ class VNE_INTERACTION_API InputMapper {
      */
     void unbindGesture(GestureAction action);
 
+    /**
+     * @brief Bind a keyboard key to press/release actions (replaces prior rules with the same @a press_action).
+     */
+    void bindKey(CameraActionType press_action,
+                 CameraActionType release_action,
+                 vne::events::KeyCode key,
+                 vne::events::ModifierKey modifier = vne::events::ModifierKey::eModNone);
+
+    /** Remove all key rules whose @c on_press equals @a press_action. */
+    void unbindKey(CameraActionType press_action);
+
    private:
     void emit(CameraActionType action, const CameraCommandPayload& payload, double dt) noexcept;
 

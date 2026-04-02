@@ -17,6 +17,8 @@
 
 #include <vertexnova/logging/logging.h>
 
+#include <algorithm>
+
 namespace {
 CREATE_VNE_LOGGER_CATEGORY("vne.interaction.navigation_3d");
 }  // namespace
@@ -40,8 +42,53 @@ struct Navigation3DController::Impl {
     float viewport_w = 1280.0f;
     float viewport_h = 720.0f;
 
+    KeyBinding move_forward_{events::KeyCode::eW, events::ModifierKey::eModNone};
+    KeyBinding move_backward_{events::KeyCode::eS, events::ModifierKey::eModNone};
+    KeyBinding move_left_{events::KeyCode::eA, events::ModifierKey::eModNone};
+    KeyBinding move_right_{events::KeyCode::eD, events::ModifierKey::eModNone};
+    KeyBinding move_up_{events::KeyCode::eE, events::ModifierKey::eModNone};
+    KeyBinding move_down_{events::KeyCode::eQ, events::ModifierKey::eModNone};
+
+    events::KeyCode speed_boost_key_ = events::KeyCode::eUnknown;
+    events::KeyCode slow_key_ = events::KeyCode::eUnknown;
+    MouseBinding look_bind_{MouseButton::eRight, events::ModifierKey::eModNone};
+    events::ModifierKey zoom_scroll_modifier_ = events::ModifierKey::eModNone;
+    bool look_enabled_ = true;
+    bool move_enabled_ = true;
+    bool zoom_enabled_ = true;
+
+    events::KeyCode increase_move_speed_key_ = events::KeyCode::eUnknown;
+    events::KeyCode decrease_move_speed_key_ = events::KeyCode::eUnknown;
+    float move_speed_step_ = 0.25f;
+    float move_speed_min_ = 0.1f;
+    float move_speed_max_ = 1000.0f;
+
     CursorState cursor;
 };
+
+namespace {
+InputRule makeButtonRule(
+    int button, int mod, CameraActionType press, CameraActionType release, CameraActionType delta) {
+    InputRule r;
+    r.trigger = InputRule::Trigger::eMouseButton;
+    r.code = button;
+    r.modifier_mask = mod;
+    r.on_press = press;
+    r.on_release = release;
+    r.on_delta = delta;
+    return r;
+}
+
+InputRule makeKeyRule(int key, int mod, CameraActionType press, CameraActionType release) {
+    InputRule r;
+    r.trigger = InputRule::Trigger::eKey;
+    r.code = key;
+    r.modifier_mask = mod;
+    r.on_press = press;
+    r.on_release = release;
+    return r;
+}
+}  // namespace
 
 // ---------------------------------------------------------------------------
 // Constructor / destructor
@@ -161,6 +208,87 @@ float Navigation3DController::getSlowMultiplier() const noexcept {
     return impl_->free_look ? impl_->free_look->getSlowMultiplier() : 0.2f;
 }
 
+void Navigation3DController::setMoveForwardKey(vne::events::KeyCode key) noexcept {
+    impl_->move_forward_.key = key;
+    rebuild();
+}
+void Navigation3DController::setMoveBackwardKey(vne::events::KeyCode key) noexcept {
+    impl_->move_backward_.key = key;
+    rebuild();
+}
+void Navigation3DController::setMoveLeftKey(vne::events::KeyCode key) noexcept {
+    impl_->move_left_.key = key;
+    rebuild();
+}
+void Navigation3DController::setMoveRightKey(vne::events::KeyCode key) noexcept {
+    impl_->move_right_.key = key;
+    rebuild();
+}
+void Navigation3DController::setMoveUpKey(vne::events::KeyCode key) noexcept {
+    impl_->move_up_.key = key;
+    rebuild();
+}
+void Navigation3DController::setMoveDownKey(vne::events::KeyCode key) noexcept {
+    impl_->move_down_.key = key;
+    rebuild();
+}
+
+void Navigation3DController::setSpeedBoostKey(vne::events::KeyCode key) noexcept {
+    impl_->speed_boost_key_ = key;
+    rebuild();
+}
+void Navigation3DController::setSlowKey(vne::events::KeyCode key) noexcept {
+    impl_->slow_key_ = key;
+    rebuild();
+}
+void Navigation3DController::setLookButton(MouseButton btn, vne::events::ModifierKey modifier) noexcept {
+    impl_->look_bind_ = MouseBinding{btn, modifier};
+    rebuild();
+}
+
+void Navigation3DController::setLookEnabled(bool enabled) noexcept {
+    impl_->look_enabled_ = enabled;
+    rebuild();
+}
+void Navigation3DController::setMoveEnabled(bool enabled) noexcept {
+    impl_->move_enabled_ = enabled;
+    rebuild();
+}
+void Navigation3DController::setZoomEnabled(bool enabled) noexcept {
+    impl_->zoom_enabled_ = enabled;
+    rebuild();
+}
+bool Navigation3DController::isLookEnabled() const noexcept {
+    return impl_->look_enabled_;
+}
+bool Navigation3DController::isMoveEnabled() const noexcept {
+    return impl_->move_enabled_;
+}
+bool Navigation3DController::isZoomEnabled() const noexcept {
+    return impl_->zoom_enabled_;
+}
+
+void Navigation3DController::setIncreaseMoveSpeedKey(vne::events::KeyCode key) noexcept {
+    impl_->increase_move_speed_key_ = key;
+    rebuild();
+}
+void Navigation3DController::setDecreaseMoveSpeedKey(vne::events::KeyCode key) noexcept {
+    impl_->decrease_move_speed_key_ = key;
+    rebuild();
+}
+void Navigation3DController::setMoveSpeedStep(float delta) noexcept {
+    impl_->move_speed_step_ = std::max(0.001f, delta);
+}
+void Navigation3DController::setMoveSpeedMin(float min_speed) noexcept {
+    impl_->move_speed_min_ = std::max(0.001f, min_speed);
+    if (impl_->move_speed_max_ < impl_->move_speed_min_) {
+        impl_->move_speed_max_ = impl_->move_speed_min_;
+    }
+}
+void Navigation3DController::setMoveSpeedMax(float max_speed) noexcept {
+    impl_->move_speed_max_ = std::max(impl_->move_speed_min_, max_speed);
+}
+
 // ---------------------------------------------------------------------------
 // Convenience
 // ---------------------------------------------------------------------------
@@ -228,10 +356,121 @@ void Navigation3DController::rebuild() noexcept {
     }
     impl_->rig.onResize(impl_->viewport_w, impl_->viewport_h);
 
-    const std::vector<InputRule> rules = InputMapper::fpsPreset();
+    std::vector<InputRule> rules;
+    if (impl_->look_enabled_) {
+        rules.push_back(makeButtonRule(static_cast<int>(impl_->look_bind_.button),
+                                       static_cast<int>(impl_->look_bind_.modifier_mask),
+                                       CameraActionType::eBeginLook,
+                                       CameraActionType::eEndLook,
+                                       CameraActionType::eLookDelta));
+    }
+    if (impl_->move_enabled_) {
+        if (impl_->move_forward_.key != events::KeyCode::eUnknown) {
+            rules.push_back(makeKeyRule(static_cast<int>(impl_->move_forward_.key),
+                                        static_cast<int>(impl_->move_forward_.modifier_mask),
+                                        CameraActionType::eMoveForward,
+                                        CameraActionType::eMoveForward));
+        }
+        if (impl_->move_backward_.key != events::KeyCode::eUnknown) {
+            rules.push_back(makeKeyRule(static_cast<int>(impl_->move_backward_.key),
+                                        static_cast<int>(impl_->move_backward_.modifier_mask),
+                                        CameraActionType::eMoveBackward,
+                                        CameraActionType::eMoveBackward));
+        }
+        if (impl_->move_left_.key != events::KeyCode::eUnknown) {
+            rules.push_back(makeKeyRule(static_cast<int>(impl_->move_left_.key),
+                                        static_cast<int>(impl_->move_left_.modifier_mask),
+                                        CameraActionType::eMoveLeft,
+                                        CameraActionType::eMoveLeft));
+        }
+        if (impl_->move_right_.key != events::KeyCode::eUnknown) {
+            rules.push_back(makeKeyRule(static_cast<int>(impl_->move_right_.key),
+                                        static_cast<int>(impl_->move_right_.modifier_mask),
+                                        CameraActionType::eMoveRight,
+                                        CameraActionType::eMoveRight));
+        }
+        if (impl_->move_up_.key != events::KeyCode::eUnknown) {
+            rules.push_back(makeKeyRule(static_cast<int>(impl_->move_up_.key),
+                                        static_cast<int>(impl_->move_up_.modifier_mask),
+                                        CameraActionType::eMoveUp,
+                                        CameraActionType::eMoveUp));
+        }
+        if (impl_->move_down_.key != events::KeyCode::eUnknown) {
+            rules.push_back(makeKeyRule(static_cast<int>(impl_->move_down_.key),
+                                        static_cast<int>(impl_->move_down_.modifier_mask),
+                                        CameraActionType::eMoveDown,
+                                        CameraActionType::eMoveDown));
+        }
+    }
+    if (impl_->speed_boost_key_ == events::KeyCode::eUnknown) {
+        rules.push_back(makeKeyRule(static_cast<int>(events::KeyCode::eLeftShift),
+                                    kModNone,
+                                    CameraActionType::eSprintModifier,
+                                    CameraActionType::eSprintModifier));
+        rules.push_back(makeKeyRule(static_cast<int>(events::KeyCode::eRightShift),
+                                    kModNone,
+                                    CameraActionType::eSprintModifier,
+                                    CameraActionType::eSprintModifier));
+    } else {
+        rules.push_back(makeKeyRule(static_cast<int>(impl_->speed_boost_key_),
+                                    kModNone,
+                                    CameraActionType::eSprintModifier,
+                                    CameraActionType::eSprintModifier));
+    }
+    if (impl_->slow_key_ == events::KeyCode::eUnknown) {
+        rules.push_back(makeKeyRule(static_cast<int>(events::KeyCode::eLeftControl),
+                                    kModNone,
+                                    CameraActionType::eSlowModifier,
+                                    CameraActionType::eSlowModifier));
+        rules.push_back(makeKeyRule(static_cast<int>(events::KeyCode::eRightControl),
+                                    kModNone,
+                                    CameraActionType::eSlowModifier,
+                                    CameraActionType::eSlowModifier));
+    } else {
+        rules.push_back(makeKeyRule(static_cast<int>(impl_->slow_key_),
+                                    kModNone,
+                                    CameraActionType::eSlowModifier,
+                                    CameraActionType::eSlowModifier));
+    }
+    if (impl_->zoom_enabled_) {
+        InputRule z;
+        z.trigger = InputRule::Trigger::eScroll;
+        z.modifier_mask = static_cast<int>(impl_->zoom_scroll_modifier_);
+        z.on_delta = CameraActionType::eZoomAtCursor;
+        rules.push_back(z);
+        rules.push_back({.trigger = InputRule::Trigger::eTouchPinch, .on_delta = CameraActionType::eZoomAtCursor});
+    }
+    if (impl_->increase_move_speed_key_ != events::KeyCode::eUnknown) {
+        rules.push_back(makeKeyRule(static_cast<int>(impl_->increase_move_speed_key_),
+                                    kModNone,
+                                    CameraActionType::eIncreaseMoveSpeed,
+                                    CameraActionType::eNone));
+    }
+    if (impl_->decrease_move_speed_key_ != events::KeyCode::eUnknown) {
+        rules.push_back(makeKeyRule(static_cast<int>(impl_->decrease_move_speed_key_),
+                                    kModNone,
+                                    CameraActionType::eDecreaseMoveSpeed,
+                                    CameraActionType::eNone));
+    }
     impl_->mapper.setRules(rules);
     // Capture raw Impl* so the callback stays valid across moves.
     impl_->mapper.setActionCallback([impl = impl_.get()](CameraActionType a, const CameraCommandPayload& p, double dt) {
+        if (a == CameraActionType::eIncreaseMoveSpeed && p.pressed) {
+            if (impl->free_look) {
+                const float current = impl->free_look->getMoveSpeed();
+                impl->free_look->setMoveSpeed(
+                    std::clamp(current + impl->move_speed_step_, impl->move_speed_min_, impl->move_speed_max_));
+            }
+            return;
+        }
+        if (a == CameraActionType::eDecreaseMoveSpeed && p.pressed) {
+            if (impl->free_look) {
+                const float current = impl->free_look->getMoveSpeed();
+                impl->free_look->setMoveSpeed(
+                    std::clamp(current - impl->move_speed_step_, impl->move_speed_min_, impl->move_speed_max_));
+            }
+            return;
+        }
         impl->rig.onAction(a, p, dt);
         // fpsPreset() does not emit orbit gestures (eBeginRotate / eBeginPan). Scroll and touch pinch map to
         // eZoomAtCursor; after zoom/dolly the camera pose changes—mark yaw/pitch stale so FreeLook's next

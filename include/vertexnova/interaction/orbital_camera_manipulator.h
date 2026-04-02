@@ -193,6 +193,22 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
     void setPanDamping(float damping) noexcept { pan_damping_ = std::max(0.0f, damping); }
     [[nodiscard]] float getPanDamping() const noexcept { return pan_damping_; }
 
+    /** When false, rotation drag/release does not coast (Euler and trackball). Default: true. */
+    void setRotationInertiaEnabled(bool enabled) noexcept { rotation_inertia_enabled_ = enabled; }
+    [[nodiscard]] bool isRotationInertiaEnabled() const noexcept { return rotation_inertia_enabled_; }
+
+    /** When false, pan drag/release does not coast. Default: true. */
+    void setPanInertiaEnabled(bool enabled) noexcept { pan_inertia_enabled_ = enabled; }
+    [[nodiscard]] bool isPanInertiaEnabled() const noexcept { return pan_inertia_enabled_; }
+
+    /** When false, ignore rotate actions. Zoom uses manipulator @c setEnabled. */
+    void setRotateEnabled(bool enabled) noexcept { rotate_enabled_ = enabled; }
+    [[nodiscard]] bool isRotateEnabled() const noexcept { return rotate_enabled_; }
+
+    /** When false, ignore pan actions. */
+    void setPanEnabled(bool enabled) noexcept { pan_enabled_ = enabled; }
+    [[nodiscard]] bool isPanEnabled() const noexcept { return pan_enabled_; }
+
     /**
      * @brief Fit camera to an AABB with smooth animation.
      * @param min_world AABB min corner in world space
@@ -298,6 +314,11 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
     float rot_damping_ = 8.0f;
     float pan_damping_ = 10.0f;
     float zoom_speed_ = 1.1f;
+
+    bool rotation_inertia_enabled_ = true;
+    bool pan_inertia_enabled_ = true;
+    bool rotate_enabled_ = true;
+    bool pan_enabled_ = true;
 
     // fitToAABB smooth animation
     float target_orbit_distance_ = 5.0f;

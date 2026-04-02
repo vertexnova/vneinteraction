@@ -33,6 +33,7 @@
 #include "vertexnova/interaction/interaction_types.h"
 #include "vertexnova/interaction/camera_rig.h"
 
+#include <vertexnova/events/types.h>
 #include <memory>
 
 namespace vne::events {
@@ -97,6 +98,23 @@ class VNE_INTERACTION_API Ortho2DController {
     /** Enable or disable zoom (default: enabled). */
     void setZoomEnabled(bool enabled) noexcept;
 
+    /** Rebind pan primary button (default LMB). */
+    void setPanButton(MouseButton btn, vne::events::ModifierKey modifier = vne::events::ModifierKey::eModNone) noexcept;
+    /** Rebind rotate button (default RMB when rotation enabled). */
+    void setRotateButton(MouseButton btn,
+                         vne::events::ModifierKey modifier = vne::events::ModifierKey::eModNone) noexcept;
+    /** Scroll zoom modifier requirement (default none). */
+    void setZoomScrollModifier(vne::events::ModifierKey modifier) noexcept;
+
+    /** Delegate to Ortho2DManipulator::setPanDamping. */
+    void setPanInertiaEnabled(bool enabled) noexcept;
+    /** Delegate to Ortho2DManipulator::setRotationSensitivityDegreesPerPixel. */
+    void setRotateSensitivity(float degrees_per_pixel) noexcept;
+    /** Delegate to Ortho2DManipulator::setZoomSpeed. */
+    void setZoomSensitivity(float multiplier) noexcept;
+    /** Delegate to Ortho2DManipulator::setPanDamping. */
+    void setPanSensitivity(float damping) noexcept;
+
     // -------------------------------------------------------------------------
     // Convenience
     // -------------------------------------------------------------------------
@@ -121,6 +139,9 @@ class VNE_INTERACTION_API Ortho2DController {
     bool rotation_enabled_ = false;
     bool pan_enabled_ = true;
     bool zoom_enabled_ = true;
+    MouseBinding pan_binding_{MouseButton::eLeft, vne::events::ModifierKey::eModNone};
+    MouseBinding rotate_binding_{MouseButton::eRight, vne::events::ModifierKey::eModNone};
+    vne::events::ModifierKey zoom_scroll_modifier_ = vne::events::ModifierKey::eModNone;
 };
 
 }  // namespace vne::interaction
