@@ -263,10 +263,10 @@ int main() {
         for (int i = 0; i < 5; ++i)
             ctrl.onUpdate(kDt);
         vne::interaction::FreeCameraState after_restore;
-        after_restore.position  = camera->getPosition();
-        after_restore.yaw_deg   = 0.0f;
+        after_restore.position = camera->getPosition();
+        after_restore.yaw_deg = 0.0f;
         after_restore.pitch_deg = 0.0f;
-        after_restore.up_hint   = vne::math::Vec3f(0.0f, 1.0f, 0.0f);
+        after_restore.up_hint = vne::math::Vec3f(0.0f, 1.0f, 0.0f);
         logFreeCameraState("  After restore to bookmark:", after_restore);
 
         // ── FreeCameraState struct fields ─────────────────────────────────────
