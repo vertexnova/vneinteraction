@@ -31,9 +31,11 @@ It sits above **vnescene** / **vnemath** (cameras and math) and **vneevents** (e
 - **Controllers**: `Inspect3DController`, `Navigation3DController`, `Ortho2DController`, `FollowController` — combine `InputMapper`, `CameraRig`, and manipulators with `onEvent` / `onUpdate`.
 - **InputMapper**: Presets (`orbitPreset`, `fpsPreset`, `gamePreset`, `cadPreset`, `orthoPreset`) and custom `InputRule` rows mapping to `CameraActionType` / `CameraCommandPayload`.
 - **CameraRig**: Multicast lifecycle and actions across multiple manipulators.
-- **Behavior**: Rotation modes, pivot modes, zoom methods, inertia, fit-to-AABB; types such as `ZoomMethod`, `OrbitPivotMode`, `NavigateMode` live in `interaction_types.h`.
+- **Behavior**: Rotation modes, pivot modes, zoom methods, inertia, fit-to-AABB; types such as `ZoomMethod`, `OrbitPivotMode`, `FreeLookMode` live in `interaction_types.h`.
 - **Use cases**: Medical 3D/2D inspection, game/editor cameras, robotic simulators.
 - **Cross-platform**: Linux, macOS, Windows; mobile and Web follow vnescene / vnemath toolchains where those targets are enabled.
+
+System, class, component, and runtime pipeline diagrams live in [Architecture & usage](docs/vertexnova/interaction/interaction.md) (sources under [`docs/vertexnova/interaction/diagrams/`](docs/vertexnova/interaction/diagrams/)).
 
 ## Installation
 
@@ -121,13 +123,12 @@ Default is **`shared`** (`VNE_INTERACTION_LIB_TYPE=shared`). Use **`static`** fo
 #include <vertexnova/interaction/interaction.h>
 #include <vertexnova/interaction/version.h>
 #include <vertexnova/scene/camera/camera.h>
-#include <vertexnova/events/mouse_event.h>
 
 int main() {
     using namespace vne::interaction;
     using namespace vne::scene;
 
-    const char* ver = get_version();  // e.g. "1.0.0"
+    const char* ver = get_version();  // e.g. "1.5.5"
 
     auto camera = CameraFactory::createPerspective(
         PerspectiveCameraParameters(60.0f, 16.0f / 9.0f, 0.1f, 1000.0f));
@@ -138,26 +139,30 @@ int main() {
     ctrl.setCamera(camera);
     ctrl.onResize(1280.0f, 720.0f);
 
-    // Each frame: feed events from your window/event system, then:
-    // ctrl.onEvent(mouse_event, dt);
-    // ctrl.onEvent(scroll_event, dt);
+    // Each frame: forward vne::events::Event from your windowing API, then:
+    // ctrl.onEvent(event, dt);
     ctrl.onUpdate(1.0 / 60.0);
 
     return 0;
 }
 ```
 
-See [examples/01_library_info](examples/01_library_info) for version and manipulator listing, and [examples/02_medical_3d_inspect](examples/02_medical_3d_inspect) for a minimal `Inspect3DController` example.
+See [examples/01_library_info](examples/01_library_info) for version and preset listing, and [examples/README.md](examples/README.md) for the full numbered index.
 
-## Examples
+## Examples (headless)
+
+These programs use **simulated** `vne::events::Event` streams (no window or GPU). Each folder has `NN_example.h` / `NN_example.cpp` plus a thin `main.cpp`.
 
 | Example | Description |
 |---------|-------------|
-| [01_library_info](examples/01_library_info) | Version info; list manipulator types and presets |
-| [02_medical_3d_inspect](examples/02_medical_3d_inspect) | Inspect3DController — 3D inspection, Euler orbit (default) or trackball, landmark pivot, fitToAABB |
-| [03_medical_2d_slices](examples/03_medical_2d_slices) | Ortho2DController — pan, scroll-zoom, ortho camera |
-| [04_game_editor_camera](examples/04_game_editor_camera) | Navigation3DController — FPS and Fly, WASD + mouse look (sprint) |
-| [05_robotic_simulator](examples/05_robotic_simulator) | Inspect3DController + Navigation3DController + FollowController |
+| [01_library_info](examples/01_library_info) | Version; manipulator types, presets, and factory smoke tests |
+| [02_medical_3d_inspect](examples/02_medical_3d_inspect) | `Inspect3DController` — orbit / trackball, pivots, zoom methods, `fitToAABB`, view presets |
+| [03_medical_2d_slices](examples/03_medical_2d_slices) | `Ortho2DController` — pan, scroll zoom, rebinding, ortho tuning |
+| [04_game_editor_camera](examples/04_game_editor_camera) | `Navigation3DController` — FPS / Fly, WASD + look, sprint/slow, rebinding |
+| [05_robotic_simulator](examples/05_robotic_simulator) | Multi-controller switching: Inspect + Navigation + Follow |
+| [06_custom_input_bindings](examples/06_custom_input_bindings) | `InputMapper` — presets, `bindGesture` / `bindScroll` / keys, direct `InputRule` workflow |
+| [07_camera_rig_composition](examples/07_camera_rig_composition) | `CameraRig` — factories, hybrid stacks, hot-swap, `setEnabled`, zoom ownership |
+| [08_camera_state_save_restore](examples/08_camera_state_save_restore) | Orbit / trackball / free-look state blobs and bookmark-style save/restore |
 
 Build examples with:
 
@@ -167,6 +172,24 @@ cmake --build build
 ```
 
 Run binaries from **`<your-cmake-binary-dir>/bin/examples/`** (for example `build/bin/examples/` after `cmake -B build`, or the same path under `build/<lib_type>/<config>/…` when using [scripts/README.md](scripts/README.md) platform scripts).
+
+## Interactive demo (VertexNova Testbed)
+
+For a **real GLFW + OpenGL** application with mouse, keyboard, ImGui tuning, and runtime switching across all controller types (inspect orbit/trackball, navigation FPS/Fly/Game, ortho 2D, follow), use the VertexNova **vnetestbed** sample:
+
+**[vnetestbed — `samples/glfw_opengl/03_test_interaction`](https://github.com/vertexnova/vnetestbed/tree/main/samples/glfw_opengl/03_test_interaction)**
+
+<p align="center">
+  <a href="https://github.com/vertexnova/vnetestbed/tree/main/samples/glfw_opengl/03_test_interaction">
+    <img src="docs/vertexnova/interaction/screenshots/interactive_demo_03_test_interaction.png" alt="Interactive demo: 3D viewport with ImGui-style settings panel (vnetestbed 03_test_interaction)" width="720"/>
+  </a>
+</p>
+
+<p align="center"><em>Illustrative preview of the sample (viewport + ImGui-style settings). Swap this PNG for a real capture from your machine if you prefer.</em></p>
+
+That target links against `vne::interaction` and shares the same build/run workflow as the other testbed samples. Configure vnetestbed with samples enabled (for example `-DVNE_TESTBED_SAMPLES=ON` or `-DVNE_TESTBED_DEV=ON`). Details, optional mesh IO (`VNE_TESTBED_VNEIO`), and layer structure are in the sample [README](https://github.com/vertexnova/vnetestbed/blob/main/samples/glfw_opengl/03_test_interaction/README.md).
+
+If you clone vnetestbed locally, the sources live at `samples/glfw_opengl/03_test_interaction/` (e.g. `demo_test_interaction.cpp`). For headless API exercises without a window, use the **[examples/](examples/README.md)** in this repo.
 
 ## Documentation
 
