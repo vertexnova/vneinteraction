@@ -162,8 +162,7 @@ TEST(ApiRobustness, FitToAABBPositionsCOI) {
 }
 
 TEST(ApiRobustness, ICameraControllerPolymorphicSmoke) {
-    std::unique_ptr<vne::interaction::ICameraController> c =
-        std::make_unique<vne::interaction::Inspect3DController>();
+    std::unique_ptr<vne::interaction::ICameraController> c = std::make_unique<vne::interaction::Inspect3DController>();
     c->setCamera(makePerspCamera());
     c->onResize(800.0f, 600.0f);
     vne::events::MouseMovedEvent move(100.0, 100.0);
