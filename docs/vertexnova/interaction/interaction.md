@@ -1,56 +1,141 @@
-# Interaction Module
+# Vertexnova Interaction
 
 ## Overview
 
-The Interaction module provides composable camera manipulators, orbit/trackball behavior helpers, and high-level controllers for camera interaction. It is designed for use with [vnescene](https://github.com/vertexnova/vnescene) cameras and [vneevents](https://github.com/vertexnova/vneevents) for event types. It does not implement windowing or rendering.
+The **Vertexnova Interaction** library provides composable camera **manipulators**, **input mapping**, and **high-level controllers** for interactive 3D inspection, FPS-style navigation, 2D orthographic views, and follow cameras. It targets [vnescene](https://github.com/vertexnova/vnescene) cameras and [vneevents](https://github.com/vertexnova/vneevents) input types. It does **not** provide windowing, GL/Vulkan swapchains, or rendering.
 
-**Key characteristics:**
+**Characteristics:**
 
-- **Event-based**: Controllers consume `vne::events::Event` objects (mouse, keyboard, touch) and expose `onEvent(event, delta_time)` and `onUpdate(delta_time)`.
-- **Manipulators**: Each manipulator implements `ICameraManipulator`, holds a `std::shared_ptr<vne::scene::ICamera>`, and processes `CameraActionType` actions (orbit, pan, zoom, move, look, etc.). **`OrbitBehavior`** and **`TrackballBehavior`** are focused math helpers used by `OrbitalCameraManipulator` (not registered on `CameraRig` themselves).
-- **Controllers**: High-level wrappers (`Inspect3DController`, `Navigation3DController`, `Ortho2DController`, `FollowController`) combine manipulators with `InputMapper` and event handling.
-- **Composable**: `CameraRig` holds multiple manipulators; each receives every action independently. Enables hybrid setups (e.g. orbit + free-look for game editors).
+- **Event-driven** — Controllers accept `vne::events::Event` via `onEvent(event, delta_time)` and advance simulation-style state with `onUpdate(delta_time)`.
+- **Intent layer** — `InputMapper` turns low-level events into semantic `CameraActionType` values and `CameraCommandPayload` data; manipulators consume only what they understand.
+- **Composable rigs** — `CameraRig` holds zero or more `ICameraManipulator` instances and forwards every action and update to each (enables hybrid setups, e.g. orbit tooling beside free-look in an editor).
+- **Focused math helpers** — Orbit and virtual-trackball geometry live in implementation-side helpers (`OrbitBehavior`, `TrackballBehavior` under `src/vertexnova/interaction/detail/`), composed by `OrbitalCameraManipulator`; they are not registered on the rig as standalone manipulators.
+
+![System context](diagrams/context.png)
+
+**Figure 1 — System context**
+
+| Element | Description |
+|---------|-------------|
+| C++ Application | Your game, viewer, or editor: owns the window, feeds events, calls `setCamera` / `onResize` / `onEvent` / `onUpdate`. |
+| vneinteraction | This library: controllers, `InputMapper`, `CameraRig`, manipulators. |
+| vne::scene | Camera model: `ICamera`, perspective/orthographic types, `CameraFactory`. |
+| vne::events | Input events: mouse, keyboard, scroll, touch. |
+| vne::math | Vectors, quaternions, matrices (pulled in via scene and public headers). |
+| vne::logging | Optional diagnostic logging; the library uses categorized log macros internally. |
+
+If the image above does not load, export `diagrams/context.drawio` to `diagrams/context.png` using Draw.io (same workflow as [vnelogging’s diagram export notes](../../../deps/internal/vnelogging/docs/vertexnova/logging/diagrams/README.md)).
 
 ## Architecture
 
-- **Public API** (`include/vertexnova/interaction/`): `orbit_behavior.h`, `trackball_behavior.h`, `camera_manipulator.h`, `camera_manipulator_base.h`, `camera_rig.h`, `orbital_camera_manipulator.h`, `free_look_manipulator.h`, `ortho_2d_manipulator.h`, `follow_manipulator.h`, `input_mapper.h`, `inspect_3d_controller.h`, `navigation_3d_controller.h`, `ortho_2d_controller.h`, `follow_controller.h`, `interaction_types.h`, `interaction.h` (umbrella), `version.h`.
-- **Implementation** (`src/vertexnova/interaction/`): One `.cpp` per manipulator and controller plus `input_mapper.cpp`, `camera_rig.cpp`, `manipulator_utils.cpp`, and `version.cpp`.
-- **Dependencies**: **vnescene** (cameras, `ICamera`, `PerspectiveCamera`, `OrthographicCamera`, `CameraFactory`), **vneevents** (event types), **vnemath** (vectors, quaternions, matrices; pulled in via vnescene).
+The design is **layered**: application and events sit above controllers; controllers own mapper + rig + manipulators; manipulators write to `ICamera`.
 
-## Key Components
+| Layer | Responsibility |
+|-------|----------------|
+| **Application** | Windowing, event pump, frame loop; calls controller API. |
+| **Controller** | `ICameraController` implementations: translate events to mapper calls, wire mapper callbacks to rig, call `onUpdate` on the rig. |
+| **Input mapping** | `InputMapper`: rules and presets map hardware events → `CameraActionType` + payload. |
+| **Rig** | `CameraRig`: multicast `onAction` / `onUpdate` / lifecycle to all manipulators. |
+| **Manipulator** | `ICameraManipulator`: orbit, free-look, ortho 2D, follow — each updates camera pose or parameters. |
+| **Scene** | `vne::scene::ICamera`: authoritative camera state for the rest of the engine. |
 
-### Manipulators (ICameraManipulator)
+![Component diagram](diagrams/component.png)
 
-- **camera_manipulator.h**: `ICameraManipulator` — interface: `onAction`, `onUpdate`, `setCamera`, `onResize`, `resetState`, `isEnabled`, `setEnabled`.
-- **camera_manipulator_base.h**: `CameraManipulatorBase` — shared zoom dispatch and helpers for concrete manipulators.
-- **orbital_camera_manipulator.h**: `OrbitalCameraManipulator` — orbit around a center of interest; Euler or Quaternion rotation; pivot modes (COI, ViewCenter, Fixed); pan, zoom, inertia, fitToAABB.
-- **free_look_manipulator.h**: `FreeLookManipulator` — FPS or Fly mode; WASD movement, mouse look, sprint/slow modifiers.
-- **ortho_2d_manipulator.h**: `Ortho2DManipulator` — orthographic camera only; pan, zoom-to-cursor, optional in-plane rotation; inertia.
-- **follow_manipulator.h**: `FollowManipulator` — follow a target (static or from provider); smooth damping; offset.
+**Figure 2 — Public API vs implementation (layer view)**
 
-### Controllers
+| Swimlane | Contents |
+|----------|----------|
+| Public API | `interaction.h`, type headers (`interaction_types.h`, `camera_action.h`, `input_binding.h`, `camera_state.h`), controllers, `CameraRig`, `InputMapper`, manipulators, `ICameraManipulator` / `ICameraController`. |
+| Implementation | `input_event_translator`, controller context helpers, rotation strategies (`IRotationStrategy`, Euler/trackball), `OrbitBehavior` / `TrackballBehavior`, `camera_math` / `view_math`, and per-class `.cpp` files. |
 
-- **inspect_3d_controller.h**: `Inspect3DController` — 3D inspection (medical, CAD); wraps `OrbitalCameraManipulator` + `InputMapper` with orbit preset; pivot, DOF toggles, fitToAABB.
-- **navigation_3d_controller.h**: `Navigation3DController` — 3D environment traversal; FPS or Fly mode; wraps `FreeLookManipulator` + `InputMapper` (`fpsPreset`).
-- **ortho_2d_controller.h**: `Ortho2DController` — 2D orthographic viewports (slices, maps); wraps `Ortho2DManipulator` + `InputMapper` with ortho preset.
-- **follow_controller.h**: `FollowController` — target-follow camera; wraps `FollowManipulator`; no user input required.
+Export `diagrams/component.drawio` → `diagrams/component.png` when needed.
 
-### Input and Rig
+### Runtime flow (per event / per frame)
 
-- **input_mapper.h**: `InputMapper` — maps mouse/keyboard/touch events to `CameraActionType` via `InputRule`; presets: `orbitPreset`, `fpsPreset`, `gamePreset`, `cadPreset`, `orthoPreset`.
-- **camera_rig.h**: `CameraRig` — multi-manipulator container; `onAction`, `onUpdate`, `setCamera`, `onResize`, `resetState`; `addManipulator` / `manipulators()` / `clearManipulators`; factory methods: `makeOrbit`, `makeTrackball`, `makeFps`, `makeFly`, `makeOrtho2D`, `makeFollow`.
+Typical flow: **events → controller → `InputMapper` → action callback → `CameraRig::onAction` → each manipulator → camera**. Each frame, **controller → rig → manipulator `onUpdate`** handles inertia, fit-to-AABB animation, and similar continuous behavior.
 
-### Types
+Multi-page **runtime** diagrams (pipeline, orbit path, FPS path) live in `diagrams/runtime.drawio` (open in [diagrams.net](https://app.diagrams.net)); export tabs to PNG if you want to embed them elsewhere.
 
-- **interaction_types.h**: `CameraActionType`, `CameraCommandPayload`, `InputRule`, `ZoomMethod`, `OrbitPivotMode`, `OrbitRotationMode`, `NavigateMode`, `UpAxis`, `MouseButton`, `TouchPan`, `TouchPinch`.
+### Class-oriented view
 
-### Version
+A broader UML-style view of types and relationships is in `diagrams/class.drawio` (export to `diagrams/class.png` for embedding).
 
-- **version.h**: `get_version()` — returns project version string (e.g. `"1.0.0"`).
+## Intent model (events → actions)
 
-## Usage
+- **`InputMapper`** — Built from `InputRule` rows (keys, mouse buttons, modifiers, gestures). **Presets** include `orbitPreset`, `fpsPreset`, `gamePreset`, `cadPreset`, and `orthoPreset`.
+- **`CameraActionType`** — Semantic commands such as `eBeginRotate`, `eRotateDelta`, `eEndRotate`, pan and zoom actions, free-look deltas, WASD moves, modifiers, reset, pivot-at-cursor, and optional discrete speed keys (declared in `camera_action.h`).
+- **`CameraCommandPayload`** — Cursor position, deltas, zoom factor, and button/pressed flags carried with actions.
+- **`GestureAction`** — High-level gesture identifiers used with remapping helpers (`bindGesture`, scroll, double-click bindings) without exposing full `InputRule` details to callers.
 
-### Minimal: Inspect3DController + camera
+Manipulators **ignore** actions they do not implement; the rig does not filter per manipulator.
+
+## Key components
+
+### `ICameraManipulator` and `CameraManipulatorBase`
+
+**`ICameraManipulator`** (`camera_manipulator.h`) — Core manipulator contract:
+
+- `onAction`, `onUpdate`, `setCamera`, `onResize`, `resetState`, `isEnabled`, `setEnabled`.
+
+**`CameraManipulatorBase`** (`camera_manipulator_base.h`) — Shared zoom dispatch (`ZoomMethod`: dolly, scene scale, FOV) and common camera/viewport helpers for concrete manipulators.
+
+### Manipulators
+
+#### `OrbitalCameraManipulator`
+
+Orbit around a center of interest: **Euler** or **trackball** rotation (`OrbitRotationMode`), pivot modes (`OrbitPivotMode`), pan, zoom-to-cursor / dolly / FOV, inertia, `fitToAABB`. Delegates rotation math to internal **Euler** / **trackball** strategies and behavior helpers.
+
+#### `FreeLookManipulator`
+
+**FPS** or **Fly** mode: WASD-style motion, mouse look, sprint/slow modifiers; works with perspective or orthographic cameras (ortho uses in-plane pan semantics where applicable).
+
+#### `Ortho2DManipulator`
+
+**Orthographic** cameras only: pan, zoom-at-cursor, optional in-plane rotation, inertia.
+
+#### `FollowManipulator`
+
+Smooth follow of a world target or a callback-provided target; configurable offset and damping.
+
+### Controllers (`ICameraController`)
+
+| Class | Role |
+|-------|------|
+| `Inspect3DController` | 3D inspection (medical, CAD-style): `OrbitalCameraManipulator` + `InputMapper` (orbit preset), pivot and DOF toggles, `fitToAABB`. |
+| `Navigation3DController` | World traversal: `FreeLookManipulator` + `InputMapper` (FPS-style preset), mode and binding configuration. |
+| `Ortho2DController` | 2D ortho viewports: `Ortho2DManipulator` + ortho preset. |
+| `FollowController` | Follow camera: `FollowManipulator` only; no user input mapping required. |
+
+### Input and rig
+
+#### `InputMapper`
+
+Maps mouse, keyboard, scroll, and touch-style input to **callbacks** invoking `(CameraActionType, CameraCommandPayload, double dt)`. Supports adding rules and replacing the full rule set (used when controllers rebuild bindings after mode or DOF changes).
+
+#### `CameraRig`
+
+- **Lifecycle** — `setCamera`, `onResize`, `resetState`.
+- **Dispatch** — `onAction`, `onUpdate` to every registered manipulator.
+- **Factories** — `makeOrbit()`, `makeTrackball()`, `makeFps()`, `makeFly()`, `makeOrtho2D()`, `makeFollow()` build rigs with a single default manipulator; you can still `addManipulator` for custom stacks.
+
+### Shared headers and types
+
+| Header | Role |
+|--------|------|
+| `interaction.h` | Umbrella include for full API surface (manipulators, rig, mapper, controllers, types). |
+| `interaction_types.h` | Aggregates behavioral enums and re-exports `camera_action`, `camera_state`, `input_binding`. |
+| `camera_action.h` | `CameraActionType`, `CameraCommandPayload`, `GestureAction`. |
+| `camera_state.h` | Grouped state structs for orbit, trackball, free-look, etc. |
+| `input_binding.h` | `InputRule`, mouse/key bindings, touch helpers, modifier constants. |
+| `version.h` | `get_version()` string. |
+
+### Implementation layout (`src/vertexnova/interaction/`)
+
+One **`.cpp` per public class** where applicable, plus `input_mapper.cpp`, `camera_rig.cpp`, `camera_manipulator_base.cpp`, `input_event_translator.cpp`, `camera_math.cpp`, `version.cpp`, and **`detail/`** sources for orbit/trackball behaviors and rotation strategies.
+
+## Usage examples
+
+### Minimal: `Inspect3DController` + perspective camera
 
 ```cpp
 #include <vertexnova/interaction/interaction.h>
@@ -83,36 +168,59 @@ int main() {
 
 ### Bridging from vneevents
 
-If you use [vneevents](https://github.com/vertexnova/vneevents), register a listener that forwards events to the controller:
-
-```cpp
-// Pseudocode: on any Event -> controller.onEvent(event, dt);
-// Each frame: controller.onUpdate(dt);
-```
-
-The controller's `onEvent` handles `MouseMovedEvent`, `MouseButtonPressedEvent`, `MouseButtonReleasedEvent`, `MouseScrolledEvent`, `KeyPressedEvent`, `KeyReleasedEvent`, etc.
+Register your platform listener so that each dispatched `vne::events::Event` is forwarded to the active controller’s `onEvent(event, dt)`, and call `onUpdate(dt)` once per frame. Typical event types include `MouseMovedEvent`, `MouseButtonPressedEvent`, `MouseButtonReleasedEvent`, `MouseScrolledEvent`, `KeyPressedEvent`, `KeyReleasedEvent`, and touch variants where enabled.
 
 ### Use-case mapping
 
 | Use case | Controller | Notes |
 |----------|------------|-------|
-| Medical 3D inspection | `Inspect3DController` | Euler orbit by default (`setRotationEnabled(false)` to disable LMB orbit); `setRotationMode(eTrackball)` optional; `setPivotMode(eFixed)` for landmark-centred |
-| Medical 2D slices | `Ortho2DController` | Pan + zoom; optional in-plane rotate via `setRotationEnabled(true)` |
-| Game / editor camera | `Navigation3DController` + `Inspect3DController` | FPS/Fly for world nav; `Inspect3DController` for orbit inspection |
-| Robotic simulator | `Inspect3DController` + `Navigation3DController` + `FollowController` | Inspect robot; navigate environment; follow end-effector |
+| Medical 3D inspection | `Inspect3DController` | Default Euler orbit; `setRotationMode` for trackball; `setPivotMode(eFixed)` for landmark-centred orbits. |
+| Medical 2D slices / maps | `Ortho2DController` | Pan and zoom; optional in-plane rotate via `setRotationEnabled(true)`. |
+| Game / editor camera | `Navigation3DController` ± `Inspect3DController` | FPS/Fly for worlds; orbit controller for focused inspection. |
+| Robotic / scene tools | `Inspect3DController` + `Navigation3DController` + `FollowController` | Inspect assets, walk the scene, follow an end-effector or target. |
 
-## CMake options
+## Integration with other VertexNova modules
+
+| Module | How interaction uses it |
+|--------|-------------------------|
+| **vne::scene** | `ICamera` and concrete camera types; pose and projection writes. |
+| **vne::events** | Event types and enums for input. |
+| **vne::math** | Linear algebra and utilities (via scene and headers). |
+| **vne::logging** | Internal diagnostics; configure logging in the host app if you want sink output from this library (patterns mirror [vnelogging](../../../deps/internal/vnelogging/docs/vertexnova/logging/logging.md)). |
+
+## Build configuration (CMake)
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `VNE_INTERACTION_TESTS` | ON | Build unit tests |
-| `VNE_INTERACTION_EXAMPLES` | OFF | Build examples |
-| `VNE_INTERACTION_DEV` | ON (top-level) | Dev preset: tests + examples ON |
-| `VNE_INTERACTION_CI` | OFF | CI preset: tests ON, examples OFF |
-| `VNE_INTERACTION_LIB_TYPE` | shared | `static` or `shared` |
-| `ENABLE_DOXYGEN` | OFF | Generate Doxygen API docs |
+| `VNE_INTERACTION_TESTS` | ON | Build unit tests. |
+| `VNE_INTERACTION_EXAMPLES` | OFF | Build example programs. |
+| `VNE_INTERACTION_DEV` | ON at repo root | Dev preset: tests and examples enabled. |
+| `VNE_INTERACTION_CI` | OFF | CI preset: tests ON, examples OFF. |
+| `VNE_INTERACTION_LIB_TYPE` | `shared` | `static` or `shared`. |
+| `ENABLE_DOXYGEN` | OFF | Generate Doxygen HTML API docs. |
 
-## Static vs shared
+### Static vs shared
 
-- **Static** (`-DVNE_INTERACTION_LIB_TYPE=static`): Single executable, no runtime lib to ship.
-- **Shared** (default): For plugins or multiple apps sharing one lib. On Windows, use `VNE_INTERACTION_API` for DLL export/import.
+- **`static`** (`-DVNE_INTERACTION_LIB_TYPE=static`) — Single binary, no separate interaction DLL/dylib to ship.
+- **`shared`** (default) — Suitable for plugins or multiple executables sharing one build; on Windows use `VNE_INTERACTION_API` for correct export/import.
+
+## API documentation (Doxygen)
+
+Enable API docs the same way as in **vnelogging**:
+
+```bash
+cmake -DENABLE_DOXYGEN=ON -B build
+cmake --build build --target vneinteraction_doc_doxygen
+```
+
+HTML output is written under `build/docs/html/` (see `docs/doxyfile.in` `OUTPUT_DIRECTORY`).
+
+## Testing
+
+The repository includes GoogleTest-based tests (manipulators, mappers, rigs, controllers, regression cases). After configuring CMake with tests enabled, build and run the test binary produced for `vneinteraction_tests` (for example from your build tree: `bin/vneinteraction_tests` or via `ctest`).
+
+## Requirements
+
+- **C++20** or higher (as set by this project’s CMake).
+- **CMake** 3.19+.
+- **Dependencies** — **vnescene**, **vneevents**, and transitive **vnemath** / **vne::logging** / **vne::common** as declared by this repo’s CMake (`deps/internal`).
