@@ -181,11 +181,11 @@ For a **real GLFW + OpenGL** application with mouse, keyboard, ImGui tuning, and
 
 <p align="center">
   <a href="https://github.com/vertexnova/vnetestbed/tree/main/samples/glfw_opengl/03_test_interaction">
-    <img src="docs/vertexnova/interaction/screenshots/interactive_demo_03_test_interaction.png" alt="Interactive demo: 3D viewport with ImGui-style settings panel (vnetestbed 03_test_interaction)" width="720"/>
+    <img src="docs/vertexnova/interaction/screenshots/interactive_demo_03_test_interaction.png" alt="vnetestbed 03_test_interaction: viewport with teapot on grid, RGB axes, and ImGui settings (zoom method, view directions, camera state, mesh browser)" width="900"/>
   </a>
 </p>
 
-<p align="center"><em>Illustrative preview of the sample (viewport + ImGui-style settings). Swap this PNG for a real capture from your machine if you prefer.</em></p>
+<p align="center"><em>Screenshot — VertexNova Testbed <code>03_test_interaction</code>: viewport, interaction tuning, camera state, and mesh browser.</em></p>
 
 That target links against `vne::interaction` and shares the same build/run workflow as the other testbed samples. Configure vnetestbed with samples enabled (for example `-DVNE_TESTBED_SAMPLES=ON` or `-DVNE_TESTBED_DEV=ON`). Details, optional mesh IO (`VNE_TESTBED_VNEIO`), and layer structure are in the sample [README](https://github.com/vertexnova/vnetestbed/blob/main/samples/glfw_opengl/03_test_interaction/README.md).
 
