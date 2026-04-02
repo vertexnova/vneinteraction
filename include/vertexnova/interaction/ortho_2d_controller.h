@@ -107,7 +107,7 @@ class VNE_INTERACTION_API Ortho2DController : public ICameraController {
     /** Scroll zoom modifier requirement (default none). */
     void setZoomScrollModifier(vne::events::ModifierKey modifier) noexcept;
 
-    /** Delegate to Ortho2DManipulator::setPanDamping. */
+    /** Delegate to Ortho2DManipulator::setPanInertiaEnabled. */
     void setPanInertiaEnabled(bool enabled) noexcept;
     /** Delegate to Ortho2DManipulator::setRotationSensitivityDegreesPerPixel. */
     void setRotateSensitivity(float degrees_per_pixel) noexcept;
