@@ -48,24 +48,3 @@ Executables land in `build/bin/examples/`.
 | `input_simulation.h` | `simulateMouseDrag`, `simulateMouseScroll`, `simulateKeyHold`, `runFrames` — drive event-based controllers headlessly |
 | `key_codes.h` | GLFW-compatible key code constants (W=87, A=65, S=83, D=68, Q=81, E=69, Shift=340) |
 | `logging_guard.h` | RAII console logger; wrap `main()` with `LoggingGuard` to see output |
-
----
-
-## API coverage map
-
-| Header | Covered in |
-|--------|-----------|
-| `inspect_3d_controller.h` | 02, 05, 06, 08 |
-| `navigation_3d_controller.h` | 04, 05, 08 |
-| `ortho_2d_controller.h` | 03 |
-| `follow_controller.h` | 05 |
-| `orbital_camera_manipulator.h` | 02, 07, 08 |
-| `free_look_manipulator.h` | 04, 07, 08 |
-| `follow_manipulator.h` | 05 |
-| `camera_rig.h` | 06, 07 |
-| `input_mapper.h` | 06, 07 |
-| `input_binding.h` (`InputRule`, `TouchPan`, `TouchPinch`) | 06 |
-| `camera_action.h` (`CameraActionType`, `CameraCommandPayload`) | 06, 07 |
-| `camera_state.h` (`OrbitCameraState`, `TrackballCameraState`, `FreeCameraState`, `FreeLookInputState`, `OrbitalInteractionState`) | 08 |
-| `interaction_types.h` (all enums) | 01, 02, 03, 04 |
-| `version.h` | 01 |
