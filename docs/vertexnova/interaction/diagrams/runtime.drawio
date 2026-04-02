@@ -1,225 +1,177 @@
-<mxfile host="65bd71144e">
-    <diagram name="Orbit Rotation Sequence" id="orbit_seq">
-        <mxGraphModel dx="1000" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0">
-            <root>
-                <mxCell id="0"/>
-                <mxCell id="1" parent="0"/>
+<mxfile host="app.diagrams.net" modified="2026-04-02T00:00:00.000Z" agent="vneinteraction-docs" version="22.0.0" type="device">
+  <diagram id="runtime_pipeline" name="1. Runtime pipeline">
+    <mxGraphModel dx="1100" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
 
-                <!-- Title -->
-                <mxCell id="title" value="Sequence: Orbit Rotation Drag (OrbitalCameraManipulator + EulerOrbitStrategy)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontStyle=1;fontSize=14;" parent="1" vertex="1">
-                    <mxGeometry x="100" y="10" width="900" height="30" as="geometry"/>
-                </mxCell>
+        <mxCell id="rp_title" value="vneinteraction — runtime data flow (one application thread)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontStyle=1;fontSize=15;fontColor=#1a1a1a;" parent="1" vertex="1">
+          <mxGeometry x="200" y="20" width="720" height="36" as="geometry"/>
+        </mxCell>
 
-                <!-- Lifelines -->
-                <mxCell id="ll_app" value="App / GLFW" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#1565c0;fontStyle=1;fontSize=11;" parent="1" vertex="1">
-                    <mxGeometry x="60" y="60" width="120" height="40" as="geometry"/>
-                </mxCell>
-                <mxCell id="ll_ctrl" value="Inspect3DController" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#2e7d32;fontStyle=1;fontSize=11;" parent="1" vertex="1">
-                    <mxGeometry x="260" y="60" width="160" height="40" as="geometry"/>
-                </mxCell>
-                <mxCell id="ll_mapper" value="InputMapper" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#e65100;fontStyle=1;fontSize=11;" parent="1" vertex="1">
-                    <mxGeometry x="500" y="60" width="120" height="40" as="geometry"/>
-                </mxCell>
-                <mxCell id="ll_manip" value="OrbitalCamera&#10;Manipulator" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f57f17;fontStyle=1;fontSize=11;" parent="1" vertex="1">
-                    <mxGeometry x="700" y="55" width="140" height="50" as="geometry"/>
-                </mxCell>
-                <mxCell id="ll_strat" value="EulerOrbitStrategy&#10;(IRotationStrategy)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f3e5f5;strokeColor=#6a1b9a;fontStyle=1;fontSize=11;" parent="1" vertex="1">
-                    <mxGeometry x="920" y="55" width="160" height="50" as="geometry"/>
-                </mxCell>
-                <mxCell id="ll_cam" value="ICamera" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#2e7d32;fontStyle=1;fontSize=11;" parent="1" vertex="1">
-                    <mxGeometry x="1160" y="60" width="100" height="40" as="geometry"/>
-                </mxCell>
+        <mxCell id="rp_ev" value="vne::events::Event&#10;(mouse / key / touch / scroll)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1565c0;strokeColor=#0d47a1;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#ffffff;" parent="1" vertex="1">
+          <mxGeometry x="385" y="80" width="350" height="56" as="geometry"/>
+        </mxCell>
 
-                <!-- Lifeline lines -->
-                <mxCell id="lv_app" style="endArrow=none;html=1;strokeColor=#1565c0;strokeWidth=1;dashed=1;" parent="1" source="ll_app" target="ll_app" edge="1">
-                    <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="120" y="800"/></Array></mxGeometry>
-                </mxCell>
+        <mxCell id="rp_ctrl" value="ICameraController&#10;Inspect3D · Navigation3D · Ortho2D · Follow" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#880e4f;strokeColor=#560027;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#ffffff;" parent="1" vertex="1">
+          <mxGeometry x="385" y="180" width="350" height="56" as="geometry"/>
+        </mxCell>
 
-                <!-- Step 1: MouseButtonPressed -->
-                <mxCell id="s1" value="MouseButtonPressed(btn=right, x=640, y=360)" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=1.5;strokeColor=#1565c0;" parent="1" source="ll_app" target="ll_ctrl" edge="1">
-                    <mxGeometry y="40" relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="s1l" value="" style="edgeLabel;html=1;align=center;verticalAlign=top;resizable=0;points=[];fontSize=10;" parent="s1" connectable="0" vertex="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
+        <mxCell id="rp_map" value="InputMapper&#10;events → CameraActionType + CameraCommandPayload" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e65100;strokeColor=#bf360c;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#ffffff;" parent="1" vertex="1">
+          <mxGeometry x="385" y="280" width="350" height="56" as="geometry"/>
+        </mxCell>
 
-                <!-- Step 2: onEvent -> mapper.onMouseButton -->
-                <mxCell id="s2" value="onEvent(MouseButtonPressedEvent, dt)" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=1.5;strokeColor=#2e7d32;" parent="1" source="ll_ctrl" target="ll_mapper" edge="1">
-                    <mxGeometry y="60" relative="1" as="geometry"/>
-                </mxCell>
+        <mxCell id="rp_rig" value="CameraRig&#10;onAction / onUpdate → every registered manipulator" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ef6c00;strokeColor=#e65100;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#ffffff;" parent="1" vertex="1">
+          <mxGeometry x="385" y="380" width="350" height="56" as="geometry"/>
+        </mxCell>
 
-                <!-- Step 3: eBeginRotate callback -->
-                <mxCell id="s3" value="callback(eBeginRotate, {x=640,y=360}, dt)" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=1.5;strokeColor=#e65100;" parent="1" source="ll_mapper" target="ll_manip" edge="1">
-                    <mxGeometry y="90" relative="1" as="geometry"/>
-                </mxCell>
+        <mxCell id="rp_man" value="ICameraManipulator&#10;Orbital · FreeLook · Ortho2D · Follow" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1b5e20;strokeColor=#003300;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#ffffff;" parent="1" vertex="1">
+          <mxGeometry x="385" y="480" width="350" height="56" as="geometry"/>
+        </mxCell>
 
-                <!-- Step 4: beginRotate -> strategy -->
-                <mxCell id="s4" value="beginRotate(640,360)" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=1.5;strokeColor=#f57f17;" parent="1" source="ll_manip" target="ll_strat" edge="1">
-                    <mxGeometry y="120" relative="1" as="geometry"/>
-                </mxCell>
+        <mxCell id="rp_cam" value="vne::scene::ICamera&#10;pose, projection, updateMatrices()" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2e7d32;strokeColor=#1b5e20;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#ffffff;" parent="1" vertex="1">
+          <mxGeometry x="385" y="580" width="350" height="56" as="geometry"/>
+        </mxCell>
 
-                <!-- Step 5: syncFromCamera -->
-                <mxCell id="s5" value="syncFromCamera(ctx)" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=1.5;strokeColor=#6a1b9a;" parent="1" source="ll_strat" target="ll_cam" edge="1">
-                    <mxGeometry y="150" relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="s5r" value="position, target, up" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=1;strokeColor=#6a1b9a;dashed=1;" parent="1" source="ll_cam" target="ll_strat" edge="1">
-                    <mxGeometry y="170" relative="1" as="geometry"/>
-                </mxCell>
+        <mxCell id="rp_e1" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=2;strokeColor=#424242;" parent="1" source="rp_ev" target="rp_ctrl" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="rp_e1l" value="onEvent(event, dt)" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontColor=#333333;labelBackgroundColor=#ffffff;" parent="rp_e1" connectable="0" vertex="1">
+          <mxGeometry x="-0.05" relative="1" as="geometry"><mxPoint y="-8" as="offset"/></mxGeometry>
+        </mxCell>
 
-                <!-- Separator: Mouse move events -->
-                <mxCell id="sep1" value="[loop: each mousemove event]" style="text;html=1;strokeColor=#aaaaaa;fillColor=#f5f5f5;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=11;fontColor=#333333;" parent="1" vertex="1">
-                    <mxGeometry x="60" y="310" width="1200" height="25" as="geometry"/>
-                </mxCell>
+        <mxCell id="rp_e2" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=2;strokeColor=#424242;" parent="1" source="rp_ctrl" target="rp_map" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="rp_e2l" value="mapper.onMouse* / onKey / …" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontColor=#333333;labelBackgroundColor=#ffffff;" parent="rp_e2" connectable="0" vertex="1">
+          <mxGeometry x="-0.05" relative="1" as="geometry"><mxPoint y="-8" as="offset"/></mxGeometry>
+        </mxCell>
 
-                <!-- Step 6: MouseMoved -->
-                <mxCell id="s6" value="MouseMoved(x=650, y=370)" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=1.5;strokeColor=#1565c0;" parent="1" source="ll_app" target="ll_ctrl" edge="1">
-                    <mxGeometry y="240" relative="1" as="geometry"/>
-                </mxCell>
+        <mxCell id="rp_e3" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=2;strokeColor=#424242;" parent="1" source="rp_map" target="rp_rig" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="rp_e3l" value="action callback → rig.onAction" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontColor=#333333;labelBackgroundColor=#ffffff;" parent="rp_e3" connectable="0" vertex="1">
+          <mxGeometry x="-0.05" relative="1" as="geometry"><mxPoint y="-8" as="offset"/></mxGeometry>
+        </mxCell>
 
-                <!-- Step 7: mapper.onMouseMove -->
-                <mxCell id="s7" value="onEvent(MouseMovedEvent)" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=1.5;strokeColor=#2e7d32;" parent="1" source="ll_ctrl" target="ll_mapper" edge="1">
-                    <mxGeometry y="260" relative="1" as="geometry"/>
-                </mxCell>
+        <mxCell id="rp_e4" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=2;strokeColor=#424242;" parent="1" source="rp_rig" target="rp_man" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="rp_e4l" value="for each manipulator" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontColor=#333333;labelBackgroundColor=#ffffff;" parent="rp_e4" connectable="0" vertex="1">
+          <mxGeometry x="-0.05" relative="1" as="geometry"><mxPoint y="-8" as="offset"/></mxGeometry>
+        </mxCell>
 
-                <!-- Step 8: eRotateDelta -->
-                <mxCell id="s8" value="callback(eRotateDelta, {x=650,y=370,dx=10,dy=10}, dt)" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=1.5;strokeColor=#e65100;" parent="1" source="ll_mapper" target="ll_manip" edge="1">
-                    <mxGeometry y="290" relative="1" as="geometry"/>
-                </mxCell>
+        <mxCell id="rp_e5" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=2;strokeColor=#424242;" parent="1" source="rp_man" target="rp_cam" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="rp_e5l" value="writes camera pose / zoom / ortho extents" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontColor=#333333;labelBackgroundColor=#ffffff;" parent="rp_e5" connectable="0" vertex="1">
+          <mxGeometry x="-0.05" relative="1" as="geometry"><mxPoint y="-8" as="offset"/></mxGeometry>
+        </mxCell>
 
-                <!-- Step 9: dragRotate -> strategy -->
-                <mxCell id="s9" value="dragRotate(650,370,10,10,dt,ctx)" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=1.5;strokeColor=#f57f17;" parent="1" source="ll_manip" target="ll_strat" edge="1">
-                    <mxGeometry y="320" relative="1" as="geometry"/>
-                </mxCell>
+        <mxCell id="rp_side" value="Also each frame:&#10;controller.onUpdate(dt) → rig.onUpdate(dt) → manipulator.onUpdate(dt)&#10;(inertia, fit animation, …)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=1;fontSize=11;fontColor=#263238;align=left;spacingLeft=10;verticalAlign=top;" parent="1" vertex="1">
+          <mxGeometry x="40" y="180" width="280" height="72" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
 
-                <!-- Step 10: orbit.applyDrag -->
-                <mxCell id="s10" value="orbit_.applyDrag(dx,dy,speed,dt,minDt)&#10;→ yaw += dx*speed, pitch -= dy*speed" style="endArrow=none;html=1;strokeWidth=1;strokeColor=#6a1b9a;" parent="1" vertex="1">
-                    <mxGeometry x="940" y="430" width="280" height="40" as="geometry"/>
-                </mxCell>
+  <diagram id="orbit_flow" name="2. Orbit rotate (Inspect3D)">
+    <mxGraphModel dx="1100" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
 
-                <!-- Step 11: applyToCamera -->
-                <mxCell id="s11" value="applyToCamera() → computeBackDir() → lookAt(eye, coi, up)" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=1.5;strokeColor=#f57f17;" parent="1" source="ll_manip" target="ll_cam" edge="1">
-                    <mxGeometry y="380" relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="s11r" value="updateMatrices()" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=1;strokeColor=#2e7d32;dashed=1;" parent="1" source="ll_cam" target="ll_manip" edge="1">
-                    <mxGeometry y="400" relative="1" as="geometry"/>
-                </mxCell>
+        <mxCell id="o_title" value="Typical orbit rotation drag (Euler path)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontStyle=1;fontSize=15;fontColor=#1a1a1a;" parent="1" vertex="1">
+          <mxGeometry x="200" y="20" width="720" height="36" as="geometry"/>
+        </mxCell>
 
-                <!-- Separator: mouse release -->
-                <mxCell id="sep2" value="[mouse button released]" style="text;html=1;strokeColor=#aaaaaa;fillColor=#f5f5f5;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=11;fontColor=#333333;" parent="1" vertex="1">
-                    <mxGeometry x="60" y="570" width="1200" height="25" as="geometry"/>
-                </mxCell>
+        <mxCell id="o1" value="1 · App&#10;MouseButtonPressed / MouseMoved / Released" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1565c0;strokeColor=#0d47a1;strokeWidth=2;fontSize=11;fontColor=#ffffff;" parent="1" vertex="1">
+          <mxGeometry x="385" y="80" width="350" height="52" as="geometry"/>
+        </mxCell>
+        <mxCell id="o2" value="2 · Inspect3DController&#10;onEvent(…)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#880e4f;strokeColor=#560027;strokeWidth=2;fontSize=11;fontColor=#ffffff;" parent="1" vertex="1">
+          <mxGeometry x="385" y="160" width="350" height="52" as="geometry"/>
+        </mxCell>
+        <mxCell id="o3" value="3 · InputMapper&#10;eBeginRotate → eRotateDelta* → eEndRotate" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e65100;strokeColor=#bf360c;strokeWidth=2;fontSize=11;fontColor=#ffffff;" parent="1" vertex="1">
+          <mxGeometry x="385" y="240" width="350" height="52" as="geometry"/>
+        </mxCell>
+        <mxCell id="o4" value="4 · OrbitalCameraManipulator&#10;onAction → beginRotate / dragRotate / endRotate" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1b5e20;strokeColor=#003300;strokeWidth=2;fontSize=11;fontColor=#ffffff;" parent="1" vertex="1">
+          <mxGeometry x="385" y="320" width="350" height="52" as="geometry"/>
+        </mxCell>
+        <mxCell id="o5" value="5 · IRotationStrategy (e.g. EulerOrbitStrategy)&#10;OrbitBehavior::applyDrag · inertia stepInertia" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#4a148c;strokeColor=#38006b;strokeWidth=2;fontSize=11;fontColor=#ffffff;" parent="1" vertex="1">
+          <mxGeometry x="385" y="400" width="350" height="52" as="geometry"/>
+        </mxCell>
+        <mxCell id="o6" value="6 · applyToCamera() → ICamera&#10;lookAt / updateMatrices" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2e7d32;strokeColor=#1b5e20;strokeWidth=2;fontSize=11;fontColor=#ffffff;" parent="1" vertex="1">
+          <mxGeometry x="385" y="480" width="350" height="52" as="geometry"/>
+        </mxCell>
 
-                <!-- Step 12: eEndRotate -->
-                <mxCell id="s12" value="callback(eEndRotate, payload, dt)" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=1.5;strokeColor=#e65100;" parent="1" source="ll_mapper" target="ll_manip" edge="1">
-                    <mxGeometry y="500" relative="1" as="geometry"/>
-                </mxCell>
+        <mxCell id="oa1" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=2;strokeColor=#424242;" parent="1" source="o1" target="o2" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="oa2" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=2;strokeColor=#424242;" parent="1" source="o2" target="o3" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="oa3" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=2;strokeColor=#424242;" parent="1" source="o3" target="o4" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="oa4" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=2;strokeColor=#424242;" parent="1" source="o4" target="o5" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="oa5" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=2;strokeColor=#424242;" parent="1" source="o5" target="o6" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
 
-                <!-- Step 13: endRotate -> strategy captures inertia -->
-                <mxCell id="s13" value="endRotate(inertia_enabled, dt)" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=1.5;strokeColor=#f57f17;" parent="1" source="ll_manip" target="ll_strat" edge="1">
-                    <mxGeometry y="530" relative="1" as="geometry"/>
-                </mxCell>
+  <diagram id="fps_flow" name="3. FPS move + look (Navigation3D)">
+    <mxGraphModel dx="1100" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
 
-                <!-- Step 14: onUpdate inertia -->
-                <mxCell id="sep3" value="[each frame while coasting]" style="text;html=1;strokeColor=#aaaaaa;fillColor=#f5f5f5;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=11;fontColor=#333333;" parent="1" vertex="1">
-                    <mxGeometry x="60" y="700" width="1200" height="25" as="geometry"/>
-                </mxCell>
+        <mxCell id="f_title" value="Typical FPS traversal + mouse look" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontStyle=1;fontSize=15;fontColor=#1a1a1a;" parent="1" vertex="1">
+          <mxGeometry x="200" y="20" width="720" height="36" as="geometry"/>
+        </mxCell>
 
-                <mxCell id="s14" value="onUpdate(dt)" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=1.5;strokeColor=#2e7d32;" parent="1" source="ll_ctrl" target="ll_manip" edge="1">
-                    <mxGeometry y="620" relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="s15" value="applyInertia(dt) → strategy.stepInertia(dt, damping, ctx)" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=1.5;strokeColor=#f57f17;" parent="1" source="ll_manip" target="ll_strat" edge="1">
-                    <mxGeometry y="650" relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="s16" value="applyToCamera()" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=1.5;strokeColor=#f57f17;" parent="1" source="ll_manip" target="ll_cam" edge="1">
-                    <mxGeometry y="680" relative="1" as="geometry"/>
-                </mxCell>
-            </root>
-        </mxGraphModel>
-    </diagram>
-    <diagram name="FPS Movement Sequence" id="fps_seq">
-        <mxGraphModel dx="1000" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="800" math="0" shadow="0">
-            <root>
-                <mxCell id="0"/>
-                <mxCell id="1" parent="0"/>
+        <mxCell id="f1" value="1 · App&#10;KeyPressed(W) / MouseMoved (look button held)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1565c0;strokeColor=#0d47a1;strokeWidth=2;fontSize=11;fontColor=#ffffff;" parent="1" vertex="1">
+          <mxGeometry x="385" y="80" width="350" height="52" as="geometry"/>
+        </mxCell>
+        <mxCell id="f2" value="2 · Navigation3DController&#10;onEvent → InputMapper" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#880e4f;strokeColor=#560027;strokeWidth=2;fontSize=11;fontColor=#ffffff;" parent="1" vertex="1">
+          <mxGeometry x="385" y="160" width="350" height="52" as="geometry"/>
+        </mxCell>
+        <mxCell id="f3" value="3 · InputMapper&#10;eMove* / eLookDelta / modifiers" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e65100;strokeColor=#bf360c;strokeWidth=2;fontSize=11;fontColor=#ffffff;" parent="1" vertex="1">
+          <mxGeometry x="385" y="240" width="350" height="52" as="geometry"/>
+        </mxCell>
+        <mxCell id="f4" value="4 · CameraRig&#10;onAction / onUpdate" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ef6c00;strokeColor=#e65100;strokeWidth=2;fontSize=11;fontColor=#ffffff;" parent="1" vertex="1">
+          <mxGeometry x="385" y="320" width="350" height="52" as="geometry"/>
+        </mxCell>
+        <mxCell id="f5" value="5 · FreeLookManipulator&#10;held keys + look deltas → eye / yaw / pitch" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1b5e20;strokeColor=#003300;strokeWidth=2;fontSize=11;fontColor=#ffffff;" parent="1" vertex="1">
+          <mxGeometry x="385" y="400" width="350" height="52" as="geometry"/>
+        </mxCell>
+        <mxCell id="f6" value="6 · ICamera&#10;setPosition / lookAt / updateMatrices" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2e7d32;strokeColor=#1b5e20;strokeWidth=2;fontSize=11;fontColor=#ffffff;" parent="1" vertex="1">
+          <mxGeometry x="385" y="480" width="350" height="52" as="geometry"/>
+        </mxCell>
 
-                <!-- Title -->
-                <mxCell id="title2" value="Sequence: FPS Camera Movement (Navigation3DController)" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontStyle=1;fontSize=14;" parent="1" vertex="1">
-                    <mxGeometry x="100" y="10" width="900" height="30" as="geometry"/>
-                </mxCell>
+        <mxCell id="fa1" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=2;strokeColor=#424242;" parent="1" source="f1" target="f2" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="fa2" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=2;strokeColor=#424242;" parent="1" source="f2" target="f3" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="fa3" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=2;strokeColor=#424242;" parent="1" source="f3" target="f4" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="fa4" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=2;strokeColor=#424242;" parent="1" source="f4" target="f5" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="fa5" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=2;strokeColor=#424242;" parent="1" source="f5" target="f6" edge="1">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
 
-                <!-- Lifelines -->
-                <mxCell id="ll2_app" value="App / GLFW" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#1565c0;fontStyle=1;fontSize=11;" parent="1" vertex="1">
-                    <mxGeometry x="60" y="60" width="120" height="40" as="geometry"/>
-                </mxCell>
-                <mxCell id="ll2_nav" value="Navigation3DController" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#2e7d32;fontStyle=1;fontSize=11;" parent="1" vertex="1">
-                    <mxGeometry x="250" y="60" width="180" height="40" as="geometry"/>
-                </mxCell>
-                <mxCell id="ll2_mapper" value="InputMapper" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3e0;strokeColor=#e65100;fontStyle=1;fontSize=11;" parent="1" vertex="1">
-                    <mxGeometry x="510" y="60" width="120" height="40" as="geometry"/>
-                </mxCell>
-                <mxCell id="ll2_rig" value="CameraRig" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#2e7d32;fontStyle=1;fontSize=11;" parent="1" vertex="1">
-                    <mxGeometry x="720" y="60" width="120" height="40" as="geometry"/>
-                </mxCell>
-                <mxCell id="ll2_fl" value="FreeLookManipulator" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff9c4;strokeColor=#f57f17;fontStyle=1;fontSize=11;" parent="1" vertex="1">
-                    <mxGeometry x="920" y="60" width="180" height="40" as="geometry"/>
-                </mxCell>
-                <mxCell id="ll2_cam" value="ICamera" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e8f5e9;strokeColor=#2e7d32;fontStyle=1;fontSize=11;" parent="1" vertex="1">
-                    <mxGeometry x="1190" y="60" width="100" height="40" as="geometry"/>
-                </mxCell>
-
-                <!-- Key Down: W -->
-                <mxCell id="t1" value="KeyPressed(W)" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=1.5;strokeColor=#1565c0;" parent="1" source="ll2_app" target="ll2_nav" edge="1">
-                    <mxGeometry y="50" relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="t2" value="onEvent(KeyEvent, dt)" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=1.5;strokeColor=#2e7d32;" parent="1" source="ll2_nav" target="ll2_mapper" edge="1">
-                    <mxGeometry y="70" relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="t3" value="mapper.onKey(W=87, pressed=true, dt)" style="endArrow=none;html=1;strokeWidth=1;strokeColor=#e65100;" parent="1" vertex="1">
-                    <mxGeometry x="510" y="165" width="340" height="25" as="geometry"/>
-                </mxCell>
-                <mxCell id="t4" value="callback(eMoveForward, {pressed=true}, dt)" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=1.5;strokeColor=#e65100;" parent="1" source="ll2_mapper" target="ll2_rig" edge="1">
-                    <mxGeometry y="130" relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="t5" value="rig.onAction(eMoveForward, payload, dt)" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=1.5;strokeColor=#2e7d32;" parent="1" source="ll2_rig" target="ll2_fl" edge="1">
-                    <mxGeometry y="160" relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="t6" value="move_forward_held_ = true" style="endArrow=none;html=1;strokeWidth=1;strokeColor=#f57f17;" parent="1" vertex="1">
-                    <mxGeometry x="920" y="260" width="260" height="25" as="geometry"/>
-                </mxCell>
-
-                <!-- Frame loop -->
-                <mxCell id="sep_f" value="[each frame while W held — onUpdate(dt)]" style="text;html=1;strokeColor=#aaaaaa;fillColor=#f5f5f5;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=11;fontColor=#333333;" parent="1" vertex="1">
-                    <mxGeometry x="60" y="330" width="1230" height="25" as="geometry"/>
-                </mxCell>
-
-                <mxCell id="t7" value="onUpdate(dt)" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=1.5;strokeColor=#2e7d32;" parent="1" source="ll2_nav" target="ll2_rig" edge="1">
-                    <mxGeometry y="280" relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="t8" value="rig.onUpdate(dt) → freeLook.onUpdate(dt)" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=1.5;strokeColor=#2e7d32;" parent="1" source="ll2_rig" target="ll2_fl" edge="1">
-                    <mxGeometry y="310" relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="t9" value="front = computeFront()&#10;eye += front * speed * sprint * dt" style="endArrow=none;html=1;strokeWidth=1;strokeColor=#f57f17;" parent="1" vertex="1">
-                    <mxGeometry x="920" y="435" width="260" height="40" as="geometry"/>
-                </mxCell>
-                <mxCell id="t10" value="camera.setPosition(new_eye)&#10;camera.updateMatrices()" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=1.5;strokeColor=#f57f17;" parent="1" source="ll2_fl" target="ll2_cam" edge="1">
-                    <mxGeometry y="380" relative="1" as="geometry"/>
-                </mxCell>
-
-                <!-- Mouse look -->
-                <mxCell id="sep_look" value="[right mouse button held + mouse move → eLookDelta]" style="text;html=1;strokeColor=#aaaaaa;fillColor=#f5f5f5;align=center;verticalAlign=middle;whiteSpace=wrap;fontSize=11;fontColor=#333333;" parent="1" vertex="1">
-                    <mxGeometry x="60" y="540" width="1230" height="25" as="geometry"/>
-                </mxCell>
-
-                <mxCell id="t11" value="callback(eLookDelta, {dx,dy}, dt)" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=1.5;strokeColor=#e65100;" parent="1" source="ll2_mapper" target="ll2_rig" edge="1">
-                    <mxGeometry y="470" relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="t12" value="freeLook.onAction(eLookDelta, ...)" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=1.5;strokeColor=#2e7d32;" parent="1" source="ll2_rig" target="ll2_fl" edge="1">
-                    <mxGeometry y="500" relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="t13" value="yaw += dx * sensitivity&#10;pitch = clamp(pitch - dy * sens, -89, 89)&#10;→ camera.lookAt(eye, eye+front, world_up)" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=1.5;strokeColor=#f57f17;" parent="1" source="ll2_fl" target="ll2_cam" edge="1">
-                    <mxGeometry y="550" relative="1" as="geometry"/>
-                </mxCell>
-            </root>
-        </mxGraphModel>
-    </diagram>
+        <mxCell id="f_note" value="Continuous motion: while move keys held, onUpdate(dt) advances position without new key events." style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eceff1;strokeColor=#607d8b;strokeWidth=1;fontSize=11;fontColor=#263238;align=left;spacingLeft=10;verticalAlign=middle;" parent="1" vertex="1">
+          <mxGeometry x="40" y="320" width="280" height="56" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
 </mxfile>
