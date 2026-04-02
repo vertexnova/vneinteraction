@@ -10,19 +10,24 @@
  */
 
 /**
- * @file free_look_behavior.h
- * @brief FreeLookBehavior — FPS / Fly camera behavior (ICameraBehavior implementation).
+ * @file free_look_manipulator.h
+ * @brief FreeLookManipulator — FPS / Fly camera (ICameraManipulator implementation).
  *
  * Orientation is stored as **Euler yaw/pitch** (degrees) and converted to a view via @c lookAt;
- * there is no quaternion look mode (unlike @ref OrbitalCameraBehavior, which offers Euler orbit or
+ * there is no quaternion look mode (unlike @ref OrbitalCameraManipulator, which offers Euler orbit or
  * trackball quaternion rotation).
  *
+ * @par Movement model
  * WASD movement + mouse look. Two modes:
  * - FreeLookMode::eFps — world up fixed, pitch clamped [-89°, 89°]
  * - FreeLookMode::eFly  — unconstrained, up follows camera
+ *
+ * @par Zoom
+ * Zoom is dispatched through @ref CameraManipulatorBase and can be disabled per-instance
+ * with @ref setHandleZoom when another manipulator should own scroll/pinch in a shared rig.
  */
 
-#include "vertexnova/interaction/camera_behavior_base.h"
+#include "vertexnova/interaction/camera_manipulator_base.h"
 #include "vertexnova/interaction/interaction_types.h"
 
 #include "vertexnova/scene/camera/perspective_camera.h"
@@ -39,35 +44,41 @@ class ICamera;
 
 namespace vne::interaction {
 
-/** Movement mode for FreeLookBehavior. */
+/** Movement mode for FreeLookManipulator. */
 enum class FreeLookMode : std::uint8_t {
     eFps = 0,  //!< FPS: world-up fixed, pitch clamped [-89°, 89°] (default)
     eFly = 1,  //!< Fly: unconstrained, up follows camera
 };
 
 /**
- * @brief Free-look camera behavior supporting FPS and Fly movement modes.
+ * @brief Free-look camera manipulator supporting FPS and Fly movement modes.
  *
- * Handles WASD movement + mouse-look + zoom actions. Two sub-modes:
+ * Handles WASD movement + mouse-look + zoom actions.
  *
  * - **eFps** — world_up fixed, pitch clamped to [-89°, 89°].
  * - **eFly** — up vector tracks camera orientation, no pitch constraint.
  *
+ * @par Action coverage
+ * Look: @c eBeginLook / @c eLookDelta / @c eEndLook
+ * Move: @c eMoveForward / @c eMoveBackward / @c eMoveLeft / @c eMoveRight / @c eMoveUp / @c eMoveDown
+ * Modifiers: @c eSprintModifier / @c eSlowModifier
+ * Zoom/reset: @c eZoomAtCursor / @c eResetView
+ *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
  */
-class VNE_INTERACTION_API FreeLookBehavior final : public CameraBehaviorBase {
+class VNE_INTERACTION_API FreeLookManipulator final : public CameraManipulatorBase {
    public:
     /** Construct with default FPS settings (FreeLookMode::eFps, Y-up). */
-    FreeLookBehavior() noexcept = default;
-    ~FreeLookBehavior() noexcept override = default;
+    FreeLookManipulator() noexcept = default;
+    ~FreeLookManipulator() noexcept override = default;
 
-    FreeLookBehavior(const FreeLookBehavior&) = delete;
-    FreeLookBehavior& operator=(const FreeLookBehavior&) = delete;
-    FreeLookBehavior(FreeLookBehavior&&) noexcept = default;
-    FreeLookBehavior& operator=(FreeLookBehavior&&) noexcept = default;
+    FreeLookManipulator(const FreeLookManipulator&) = delete;
+    FreeLookManipulator& operator=(const FreeLookManipulator&) = delete;
+    FreeLookManipulator(FreeLookManipulator&&) noexcept = default;
+    FreeLookManipulator& operator=(FreeLookManipulator&&) noexcept = default;
 
     // -------------------------------------------------------------------------
-    // ICameraBehavior
+    // ICameraManipulator
     // -------------------------------------------------------------------------
 
     /**
@@ -89,7 +100,7 @@ class VNE_INTERACTION_API FreeLookBehavior final : public CameraBehaviorBase {
     /** Reset all input state (keys, looking flag) and re-sync yaw/pitch from the camera if attached. */
     void resetState() noexcept override;
 
-    // isEnabled / setEnabled inherited from CameraBehaviorBase
+    // isEnabled / setEnabled inherited from CameraManipulatorBase
 
     // -------------------------------------------------------------------------
     // FreeLook-specific API
@@ -127,7 +138,7 @@ class VNE_INTERACTION_API FreeLookBehavior final : public CameraBehaviorBase {
     [[nodiscard]] float getSlowMultiplier() const noexcept { return slow_mult_; }
 
     /**
-     * Zoom exponent (>= 0.01), same semantics as OrbitalCameraBehavior::setZoomSpeed: effective =
+     * Zoom exponent (>= 0.01), same semantics as OrbitalCameraManipulator::setZoomSpeed: effective =
      * pow(scroll_factor, zoom_speed_) from the mapper’s multiplicative factor. Perspective dolly moves along
      * view by (1 − effective) × eye–target distance per step. Values > 1 amplify wheel zoom; < 1 attenuate.
      */
@@ -135,11 +146,11 @@ class VNE_INTERACTION_API FreeLookBehavior final : public CameraBehaviorBase {
     [[nodiscard]] float getZoomSpeed() const noexcept { return zoom_speed_; }
 
     // setZoomMethod / getZoomMethod / setFovZoomSpeed / getFovZoomSpeed / getZoomScale
-    // are inherited from CameraBehaviorBase.
+    // are inherited from CameraManipulatorBase.
 
     /**
-     * @brief Enable or disable zoom handling for this behavior (default: true).
-     * Disable when another behavior in the same rig (e.g. OrbitalCameraBehavior)
+     * @brief Enable or disable zoom handling for this manipulator (default: true).
+     * Disable when another manipulator in the same rig (e.g. OrbitalCameraManipulator)
      * should own eZoomAtCursor to avoid double-zoom per scroll tick.
      */
     void setHandleZoom(bool enable) noexcept { handle_zoom_ = enable; }
@@ -187,11 +198,11 @@ class VNE_INTERACTION_API FreeLookBehavior final : public CameraBehaviorBase {
     void applyAnglesToCamera() noexcept;
     void applyDolly(float factor, float mx, float my) noexcept override;
 
-    // perspCamera() / orthoCamera() inherited from CameraBehaviorBase
+    // perspCamera() / orthoCamera() inherited from CameraManipulatorBase
 
     // ---- state ---------------------------------------------------------------
-    // camera_, enabled_, viewport_ inherited from CameraBehaviorBase
-    // zoom_method_, zoom_scale_, fov_zoom_speed_ inherited from CameraBehaviorBase
+    // camera_, enabled_, viewport_ inherited from CameraManipulatorBase
+    // zoom_method_, zoom_scale_, fov_zoom_speed_ inherited from CameraManipulatorBase
 
     FreeLookMode mode_ = FreeLookMode::eFps;
     vne::math::Vec3f world_up_{0.0f, 1.0f, 0.0f};

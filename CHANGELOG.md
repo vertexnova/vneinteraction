@@ -21,6 +21,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+* **`Navigation3DController::freeLookBehavior()`** — use **`freeLookManipulator()`** only (temporary compatibility shim removed).
+
+### Breaking
+
+* **Manipulator naming (Trackball / Orbit stay `*Behavior`)**: Composable camera types are renamed from `*Behavior` to `*Manipulator`; `ICameraBehavior` → `ICameraManipulator`; `CameraBehaviorBase` → `CameraManipulatorBase`. Headers: `camera_manipulator.h`, `camera_manipulator_base.h`, `orbital_camera_manipulator.h`, `free_look_manipulator.h`, `ortho_2d_manipulator.h`, `follow_manipulator.h`. Internal helpers: `manipulator_utils.*` (was `behavior_utils.*`). **`TrackballBehavior`** / **`OrbitBehavior`** and headers `trackball_behavior.h` / `orbit_behavior.h` are unchanged.
+* **`CameraRig`**: `addBehavior` / `removeBehavior` / `clearBehaviors` / `behaviors()` → `addManipulator` / `removeManipulator` / `clearManipulators` / `manipulators()`.
+* **Controllers**: `Inspect3DController::orbitalCameraBehavior()` → `orbitalCameraManipulator()`; `Navigation3DController::freeLookBehavior()` → `freeLookManipulator()`; `orbitalCameraBehavior()` → `orbitalCameraManipulator()`; `Ortho2DController::ortho2DBehavior()` → `ortho2DManipulator()`; `FollowController::followBehavior()` → `followManipulator()`.
+
 ### Changed
 
 * **`Inspect3DController`**: LMB orbit rotation **on** by default (`OrbitRotationMode::eOrbit`); use `setRotationEnabled(false)` to disable. Matches examples that simulate LMB drag without calling `setRotationEnabled(true)`.
@@ -28,7 +38,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 * **`CameraRig::makeOrthoPanZoom()`** — use **`CameraRig::makeOrtho2D()`** instead.
-* **`CameraRig::makeGameCamera()`** — compose **`OrbitalCameraBehavior`** + **`FreeLookBehavior`** on **`CameraRig`** (see `camera_rig.h` usage example), or use **`Inspect3DController`** / **`Navigation3DController`** as appropriate.
+* **`CameraRig::makeGameCamera()`** — compose **`OrbitalCameraManipulator`** + **`FreeLookManipulator`** on **`CameraRig`** (see `camera_rig.h` usage example), or use **`Inspect3DController`** / **`Navigation3DController`** as appropriate.
 
 ### Changed
 

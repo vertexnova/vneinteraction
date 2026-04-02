@@ -25,7 +25,7 @@ int main() {
     ctrl.setCamera(camera);
     ctrl.onResize(512.0f, 512.0f);
 
-    auto on_event = [&ctrl](const vne::events::Event& e, double) { ctrl.onEvent(e); };
+    auto on_event = [&ctrl](const vne::events::Event& e, double dt) { ctrl.onEvent(e, dt); };
 
     constexpr double dt = 1.0 / 60.0;
     const float cx = 256.0f;

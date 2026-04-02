@@ -11,7 +11,20 @@
 
 /**
  * @file interaction_types.h
- * @brief Types, enums, and structs for camera interaction (behaviors, gestures, bindings).
+ * @brief Shared types: commands (@ref CameraActionType), input rules (@ref InputRule), bindings, and state blobs.
+ *
+ * @par Command layer
+ * @ref CameraActionType and @ref CameraCommandPayload are the **intent** between @ref InputMapper
+ * (and controllers) and @ref CameraRig / @ref ICameraManipulator. Manipulators consume the subset
+ * of actions they implement and ignore the rest.
+ *
+ * @par Rules and gestures
+ * @ref InputRule describes one trigger → action mapping. High-level remapping uses @ref GestureAction,
+ * @ref MouseBinding, and @ref KeyBinding together with @ref InputMapper::bindGesture and related APIs.
+ *
+ * @par Math helpers
+ * Orbit/trackball **geometry** lives in @ref OrbitBehavior and @ref TrackballBehavior; this header
+ * holds interaction enums, payloads, and grouped state used across manipulators.
  */
 
 #include "vertexnova/interaction/export.h"
@@ -47,7 +60,7 @@ enum class ZoomMethod : std::uint8_t {
     eDollyToCoi = 2,  //!< Move camera along view direction toward center of interest
 };
 
-/** Rotation algorithm for orbit-style camera (OrbitalCameraBehavior, Inspect3DController). */
+/** Rotation algorithm for orbit-style camera (OrbitalCameraManipulator, Inspect3DController). */
 enum class OrbitRotationMode : std::uint8_t {
     eOrbit = 0,      //!< Classic orbit (Euler yaw/pitch), pitch clamped [-89°, 89°]
     eTrackball = 1,  //!< Quaternion / virtual-trackball rotation (smooth, no gimbal lock)
@@ -57,7 +70,7 @@ enum class OrbitRotationMode : std::uint8_t {
  * @brief Pivot control mode for orbit-style camera behaviors.
  *
  * Determines which point in world space the camera orbits around.
- * Used by OrbitalCameraBehavior and Inspect3DController.
+ * Used by OrbitalCameraManipulator and Inspect3DController.
  */
 enum class OrbitPivotMode : std::uint8_t {
     eCoi = 0,         //!< Pan moves COI in the view plane; camera looks at COI (default).
@@ -94,7 +107,7 @@ enum class GestureAction : std::uint8_t {
     ePan = 1,       //!< Pan (button + drag)
     eZoom = 2,      //!< Zoom (scroll wheel)
     eLook = 3,      //!< FPS-style look (button + drag)
-    eSetPivot = 4,  //!< Set orbit pivot via double-click (maps to orbit COI behavior; see OrbitalCameraBehavior)
+    eSetPivot = 4,  //!< Set orbit pivot via double-click (maps to orbit COI; see OrbitalCameraManipulator)
 };
 
 /**
@@ -103,8 +116,20 @@ enum class GestureAction : std::uint8_t {
  * Uses vne::events::ModifierKey for modifier_mask (eModNone, eModShift, eModCtrl, eModAlt).
  */
 struct VNE_INTERACTION_API MouseBinding {
-    MouseButton button = MouseButton::eLeft;
-    vne::events::ModifierKey modifier_mask = vne::events::ModifierKey::eModNone;
+    MouseButton button = MouseButton::eLeft;  //!< Mouse button for this binding.
+    vne::events::ModifierKey modifier_mask =
+        vne::events::ModifierKey::eModNone;  //!< Required modifiers; @c eModNone = none.
+};
+
+/**
+ * @brief Keyboard key + optional modifier for rebindable actions.
+ *
+ * Used by controllers and @ref InputMapper::bindKey for data-driven key rules.
+ */
+struct VNE_INTERACTION_API KeyBinding {
+    vne::events::KeyCode key = vne::events::KeyCode::eUnknown;  //!< Key for this binding.
+    vne::events::ModifierKey modifier_mask =
+        vne::events::ModifierKey::eModNone;  //!< Required modifiers; @c eModNone = none.
 };
 
 /** Touch pan gesture data with screen pixel deltas. */
@@ -121,7 +146,7 @@ struct VNE_INTERACTION_API TouchPinch final {
 };
 
 // -----------------------------------------------------------------------------
-// Camera action / command layer (intent between input and behavior)
+// Camera action / command layer (intent between input and manipulator)
 // -----------------------------------------------------------------------------
 enum class CameraActionType : std::uint8_t {
     eNone = 0,  //!< Sentinel: no action for this event phase (used in InputRule)
@@ -143,10 +168,14 @@ enum class CameraActionType : std::uint8_t {
     eMoveDown = 16,
     eSprintModifier = 17,
     eSlowModifier = 18,
-    eOrbitPanModifier = 19,  // shift: orbit uses for pan-alias, free uses SprintModifier
+    eOrbitPanModifier = 19,  //!< Orbit: Shift+LMB pan alias; navigation: sprint-like where mapped.
     eResetView = 20,
     eSetPivotAtCursor =
         21,  //!< Double-click: set COI along view direction (camera + front * orbit distance); payload x/y ignored
+    eIncreaseMoveSpeed = 22,         //!< Discrete: increase FPS move speed (Navigation3DController)
+    eDecreaseMoveSpeed = 23,         //!< Discrete: decrease FPS move speed
+    eIncreaseInteractionSpeed = 24,  //!< Discrete: scale orbit pan/rotate sensitivity (Inspect3DController)
+    eDecreaseInteractionSpeed = 25,  //!< Discrete: scale orbit pan/rotate sensitivity down
 };
 
 // -----------------------------------------------------------------------------
@@ -183,8 +212,9 @@ struct VNE_INTERACTION_API InputRule {
     };
 
     Trigger trigger = Trigger::eMouseButton;
-    int code = 0;                  //!< Button index or key code; 0 for scroll/touch
-    int modifier_mask = kModNone;  //!< Required modifier bitmask; 0 = no modifier required
+    int code = 0;  //!< Button index or key code; 0 for scroll/touch
+    int modifier_mask =
+        kModNone;  //!< Required modifier bitmask (non-negative; only @c kModShift|kModCtrl|kModAlt); 0 = none required
 
     CameraActionType on_press = CameraActionType::eNone;    //!< Emitted on press / double-click
     CameraActionType on_release = CameraActionType::eNone;  //!< Emitted on release
@@ -225,7 +255,7 @@ struct VNE_INTERACTION_API OrbitInteractionState {
 };
 
 // -----------------------------------------------------------------------------
-// Internal camera state (behaviors operate on these, then apply to ICamera)
+// Internal camera state (manipulators operate on these, then apply to ICamera)
 // -----------------------------------------------------------------------------
 #ifdef _MSC_VER
 #pragma warning(push)

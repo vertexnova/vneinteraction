@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License")
  * --------------------------------------------------------------------- */
 
-#include "vertexnova/interaction/ortho_2d_behavior.h"
+#include "vertexnova/interaction/ortho_2d_manipulator.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
 
@@ -16,17 +16,17 @@ static std::shared_ptr<vne::scene::OrthographicCamera> makeOrthoCamera() {
         vne::scene::OrthographicCameraParameters(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 1000.0f));
 }
 
-TEST(Ortho2DBehavior, DefaultValues) {
-    vne::interaction::Ortho2DBehavior b;
+TEST(Ortho2DManipulator, DefaultValues) {
+    vne::interaction::Ortho2DManipulator b;
     EXPECT_GT(b.getZoomSpeed(), 0.0f);
 }
 
-TEST(Ortho2DBehavior, CameraIntegration) {
+TEST(Ortho2DManipulator, CameraIntegration) {
     auto cam = makeOrthoCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
     cam->setTarget(vne::math::Vec3f(0.0f, 0.0f, 0.0f));
 
-    vne::interaction::Ortho2DBehavior b;
+    vne::interaction::Ortho2DManipulator b;
     b.setCamera(cam);
     b.onResize(512.0f, 512.0f);
 
@@ -44,12 +44,12 @@ TEST(Ortho2DBehavior, CameraIntegration) {
     EXPECT_GT((cam->getPosition() - vne::math::Vec3f(0.0f, 0.0f, 5.0f)).length(), 0.001f);
 }
 
-TEST(Ortho2DBehavior, ZoomAtCursor) {
+TEST(Ortho2DManipulator, ZoomAtCursor) {
     auto cam = makeOrthoCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
     cam->setTarget(vne::math::Vec3f(0.0f, 0.0f, 0.0f));
 
-    vne::interaction::Ortho2DBehavior b;
+    vne::interaction::Ortho2DManipulator b;
     b.setCamera(cam);
     b.onResize(512.0f, 512.0f);
 
@@ -64,14 +64,14 @@ TEST(Ortho2DBehavior, ZoomAtCursor) {
     EXPECT_GT(b.getWorldUnitsPerPixel(), 0.0f);
 }
 
-TEST(Ortho2DBehavior, InPlaneRotatePreservesEyeTargetDistance) {
+TEST(Ortho2DManipulator, InPlaneRotatePreservesEyeTargetDistance) {
     auto cam = makeOrthoCamera();
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 10.0f),
                 vne::math::Vec3f(0.0f, 0.0f, 0.0f),
                 vne::math::Vec3f(0.0f, 1.0f, 0.0f));
     cam->updateMatrices();
 
-    vne::interaction::Ortho2DBehavior b;
+    vne::interaction::Ortho2DManipulator b;
     b.setCamera(cam);
     b.onResize(512.0f, 512.0f);
 

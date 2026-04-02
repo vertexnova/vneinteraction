@@ -11,14 +11,17 @@
 
 /**
  * @file camera_rig.h
- * @brief CameraRig — multi-behavior camera container.
+ * @brief CameraRig — dispatches @ref CameraActionType commands to every registered manipulator.
  *
- * A CameraRig holds one or more ICameraBehavior instances that each receive
- * the same CameraAction stream independently. Use the static make*() factories
- * for common configurations, or compose behaviors manually for custom setups.
+ * A rig holds one or more @ref ICameraManipulator instances. Each receives the **same** action stream
+ * from @ref onAction and ignores actions it does not handle, enabling composition (e.g. orbit + fly).
+ * Commands are normally produced by @ref InputMapper via controller wiring; tests may call @ref onAction
+ * directly.
+ *
+ * Use the static @c make*() factories for common stacks, or @ref addManipulator for custom setups.
  */
 
-#include "vertexnova/interaction/camera_behavior.h"
+#include "vertexnova/interaction/camera_manipulator.h"
 #include "vertexnova/interaction/export.h"
 #include "vertexnova/interaction/interaction_types.h"
 #include "vertexnova/scene/camera/camera.h"
@@ -29,11 +32,11 @@
 namespace vne::interaction {
 
 /**
- * @brief Multi-behavior camera container.
+ * @brief Multi-manipulator camera container.
  *
- * All registered behaviors receive every CameraAction. Each behavior silently
+ * All registered manipulators receive every CameraAction. Each manipulator silently
  * ignores actions it doesn't handle. This enables composition: e.g. adding
- * both OrbitalCameraBehavior and FreeLookBehavior creates a "game camera" that
+ * both OrbitalCameraManipulator and FreeLookManipulator creates a "game camera" that
  * supports both orbiting and WASD flight simultaneously.
  *
  * ### Usage
@@ -43,8 +46,8 @@ namespace vne::interaction {
  *
  * // Custom composition (game camera):
  * CameraRig rig;
- * rig.addBehavior(std::make_shared<OrbitalCameraBehavior>());
- * rig.addBehavior(std::make_shared<FreeLookBehavior>());
+ * rig.addManipulator(std::make_shared<OrbitalCameraManipulator>());
+ * rig.addManipulator(std::make_shared<FreeLookManipulator>());
  * ```
  *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
@@ -60,33 +63,35 @@ class VNE_INTERACTION_API CameraRig {
     CameraRig& operator=(CameraRig&&) noexcept = default;
 
     // -------------------------------------------------------------------------
-    // Behavior management
+    // Manipulator management
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Add a behavior to the rig.
-     * @param behavior Shared pointer to behavior; must not be nullptr
+     * @brief Add a manipulator to the rig.
+     * @param manipulator Shared pointer to manipulator; must not be nullptr
      */
-    void addBehavior(std::shared_ptr<ICameraBehavior> behavior);
+    void addManipulator(std::shared_ptr<ICameraManipulator> manipulator);
 
     /**
-     * @brief Remove a previously added behavior by pointer identity.
-     * @param behavior The behavior to remove; no-op if not found
+     * @brief Remove a previously added manipulator by pointer identity.
+     * @param manipulator The manipulator to remove; no-op if not found
      */
-    void removeBehavior(const std::shared_ptr<ICameraBehavior>& behavior);
+    void removeManipulator(const std::shared_ptr<ICameraManipulator>& manipulator);
 
-    /** Remove all behaviors. */
-    void clearBehaviors();
+    /** Remove all manipulators. */
+    void clearManipulators();
 
-    /** @return Read-only view of all registered behaviors. */
-    [[nodiscard]] const std::vector<std::shared_ptr<ICameraBehavior>>& behaviors() const noexcept { return behaviors_; }
+    /** @return Read-only view of all registered manipulators. */
+    [[nodiscard]] const std::vector<std::shared_ptr<ICameraManipulator>>& manipulators() const noexcept {
+        return manipulators_;
+    }
 
     // -------------------------------------------------------------------------
     // Action dispatch (called by controllers)
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Dispatch an action to all registered behaviors.
+     * @brief Dispatch an action to all registered manipulators.
      * @param action     The semantic camera action
      * @param payload    Position/delta/zoom data
      * @param delta_time Time since last input in seconds
@@ -94,54 +99,54 @@ class VNE_INTERACTION_API CameraRig {
     void onAction(CameraActionType action, const CameraCommandPayload& payload, double delta_time) noexcept;
 
     /**
-     * @brief Advance all behaviors by one frame.
+     * @brief Advance all manipulators by one frame.
      * @param delta_time Elapsed time in seconds since last frame
      */
     void onUpdate(double delta_time) noexcept;
 
     /**
-     * @brief Set the controlled camera on all behaviors.
+     * @brief Set the controlled camera on all manipulators.
      * @param camera Shared pointer to the camera; may be nullptr to detach
      */
     void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept;
 
     /**
-     * @brief Notify all behaviors of the current viewport dimensions.
+     * @brief Notify all manipulators of the current viewport dimensions.
      * @param width_px  Viewport width in pixels
      * @param height_px Viewport height in pixels
      */
     void onResize(float width_px, float height_px) noexcept;
 
-    /** Reset all behavior states. */
+    /** Reset all manipulator states. */
     void resetState() noexcept;
 
     // -------------------------------------------------------------------------
     // Convenience factory methods
     // -------------------------------------------------------------------------
 
-    /** Orbit rig: OrbitalCameraBehavior with Euler rotation. Default for 3D model viewers. */
+    /** Orbit rig: OrbitalCameraManipulator with Euler rotation. Default for 3D model viewers. */
     static CameraRig makeOrbit();
 
-    /** Trackball rig: OrbitalCameraBehavior with quaternion rotation. Smoother, no gimbal lock. */
+    /** Trackball rig: OrbitalCameraManipulator with quaternion rotation. Smoother, no gimbal lock. */
     static CameraRig makeTrackball();
 
-    /** FPS rig: FreeLookBehavior with world-up constraint. */
+    /** FPS rig: FreeLookManipulator with world-up constraint. */
     static CameraRig makeFps();
 
-    /** Fly rig: FreeLookBehavior unconstrained (no world-up, allows barrel roll). */
+    /** Fly rig: FreeLookManipulator unconstrained (no world-up, allows barrel roll). */
     static CameraRig makeFly();
 
-    /** 2D orthographic rig: Ortho2DBehavior (pan, zoom, optional in-plane rotation). */
+    /** 2D orthographic rig: Ortho2DManipulator (pan, zoom, optional in-plane rotation). */
     static CameraRig makeOrtho2D();
 
-    /** Follow rig: FollowBehavior (autonomous smooth target following). */
+    /** Follow rig: FollowManipulator (autonomous smooth target following). */
     static CameraRig makeFollow();
 
-    /** 2D rig: Ortho2DBehavior (alias for makeOrtho2D). */
+    /** 2D rig: Ortho2DManipulator (alias for makeOrtho2D). */
     static CameraRig make2D();
 
    private:
-    std::vector<std::shared_ptr<ICameraBehavior>> behaviors_;
+    std::vector<std::shared_ptr<ICameraManipulator>> manipulators_;
 };
 
 }  // namespace vne::interaction

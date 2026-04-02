@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License")
  * --------------------------------------------------------------------- */
 
-#include "vertexnova/interaction/free_look_behavior.h"
+#include "vertexnova/interaction/free_look_manipulator.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
 
@@ -29,44 +29,44 @@ static std::shared_ptr<vne::scene::OrthographicCamera> makeOrthoCamera() {
                                                                                                   1000.0f));
 }
 
-TEST(FreeLookBehavior, DefaultFpsMode) {
-    vne::interaction::FreeLookBehavior b;
+TEST(FreeLookManipulator, DefaultFpsMode) {
+    vne::interaction::FreeLookManipulator b;
     EXPECT_EQ(b.getMode(), vne::interaction::FreeLookMode::eFps);
     EXPECT_TRUE(b.getConstrainWorldUp());
 }
 
-TEST(FreeLookBehavior, SetMode) {
-    vne::interaction::FreeLookBehavior b;
+TEST(FreeLookManipulator, SetMode) {
+    vne::interaction::FreeLookManipulator b;
     b.setMode(vne::interaction::FreeLookMode::eFly);
     EXPECT_EQ(b.getMode(), vne::interaction::FreeLookMode::eFly);
     EXPECT_FALSE(b.getConstrainWorldUp());
 }
 
-TEST(FreeLookBehavior, SetConstrainWorldUp) {
-    vne::interaction::FreeLookBehavior b;
+TEST(FreeLookManipulator, SetConstrainWorldUp) {
+    vne::interaction::FreeLookManipulator b;
     b.setConstrainWorldUp(false);
     EXPECT_EQ(b.getMode(), vne::interaction::FreeLookMode::eFly);
     EXPECT_FALSE(b.getConstrainWorldUp());
 }
 
-TEST(FreeLookBehavior, SetMoveSpeed) {
-    vne::interaction::FreeLookBehavior b;
+TEST(FreeLookManipulator, SetMoveSpeed) {
+    vne::interaction::FreeLookManipulator b;
     b.setMoveSpeed(10.0f);
     EXPECT_FLOAT_EQ(b.getMoveSpeed(), 10.0f);
 }
 
-TEST(FreeLookBehavior, SetSprintMultiplier) {
-    vne::interaction::FreeLookBehavior b;
+TEST(FreeLookManipulator, SetSprintMultiplier) {
+    vne::interaction::FreeLookManipulator b;
     b.setSprintMultiplier(5.0f);
     EXPECT_FLOAT_EQ(b.getSprintMultiplier(), 5.0f);
 }
 
-TEST(FreeLookBehavior, CameraIntegration) {
+TEST(FreeLookManipulator, CameraIntegration) {
     auto cam = makePerspCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 0.0f));
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, -1.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
-    vne::interaction::FreeLookBehavior b;
+    vne::interaction::FreeLookManipulator b;
     b.setCamera(cam);
     b.onResize(1280.0f, 720.0f);
     b.setMoveSpeed(5.0f);
@@ -82,12 +82,12 @@ TEST(FreeLookBehavior, CameraIntegration) {
     EXPECT_GT((cam->getPosition() - vne::math::Vec3f(0.0f, 0.0f, 0.0f)).length(), 0.01f);
 }
 
-TEST(FreeLookBehavior, OrthoMoveForwardPansInImagePlane) {
+TEST(FreeLookManipulator, OrthoMoveForwardPansInImagePlane) {
     auto cam = makeOrthoCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 10.0f));
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
-    vne::interaction::FreeLookBehavior b;
+    vne::interaction::FreeLookManipulator b;
     b.setCamera(cam);
     b.onResize(1280.0f, 720.0f);
     b.setMoveSpeed(5.0f);
@@ -104,12 +104,12 @@ TEST(FreeLookBehavior, OrthoMoveForwardPansInImagePlane) {
     EXPECT_GT(std::abs(cam->getPosition().y() - y0), 1e-4f);
 }
 
-TEST(FreeLookBehavior, KeyboardMoveCompensatesSceneScale) {
+TEST(FreeLookManipulator, KeyboardMoveCompensatesSceneScale) {
     auto cam = makeOrthoCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 10.0f));
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
-    vne::interaction::FreeLookBehavior b;
+    vne::interaction::FreeLookManipulator b;
     b.setCamera(cam);
     b.onResize(1280.0f, 720.0f);
     b.setMoveSpeed(10.0f);
@@ -140,13 +140,13 @@ TEST(FreeLookBehavior, KeyboardMoveCompensatesSceneScale) {
     EXPECT_NEAR(step_double_scale, 0.5f, 1e-4f);
 }
 
-TEST(FreeLookBehavior, ResetStateResyncsAnglesFromCamera) {
+TEST(FreeLookManipulator, ResetStateResyncsAnglesFromCamera) {
     auto cam = makePerspCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 10.0f));
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
     cam->updateMatrices();
 
-    vne::interaction::FreeLookBehavior b;
+    vne::interaction::FreeLookManipulator b;
     b.setCamera(cam);
     b.onResize(1280.0f, 720.0f);
     b.setMoveSpeed(5.0f);
@@ -174,13 +174,13 @@ TEST(FreeLookBehavior, ResetStateResyncsAnglesFromCamera) {
  * ensureAnglesSynced() (which calls syncAnglesFromCamera) before WASD so yaw_deg_/pitch_deg_ match the rig.
  * Subcase A: perspCamera() path uses view forward for move_forward; view_offset (target - position) preserved.
  */
-TEST(FreeLookBehavior, ExternalPoseHandoff_PerspectiveForwardAndViewOffset) {
+TEST(FreeLookManipulator, ExternalPoseHandoff_PerspectiveForwardAndViewOffset) {
     auto cam = makePerspCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 10.0f));
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
     cam->updateMatrices();
 
-    vne::interaction::FreeLookBehavior b;
+    vne::interaction::FreeLookManipulator b;
     b.setCamera(cam);
     b.onResize(1280.0f, 720.0f);
     b.setMoveSpeed(5.0f);
@@ -215,13 +215,13 @@ TEST(FreeLookBehavior, ExternalPoseHandoff_PerspectiveForwardAndViewOffset) {
  * Zero-dt onUpdate must still run ensureAnglesSynced / syncAnglesFromCamera so the next positive-dt move
  * does not use stale yaw_deg_/pitch_deg_ after markAnglesDirty().
  */
-TEST(FreeLookBehavior, OnUpdateZeroDeltaTimeStillSyncsAnglesFromCamera) {
+TEST(FreeLookManipulator, OnUpdateZeroDeltaTimeStillSyncsAnglesFromCamera) {
     auto cam = makePerspCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 10.0f));
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
     cam->updateMatrices();
 
-    vne::interaction::FreeLookBehavior b;
+    vne::interaction::FreeLookManipulator b;
     b.setCamera(cam);
     b.onResize(1280.0f, 720.0f);
     b.setMoveSpeed(5.0f);
@@ -249,13 +249,13 @@ TEST(FreeLookBehavior, OnUpdateZeroDeltaTimeStillSyncsAnglesFromCamera) {
  * moves along roll-aware vertical_axis (upVector()). After markAnglesDirty and external lookAt with non-world up,
  * move_up should track camera up, not world +Y only.
  */
-TEST(FreeLookBehavior, ExternalPoseHandoff_OrthoFlyMoveUpAlongCameraUp) {
+TEST(FreeLookManipulator, ExternalPoseHandoff_OrthoFlyMoveUpAlongCameraUp) {
     auto cam = makeOrthoCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 10.0f));
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(1.0f, 0.0f, 0.0f));
     cam->updateMatrices();
 
-    vne::interaction::FreeLookBehavior b;
+    vne::interaction::FreeLookManipulator b;
     b.setMode(vne::interaction::FreeLookMode::eFly);
     b.setCamera(cam);
     b.onResize(1280.0f, 720.0f);

@@ -11,7 +11,7 @@
 
 #include "vertexnova/interaction/orbit_behavior.h"
 
-#include "behavior_utils.h"
+#include "manipulator_utils.h"
 
 #include <vertexnova/math/core/math_utils.h>
 #include <vertexnova/math/easing.h>

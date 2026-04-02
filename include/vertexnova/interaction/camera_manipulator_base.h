@@ -10,20 +10,20 @@
  */
 
 /**
- * @file camera_behavior_base.h
- * @brief CameraBehaviorBase — base implementation of ICameraBehavior with shared zoom-dispatch logic.
+ * @file camera_manipulator_base.h
+ * @brief CameraManipulatorBase — base implementation of ICameraManipulator with shared zoom-dispatch logic.
  *
  * Provides common fields, trivial method bodies, and shared zoom dispatch
- * logic used by every concrete behavior. The zoom dispatch uses the template
+ * logic used by every concrete manipulator. The zoom dispatch uses the template
  * method pattern: dispatchZoom() is non-virtual and handles eChangeFov and
  * eSceneScale internally; eDollyToCoi is routed to the virtual applyDolly()
  * hook — the default implementation handles orthographic zoom-to-cursor;
- * concrete behaviors override it to implement perspective dolly.
+ * concrete manipulators override it to implement perspective dolly.
  *
  * This header is part of the public interaction API surface.
  */
 
-#include "vertexnova/interaction/camera_behavior.h"
+#include "vertexnova/interaction/camera_manipulator.h"
 
 #include <vertexnova/math/core/types.h>
 #include <vertexnova/math/viewport.h>
@@ -40,9 +40,9 @@ class OrthographicCamera;
 namespace vne::interaction {
 
 /**
- * @brief Base class for ICameraBehavior implementations with shared zoom logic and virtual applyDolly().
+ * @brief Base class for ICameraManipulator implementations with shared zoom logic and virtual applyDolly().
  *
- * Concrete behaviors inherit from this instead of ICameraBehavior directly.
+ * Concrete manipulators inherit from this instead of ICameraManipulator directly.
  * They still override the remaining pure-virtual methods (onAction, onUpdate,
  * resetState) and may override setCamera / onResize when extra sync work
  * is needed (calling the base version first).
@@ -52,16 +52,16 @@ namespace vne::interaction {
  * Call `dispatchZoom(payload.zoom_factor, payload.x_px, payload.y_px)` from
  * the `eZoomAtCursor` case of `onAction`. The base class handles eChangeFov and
  * eSceneScale centrally. For eDollyToCoi it calls the virtual `applyDolly()` —
- * override that to implement behavior-specific perspective dolly. The default
+ * override that to implement manipulator-specific perspective dolly. The default
  * applyDolly handles orthographic zoom-to-cursor automatically, so
- * Ortho2DBehavior needs no override.
+ * Ortho2DManipulator needs no override.
  */
-class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
+class VNE_INTERACTION_API CameraManipulatorBase : public ICameraManipulator {
    public:
-    ~CameraBehaviorBase() noexcept override = default;
+    ~CameraManipulatorBase() noexcept override = default;
 
     // -------------------------------------------------------------------------
-    // ICameraBehavior — implemented here so concrete classes don't repeat them
+    // ICameraManipulator — implemented here so concrete classes don't repeat them
     // -------------------------------------------------------------------------
 
     void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;
@@ -75,7 +75,7 @@ class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
     void setEnabled(bool enabled) noexcept override { enabled_ = enabled; }
 
     // -------------------------------------------------------------------------
-    // Zoom method API — shared across all behaviors
+    // Zoom method API — shared across all manipulators
     // -------------------------------------------------------------------------
 
     /** Set the zoom interaction method (dolly, scene scale, or FOV). */
@@ -153,11 +153,11 @@ class VNE_INTERACTION_API CameraBehaviorBase : public ICameraBehavior {
      * For perspective cameras the default is a no-op — override to implement
      * perspective dolly.
      *
-     * When overriding for a behavior that also supports ortho, call the base
+     * When overriding for a manipulator that also supports ortho, call the base
      * in the ortho branch:
      * @code
      *   if (auto ortho = orthoCamera()) {
-     *       CameraBehaviorBase::applyDolly(factor, mx, my);  // handles ortho
+     *       CameraManipulatorBase::applyDolly(factor, mx, my);  // handles ortho
      *       coi_world_ = ortho->getTarget();  // sync orbit-specific state
      *       return;
      *   }

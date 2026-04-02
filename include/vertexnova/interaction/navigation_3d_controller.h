@@ -33,12 +33,19 @@
  * ctrl.setMoveSpeed(10.0f);
  * ctrl.setSprintMultiplier(5.0f);
  * @endcode
+ *
+ * Defaults match common viewport tools (e.g. Isaac Sim style): **Shift** = sprint, **Ctrl** = slow while moving.
+ *
+ * For direct `FreeLookManipulator` access (sensitivity, mode, etc.), use @ref freeLookManipulator(); that reference
+ * stays valid across @ref setMode and internal input-rule rebuilds.
  */
 
 #include "vertexnova/interaction/export.h"
 #include "vertexnova/interaction/interaction_types.h"
+#include "vertexnova/interaction/camera_controller.h"
 #include "vertexnova/interaction/camera_rig.h"
 
+#include <vertexnova/events/types.h>
 #include <memory>
 
 namespace vne::events {
@@ -52,8 +59,8 @@ class ICamera;
 namespace vne::interaction {
 
 class InputMapper;
-class FreeLookBehavior;
-class OrbitalCameraBehavior;
+class FreeLookManipulator;
+class OrbitalCameraManipulator;
 
 /** Navigation mode for Navigation3DController. */
 enum class NavigateMode : std::uint8_t {
@@ -64,14 +71,14 @@ enum class NavigateMode : std::uint8_t {
 /**
  * @brief High-level camera controller for 3D environment traversal.
  *
- * Wraps a CameraRig (FreeLookBehavior) and an InputMapper with a sensible preset per mode.
+ * Wraps a CameraRig (FreeLookManipulator) and an InputMapper with a sensible preset per mode.
  *
  * Covers: FPS games, flight/space sims, architectural walkthroughs,
  * game editors, drone simulators.
  *
  * @threadsafe Not thread-safe. Call all methods from the same thread.
  */
-class VNE_INTERACTION_API Navigation3DController {
+class VNE_INTERACTION_API Navigation3DController : public ICameraController {
    public:
     Navigation3DController();
     ~Navigation3DController();
@@ -85,15 +92,15 @@ class VNE_INTERACTION_API Navigation3DController {
     // Core setup
     // -------------------------------------------------------------------------
 
-    void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept;
-    void onResize(float width_px, float height_px) noexcept;
+    void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;
+    void onResize(float width_px, float height_px) noexcept override;
 
     // -------------------------------------------------------------------------
     // Per-frame
     // -------------------------------------------------------------------------
 
-    void onEvent(const vne::events::Event& event, double delta_time = 0.0) noexcept;
-    void onUpdate(double delta_time) noexcept;
+    void onEvent(const vne::events::Event& event, double delta_time = 0.0) noexcept override;
+    void onUpdate(double delta_time) noexcept override;
 
     // -------------------------------------------------------------------------
     // Mode
@@ -120,6 +127,53 @@ class VNE_INTERACTION_API Navigation3DController {
     [[nodiscard]] float getSlowMultiplier() const noexcept;
 
     // -------------------------------------------------------------------------
+    // Key / mouse bindings
+    // -------------------------------------------------------------------------
+
+    void setMoveForwardKey(vne::events::KeyCode key) noexcept;
+    void setMoveBackwardKey(vne::events::KeyCode key) noexcept;
+    void setMoveLeftKey(vne::events::KeyCode key) noexcept;
+    void setMoveRightKey(vne::events::KeyCode key) noexcept;
+    void setMoveUpKey(vne::events::KeyCode key) noexcept;
+    void setMoveDownKey(vne::events::KeyCode key) noexcept;
+
+    /**
+     * Single sprint key (replaces default Left/Right Shift pair).
+     * @param key eUnknown restores default Shift keys.
+     */
+    void setSpeedBoostKey(vne::events::KeyCode key) noexcept;
+
+    /**
+     * Single slow key (replaces default Left/Right Control pair).
+     * @param key eUnknown restores default Ctrl keys.
+     */
+    void setSlowKey(vne::events::KeyCode key) noexcept;
+
+    void setLookButton(MouseButton btn,
+                       vne::events::ModifierKey modifier = vne::events::ModifierKey::eModNone) noexcept;
+
+    // -------------------------------------------------------------------------
+    // DOF (input gating)
+    // -------------------------------------------------------------------------
+
+    void setLookEnabled(bool enabled) noexcept;
+    void setMoveEnabled(bool enabled) noexcept;
+    void setZoomEnabled(bool enabled) noexcept;
+    [[nodiscard]] bool isLookEnabled() const noexcept;
+    [[nodiscard]] bool isMoveEnabled() const noexcept;
+    [[nodiscard]] bool isZoomEnabled() const noexcept;
+
+    // -------------------------------------------------------------------------
+    // Optional discrete move-speed keys (unbound by default)
+    // -------------------------------------------------------------------------
+
+    void setIncreaseMoveSpeedKey(vne::events::KeyCode key) noexcept;
+    void setDecreaseMoveSpeedKey(vne::events::KeyCode key) noexcept;
+    void setMoveSpeedStep(float delta) noexcept;
+    void setMoveSpeedMin(float min_speed) noexcept;
+    void setMoveSpeedMax(float max_speed) noexcept;
+
+    // -------------------------------------------------------------------------
     // Convenience
     // -------------------------------------------------------------------------
 
@@ -132,13 +186,13 @@ class VNE_INTERACTION_API Navigation3DController {
     // -------------------------------------------------------------------------
 
     [[nodiscard]] InputMapper& inputMapper() noexcept;
-    [[nodiscard]] FreeLookBehavior& freeLookBehavior() noexcept;
+    [[nodiscard]] FreeLookManipulator& freeLookManipulator() noexcept;
 
     /**
      * @brief Former hook for hybrid orbit + free-look; always returns nullptr.
      * @deprecated Use Inspect3DController for orbit-style inspection, or compose CameraRig manually.
      */
-    [[nodiscard]] OrbitalCameraBehavior* orbitalCameraBehavior() noexcept;
+    [[nodiscard]] OrbitalCameraManipulator* orbitalCameraManipulator() noexcept;
 
    private:
     void rebuild() noexcept;

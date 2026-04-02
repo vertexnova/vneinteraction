@@ -21,7 +21,7 @@
  * ctrl.setCamera(camera);
  * // Follow a dynamic transform (only translation from the matrix is used for the target point):
  * ctrl.setTarget([&]{ return player.worldTransform(); });
- * ctrl.setOffset({0.0f, 2.0f, 5.0f});   // world space: same default semantics as FollowBehavior
+ * ctrl.setOffset({0.0f, 2.0f, 5.0f});   // world space: same default semantics as FollowManipulator
  * ctrl.setLag(0.1f);                    // smooth follow
  * @endcode
  *
@@ -34,6 +34,7 @@
 
 #include "vertexnova/interaction/export.h"
 #include "vertexnova/interaction/interaction_types.h"
+#include "vertexnova/interaction/camera_controller.h"
 #include "vertexnova/interaction/camera_rig.h"
 
 #include <vertexnova/math/core/core.h>
@@ -52,21 +53,21 @@ class ICamera;
 namespace vne::interaction {
 
 class InputMapper;
-class FollowBehavior;
+class FollowManipulator;
 
 /**
  * @brief High-level camera controller for smooth target following.
  *
- * Wraps a CameraRig (FollowBehavior). No user input is required;
+ * Wraps a CameraRig (FollowManipulator). No user input is required;
  * the camera autonomously tracks the target transform each frame.
  *
  * Covers: third-person game cameras, cinematic rigs, vehicle chase cams.
  * Target orientation from @c Mat4f is not used to rotate the offset — only the
- * translation column; offset is world-space (see @ref FollowBehavior::setOffset).
+ * translation column; offset is world-space (see @ref FollowManipulator::setOffset).
  *
  * @threadsafe Not thread-safe. Call all methods from the same thread.
  */
-class VNE_INTERACTION_API FollowController {
+class VNE_INTERACTION_API FollowController : public ICameraController {
    public:
     /** Callback type returning the current target world transform. */
     using TargetCallback = std::function<vne::math::Mat4f()>;
@@ -83,18 +84,18 @@ class VNE_INTERACTION_API FollowController {
     // Core setup
     // -------------------------------------------------------------------------
 
-    void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept;
-    void onResize(float width_px, float height_px) noexcept;
+    void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;
+    void onResize(float width_px, float height_px) noexcept override;
 
     // -------------------------------------------------------------------------
     // Per-frame
     // -------------------------------------------------------------------------
 
     /** No user input is required; call onUpdate() each frame to advance tracking. */
-    void onUpdate(double delta_time) noexcept;
+    void onUpdate(double delta_time) noexcept override;
 
     /** Optional: feed events to allow user-controlled zoom or offset adjustment. */
-    void onEvent(const vne::events::Event& event) noexcept;
+    void onEvent(const vne::events::Event& event, double delta_time = 0.0) noexcept override;
 
     // -------------------------------------------------------------------------
     // Target
@@ -118,7 +119,7 @@ class VNE_INTERACTION_API FollowController {
 
     /**
      * @brief World-space vector from target position to desired eye: @c desired_eye = target + offset.
-     * Not rotated by target orientation; see @ref FollowBehavior::setOffset for axis convention.
+     * Not rotated by target orientation; see @ref FollowManipulator::setOffset for axis convention.
      */
     void setOffset(const vne::math::Vec3f& world_offset) noexcept;
     [[nodiscard]] vne::math::Vec3f getOffset() const noexcept;
@@ -141,7 +142,7 @@ class VNE_INTERACTION_API FollowController {
     // -------------------------------------------------------------------------
 
     [[nodiscard]] InputMapper& inputMapper() noexcept;
-    [[nodiscard]] FollowBehavior& followBehavior() noexcept;
+    [[nodiscard]] FollowManipulator& followManipulator() noexcept;
 
    private:
     struct Impl;

@@ -5,7 +5,17 @@
  *
  * Author:    Ajeet Singh Yadav
  * Created:   March 2026
+ *
+ * Autodoc:   yes
  * ----------------------------------------------------------------------
+ */
+
+/**
+ * @file export.h
+ * @brief `VNE_INTERACTION_API` — DLL export/import macro for shared-library builds.
+ *
+ * On Windows, define @c VNE_INTERACTION_BUILDING_DLL when compiling the library and
+ * @c VNE_INTERACTION_DLL when linking the DLL from an app. Other platforms expand to empty.
  */
 
 #if defined(_WIN32) || defined(_WIN64) || defined(__CYGWIN__)

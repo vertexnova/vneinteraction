@@ -4,7 +4,7 @@
  * --------------------------------------------------------------------- */
 
 #include "vertexnova/interaction/camera_rig.h"
-#include "vertexnova/interaction/orbital_camera_behavior.h"
+#include "vertexnova/interaction/orbital_camera_manipulator.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
 
@@ -19,29 +19,29 @@ static std::shared_ptr<vne::scene::PerspectiveCamera> makePerspCamera() {
 
 TEST(CameraRig, MakeOrbit) {
     auto rig = vne::interaction::CameraRig::makeOrbit();
-    EXPECT_NE(rig.behaviors().size(), 0u);
+    EXPECT_NE(rig.manipulators().size(), 0u);
 }
 
 TEST(CameraRig, Make2D) {
     auto rig = vne::interaction::CameraRig::make2D();
-    EXPECT_NE(rig.behaviors().size(), 0u);
+    EXPECT_NE(rig.manipulators().size(), 0u);
 }
 
 TEST(CameraRig, MakeOrtho2D) {
     auto rig = vne::interaction::CameraRig::makeOrtho2D();
-    EXPECT_NE(rig.behaviors().size(), 0u);
+    EXPECT_NE(rig.manipulators().size(), 0u);
 }
 
-TEST(CameraRig, AddRemoveBehavior) {
+TEST(CameraRig, AddRemoveManipulator) {
     vne::interaction::CameraRig rig;
-    auto b = std::make_shared<vne::interaction::OrbitalCameraBehavior>();
-    rig.addBehavior(b);
-    EXPECT_EQ(rig.behaviors().size(), 1u);
-    rig.clearBehaviors();
-    EXPECT_EQ(rig.behaviors().size(), 0u);
+    auto b = std::make_shared<vne::interaction::OrbitalCameraManipulator>();
+    rig.addManipulator(b);
+    EXPECT_EQ(rig.manipulators().size(), 1u);
+    rig.clearManipulators();
+    EXPECT_EQ(rig.manipulators().size(), 0u);
 }
 
-TEST(CameraRig, OnActionDispatchesToBehaviors) {
+TEST(CameraRig, OnActionDispatchesToManipulators) {
     auto rig = vne::interaction::CameraRig::makeOrbit();
     auto cam = makePerspCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));

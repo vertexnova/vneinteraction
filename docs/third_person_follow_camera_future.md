@@ -4,7 +4,7 @@
 
 ## Why
 
-[`FollowBehavior`](../src/vertexnova/interaction/follow_behavior.cpp) / [`FollowController`](../include/vertexnova/interaction/follow_controller.h) provide **smooth tracking** of a world point with a fixed world-space offset and always **look-at** that point. They do **not** provide typical third-person game behavior: **orbit yaw/pitch**, **zoom by distance**, **shoulder offset**, or **optional camera–environment collision**.
+[`FollowManipulator`](../src/vertexnova/interaction/follow_manipulator.cpp) / [`FollowController`](../include/vertexnova/interaction/follow_controller.h) provide **smooth tracking** of a world point with a fixed world-space offset and always **look-at** that point. They do **not** provide typical third-person game behavior: **orbit yaw/pitch**, **zoom by distance**, **shoulder offset**, or **optional camera–environment collision**.
 
 ## Intended behavior (high level)
 

@@ -10,15 +10,28 @@
  */
 
 /**
- * @file orbital_camera_behavior.h
- * @brief OrbitalCameraBehavior — orbit camera behavior with Euler or virtual-trackball rotation (ICameraBehavior).
+ * @file orbital_camera_manipulator.h
+ * @brief OrbitalCameraManipulator — orbit camera manipulator with Euler or virtual-trackball rotation.
  *
- * Supports both Euler (classic orbit) and quaternion virtual-trackball rotation modes,
- * and three pivot modes (COI, ViewCenter, Fixed). Handles rotate, pan, zoom,
- * inertia, and fitToAABB.
+ * Public orbit manipulator used by inspect-style controllers. It composes:
+ * - @ref OrbitBehavior for Euler yaw/pitch state and Euler inertia
+ * - @ref TrackballBehavior for screen-to-sphere mapping and ball-space deltas
+ *
+ * @par Rotation modes
+ * - @c OrbitRotationMode::eOrbit: classic yaw/pitch orbit around @c world_up.
+ * - @c OrbitRotationMode::eTrackball: quaternion orbit via virtual trackball.
+ *
+ * @par Pivot modes
+ * - @c OrbitPivotMode::eCoi: pivot follows pan in view plane.
+ * - @c OrbitPivotMode::eViewCenter: behaves like COI while panning, then recenters from camera target on pan end.
+ * - @c OrbitPivotMode::eFixed: fixed world pivot; pan trucks eye+target.
+ *
+ * @par Zoom
+ * Zoom dispatch is inherited from @ref CameraManipulatorBase and supports
+ * @ref ZoomMethod::eDollyToCoi, @ref ZoomMethod::eSceneScale, and @ref ZoomMethod::eChangeFov.
  */
 
-#include "vertexnova/interaction/camera_behavior_base.h"
+#include "vertexnova/interaction/camera_manipulator_base.h"
 #include "vertexnova/interaction/orbit_behavior.h"
 #include "vertexnova/interaction/trackball_behavior.h"
 #include "vertexnova/interaction/interaction_types.h"
@@ -38,34 +51,35 @@ class ICamera;
 namespace vne::interaction {
 
 /**
- * @brief Orbital camera behavior (Euler orbit or virtual-trackball rotation).
+ * @brief Orbit manipulator with Euler/trackball rotation, pan, zoom, inertia, and fit.
  *
- * Implements ICameraBehavior for orbit-style interaction. Handles rotate, pan, and zoom
- * actions. Supports inertia via exponential decay.
+ * Handles action-driven interaction and writes the resulting pose to the attached
+ * @ref vne::scene::ICamera.
  *
- * - RotationMode::eOrbit   — classic yaw/pitch orbit, pitch clamped to [-89°, 89°] (raw window deltas, deg/pixel)
- * - RotationMode::eTrackball — arcball quaternion; sphere mapping uses @ref CameraBehaviorBase::graphicsApi()
- *   (same NDC path as pan and zoom-to-cursor)
- * - Pan — view-plane motion from @c mouseWindowDeltaToNDCDelta × frustum half-extents at the camera (API-aware)
- * - PivotMode::eCoi — orbit center follows pan in the view plane (see @ref OrbitPivotMode).
- * - PivotMode::eViewCenter — same as eCoi while panning; on pan end, COI syncs from the camera target.
- * - PivotMode::eFixed — world pivot fixed; pan trucks eye+target; after pan, target may not equal COI until rotate.
+ * @par Action coverage
+ * Rotate: @c eBeginRotate / @c eRotateDelta / @c eEndRotate
+ * Pan: @c eBeginPan / @c ePanDelta / @c eEndPan
+ * Zoom: @c eZoomAtCursor
+ * Utility: @c eResetView, @c eSetPivotAtCursor, @c eOrbitPanModifier
+ *
+ * @par Inertia
+ * Rotation and pan both support damping-based inertia via @ref onUpdate.
  *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
  */
-class VNE_INTERACTION_API OrbitalCameraBehavior final : public CameraBehaviorBase {
+class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipulatorBase {
    public:
     /** Construct with default settings (eOrbit mode, eCoi pivot, Y-up). */
-    OrbitalCameraBehavior() noexcept;
-    ~OrbitalCameraBehavior() noexcept override = default;
+    OrbitalCameraManipulator() noexcept;
+    ~OrbitalCameraManipulator() noexcept override = default;
 
-    OrbitalCameraBehavior(const OrbitalCameraBehavior&) = delete;
-    OrbitalCameraBehavior& operator=(const OrbitalCameraBehavior&) = delete;
-    OrbitalCameraBehavior(OrbitalCameraBehavior&&) noexcept = default;
-    OrbitalCameraBehavior& operator=(OrbitalCameraBehavior&&) noexcept = default;
+    OrbitalCameraManipulator(const OrbitalCameraManipulator&) = delete;
+    OrbitalCameraManipulator& operator=(const OrbitalCameraManipulator&) = delete;
+    OrbitalCameraManipulator(OrbitalCameraManipulator&&) noexcept = default;
+    OrbitalCameraManipulator& operator=(OrbitalCameraManipulator&&) noexcept = default;
 
     // -------------------------------------------------------------------------
-    // ICameraBehavior
+    // ICameraManipulator
     // -------------------------------------------------------------------------
 
     /**
@@ -87,7 +101,7 @@ class VNE_INTERACTION_API OrbitalCameraBehavior final : public CameraBehaviorBas
     /** Reset all interaction state (velocities, drag tracking). */
     void resetState() noexcept override;
 
-    // isEnabled / setEnabled inherited from CameraBehaviorBase
+    // isEnabled / setEnabled inherited from CameraManipulatorBase
 
     // -------------------------------------------------------------------------
     // Orbit / trackball-specific API
@@ -150,7 +164,7 @@ class VNE_INTERACTION_API OrbitalCameraBehavior final : public CameraBehaviorBas
     [[nodiscard]] float getZoomSpeed() const noexcept { return zoom_speed_; }
 
     // setZoomMethod / getZoomMethod / setFovZoomSpeed / getFovZoomSpeed / getZoomScale
-    // are inherited from CameraBehaviorBase.
+    // are inherited from CameraManipulatorBase.
 
     /**
      * Set rotation speed multiplier (>= 0). Scales Euler yaw/pitch (deg/pixel). For trackball mode, the
@@ -178,6 +192,22 @@ class VNE_INTERACTION_API OrbitalCameraBehavior final : public CameraBehaviorBas
     /** Set pan inertia damping (>= 0). */
     void setPanDamping(float damping) noexcept { pan_damping_ = std::max(0.0f, damping); }
     [[nodiscard]] float getPanDamping() const noexcept { return pan_damping_; }
+
+    /** When false, rotation drag/release does not coast (Euler and trackball). Default: true. */
+    void setRotationInertiaEnabled(bool enabled) noexcept { rotation_inertia_enabled_ = enabled; }
+    [[nodiscard]] bool isRotationInertiaEnabled() const noexcept { return rotation_inertia_enabled_; }
+
+    /** When false, pan drag/release does not coast. Default: true. */
+    void setPanInertiaEnabled(bool enabled) noexcept { pan_inertia_enabled_ = enabled; }
+    [[nodiscard]] bool isPanInertiaEnabled() const noexcept { return pan_inertia_enabled_; }
+
+    /** When false, ignore rotate actions. Zoom uses manipulator @c setEnabled. */
+    void setRotateEnabled(bool enabled) noexcept { rotate_enabled_ = enabled; }
+    [[nodiscard]] bool isRotateEnabled() const noexcept { return rotate_enabled_; }
+
+    /** When false, ignore pan actions. */
+    void setPanEnabled(bool enabled) noexcept { pan_enabled_ = enabled; }
+    [[nodiscard]] bool isPanEnabled() const noexcept { return pan_enabled_; }
 
     /**
      * @brief Fit camera to an AABB with smooth animation.
@@ -249,8 +279,8 @@ class VNE_INTERACTION_API OrbitalCameraBehavior final : public CameraBehaviorBas
     [[nodiscard]] bool isOrthographic() const noexcept;
 
     // ---- state ------------------------------------------------------------------
-    // camera_, enabled_, viewport_ inherited from CameraBehaviorBase
-    // zoom_method_, zoom_scale_, fov_zoom_speed_ inherited from CameraBehaviorBase
+    // camera_, enabled_, viewport_ inherited from CameraManipulatorBase
+    // zoom_method_, zoom_scale_, fov_zoom_speed_ inherited from CameraManipulatorBase
 
     OrbitRotationMode rotation_mode_ = OrbitRotationMode::eOrbit;
     OrbitPivotMode pivot_mode_ = OrbitPivotMode::eCoi;
@@ -284,6 +314,11 @@ class VNE_INTERACTION_API OrbitalCameraBehavior final : public CameraBehaviorBas
     float rot_damping_ = 8.0f;
     float pan_damping_ = 10.0f;
     float zoom_speed_ = 1.1f;
+
+    bool rotation_inertia_enabled_ = true;
+    bool pan_inertia_enabled_ = true;
+    bool rotate_enabled_ = true;
+    bool pan_enabled_ = true;
 
     // fitToAABB smooth animation
     float target_orbit_distance_ = 5.0f;

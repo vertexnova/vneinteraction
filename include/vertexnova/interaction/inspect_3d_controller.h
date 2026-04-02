@@ -54,8 +54,10 @@
 
 #include "vertexnova/interaction/export.h"
 #include "vertexnova/interaction/interaction_types.h"
+#include "vertexnova/interaction/camera_controller.h"
 #include "vertexnova/interaction/camera_rig.h"
 
+#include <vertexnova/events/types.h>
 #include <vertexnova/math/core/core.h>
 
 #include <memory>
@@ -71,17 +73,17 @@ class ICamera;
 namespace vne::interaction {
 
 class InputMapper;
-class OrbitalCameraBehavior;
+class OrbitalCameraManipulator;
 
 /**
  * @brief High-level camera controller for object inspection.
  *
- * Wraps a CameraRig (OrbitalCameraBehavior) and an InputMapper with a sensible preset.
+ * Wraps a CameraRig (OrbitalCameraManipulator) and an InputMapper with a sensible preset.
  * Covers: 3D model viewers, CAD, scientific visualization, medical 3D.
  *
  * @threadsafe Not thread-safe. Call all methods from the same thread.
  */
-class VNE_INTERACTION_API Inspect3DController {
+class VNE_INTERACTION_API Inspect3DController : public ICameraController {
    public:
     Inspect3DController();
     ~Inspect3DController();
@@ -96,20 +98,20 @@ class VNE_INTERACTION_API Inspect3DController {
     // -------------------------------------------------------------------------
 
     /** Attach a camera. Syncs internal state from its current position. */
-    void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept;
+    void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;
 
     /** Notify the controller of the viewport dimensions (pixels). */
-    void onResize(float width_px, float height_px) noexcept;
+    void onResize(float width_px, float height_px) noexcept override;
 
     // -------------------------------------------------------------------------
     // Per-frame
     // -------------------------------------------------------------------------
 
     /** Feed a vneevents event (mouse, keyboard, touch, double-click). */
-    void onEvent(const vne::events::Event& event, double delta_time = 0.0) noexcept;
+    void onEvent(const vne::events::Event& event, double delta_time = 0.0) noexcept override;
 
     /** Advance inertia and fit animation by delta_time seconds. */
-    void onUpdate(double delta_time) noexcept;
+    void onUpdate(double delta_time) noexcept override;
 
     // -------------------------------------------------------------------------
     // Rotation
@@ -158,6 +160,62 @@ class VNE_INTERACTION_API Inspect3DController {
     void setZoomEnabled(bool enabled) noexcept;
 
     // -------------------------------------------------------------------------
+    // Bindings (primary API — avoids manual InputRule setup)
+    // -------------------------------------------------------------------------
+
+    /** Orbit drag button (default: LMB, no modifier). */
+    void setRotateButton(MouseButton btn,
+                         vne::events::ModifierKey modifier = vne::events::ModifierKey::eModNone) noexcept;
+
+    /** Primary pan button (default: RMB). */
+    void setPanButton(MouseButton btn, vne::events::ModifierKey modifier = vne::events::ModifierKey::eModNone) noexcept;
+
+    /** Secondary pan button (default: MMB). Set to the same as @ref setPanButton to omit. */
+    void setPanSecondaryButton(MouseButton btn,
+                               vne::events::ModifierKey modifier = vne::events::ModifierKey::eModNone) noexcept;
+
+    /**
+     * Modifier on the rotate button that means pan (default: Shift).
+     * Use eModNone to remove Shift+LMB-style pan alias.
+     */
+    void setPanAlternateModifier(vne::events::ModifierKey modifier) noexcept;
+
+    /** Scroll zoom only when this modifier is held (default: none = always zoom on scroll). */
+    void setZoomScrollModifier(vne::events::ModifierKey modifier) noexcept;
+
+    /** Double-click sets pivot (default: LMB, no modifier). */
+    void setPivotDoubleClickButton(MouseButton btn,
+                                   vne::events::ModifierKey modifier = vne::events::ModifierKey::eModNone) noexcept;
+
+    // -------------------------------------------------------------------------
+    // Sensitivity (delegates to OrbitalCameraManipulator)
+    // -------------------------------------------------------------------------
+
+    /** Rotation scale (Euler deg/pixel; trackball uses same base field). */
+    void setRotateSensitivity(float degrees_per_pixel) noexcept;
+    /** Pan speed multiplier. */
+    void setPanSensitivity(float multiplier) noexcept;
+    /** Zoom exponent (see OrbitalCameraManipulator::setZoomSpeed). */
+    void setZoomSensitivity(float multiplier) noexcept;
+
+    // -------------------------------------------------------------------------
+    // Inertia (delegates to OrbitalCameraManipulator)
+    // -------------------------------------------------------------------------
+
+    void setRotationInertiaEnabled(bool enabled) noexcept;
+    void setPanInertiaEnabled(bool enabled) noexcept;
+
+    // -------------------------------------------------------------------------
+    // Optional discrete interaction speed keys (unbound by default)
+    // -------------------------------------------------------------------------
+
+    /** eUnknown clears the binding. Scales rotate+pan speeds together. */
+    void setIncreaseInteractionSpeedKey(vne::events::KeyCode key) noexcept;
+    void setDecreaseInteractionSpeedKey(vne::events::KeyCode key) noexcept;
+    /** Per key press: multiply or divide interaction scale (default 1.1). */
+    void setInteractionSpeedStep(float factor) noexcept;
+
+    // -------------------------------------------------------------------------
     // Convenience
     // -------------------------------------------------------------------------
 
@@ -174,8 +232,8 @@ class VNE_INTERACTION_API Inspect3DController {
     /** Direct access to the underlying InputMapper for full rebind. */
     [[nodiscard]] InputMapper& inputMapper() noexcept;
 
-    /** Direct access to the underlying OrbitalCameraBehavior for fine-tuning. */
-    [[nodiscard]] OrbitalCameraBehavior& orbitalCameraBehavior() noexcept;
+    /** Direct access to the underlying OrbitalCameraManipulator for fine-tuning. */
+    [[nodiscard]] OrbitalCameraManipulator& orbitalCameraManipulator() noexcept;
 
    private:
     void rebuildRules() noexcept;

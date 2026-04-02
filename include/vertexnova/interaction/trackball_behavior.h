@@ -12,7 +12,7 @@
 
 /**
  * @file trackball_behavior.h
- * @brief Screen-space virtual trackball (trackball): maps cursor positions to a unit sphere and derives rotations.
+ * @brief Screen-space virtual trackball (arcball): maps cursor positions to a unit sphere and derives rotations.
  *
  * @par ProjectionMode::eHyperbolic (default)
  * Isotropic mapping using `min(viewport width, height)`, inner spherical cap
@@ -28,7 +28,7 @@
  * @ref OrbitBehavior owns yaw/pitch (degrees), pitch limits, and Euler drag inertia in one type.
  * @ref TrackballBehavior owns **sphere mapping** and **ball-space** frame deltas (@ref BallFrameDelta via
  * @ref TrackballBehavior::ballFrameDeltaFromSpheres). Integrating release inertia into the orbit
- * **orientation quaternion** (world-space axis, rad/s) stays in @c OrbitalCameraBehavior because
+ * **orientation quaternion** (world-space axis, rad/s) stays in @c OrbitalCameraManipulator because
  * it requires the current camera/orientation basis — same split as mapping ball axes to world.
  */
 
@@ -41,8 +41,8 @@ namespace vne::interaction {
 /**
  * @brief One frame of motion on the unit sphere (trackball / camera space), for inertia.
  *
- * @a axis_ball is in the same space as @ref project (right, screen-down, toward eye). The behavior
- * maps it to a world rotation axis using the orbit orientation basis.
+ * @a axis_ball is in the same space as @ref project (right, screen-down, toward eye). The orbital
+ * manipulator maps it to a world rotation axis using the orbit orientation basis.
  */
 struct BallFrameDelta {
     bool valid = false;            //!< @c true if @a axis_ball and @a angle_rad are usable.
@@ -51,7 +51,7 @@ struct BallFrameDelta {
 };
 
 /**
- * @brief Virtual trackball for quaternion orbit rotation (rotation only; pan lives on @c OrbitalCameraBehavior).
+ * @brief Virtual trackball for quaternion orbit rotation (rotation only; pan lives on @c OrbitalCameraManipulator).
  *
  * Call @ref setViewport when the drawable size changes. For a drag, call @ref beginDrag at
  * pointer down, then each move: @ref cumulativeDeltaQuaternion for the rotation from drag start
@@ -62,11 +62,7 @@ struct BallFrameDelta {
  */
 class VNE_INTERACTION_API TrackballBehavior {
    public:
-    /**
-     * @brief Screen-to-sphere mapping. Default: @ref eHyperbolic.
-     * @enum eHyperbolic: Spherical cap, then hyperbolic continuation outside the cap.
-     * @enum eRim: Hemisphere inside the unit disk; equatorial rim (z = 0) beyond it.
-     */
+    /** Screen-to-sphere mapping; see @ref ProjectionMode::eHyperbolic / @ref ProjectionMode::eRim. */
     enum class ProjectionMode {
         eHyperbolic = 0,  //!< Spherical cap, then hyperbolic continuation outside the cap.
         eRim = 1          //!< Hemisphere inside the unit disk; equatorial rim (z = 0) beyond it.
@@ -76,27 +72,32 @@ class VNE_INTERACTION_API TrackballBehavior {
     TrackballBehavior() noexcept = default;
 
     /**
-     * @brief Update pixel size (e.g. from @ref CameraBehaviorBase::onResize).
+     * @brief Update pixel size (e.g. from @ref CameraManipulatorBase::onResize).
      * @param size_px: (width, height) in pixels.
      */
     void setViewport(const vne::math::Vec2f& size_px) noexcept;
 
     /**
-     * @brief Graphics API for window → NDC mapping in @ref project (default OpenGL).
-     * Must match @c ICamera::getGraphicsApi() / @ref CameraBehaviorBase::graphicsApi().
+     * @brief Window → NDC convention for @ref project (default OpenGL).
+     * @param api Must match \c vne::scene::ICamera::getGraphicsApi() / @ref CameraManipulatorBase::graphicsApi().
      */
     void setGraphicsApi(vne::math::GraphicsApi api) noexcept { graphics_api_ = api; }
+
+    /**
+     * @brief Graphics API used for window → NDC in @ref project.
+     * @return Same convention as @ref setGraphicsApi.
+     */
     [[nodiscard]] vne::math::GraphicsApi getGraphicsApi() const noexcept { return graphics_api_; }
 
     /**
-     * @brief Set the projection mode.
-     * @param mode: The projection mode.
+     * @brief Set screen-to-sphere @ref ProjectionMode.
+     * @param mode Mapping mode (@ref ProjectionMode::eHyperbolic or @ref ProjectionMode::eRim).
      */
     void setProjectionMode(ProjectionMode mode) noexcept { projection_mode_ = mode; }
 
     /**
-     * @brief Get the projection mode.
-     * @return The projection mode.
+     * @brief Current @ref ProjectionMode.
+     * @return Active projection mode.
      */
     [[nodiscard]] ProjectionMode getProjectionMode() const noexcept { return projection_mode_; }
 
@@ -174,9 +175,9 @@ class VNE_INTERACTION_API TrackballBehavior {
 
    private:
     vne::math::Vec2f viewport_px_{};  //!< Viewport size in pixels (width = x, height = y).
-    vne::math::GraphicsApi graphics_api_{vne::math::GraphicsApi::eOpenGL};
-    ProjectionMode projection_mode_ = ProjectionMode::eHyperbolic;  //!< Projection mode.
-    vne::math::Vec3f drag_start_on_sphere_{0.0f, 0.0f, 1.0f};       //!< Drag start on sphere.
+    vne::math::GraphicsApi graphics_api_{vne::math::GraphicsApi::eOpenGL};  //!< NDC convention for @ref project.
+    ProjectionMode projection_mode_ = ProjectionMode::eHyperbolic;          //!< Active @ref ProjectionMode.
+    vne::math::Vec3f drag_start_on_sphere_{0.0f, 0.0f, 1.0f};               //!< Drag start on sphere.
     vne::math::Vec2f last_cursor_px_{};  //!< Previous pointer position for frame-to-frame inertia (x, y pixels).
 };
 
