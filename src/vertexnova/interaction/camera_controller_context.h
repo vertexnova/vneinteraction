@@ -55,17 +55,19 @@ struct CameraControllerContext {
 
     void onUpdate(double delta_time) noexcept { rig.onUpdate(delta_time); }
 
-    /** Clear cursor tracking and mapper button/key state (e.g. focus loss). */
+    /**
+     * Clear input and gesture state: @ref InputMapper::resetState (active chords),
+     * @ref CameraRig::resetState (manipulator latches / in-flight gestures), and @ref CursorState.
+     * Use on focus loss or when the viewport must not retain mid-gesture residue.
+     */
     void resetInteraction() noexcept {
-        cursor = {};
         mapper.resetState();
+        rig.resetState();
+        cursor = {};
     }
 
-    /** Reset manipulator state and @ref resetInteraction. */
-    void resetRigAndInteraction() noexcept {
-        rig.resetState();
-        resetInteraction();
-    }
+    /** Same as @ref resetInteraction; name reflects controller call sites (rig + mapper + cursor). */
+    void resetRigAndInteraction() noexcept { resetInteraction(); }
 };
 
 }  // namespace vne::interaction
