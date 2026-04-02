@@ -5,12 +5,14 @@
  *
  * Author:    Ajeet Singh Yadav
  * Created:   March 2026
+ *
+ * Autodoc:   yes
  * ----------------------------------------------------------------------
  */
 
 /**
  * @file version.h
- * @brief Library version query API.
+ * @brief Runtime version string for the vneinteraction library.
  */
 
 #include "vertexnova/interaction/export.h"

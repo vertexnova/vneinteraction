@@ -11,11 +11,14 @@
 
 /**
  * @file camera_rig.h
- * @brief CameraRig — multi-manipulator camera container.
+ * @brief CameraRig — dispatches @ref CameraActionType commands to every registered manipulator.
  *
- * A CameraRig holds one or more ICameraManipulator instances that each receive
- * the same CameraAction stream independently. Use the static make*() factories
- * for common configurations, or compose manipulators manually for custom setups.
+ * A rig holds one or more @ref ICameraManipulator instances. Each receives the **same** action stream
+ * from @ref onAction and ignores actions it does not handle, enabling composition (e.g. orbit + fly).
+ * Commands are normally produced by @ref InputMapper via controller wiring; tests may call @ref onAction
+ * directly.
+ *
+ * Use the static @c make*() factories for common stacks, or @ref addManipulator for custom setups.
  */
 
 #include "vertexnova/interaction/camera_manipulator.h"

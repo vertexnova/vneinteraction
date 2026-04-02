@@ -11,8 +11,20 @@
 
 /**
  * @file interaction_types.h
- * @brief Types, enums, and structs for camera interaction (manipulators, orbit/trackball behaviors, gestures,
- * bindings).
+ * @brief Shared types: commands (@ref CameraActionType), input rules (@ref InputRule), bindings, and state blobs.
+ *
+ * @par Command layer
+ * @ref CameraActionType and @ref CameraCommandPayload are the **intent** between @ref InputMapper
+ * (and controllers) and @ref CameraRig / @ref ICameraManipulator. Manipulators consume the subset
+ * of actions they implement and ignore the rest.
+ *
+ * @par Rules and gestures
+ * @ref InputRule describes one trigger → action mapping. High-level remapping uses @ref GestureAction,
+ * @ref MouseBinding, and @ref KeyBinding together with @ref InputMapper::bindGesture and related APIs.
+ *
+ * @par Math helpers
+ * Orbit/trackball **geometry** lives in @ref OrbitBehavior and @ref TrackballBehavior; this header
+ * holds interaction enums, payloads, and grouped state used across manipulators.
  */
 
 #include "vertexnova/interaction/export.h"

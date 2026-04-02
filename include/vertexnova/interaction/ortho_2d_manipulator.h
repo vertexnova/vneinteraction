@@ -21,6 +21,10 @@
  *
  * @par Inertia
  * Pan velocity is damped over time in @ref onUpdate using exponential decay.
+ *
+ * @par Input pairing
+ * @ref Ortho2DController wires @ref InputMapper rules; this manipulator handles @c ePanDelta,
+ * @c eZoomAtCursor, and optional @c eBeginRotate / @c eRotateDelta / @c eEndRotate when rotation is enabled.
  */
 
 #include "vertexnova/interaction/camera_manipulator_base.h"

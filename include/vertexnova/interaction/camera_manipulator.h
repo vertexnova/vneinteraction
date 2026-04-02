@@ -11,10 +11,16 @@
 
 /**
  * @file camera_manipulator.h
- * @brief ICameraManipulator — the composable camera manipulator interface.
+ * @brief ICameraManipulator — composable piece of camera motion (orbit, fly, ortho, follow, …).
  *
- * Multiple manipulators can be registered on a CameraRig and each receives every CameraAction
- * independently. Orbit/trackball math helpers remain @ref OrbitBehavior and @ref TrackballBehavior.
+ * @par Composition
+ * Register several implementations on one @ref CameraRig; each receives every @ref CameraActionType
+ * in @ref CameraRig::onAction and silently ignores what it does not implement.
+ *
+ * @par Math vs motion
+ * Orbit Euler and trackball **mapping** live in @ref OrbitBehavior and @ref TrackballBehavior.
+ * Manipulators integrate those (or free-flight math), read @ref CameraCommandPayload, and write
+ * @c vne::scene::ICamera poses.
  */
 
 #include "vertexnova/interaction/export.h"

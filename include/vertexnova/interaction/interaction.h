@@ -3,15 +3,23 @@
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
  * Created:   March 2026
+ *
+ * Autodoc:   yes
  * ----------------------------------------------------------------------
  */
 
 /**
  * @file interaction.h
- * @brief Umbrella header for the VertexNova interaction library.
+ * @brief Umbrella include for the VertexNova interaction library.
  *
- * Includes all public headers for camera manipulators, orbit/trackball behaviors,
- * controllers, and input handling.
+ * Pulls in manipulators, @ref CameraRig, high-level controllers, @ref InputMapper,
+ * @ref interaction_types.h, and orbit/trackball math helpers (@ref OrbitBehavior,
+ * @ref TrackballBehavior).
+ *
+ * @par Usage
+ * Prefer `#include <vertexnova/interaction/interaction.h>` once per translation unit
+ * that needs the full surface; include specific headers instead if you want a minimal
+ * dependency set (faster builds).
  */
 
 #include "vertexnova/interaction/orbit_behavior.h"

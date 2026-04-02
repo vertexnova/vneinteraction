@@ -5,18 +5,36 @@
  *
  * Author:    Ajeet Singh Yadav
  * Created:   March 2026
+ *
+ * Autodoc:   yes
  * ----------------------------------------------------------------------
  */
 
 /**
  * @file input_mapper.h
- * @brief InputMapper — translates raw input events into CameraActionType commands.
+ * @brief InputMapper — viewport input interpreter: raw events to @ref CameraActionType commands.
  *
- * Data-driven InputRule mappings. Callers configure rules via setRules() or
- * addRule(), or use one of the static preset factories (orbitPreset, fpsPreset,
- * gamePreset, cadPreset, orthoPreset). Controllers call the on*() methods which
- * evaluate rules and emit actions to the registered callback.
+ * @par Command pipeline
+ * Window or UI code forwards pointer, key, scroll, and touch data into @ref onMouseButton,
+ * @ref onMouseMove, @ref onKey, etc. The mapper matches @ref InputRule rows (trigger + optional
+ * modifiers) and emits semantic actions through @ref setActionCallback. High-level controllers
+ * typically wire that callback to @ref CameraRig::onAction; see @ref Inspect3DController.
+ *
+ * @par Rules and state
+ * Rules are data-driven: each @ref InputRule maps a trigger to @c on_press, @c on_release, and/or
+ * @c on_delta. The mapper tracks which button/key rules are active so drag deltas only apply
+ * while the correct chord is held. @ref resetState clears that tracking (focus loss, mode change).
+ *
+ * @par Presets and rebinding
+ * Static factories (@ref orbitPreset, @ref fpsPreset, …) return full rule vectors for common modes.
+ * @ref bindGesture, @ref bindScroll, @ref bindDoubleClick, and @ref bindKey adjust bindings without
+ * editing @ref InputRule directly — the intended path for app-level customization from controllers.
+ *
+ * @par Symmetry with behaviors
+ * @ref OrbitBehavior and @ref TrackballBehavior own orbit math; @ref InputMapper owns **which**
+ * gestures produce @c eBeginRotate, @c ePanDelta, @c eZoomAtCursor, etc.
  */
+
 
 #include "vertexnova/interaction/export.h"
 #include "vertexnova/interaction/interaction_types.h"
@@ -28,20 +46,22 @@
 namespace vne::interaction {
 
 /**
- * @brief Callback type invoked when an InputRule matches and emits an action.
- * Parameters: (action, payload, delta_time)
+ * @brief Sink for commands emitted when an @ref InputRule matches.
+ * @param action     Semantic action (see @ref CameraActionType).
+ * @param payload    Pointer position, deltas, zoom factor, and press state as applicable.
+ * @param delta_time Time delta in seconds (from the UI; may be 0 for discrete events).
  */
 using ActionCallback = std::function<void(CameraActionType, const CameraCommandPayload&, double)>;
 
 /**
- * @brief Data-driven input ->CameraAction mapper.
+ * @brief Data-driven mapper from low-level input to @ref CameraActionType values.
  *
- * Each InputRule describes a trigger (button, key, scroll, touch, double-click),
- * optional modifier mask, and up to three action types (on_press, on_release, on_delta).
- * eNone is used as a sentinel meaning "no action for this phase".
+ * Typical usage (inside a controller):
+ * - Build rules: @ref setRules with a preset or custom @ref InputRule list.
+ * - Register @ref setActionCallback before any input (forwards to @ref CameraRig::onAction or custom logic).
+ * - Each frame or event: call the @c on* entry points; optional @ref resetState on focus loss.
  *
- * The mapper tracks which button/key rules are currently "active" (pressed) so that
- * on_delta actions are only emitted for rules whose trigger button/key is held down.
+ * @threadsafe Not thread-safe. Call all methods from the same thread as the window/event source.
  */
 class VNE_INTERACTION_API InputMapper {
    public:
@@ -60,22 +80,75 @@ class VNE_INTERACTION_API InputMapper {
     [[nodiscard]] const std::vector<InputRule>& rules() const noexcept { return rules_; }
 
     /**
-     * @brief Set the callback invoked when a rule fires an action.
-     * Must be set before processing any input.
+     * @brief Register the handler for emitted actions.
+     * @note Must be set before processing any input; otherwise actions are logged and dropped.
      */
     void setActionCallback(ActionCallback cb) { callback_ = std::move(cb); }
 
-    // --- Input event entry points (called by controller::onEvent) ---
+    // --- Input event entry points (usually from controller event dispatch) ---
 
+    /**
+     * @brief Mouse button press or release.
+     * @param button  Mouse button index (same encoding as @c vne::events::MouseButton).
+     * @param pressed @c true on press, @c false on release.
+     * @param x       Cursor X in pixels.
+     * @param y       Cursor Y in pixels.
+     * @param dt      Time delta in seconds.
+     */
     void onMouseButton(int button, bool pressed, float x, float y, double dt) noexcept;
+
+    /**
+     * @brief Mouse double-click (e.g. pivot / COI gestures).
+     * @param button Mouse button index.
+     * @param x      Cursor X in pixels.
+     * @param y      Cursor Y in pixels.
+     * @param dt     Time delta in seconds.
+     */
     void onMouseDoubleClick(int button, float x, float y, double dt) noexcept;
+
+    /**
+     * @brief Pointer motion; may emit drag deltas for active button/key rules.
+     * @param x   Cursor X in pixels.
+     * @param y   Cursor Y in pixels.
+     * @param dx  Delta X in pixels since last move.
+     * @param dy  Delta Y in pixels since last move.
+     * @param dt  Time delta in seconds.
+     */
     void onMouseMove(float x, float y, float dx, float dy, double dt) noexcept;
+
+    /**
+     * @brief Scroll wheel or trackpad scroll.
+     * @param scroll_x Horizontal scroll (lines or device units).
+     * @param scroll_y Vertical scroll (lines or device units).
+     * @param mouse_x  Cursor X in pixels (for zoom-at-cursor).
+     * @param mouse_y  Cursor Y in pixels.
+     * @param dt       Time delta in seconds.
+     */
     void onMouseScroll(float scroll_x, float scroll_y, float mouse_x, float mouse_y, double dt) noexcept;
+
+    /**
+     * @brief Key press or release; updates modifier state and movement keys per rules.
+     * @param key     Key code (see @c vne::events::KeyCode).
+     * @param pressed @c true on press, @c false on release.
+     * @param dt      Time delta in seconds.
+     */
     void onKey(int key, bool pressed, double dt) noexcept;
+
+    /**
+     * @brief Touch pan gesture.
+     * @param pan Pan deltas in pixels.
+     * @param dt  Time delta in seconds.
+     */
     void onTouchPan(const TouchPan& pan, double dt) noexcept;
+
+    /**
+     * @brief Touch pinch (zoom) gesture.
+     * @param pinch Scale and center in pixels.
+     * @param dt    Time delta in seconds.
+     */
     void onTouchPinch(const TouchPinch& pinch, double dt) noexcept;
 
-    /** Reset all active-button/key tracking state (e.g. on focus loss or reset). */
+    /** @brief Clear active button/key tracking and modifier-derived state used for chord matching. */
     void resetState() noexcept;
 
     // -------------------------------------------------------------------------
