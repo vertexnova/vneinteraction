@@ -6,6 +6,8 @@
 #include "vertexnova/interaction/input_mapper.h"
 #include "vertexnova/interaction/interaction_types.h"
 
+#include <vertexnova/events/types.h>
+
 #include <gtest/gtest.h>
 
 #include <algorithm>
@@ -179,6 +181,42 @@ TEST(InputMapper, OnMouseScroll_PassesMousePositionInPayload) {
     m.onMouseScroll(0.0f, 1.0f, 123.0f, 456.0f, 0.016);
     EXPECT_FLOAT_EQ(captured.x_px, 123.0f);
     EXPECT_FLOAT_EQ(captured.y_px, 456.0f);
+}
+
+TEST(InputMapper, KeyReleaseUsesRuleFromPressWhenModifiersChange) {
+    vne::interaction::InputMapper m;
+    const int k_w = static_cast<int>(vne::events::KeyCode::eW);
+
+    vne::interaction::InputRule w_shift{};
+    w_shift.trigger = vne::interaction::InputRule::Trigger::eKey;
+    w_shift.code = k_w;
+    w_shift.modifier_mask = vne::interaction::kModShift;
+    w_shift.on_press = vne::interaction::CameraActionType::eIncreaseMoveSpeed;
+    w_shift.on_release = vne::interaction::CameraActionType::eDecreaseMoveSpeed;
+
+    vne::interaction::InputRule w_plain{};
+    w_plain.trigger = vne::interaction::InputRule::Trigger::eKey;
+    w_plain.code = k_w;
+    w_plain.modifier_mask = vne::interaction::kModNone;
+    w_plain.on_press = vne::interaction::CameraActionType::eMoveForward;
+    w_plain.on_release = vne::interaction::CameraActionType::eMoveBackward;
+
+    // Shift+W rule is listed first; re-matching on release while Shift is held would hit it first.
+    m.setRules(std::vector<vne::interaction::InputRule>{w_shift, w_plain});
+
+    vne::interaction::CameraActionType last = vne::interaction::CameraActionType::eNone;
+    m.setActionCallback([&last](vne::interaction::CameraActionType a,
+                                const vne::interaction::CameraCommandPayload&,
+                                double) { last = a; });
+
+    m.onKey(k_w, true, 0.016);
+    EXPECT_EQ(last, vne::interaction::CameraActionType::eMoveForward);
+
+    m.onKey(static_cast<int>(vne::events::KeyCode::eLeftShift), true, 0.016);
+
+    m.onKey(k_w, false, 0.016);
+    EXPECT_EQ(last, vne::interaction::CameraActionType::eMoveBackward)
+        << "release must use the rule that matched press, not the first Shift+W rule";
 }
 
 TEST(InputMapper, OnMouseScroll_UnclampedMidRangeMatchesPow) {

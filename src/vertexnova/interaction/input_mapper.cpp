@@ -93,6 +93,10 @@ static InputRule makeDblClickRule(int button, CameraActionType action) {
 // InputMapper implementation
 // ---------------------------------------------------------------------------
 
+InputMapper::InputMapper() {
+    resetState();
+}
+
 void InputMapper::setRules(std::span<const InputRule> rules) {
     rules_.assign(rules.begin(), rules.end());
     resetState();
@@ -254,6 +258,7 @@ void InputMapper::unbindGesture(GestureAction action) {
 void InputMapper::resetState() noexcept {
     std::fill(std::begin(active_button_rule_), std::end(active_button_rule_), -1);
     std::fill(std::begin(active_key_), std::end(active_key_), false);
+    std::fill(std::begin(active_key_rule_), std::end(active_key_rule_), -1);
     mod_shift_ = false;
     mod_ctrl_ = false;
     mod_alt_ = false;
@@ -397,18 +402,32 @@ void InputMapper::onKey(int key, bool pressed, double dt) noexcept {
     CameraCommandPayload payload;
     payload.pressed = pressed;
 
-    for (const auto& r : rules_) {
-        if (r.trigger != InputRule::Trigger::eKey) {
-            continue;
+    if (pressed) {
+        active_key_rule_[key] = -1;
+        for (int i = 0; i < static_cast<int>(rules_.size()); ++i) {
+            const auto& r = rules_[static_cast<std::size_t>(i)];
+            if (r.trigger != InputRule::Trigger::eKey) {
+                continue;
+            }
+            if (r.code != key) {
+                continue;
+            }
+            if (!modifiersMatch(r.modifier_mask)) {
+                continue;
+            }
+            active_key_rule_[key] = i;
+            emit(r.on_press, payload, dt);
+            break;
         }
-        if (r.code != key) {
-            continue;
+    } else {
+        const int idx = active_key_rule_[key];
+        active_key_rule_[key] = -1;
+        if (idx >= 0 && idx < static_cast<int>(rules_.size())) {
+            const auto& r = rules_[static_cast<std::size_t>(idx)];
+            if (r.trigger == InputRule::Trigger::eKey && r.code == key) {
+                emit(r.on_release, payload, dt);
+            }
         }
-        if (!modifiersMatch(r.modifier_mask)) {
-            continue;
-        }
-        emit(pressed ? r.on_press : r.on_release, payload, dt);
-        break;
     }
 }
 
