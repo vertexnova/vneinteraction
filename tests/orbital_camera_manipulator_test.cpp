@@ -16,7 +16,6 @@ namespace vne_interaction_test {
 
 TEST(OrbitalCameraManipulator, SetTrackballProjectionMode) {
     vne::interaction::OrbitalCameraManipulator b;
-    b.setRotationMode(vne::interaction::OrbitRotationMode::eTrackball);
     EXPECT_EQ(b.getTrackballProjectionMode(), vne::interaction::TrackballBehavior::ProjectionMode::eHyperbolic);
     b.setTrackballProjectionMode(vne::interaction::TrackballBehavior::ProjectionMode::eRim);
     EXPECT_EQ(b.getTrackballProjectionMode(), vne::interaction::TrackballBehavior::ProjectionMode::eRim);

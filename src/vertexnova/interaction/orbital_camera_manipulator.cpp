@@ -627,14 +627,24 @@ void OrbitalCameraManipulator::setViewDirection(ViewDirection dir) noexcept {
         // Straight down/up: use current Euler pitch limits (defaults ±89°).
         case ViewDirection::eTop: {
             yaw = 0.0f;
-            const auto* eu = dynamic_cast<const EulerOrbitStrategy*>(rotation_strategy_.get());
-            pitch = eu ? eu->orbitBehavior().getPitchMinDeg() : OrbitBehavior::kDefaultPitchMinDeg;
+            if (rotation_mode_ == OrbitRotationMode::eOrbit) {
+                pitch = static_cast<const EulerOrbitStrategy*>(rotation_strategy_.get())
+                            ->orbitBehavior()
+                            .getPitchMinDeg();
+            } else {
+                pitch = OrbitBehavior::kDefaultPitchMinDeg;
+            }
             break;
         }
         case ViewDirection::eBottom: {
             yaw = 0.0f;
-            const auto* eu = dynamic_cast<const EulerOrbitStrategy*>(rotation_strategy_.get());
-            pitch = eu ? eu->orbitBehavior().getPitchMaxDeg() : OrbitBehavior::kDefaultPitchMaxDeg;
+            if (rotation_mode_ == OrbitRotationMode::eOrbit) {
+                pitch = static_cast<const EulerOrbitStrategy*>(rotation_strategy_.get())
+                            ->orbitBehavior()
+                            .getPitchMaxDeg();
+            } else {
+                pitch = OrbitBehavior::kDefaultPitchMaxDeg;
+            }
             break;
         }
         case ViewDirection::eIso:
@@ -786,8 +796,9 @@ void OrbitalCameraManipulator::setRotationSpeed(float speed) noexcept {
 
 void OrbitalCameraManipulator::setTrackballRotationScale(float scale) noexcept {
     trackball_rotation_scale_ = std::max(0.0f, scale);
-    if (auto* tb = dynamic_cast<TrackballStrategy*>(rotation_strategy_.get())) {
-        tb->setTrackballRotationScale(trackball_rotation_scale_);
+    if (rotation_mode_ == OrbitRotationMode::eTrackball && rotation_strategy_) {
+        static_cast<TrackballStrategy*>(rotation_strategy_.get())
+            ->setTrackballRotationScale(trackball_rotation_scale_);
     }
 }
 
@@ -795,34 +806,36 @@ void OrbitalCameraManipulator::setRotationMode(OrbitRotationMode mode) noexcept 
     if (mode == rotation_mode_) {
         return;
     }
+    const OrbitRotationMode previous = rotation_mode_;
     rotation_mode_ = mode;
-    // Preserve trackball projection mode when switching back to trackball
-    TrackballBehavior::ProjectionMode proj = TrackballBehavior::ProjectionMode::eHyperbolic;
-    if (auto* tb = dynamic_cast<TrackballStrategy*>(rotation_strategy_.get())) {
-        proj = tb->trackball().getProjectionMode();
+    // Preserve trackball projection when leaving trackball (read *before* replacing strategy); otherwise
+    // use the stored setting so setTrackballProjectionMode while in Euler still applies on switch.
+    TrackballBehavior::ProjectionMode proj = trackball_projection_mode_;
+    if (previous == OrbitRotationMode::eTrackball && rotation_strategy_) {
+        proj = static_cast<TrackballStrategy*>(rotation_strategy_.get())->trackball().getProjectionMode();
     }
+    trackball_projection_mode_ = proj;
     rotation_strategy_ = makeStrategy(mode);
-    if (auto* tb = dynamic_cast<TrackballStrategy*>(rotation_strategy_.get())) {
+    if (mode == OrbitRotationMode::eTrackball) {
+        auto* tb = static_cast<TrackballStrategy*>(rotation_strategy_.get());
         tb->trackball().setProjectionMode(proj);
         tb->setRotationSpeed(rotation_speed_);
         tb->setTrackballRotationScale(trackball_rotation_scale_);
-    } else if (auto* eu = dynamic_cast<EulerOrbitStrategy*>(rotation_strategy_.get())) {
-        eu->setRotationSpeed(rotation_speed_);
+    } else {
+        static_cast<EulerOrbitStrategy*>(rotation_strategy_.get())->setRotationSpeed(rotation_speed_);
     }
     syncFromCamera();
 }
 
 void OrbitalCameraManipulator::setTrackballProjectionMode(TrackballBehavior::ProjectionMode mode) noexcept {
-    if (auto* tb = dynamic_cast<TrackballStrategy*>(rotation_strategy_.get())) {
-        tb->trackball().setProjectionMode(mode);
+    trackball_projection_mode_ = mode;
+    if (rotation_mode_ == OrbitRotationMode::eTrackball && rotation_strategy_) {
+        static_cast<TrackballStrategy*>(rotation_strategy_.get())->trackball().setProjectionMode(mode);
     }
 }
 
 TrackballBehavior::ProjectionMode OrbitalCameraManipulator::getTrackballProjectionMode() const noexcept {
-    if (const auto* tb = dynamic_cast<const TrackballStrategy*>(rotation_strategy_.get())) {
-        return tb->trackball().getProjectionMode();
-    }
-    return TrackballBehavior::ProjectionMode::eHyperbolic;
+    return trackball_projection_mode_;
 }
 
 }  // namespace vne::interaction

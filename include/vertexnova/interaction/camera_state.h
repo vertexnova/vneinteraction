@@ -17,7 +17,7 @@
  *
  * These POD-like structs hold the logical camera pose for each manipulator type and can
  * be saved/restored independently of the ICamera object. Also includes grouped input-state
- * structs (@ref FreeLookInputState, @ref OrbitInteractionState) used across manipulators.
+ * structs (@ref FreeLookInputState, @ref OrbitalInteractionState) used across manipulators.
  *
  * Include this header when you only need camera state types without input-binding or
  * action-command types. The umbrella @ref interaction_types.h includes everything.
@@ -39,33 +39,39 @@ namespace vne::interaction {
 // Grouped input / interaction state
 // -----------------------------------------------------------------------------
 
-/** Per-frame input state for FreeLookManipulator (held keys). */
+/**
+ * @brief Per-frame input state for FreeLookManipulator (held keys).
+ */
 struct VNE_INTERACTION_API FreeLookInputState {
-    bool move_forward = false;
-    bool move_backward = false;
-    bool move_left = false;
-    bool move_right = false;
-    bool move_up = false;
-    bool move_down = false;
-    bool sprint = false;
-    bool slow = false;
-    bool looking = false;
+    bool move_forward = false;   //!< Move forward by like W key or mouse wheel
+    bool move_backward = false;  //!< Move backward by like S key or mouse wheel
+    bool move_left = false;      //!< Move left by like A key or mouse wheel
+    bool move_right = false;     //!< Move right by like D key or mouse wheel
+    bool move_up = false;        //!< Move up by like E key or mouse wheel
+    bool move_down = false;      //!< Move down by like Q key or mouse wheel
+    bool sprint = false;         //!< Sprint the movement speed by like Shift key or mouse wheel
+    bool slow = false;           //!< Slow the movement speed by like Ctrl key or mouse wheel
+    bool looking = false;        //!< Looking with the mouse by like Right mouse button or touch pan
 };
 
-/** Drag/pan interaction state for OrbitalCameraManipulator. */
-struct VNE_INTERACTION_API OrbitInteractionState {
-    bool rotating = false;
-    bool panning = false;
-    bool modifier_shift = false;
-    float last_x_px = 0.0f;
-    float last_y_px = 0.0f;
+/**
+ * @brief Drag/pan interaction state for OrbitalCameraManipulator.
+ */
+struct VNE_INTERACTION_API OrbitalInteractionState {
+    bool rotating = false;        //!< Rotating the camera by like Left mouse button or touch rotate
+    bool panning = false;         //!< Panning the camera by like Middle mouse button or touch pan
+    bool modifier_shift = false;  //!< Modifier shift key by like Shift key or touch modifier shift
+    float last_x_px = 0.0f;       //!< Last x position in pixels
+    float last_y_px = 0.0f;       //!< Last y position in pixels
 };
 
 // -----------------------------------------------------------------------------
 // Camera pose state blobs (manipulators operate on these, then apply to ICamera)
 // -----------------------------------------------------------------------------
 
-/** Serializable state for Euler-orbit camera (OrbitalCameraManipulator in eOrbit mode). */
+/**
+ * @brief Serializable state for Euler-orbit camera (OrbitalCameraManipulator in eOrbit mode).
+ */
 struct VNE_INTERACTION_API OrbitCameraState {
     vne::math::Vec3f coi_world;  //!< Center of interest in world space
     float distance = 5.0f;       //!< Camera-to-pivot distance
@@ -78,7 +84,9 @@ struct VNE_INTERACTION_API OrbitCameraState {
         , world_up(0.0f, 1.0f, 0.0f) {}
 };
 
-/** Serializable state for trackball camera (OrbitalCameraManipulator in eTrackball mode). */
+/**
+ * @brief Serializable state for trackball camera (OrbitalCameraManipulator in eTrackball mode).
+ */
 struct VNE_INTERACTION_API TrackballCameraState {
     vne::math::Vec3f coi_world;  //!< Center of interest in world space
     float distance = 5.0f;       //!< Camera-to-pivot distance
@@ -91,7 +99,9 @@ struct VNE_INTERACTION_API TrackballCameraState {
         , world_up(0.0f, 1.0f, 0.0f) {}
 };
 
-/** Serializable state for free-look camera (FreeLookManipulator). */
+/**
+ * @brief Serializable state for free-look camera (FreeLookManipulator).
+ */
 struct VNE_INTERACTION_API FreeCameraState {
     vne::math::Vec3f position;  //!< Camera position in world space
     float yaw_deg = 0.0f;       //!< Yaw angle in degrees

@@ -5,6 +5,7 @@
  *
  * Author:    Ajeet Singh Yadav
  * Created:   April 2026
+ *
  * Autodoc:   yes
  * ----------------------------------------------------------------------
  */
@@ -52,33 +53,33 @@ enum class GestureAction : std::uint8_t {
  * Manipulators respond to the subset of actions they implement; unhandled actions are ignored.
  */
 enum class CameraActionType : std::uint8_t {
-    eNone = 0,  //!< Sentinel: no action for this event phase (used in InputRule)
-    eBeginRotate = 1,
-    eRotateDelta = 2,
-    eEndRotate = 3,
-    eBeginPan = 4,
-    ePanDelta = 5,
-    eEndPan = 6,
-    eZoomAtCursor = 7,
-    eLookDelta = 8,
-    eBeginLook = 9,
-    eEndLook = 10,
-    eMoveForward = 11,
-    eMoveBackward = 12,
-    eMoveLeft = 13,
-    eMoveRight = 14,
-    eMoveUp = 15,
-    eMoveDown = 16,
-    eSprintModifier = 17,
-    eSlowModifier = 18,
+    eNone = 0,               //!< Sentinel: no action for this event phase (used in InputRule)
+    eBeginRotate = 1,        //!< Begin rotate the camera by like Left mouse button or touch rotate
+    eRotateDelta = 2,        //!< Rotate the camera by like Left mouse button or touch rotate
+    eEndRotate = 3,          //!< End rotate the camera by like Left mouse button or touch rotate
+    eBeginPan = 4,           //!< Begin pan the camera by like Middle mouse button or touch pan
+    ePanDelta = 5,           //!< Pan the camera by like Middle mouse button or touch pan
+    eEndPan = 6,             //!< End pan the camera by like Middle mouse button or touch pan
+    eZoomAtCursor = 7,       //!< Zoom the camera at the cursor by like scroll wheel or touch pinch
+    eLookDelta = 8,          //!< Look the camera by like Right mouse button or touch pan
+    eBeginLook = 9,          //!< Begin look the camera by like Right mouse button or touch pan
+    eEndLook = 10,           //!< End look the camera by like Right mouse button or touch pan
+    eMoveForward = 11,       //!< Move forward the camera by like W key or mouse wheel
+    eMoveBackward = 12,      //!< Move backward the camera by like S key or mouse wheel
+    eMoveLeft = 13,          //!< Move left the camera by like A key or mouse wheel
+    eMoveRight = 14,         //!< Move right the camera by like D key or mouse wheel
+    eMoveUp = 15,            //!< Move up the camera by like E key or mouse wheel
+    eMoveDown = 16,          //!< Move down the camera by like Q key or mouse wheel
+    eSprintModifier = 17,    //!< Sprint the movement speed by like Shift key or mouse wheel
+    eSlowModifier = 18,      //!< Slow the movement speed by like Ctrl key or mouse wheel
     eOrbitPanModifier = 19,  //!< Orbit: Shift+LMB pan alias; navigation: sprint-like where mapped.
-    eResetView = 20,
+    eResetView = 20,         //!< Reset the view of the camera
     eSetPivotAtCursor =
         21,  //!< Double-click: set COI along view direction (camera + front * orbit distance); payload x/y ignored
-    eIncreaseMoveSpeed = 22,         //!< Discrete: increase FPS move speed (Navigation3DController)
-    eDecreaseMoveSpeed = 23,         //!< Discrete: decrease FPS move speed
-    eIncreaseInteractionSpeed = 24,  //!< Discrete: scale orbit pan/rotate sensitivity (Inspect3DController)
-    eDecreaseInteractionSpeed = 25,  //!< Discrete: scale orbit pan/rotate sensitivity down
+    eIncreaseMoveSpeed = 22,         //!< Increase the movement speed by like Shift key or mouse wheel
+    eDecreaseMoveSpeed = 23,         //!< Decrease the movement speed by like Ctrl key or mouse wheel
+    eIncreaseInteractionSpeed = 24,  //!< Increase the interaction speed by like Shift key or mouse wheel
+    eDecreaseInteractionSpeed = 25,  //!< Decrease the interaction speed by like Ctrl key or mouse wheel
 };
 
 /** Payload for actions that carry pointer/cursor or delta data. */

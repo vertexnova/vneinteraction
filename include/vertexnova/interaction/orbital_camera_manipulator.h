@@ -282,11 +282,15 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
     // Rotation strategy (Euler or Trackball); replaces per-mode state fields.
     std::unique_ptr<IRotationStrategy> rotation_strategy_;
 
+    /** Trackball sphere mapping; used when building a trackball strategy and while in Euler mode (set before switch).
+     */
+    TrackballBehavior::ProjectionMode trackball_projection_mode_ = TrackballBehavior::ProjectionMode::eHyperbolic;
+
     // Pan inertia
     vne::math::Vec3f inertia_pan_velocity_{0.0f, 0.0f, 0.0f};
 
     // Interaction flags
-    OrbitInteractionState interaction_;
+    OrbitalInteractionState interaction_;
 
     // Speeds / damping
     float rotation_speed_ = 0.2f;

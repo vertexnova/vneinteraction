@@ -20,7 +20,7 @@
  * - @ref input_binding.h — @ref InputRule, @ref MouseBinding, @ref KeyBinding, touch structs,
  *   modifier bitmask constants
  * - @ref camera_state.h  — @ref OrbitCameraState, @ref TrackballCameraState, @ref FreeCameraState,
- *   @ref FreeLookInputState, @ref OrbitInteractionState
+ *   @ref FreeLookInputState, @ref OrbitalInteractionState
  *
  * You may include only the focused sub-headers when the full set is not needed.
  *
