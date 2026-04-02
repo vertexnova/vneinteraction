@@ -85,12 +85,7 @@ int main() {
         // ── Save bookmark A (initial pose) ───────────────────────────────────
         // Yaw/pitch live in the internal strategy. We read the equivalent
         // from camera direction for this example.
-        vne::interaction::OrbitCameraState bookmark_a;
-        bookmark_a.coi_world = manip.getCenterOfInterestWorld();
-        bookmark_a.distance = manip.getOrbitDistance();
-        bookmark_a.world_up = {0.0f, 1.0f, 0.0f};
-        bookmark_a.yaw_deg = 0.0f;
-        bookmark_a.pitch_deg = 0.0f;
+        const vne::interaction::OrbitCameraState bookmark_a = captureOrbitState(manip, 0.0f, 0.0f);
         logOrbitState("  Bookmark A (initial):", bookmark_a);
 
         // ── Interact: orbit around ────────────────────────────────────────────
@@ -106,17 +101,12 @@ int main() {
             ctrl.onUpdate(kDt);
 
         // ── Save bookmark B (after orbit) ─────────────────────────────────────
-        vne::interaction::OrbitCameraState bookmark_b;
-        bookmark_b.coi_world = manip.getCenterOfInterestWorld();
-        bookmark_b.distance = manip.getOrbitDistance();
-        bookmark_b.world_up = {0.0f, 1.0f, 0.0f};
+        vne::interaction::OrbitCameraState bookmark_b = captureOrbitState(manip, 0.0f, 0.0f);
         {
             const auto pos = camera->getPosition();
             const auto coi = manip.getCenterOfInterestWorld();
             auto dir = vne::math::Vec3f(pos.x() - coi.x(), pos.y() - coi.y(), pos.z() - coi.z());
-            (void)dir;                  // yaw/pitch would be derived here in a real app
-            bookmark_b.yaw_deg = 0.0f;  // placeholder
-            bookmark_b.pitch_deg = 0.0f;
+            (void)dir;  // yaw/pitch would be derived here in a real app
         }
         logOrbitState("  Bookmark B (after orbit):", bookmark_b);
         VNE_LOG_INFO << "  distance_b=" << manip.getOrbitDistance() << " vs distance_a=" << bookmark_a.distance;
@@ -272,7 +262,12 @@ int main() {
         ctrl.reset();
         for (int i = 0; i < 5; ++i)
             ctrl.onUpdate(kDt);
-        logFreeCameraState("  After restore to bookmark:", {camera->getPosition(), 0.0f, 0.0f, {0, 1, 0}});
+        vne::interaction::FreeCameraState after_restore;
+        after_restore.position  = camera->getPosition();
+        after_restore.yaw_deg   = 0.0f;
+        after_restore.pitch_deg = 0.0f;
+        after_restore.up_hint   = vne::math::Vec3f(0.0f, 1.0f, 0.0f);
+        logFreeCameraState("  After restore to bookmark:", after_restore);
 
         // ── FreeCameraState struct fields ─────────────────────────────────────
         vne::interaction::FreeCameraState demo;
