@@ -123,7 +123,7 @@ void FollowController::setOffset(const vne::math::Vec3f& offset) noexcept {
 
 vne::math::Vec3f FollowController::getOffset() const noexcept {
     return impl_->follow_ ? impl_->follow_->getOffset()
-                         : vne::math::Vec3f{0.0f, kDefaultFollowOffsetY, kDefaultFollowOffsetZ};
+                          : vne::math::Vec3f{0.0f, kDefaultFollowOffsetY, kDefaultFollowOffsetZ};
 }
 
 void FollowController::setLag(float lag) noexcept {
