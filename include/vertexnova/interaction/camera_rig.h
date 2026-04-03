@@ -108,7 +108,7 @@ class VNE_INTERACTION_API CameraRig {
      * @brief Set the controlled camera on all manipulators.
      * @param camera Shared pointer to the camera; may be nullptr to detach
      */
-    void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept;
+    void setCamera(const std::shared_ptr<vne::scene::ICamera>& camera) noexcept;
 
     /**
      * @brief Notify all manipulators of the current viewport dimensions.

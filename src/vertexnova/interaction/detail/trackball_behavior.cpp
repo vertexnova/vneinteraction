@@ -30,7 +30,7 @@ constexpr float kAntiParallelDot = 1e-5f;  //!< dot <= -1 + this → treat as 18
 [[nodiscard]] vne::math::Vec3f normalizeOrDefaultZ(const vne::math::Vec3f& v) noexcept {
     const float len = v.length();
     if (len < kEpsilonLen) {
-        return vne::math::Vec3f(0.0f, 0.0f, 1.0f);
+        return {0.0f, 0.0f, 1.0f};
     }
     return v / len;
 }
@@ -47,7 +47,7 @@ vne::math::Vec3f TrackballBehavior::projectHyperbolic(float rx, float ry) const 
     const float radius = kTrackballRadius;
     const float t = radius / std::sqrt(2.0f);
     const float d = std::sqrt(rx * rx + ry * ry);
-    float rz;
+    float rz{};
     if (d < t) {
         rz = std::sqrt(std::max(0.0f, radius * radius - d * d));
     } else {
@@ -74,14 +74,14 @@ vne::math::Vec3f TrackballBehavior::project(const vne::math::Vec2f& cursor_px) c
     if (w <= 0.0f || h <= 0.0f) {
         VNE_LOG_WARN << "TrackballBehavior::project: invalid viewport size (" << w << ", " << h
                      << "), using +Z fallback";
-        return vne::math::Vec3f(0.0f, 0.0f, 1.0f);
+        return {0.0f, 0.0f, 1.0f};
     }
     const float size_min = std::min(w, h);
     const float half_size = 0.5f * size_min;
     if (half_size < kMinViewportAxis) {
         VNE_LOG_WARN << "TrackballBehavior::project: viewport too small for trackball (min axis " << size_min
                      << " px), using +Z fallback";
-        return vne::math::Vec3f(0.0f, 0.0f, 1.0f);
+        return {0.0f, 0.0f, 1.0f};
     }
     const float x_px = cursor_px.x();
     const float y_px = cursor_px.y();
@@ -99,7 +99,7 @@ vne::math::Vec3f TrackballBehavior::project(const vne::math::Vec2f& cursor_px) c
         default:
             VNE_LOG_WARN << "TrackballBehavior::project: unknown ProjectionMode value "
                          << static_cast<int>(projection_mode_) << ", using +Z fallback";
-            return vne::math::Vec3f(0.0f, 0.0f, 1.0f);
+            return {0.0f, 0.0f, 1.0f};
     }
 }
 

@@ -22,8 +22,8 @@ void dispatchMouseEvents(InputMapper& mapper,
     switch (event.type()) {
         case events::EventType::eMouseMoved: {
             const auto& e = static_cast<const events::MouseMovedEvent&>(event);
-            const float x = static_cast<float>(e.x());
-            const float y = static_cast<float>(e.y());
+            const auto x = static_cast<float>(e.x());
+            const auto y = static_cast<float>(e.y());
             const float dx = cursor.first ? 0.0f : static_cast<float>(e.x() - cursor.last_x);
             const float dy = cursor.first ? 0.0f : static_cast<float>(e.y() - cursor.last_y);
             cursor.last_x = e.x();

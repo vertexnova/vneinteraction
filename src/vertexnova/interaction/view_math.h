@@ -66,7 +66,7 @@ namespace vne::interaction {
     }
     if (up_len < detail::kManipulatorUtilsEpsilon) {
         vne::math::Vec3f alt(0.0f, 1.0f, 0.0f);
-        if (std::abs(front.dot(alt)) > 0.9f) {
+        if (std::abs(front.dot(alt)) > detail::kNearlyParallelAxisDot) {
             alt = vne::math::Vec3f(1.0f, 0.0f, 0.0f);
         }
         up = front.cross(alt);

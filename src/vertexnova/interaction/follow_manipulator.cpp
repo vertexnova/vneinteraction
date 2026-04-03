@@ -29,6 +29,9 @@ CREATE_VNE_LOGGER_CATEGORY("vne.interaction.follow");
 constexpr float kOffsetMinLength = 0.1f;
 constexpr float kOffsetMaxLength = 1e4f;
 constexpr float kEpsilon = 1e-6f;
+constexpr float kHalf = 0.5f;
+constexpr float kPerspWorldUnitsScale = 2.0f;
+constexpr float kNearlyCollinearViewUpDot = 0.99f;
 }  // namespace
 
 // ---------------------------------------------------------------------------
@@ -76,7 +79,7 @@ vne::math::Vec3f FollowManipulator::getTargetWorld() const noexcept {
 // ---------------------------------------------------------------------------
 
 void FollowManipulator::fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept {
-    target_world_ = (min_world + max_world) * 0.5f;
+    target_world_ = (min_world + max_world) * kHalf;
 }
 
 float FollowManipulator::getWorldUnitsPerPixel() const noexcept {
@@ -86,7 +89,7 @@ float FollowManipulator::getWorldUnitsPerPixel() const noexcept {
     if (auto persp = perspCamera()) {
         const float dist = offset_world_.length();
         const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
-        return 2.0f * dist * vne::math::tan(fov_y_rad * 0.5f) / viewport().height;
+        return kPerspWorldUnitsScale * dist * vne::math::tan(fov_y_rad * kHalf) / viewport().height;
     }
     return 1.0f;
 }
@@ -115,7 +118,7 @@ void FollowManipulator::onUpdate(double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }
-    const float dt = static_cast<float>(delta_time);
+    const auto dt = static_cast<float>(delta_time);
     if (dt <= 0.0f) {
         return;
     }
@@ -127,11 +130,11 @@ void FollowManipulator::onUpdate(double delta_time) noexcept {
 
     const vne::math::Vec3f view_dir = (target - new_eye).normalized();
     vne::math::Vec3f up_hint = world_up_;
-    if (std::abs(view_dir.dot(world_up_)) > 0.99f) {
+    if (std::abs(view_dir.dot(world_up_)) > kNearlyCollinearViewUpDot) {
         // world_up_ is collinear with view_dir — pick the first non-collinear candidate
         const vne::math::Vec3f candidates[3] = {{0.0f, 0.0f, -1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}};
         for (const auto& c : candidates) {
-            if (std::abs(view_dir.dot(c)) < 0.99f) {
+            if (std::abs(view_dir.dot(c)) < kNearlyCollinearViewUpDot) {
                 up_hint = c;
                 break;
             }

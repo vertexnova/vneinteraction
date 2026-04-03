@@ -44,6 +44,17 @@ constexpr float kZoomToCursorStrength = 0.5f;
 /** Minimum @a delta_time (seconds) for pan inertia EMA sampling; skips noisy ultra-short frames. */
 constexpr double kMinDeltaTimeForInertia = 0.001;
 constexpr double kMinDeltaTimeForInertiaFloor = 1e-9;
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers) — degenerate cross-product length squared
+constexpr float kRightVectorLenSqEpsilon = 1e-12f;
+constexpr float kZoomCursorMaxOrbitFactor = 2.0f;
+constexpr float kAabbCenterScale = 0.5f;
+constexpr float kPerspWorldUnitsScale = 2.0f;
+constexpr float kYawDegBack = 180.0f;
+constexpr float kYawDegLeft = -90.0f;
+constexpr float kYawDegRight = 90.0f;
+constexpr float kYawDegIso = 45.0f;
+// NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers) — classic iso view pitch (degrees)
+constexpr float kPitchDegIso = -35.2643897f;
 
 /**
  * glm::lookAt degenerates when `up` is parallel to view direction (center - eye). Orthonormal
@@ -63,11 +74,11 @@ constexpr double kMinDeltaTimeForInertiaFloor = 1e-9;
         }
     }
     vne::math::Vec3f right = world_up.cross(view_dir_unit);
-    if (right.lengthSquared() < 1e-12f) {
+    if (right.lengthSquared() < kRightVectorLenSqEpsilon) {
         right = vne::math::Vec3f(1.0f, 0.0f, 0.0f).cross(view_dir_unit);
     }
-    if (right.lengthSquared() < 1e-12f) {
-        return vne::math::Vec3f(0.0f, 1.0f, 0.0f);
+    if (right.lengthSquared() < kRightVectorLenSqEpsilon) {
+        return {0.0f, 1.0f, 0.0f};
     }
     right = right.normalized();
     return view_dir_unit.cross(right).normalized();
@@ -389,7 +400,7 @@ void OrbitalCameraManipulator::applyDolly(float factor, float mx, float my) noex
             const vne::math::Vec3f cursor_world = coi_world_ + r * (ndc.x() * half_w) + u * (ndc.y() * half_h);
             const vne::math::Vec3f to_cursor = cursor_world - coi_world_;
             const float shift_t = (1.0f - effective_factor) * kZoomToCursorStrength;
-            if (to_cursor.length() < old_dist * 2.0f && pivot_mode_ != OrbitPivotMode::eFixed) {
+            if (to_cursor.length() < old_dist * kZoomCursorMaxOrbitFactor && pivot_mode_ != OrbitPivotMode::eFixed) {
                 coi_world_ += to_cursor * shift_t;
             }
         }
@@ -415,7 +426,7 @@ void OrbitalCameraManipulator::doPanInertia(double delta_time) noexcept {
     if (inertia_pan_velocity_.length() <= kInertiaPanThreshold) {
         return;
     }
-    const float dt = static_cast<float>(delta_time);
+    const auto dt = static_cast<float>(delta_time);
     const vne::math::Vec3f delta = inertia_pan_velocity_ * dt;
     inertia_pan_velocity_ *= std::exp(-pan_damping_ * dt);
 
@@ -426,7 +437,7 @@ void OrbitalCameraManipulator::applyInertia(double delta_time) noexcept {
     if (!camera_ || !std::isfinite(delta_time) || delta_time <= 0.0) {
         return;
     }
-    const float dt = static_cast<float>(delta_time);
+    const auto dt = static_cast<float>(delta_time);
 
     // --- rotation inertia via strategy ---
     bool rotation_changed = false;
@@ -472,9 +483,9 @@ void OrbitalCameraManipulator::fitToAABB(const vne::math::Vec3f& min_world,
     if (!camera_) {
         return;
     }
-    const vne::math::Vec3f center = (min_world + max_world) * 0.5f;
+    const vne::math::Vec3f center = (min_world + max_world) * kAabbCenterScale;
     const vne::math::Vec3f extents = max_world - min_world;
-    float radius = extents.length() * 0.5f;
+    float radius = extents.length() * kAabbCenterScale;
     if (radius < kEpsilon) {
         radius = kMinRadiusFallback;
     }
@@ -540,7 +551,8 @@ float OrbitalCameraManipulator::getWorldUnitsPerPixel() const noexcept {
     }
     if (auto persp = perspCamera()) {
         const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
-        return 2.0f * orbit_distance_ * vne::math::tan(fov_y_rad * 0.5f) / viewport().height;
+        return kPerspWorldUnitsScale * orbit_distance_ * vne::math::tan(fov_y_rad * kAabbCenterScale)
+               / viewport().height;
     }
     return 0.0f;
 }
@@ -617,15 +629,15 @@ void OrbitalCameraManipulator::setViewDirection(ViewDirection dir) noexcept {
             pitch = 0.0f;
             break;
         case ViewDirection::eBack:
-            yaw = 180.0f;
+            yaw = kYawDegBack;
             pitch = 0.0f;
             break;
         case ViewDirection::eLeft:
-            yaw = -90.0f;
+            yaw = kYawDegLeft;
             pitch = 0.0f;
             break;
         case ViewDirection::eRight:
-            yaw = 90.0f;
+            yaw = kYawDegRight;
             pitch = 0.0f;
             break;
         // Straight down/up: use current Euler pitch limits (defaults ±89°).
@@ -650,8 +662,8 @@ void OrbitalCameraManipulator::setViewDirection(ViewDirection dir) noexcept {
             break;
         }
         case ViewDirection::eIso:
-            yaw = 45.0f;
-            pitch = -35.2643897f;
+            yaw = kYawDegIso;
+            pitch = kPitchDegIso;
             break;
     }
 

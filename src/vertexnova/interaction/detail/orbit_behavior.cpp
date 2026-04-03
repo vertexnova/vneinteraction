@@ -130,7 +130,7 @@ void OrbitBehavior::applyDrag(const float delta_x_px,
     if (std::isfinite(dt) && dt > 0.0 && dt >= min_inertia_dt) {
         const double inv = 1.0 / dt;
         if (std::isfinite(inv)) {
-            const float inv_dt = static_cast<float>(inv);
+            const auto inv_dt = static_cast<float>(inv);
             inertia_rot_speed_x_ = delta_x_px * speed * inv_dt;
             inertia_rot_speed_y_ = -delta_y_px * speed * inv_dt;
         }

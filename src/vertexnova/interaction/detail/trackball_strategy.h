@@ -14,6 +14,7 @@
  * Internal header — not installed, not part of the public API.
  */
 
+#include "../camera_math.h"
 #include "orbit_behavior.h"
 #include "rotation_strategy.h"
 #include "trackball_behavior.h"
@@ -34,6 +35,14 @@ namespace vne::interaction {
  */
 class TrackballStrategy final : public IRotationStrategy {
    public:
+    static constexpr float kVectorEpsilon = detail::kManipulatorUtilsEpsilon;
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers) — periodic quat renormalize cadence
+    static constexpr int kOrientationRenormalizePeriod = 64;
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers) — default deg/pixel; matches OrbitalCameraManipulator
+    static constexpr float kDefaultRotationSpeedDegPerPx = 0.2f;
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers) — ball delta vs Euler speed tuning factor
+    static constexpr float kDefaultTrackballRotationScale = 2.5f;
+
     TrackballStrategy() noexcept
         : orientation_(0.0f, 0.0f, 0.0f, 1.0f)
         , orientation_at_drag_start_(0.0f, 0.0f, 0.0f, 1.0f) {}
@@ -90,7 +99,7 @@ class TrackballStrategy final : public IRotationStrategy {
         orientation_ = (q * orientation_).normalized();
         inertia_rot_speed_ = vne::math::damp(inertia_rot_speed_, 0.0f, 1.0f / damping, dt);
         normalize_counter_++;
-        if (normalize_counter_ >= 64) {
+        if (normalize_counter_ >= kOrientationRenormalizePeriod) {
             orientation_ = orientation_.normalized();
             normalize_counter_ = 0;
         }
@@ -103,18 +112,18 @@ class TrackballStrategy final : public IRotationStrategy {
         }
         vne::math::Vec3f back = ctx.camera->getPosition() - ctx.coi_world;
         const float back_len = back.length();
-        back = (back_len < 1e-6f) ? vne::math::Vec3f(0.0f, 0.0f, 1.0f) : (back / back_len);
+        back = (back_len < kVectorEpsilon) ? vne::math::Vec3f(0.0f, 0.0f, 1.0f) : (back / back_len);
 
         vne::math::Vec3f up = ctx.camera->getUp();
         const float up_len = up.length();
-        up = (up_len < 1e-6f) ? ctx.world_up : (up / up_len);
+        up = (up_len < kVectorEpsilon) ? ctx.world_up : (up / up_len);
 
         vne::math::Vec3f right = up.cross(back);
         const float right_len = right.length();
-        if (right_len < 1e-6f) {
+        if (right_len < kVectorEpsilon) {
             right = ctx.world_up.cross(back);
             const float r2 = right.length();
-            right = (r2 < 1e-6f) ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : (right / r2);
+            right = (r2 < kVectorEpsilon) ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : (right / r2);
         } else {
             right /= right_len;
         }
@@ -146,14 +155,14 @@ class TrackballStrategy final : public IRotationStrategy {
         // Compute camera basis from front
         vne::math::Vec3f r = front.cross(ctx.world_up);
         const float rlen = r.length();
-        if (rlen >= 1e-6f) {
+        if (rlen >= kVectorEpsilon) {
             r /= rlen;
         } else {
             r = vne::math::Vec3f(1.0f, 0.0f, 0.0f);
         }
         const vne::math::Vec3f u_raw = r.cross(front);
         const float ulen = u_raw.length();
-        const vne::math::Vec3f u = (ulen >= 1e-6f) ? (u_raw / ulen) : ctx.world_up;
+        const vne::math::Vec3f u = (ulen >= kVectorEpsilon) ? (u_raw / ulen) : ctx.world_up;
         const vne::math::Vec3f back = -front;
 
         const vne::math::Mat4f rot(vne::math::Vec4f(r.x(), r.y(), r.z(), 0.0f),
@@ -242,8 +251,8 @@ class TrackballStrategy final : public IRotationStrategy {
     vne::math::Vec3f inertia_rot_axis_{0.0f, 1.0f, 0.0f};
     float inertia_rot_speed_ = 0.0f;
     uint32_t normalize_counter_ = 0;
-    float rotation_speed_ = 0.2f;
-    float trackball_rotation_scale_ = 2.5f;
+    float rotation_speed_ = kDefaultRotationSpeedDegPerPx;
+    float trackball_rotation_scale_ = kDefaultTrackballRotationScale;
 
     // Used only for view-direction preset baking (applyViewDirection)
     OrbitBehavior euler_for_preset_;

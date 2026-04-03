@@ -28,6 +28,13 @@ namespace vne::interaction {
 
 using namespace vne;
 
+namespace {
+constexpr float kInspectInteractionScaleMin = 0.01f;
+constexpr float kInspectInteractionScaleMax = 100.0f;
+constexpr float kInspectZoomSensitivityMin = 0.01f;
+constexpr float kInspectInteractionSpeedStepMin = 1.0001f;
+}  // namespace
+
 // ---------------------------------------------------------------------------
 // Pimpl
 // ---------------------------------------------------------------------------
@@ -71,7 +78,8 @@ class Inspect3DController::Impl {
     }
 
     void bumpInteractionScale(float mult) noexcept {
-        interaction_scale_ = std::clamp(interaction_scale_ * mult, 0.01f, 100.0f);
+        interaction_scale_ =
+            std::clamp(interaction_scale_ * mult, kInspectInteractionScaleMin, kInspectInteractionScaleMax);
         applyOrbitSpeeds();
     }
 };
@@ -126,27 +134,27 @@ static InputRule makeKeyPressRule(int key, int mod, CameraActionType on_press) {
 }
 
 struct InspectRuleConfig {
-    bool rotation_enabled_ = true;
-    bool pivot_on_double_click_enabled_ = true;
-    bool pan_enabled_ = true;
-    bool zoom_enabled_ = true;
-    MouseBinding rotate_bind_{MouseButton::eLeft, events::ModifierKey::eModNone};
-    MouseBinding pan_primary_{MouseButton::eRight, events::ModifierKey::eModNone};
-    MouseBinding pan_secondary_{MouseButton::eMiddle, events::ModifierKey::eModNone};
-    events::ModifierKey pan_alt_modifier_ = events::ModifierKey::eModShift;
-    events::ModifierKey zoom_scroll_modifier_ = events::ModifierKey::eModNone;
-    MouseBinding pivot_double_click_{MouseButton::eLeft, events::ModifierKey::eModNone};
-    events::KeyCode increase_interaction_key_ = events::KeyCode::eUnknown;
-    events::KeyCode decrease_interaction_key_ = events::KeyCode::eUnknown;
+    bool rotation_enabled = true;
+    bool pivot_on_double_click_enabled = true;
+    bool pan_enabled = true;
+    bool zoom_enabled = true;
+    MouseBinding rotate_bind{MouseButton::eLeft, events::ModifierKey::eModNone};
+    MouseBinding pan_primary{MouseButton::eRight, events::ModifierKey::eModNone};
+    MouseBinding pan_secondary{MouseButton::eMiddle, events::ModifierKey::eModNone};
+    events::ModifierKey pan_alt_modifier = events::ModifierKey::eModShift;
+    events::ModifierKey zoom_scroll_modifier = events::ModifierKey::eModNone;
+    MouseBinding pivot_double_click{MouseButton::eLeft, events::ModifierKey::eModNone};
+    events::KeyCode increase_interaction_key = events::KeyCode::eUnknown;
+    events::KeyCode decrease_interaction_key = events::KeyCode::eUnknown;
 };
 
 static std::vector<InputRule> buildInspectRules(const InspectRuleConfig& cfg) {
     std::vector<InputRule> rules;
 
-    const int rotate_button = static_cast<int>(cfg.rotate_bind_.button);
+    const int rotate_button = static_cast<int>(cfg.rotate_bind.button);
 
-    if (cfg.rotation_enabled_) {
-        const int rmod = static_cast<int>(cfg.rotate_bind_.modifier_mask);
+    if (cfg.rotation_enabled) {
+        const int rmod = static_cast<int>(cfg.rotate_bind.modifier_mask);
         rules.push_back(makeMouseButtonRule(rotate_button,
                                             rmod,
                                             CameraActionType::eBeginRotate,
@@ -154,30 +162,30 @@ static std::vector<InputRule> buildInspectRules(const InspectRuleConfig& cfg) {
                                             CameraActionType::eRotateDelta));
     }
 
-    if (cfg.pan_enabled_ && cfg.pan_alt_modifier_ != events::ModifierKey::eModNone) {
+    if (cfg.pan_enabled && cfg.pan_alt_modifier != events::ModifierKey::eModNone) {
         rules.push_back(makeMouseButtonRule(rotate_button,
-                                            static_cast<int>(cfg.pan_alt_modifier_),
+                                            static_cast<int>(cfg.pan_alt_modifier),
                                             CameraActionType::eBeginPan,
                                             CameraActionType::eEndPan,
                                             CameraActionType::ePanDelta));
     }
 
-    if (cfg.pivot_on_double_click_enabled_) {
-        rules.push_back(makeDblClickRule(static_cast<int>(cfg.pivot_double_click_.button),
-                                         static_cast<int>(cfg.pivot_double_click_.modifier_mask)));
+    if (cfg.pivot_on_double_click_enabled) {
+        rules.push_back(makeDblClickRule(static_cast<int>(cfg.pivot_double_click.button),
+                                         static_cast<int>(cfg.pivot_double_click.modifier_mask)));
     }
 
-    if (cfg.pan_enabled_) {
-        const int p1 = static_cast<int>(cfg.pan_primary_.button);
-        const int m1 = static_cast<int>(cfg.pan_primary_.modifier_mask);
+    if (cfg.pan_enabled) {
+        const int p1 = static_cast<int>(cfg.pan_primary.button);
+        const int m1 = static_cast<int>(cfg.pan_primary.modifier_mask);
         rules.push_back(makeMouseButtonRule(p1,
                                             m1,
                                             CameraActionType::eBeginPan,
                                             CameraActionType::eEndPan,
                                             CameraActionType::ePanDelta));
-        if (!sameBinding(cfg.pan_primary_, cfg.pan_secondary_)) {
-            const int p2 = static_cast<int>(cfg.pan_secondary_.button);
-            const int m2 = static_cast<int>(cfg.pan_secondary_.modifier_mask);
+        if (!sameBinding(cfg.pan_primary, cfg.pan_secondary)) {
+            const int p2 = static_cast<int>(cfg.pan_secondary.button);
+            const int m2 = static_cast<int>(cfg.pan_secondary.modifier_mask);
             rules.push_back(makeMouseButtonRule(p2,
                                                 m2,
                                                 CameraActionType::eBeginPan,
@@ -190,21 +198,21 @@ static std::vector<InputRule> buildInspectRules(const InspectRuleConfig& cfg) {
         });
     }
 
-    if (cfg.zoom_enabled_) {
-        rules.push_back(makeScrollRule(static_cast<int>(cfg.zoom_scroll_modifier_)));
+    if (cfg.zoom_enabled) {
+        rules.push_back(makeScrollRule(static_cast<int>(cfg.zoom_scroll_modifier)));
         rules.push_back({
             .trigger = InputRule::Trigger::eTouchPinch,
             .on_delta = CameraActionType::eZoomAtCursor,
         });
     }
 
-    if (cfg.increase_interaction_key_ != events::KeyCode::eUnknown) {
-        rules.push_back(makeKeyPressRule(static_cast<int>(cfg.increase_interaction_key_),
+    if (cfg.increase_interaction_key != events::KeyCode::eUnknown) {
+        rules.push_back(makeKeyPressRule(static_cast<int>(cfg.increase_interaction_key),
                                          kModNone,
                                          CameraActionType::eIncreaseInteractionSpeed));
     }
-    if (cfg.decrease_interaction_key_ != events::KeyCode::eUnknown) {
-        rules.push_back(makeKeyPressRule(static_cast<int>(cfg.decrease_interaction_key_),
+    if (cfg.decrease_interaction_key != events::KeyCode::eUnknown) {
+        rules.push_back(makeKeyPressRule(static_cast<int>(cfg.decrease_interaction_key),
                                          kModNone,
                                          CameraActionType::eDecreaseInteractionSpeed));
     }
@@ -425,7 +433,7 @@ void Inspect3DController::setPanSensitivity(float multiplier) noexcept {
 }
 
 void Inspect3DController::setZoomSensitivity(float multiplier) noexcept {
-    impl_->user_zoom_speed_ = std::max(0.01f, multiplier);
+    impl_->user_zoom_speed_ = std::max(kInspectZoomSensitivityMin, multiplier);
     impl_->applyOrbitSpeeds();
 }
 
@@ -460,7 +468,7 @@ void Inspect3DController::setDecreaseInteractionSpeedKey(events::KeyCode key) no
 }
 
 void Inspect3DController::setInteractionSpeedStep(float factor) noexcept {
-    impl_->interaction_speed_step_ = std::max(1.0001f, factor);
+    impl_->interaction_speed_step_ = std::max(kInspectInteractionSpeedStepMin, factor);
 }
 
 // ---------------------------------------------------------------------------
@@ -497,18 +505,18 @@ OrbitalCameraManipulator& Inspect3DController::orbitalCameraManipulator() noexce
 
 void Inspect3DController::rebuildRules() noexcept {
     InspectRuleConfig cfg;
-    cfg.rotation_enabled_ = impl_->rotation_enabled_;
-    cfg.pivot_on_double_click_enabled_ = impl_->pivot_on_double_click_enabled_;
-    cfg.pan_enabled_ = impl_->pan_enabled_;
-    cfg.zoom_enabled_ = impl_->zoom_enabled_;
-    cfg.rotate_bind_ = impl_->rotate_bind_;
-    cfg.pan_primary_ = impl_->pan_primary_;
-    cfg.pan_secondary_ = impl_->pan_secondary_;
-    cfg.pan_alt_modifier_ = impl_->pan_alt_modifier_;
-    cfg.zoom_scroll_modifier_ = impl_->zoom_scroll_modifier_;
-    cfg.pivot_double_click_ = impl_->pivot_double_click_;
-    cfg.increase_interaction_key_ = impl_->increase_interaction_key_;
-    cfg.decrease_interaction_key_ = impl_->decrease_interaction_key_;
+    cfg.rotation_enabled = impl_->rotation_enabled_;
+    cfg.pivot_on_double_click_enabled = impl_->pivot_on_double_click_enabled_;
+    cfg.pan_enabled = impl_->pan_enabled_;
+    cfg.zoom_enabled = impl_->zoom_enabled_;
+    cfg.rotate_bind = impl_->rotate_bind_;
+    cfg.pan_primary = impl_->pan_primary_;
+    cfg.pan_secondary = impl_->pan_secondary_;
+    cfg.pan_alt_modifier = impl_->pan_alt_modifier_;
+    cfg.zoom_scroll_modifier = impl_->zoom_scroll_modifier_;
+    cfg.pivot_double_click = impl_->pivot_double_click_;
+    cfg.increase_interaction_key = impl_->increase_interaction_key_;
+    cfg.decrease_interaction_key = impl_->decrease_interaction_key_;
 
     // setRules clears mapper active-button/key tracking; a drag in progress would never get a matching
     // release rule. Unwind orbit gestures so inertia/onUpdate is not stuck behind latched rotate/pan.

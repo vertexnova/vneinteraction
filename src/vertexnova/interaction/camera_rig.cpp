@@ -56,7 +56,7 @@ void CameraRig::onUpdate(double delta_time) noexcept {
     }
 }
 
-void CameraRig::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
+void CameraRig::setCamera(const std::shared_ptr<vne::scene::ICamera>& camera) noexcept {
     for (auto& m : manipulators_) {
         if (m) {
             m->setCamera(camera);

@@ -31,7 +31,11 @@ namespace vne::interaction {
 
 namespace detail {
 constexpr float kManipulatorUtilsEpsilon = 1e-6f;
-}
+/** |dot| above this ⇒ treat axis as nearly parallel to reference (pick alternate basis). */
+constexpr float kNearlyParallelAxisDot = 0.9f;
+/** Full NDC span when mapping window [0, size] → [-1, 1]. */
+constexpr float kNdcFullSpan = 2.0f;
+}  // namespace detail
 
 // -----------------------------------------------------------------------------
 // buildReferenceFrame — inline
@@ -48,8 +52,9 @@ inline void buildReferenceFrame(const vne::math::Vec3f& world_up,
     const float up_len = up_n.length();
     up_n = (up_len < detail::kManipulatorUtilsEpsilon) ? vne::math::Vec3f(0.0f, 1.0f, 0.0f) : (up_n / up_len);
 
-    vne::math::Vec3f candidate =
-        (std::abs(up_n.y()) > 0.9f) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : vne::math::Vec3f(0.0f, -1.0f, 0.0f);
+    vne::math::Vec3f candidate = (std::abs(up_n.y()) > detail::kNearlyParallelAxisDot)
+                                     ? vne::math::Vec3f(0.0f, 0.0f, -1.0f)
+                                     : vne::math::Vec3f(0.0f, -1.0f, 0.0f);
     ref_fwd = candidate - up_n * candidate.dot(up_n);
     const float fwd_len = ref_fwd.length();
     ref_fwd = (fwd_len < detail::kManipulatorUtilsEpsilon) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : (ref_fwd / fwd_len);
@@ -72,9 +77,9 @@ inline void buildReferenceFrame(const vne::math::Vec3f& world_up,
  */
 [[nodiscard]] inline vne::math::Vec2f mouseToNDC(float mx, float my, float w, float h) noexcept {
     if (w <= 0.0f || h <= 0.0f) {
-        return vne::math::Vec2f(0.0f, 0.0f);
+        return {0.0f, 0.0f};
     }
-    return vne::math::Vec2f((2.0f * mx / w) - 1.0f, 1.0f - (2.0f * my / h));
+    return {(detail::kNdcFullSpan * mx / w) - 1.0f, 1.0f - (detail::kNdcFullSpan * my / h)};
 }
 
 // -----------------------------------------------------------------------------

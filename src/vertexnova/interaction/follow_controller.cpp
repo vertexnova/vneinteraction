@@ -21,6 +21,12 @@ namespace vne::interaction {
 
 using namespace vne;
 
+namespace {
+constexpr float kDefaultFollowOffsetY = 2.0f;
+constexpr float kDefaultFollowOffsetZ = 5.0f;
+constexpr float kLagToDampingScale = 20.0f;
+}  // namespace
+
 // ---------------------------------------------------------------------------
 // Pimpl
 // ---------------------------------------------------------------------------
@@ -116,14 +122,15 @@ void FollowController::setOffset(const vne::math::Vec3f& offset) noexcept {
 }
 
 vne::math::Vec3f FollowController::getOffset() const noexcept {
-    return impl_->follow_ ? impl_->follow_->getOffset() : vne::math::Vec3f{0.0f, 2.0f, 5.0f};
+    return impl_->follow_ ? impl_->follow_->getOffset()
+                         : vne::math::Vec3f{0.0f, kDefaultFollowOffsetY, kDefaultFollowOffsetZ};
 }
 
 void FollowController::setLag(float lag) noexcept {
     // Convert lag [0,1] to damping: lag=0 ->very high damping (instant), lag=1 ->0 (never arrives)
     // damping = -ln(lag_remainder) / typical_dt; we use a simple inversion: damping = (1-lag)*20
     if (impl_->follow_) {
-        const float damping = (1.0f - std::clamp(lag, 0.0f, 0.999f)) * 20.0f;
+        const float damping = (1.0f - std::clamp(lag, 0.0f, 0.999f)) * kLagToDampingScale;
         impl_->follow_->setDamping(damping);
     }
 }
@@ -133,7 +140,7 @@ float FollowController::getLag() const noexcept {
         return 0.0f;
     }
     // Invert the formula above
-    return 1.0f - (impl_->follow_->getDamping() / 20.0f);
+    return 1.0f - (impl_->follow_->getDamping() / kLagToDampingScale);
 }
 
 // ---------------------------------------------------------------------------

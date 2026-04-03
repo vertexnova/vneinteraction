@@ -27,6 +27,14 @@ namespace vne::interaction {
 
 using namespace vne;
 
+namespace {
+constexpr float kDefaultMoveSpeedNoManip = 3.0f;
+constexpr float kDefaultMouseSensitivityNoManip = 0.15f;
+constexpr float kDefaultSprintMultiplierNoManip = 4.0f;
+constexpr float kDefaultSlowMultiplierNoManip = 0.2f;
+constexpr float kMoveSpeedStepFloor = 0.001f;
+}  // namespace
+
 // ---------------------------------------------------------------------------
 // Pimpl
 // ---------------------------------------------------------------------------
@@ -168,7 +176,7 @@ void Navigation3DController::setMoveSpeed(float s) noexcept {
 }
 
 float Navigation3DController::getMoveSpeed() const noexcept {
-    return impl_->free_look_ ? impl_->free_look_->getMoveSpeed() : 3.0f;
+    return impl_->free_look_ ? impl_->free_look_->getMoveSpeed() : kDefaultMoveSpeedNoManip;
 }
 
 void Navigation3DController::setMouseSensitivity(float s) noexcept {
@@ -178,7 +186,7 @@ void Navigation3DController::setMouseSensitivity(float s) noexcept {
 }
 
 float Navigation3DController::getMouseSensitivity() const noexcept {
-    return impl_->free_look_ ? impl_->free_look_->getMouseSensitivity() : 0.15f;
+    return impl_->free_look_ ? impl_->free_look_->getMouseSensitivity() : kDefaultMouseSensitivityNoManip;
 }
 
 void Navigation3DController::setSprintMultiplier(float m) noexcept {
@@ -188,7 +196,7 @@ void Navigation3DController::setSprintMultiplier(float m) noexcept {
 }
 
 float Navigation3DController::getSprintMultiplier() const noexcept {
-    return impl_->free_look_ ? impl_->free_look_->getSprintMultiplier() : 4.0f;
+    return impl_->free_look_ ? impl_->free_look_->getSprintMultiplier() : kDefaultSprintMultiplierNoManip;
 }
 
 void Navigation3DController::setSlowMultiplier(float m) noexcept {
@@ -198,7 +206,7 @@ void Navigation3DController::setSlowMultiplier(float m) noexcept {
 }
 
 float Navigation3DController::getSlowMultiplier() const noexcept {
-    return impl_->free_look_ ? impl_->free_look_->getSlowMultiplier() : 0.2f;
+    return impl_->free_look_ ? impl_->free_look_->getSlowMultiplier() : kDefaultSlowMultiplierNoManip;
 }
 
 void Navigation3DController::setMoveForwardKey(vne::events::KeyCode key) noexcept {
@@ -270,10 +278,10 @@ void Navigation3DController::setDecreaseMoveSpeedKey(vne::events::KeyCode key) n
     rebuild();
 }
 void Navigation3DController::setMoveSpeedStep(float delta) noexcept {
-    impl_->move_speed_step_ = std::max(0.001f, delta);
+    impl_->move_speed_step_ = std::max(kMoveSpeedStepFloor, delta);
 }
 void Navigation3DController::setMoveSpeedMin(float min_speed) noexcept {
-    impl_->move_speed_min_ = std::max(0.001f, min_speed);
+    impl_->move_speed_min_ = std::max(kMoveSpeedStepFloor, min_speed);
     if (impl_->move_speed_max_ < impl_->move_speed_min_) {
         impl_->move_speed_max_ = impl_->move_speed_min_;
     }

@@ -15,6 +15,7 @@
 
 #include "rotation_strategy.h"
 
+#include "../camera_math.h"
 #include "orbit_behavior.h"
 
 namespace vne::interaction {
@@ -26,6 +27,10 @@ namespace vne::interaction {
  */
 class EulerOrbitStrategy final : public IRotationStrategy {
    public:
+    static constexpr float kDegenerateVectorEpsilon = detail::kManipulatorUtilsEpsilon;
+    // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers) — default deg/pixel; matches OrbitalCameraManipulator
+    static constexpr float kDefaultRotationSpeedDegPerPx = 0.2f;
+
     EulerOrbitStrategy() noexcept = default;
 
     void beginRotate(float /*x_px*/, float /*y_px*/, OrbitalContext& /*ctx*/) noexcept override { orbit_.beginDrag(); }
@@ -56,7 +61,7 @@ class EulerOrbitStrategy final : public IRotationStrategy {
         }
         vne::math::Vec3f front = ctx.coi_world - ctx.camera->getPosition();
         const float dist = front.length();
-        if (dist < 1e-6f) {
+        if (dist < kDegenerateVectorEpsilon) {
             return;
         }
         front /= dist;
@@ -73,13 +78,13 @@ class EulerOrbitStrategy final : public IRotationStrategy {
         // right = front × world_up; up = right × front
         vne::math::Vec3f r = front.cross(ctx.world_up);
         const float rlen = r.length();
-        if (rlen < 1e-6f) {
+        if (rlen < kDegenerateVectorEpsilon) {
             return ctx.world_up;
         }
         r /= rlen;
         const vne::math::Vec3f up = r.cross(front);
         const float ulen = up.length();
-        return (ulen < 1e-6f) ? ctx.world_up : (up / ulen);
+        return (ulen < kDegenerateVectorEpsilon) ? ctx.world_up : (up / ulen);
     }
 
     void applyViewDirection(float yaw_deg, float pitch_deg, OrbitalContext& /*ctx*/) noexcept override {
@@ -98,7 +103,7 @@ class EulerOrbitStrategy final : public IRotationStrategy {
 
    private:
     OrbitBehavior orbit_;
-    float rotation_speed_ = 0.2f;
+    float rotation_speed_ = kDefaultRotationSpeedDegPerPx;
     static constexpr double kMinDtForInertia = 0.001;
 };
 

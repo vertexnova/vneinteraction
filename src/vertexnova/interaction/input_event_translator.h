@@ -24,6 +24,7 @@
 #include "vertexnova/interaction/input_mapper.h"
 
 namespace vne::events {
+// NOLINTNEXTLINE(readability-identifier-naming) — forward decl matches vne::events::Event
 class Event;
 }
 
