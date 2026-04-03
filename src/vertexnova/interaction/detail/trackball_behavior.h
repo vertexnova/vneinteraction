@@ -60,7 +60,7 @@ struct BallFrameDelta {
  *
  * For release inertia, use @ref ballFrameDeltaFromSpheres with consecutive @ref project samples.
  */
-class TrackballBehavior {
+class VNE_INTERACTION_API TrackballBehavior {
    public:
     /** Screen-to-sphere mapping; see @ref ProjectionMode::eHyperbolic / @ref ProjectionMode::eRim. */
     enum class ProjectionMode {

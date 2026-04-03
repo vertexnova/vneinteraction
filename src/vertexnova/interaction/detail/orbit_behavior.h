@@ -44,6 +44,8 @@
  * @ref computeFrontDirection.
  */
 
+#include "vertexnova/interaction/export.h"
+
 #include <vertexnova/math/core/core.h>
 
 namespace vne::interaction {
@@ -58,7 +60,7 @@ namespace vne::interaction {
  * - When the camera is moved externally: @ref syncFromViewDirection to recover yaw/pitch.
  * - For framing presets: @ref setYawPitch or adjust limits with @ref setPitchLimits.
  */
-class OrbitBehavior {
+class VNE_INTERACTION_API OrbitBehavior {
    public:
     /**
      * @brief Default lower pitch bound (degrees).
