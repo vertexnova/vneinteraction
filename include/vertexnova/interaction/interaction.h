@@ -40,16 +40,15 @@
  * include @c interaction_types.h or individual headers when you want a smaller dependency set (faster builds).
  */
 
+// clang-format off
 #if defined(VNE_INTERACTION_INTERACTION_H_DEPRECATION_BEFORE_2_0)
 #if defined(_MSC_VER)
-#pragma message(                                                                                                     \
-    "vertexnova/interaction/interaction.h: optional migration note — redundant includes before interaction_types.h " \
-    "may be tightened in v2.0.0; see camera_action.h, camera_state.h, input_binding.h, interaction_types.h, interaction.h")
+#pragma message("interaction.h: VNE_INTERACTION_INTERACTION_H_DEPRECATION_BEFORE_2_0 — see @file Doxygen; v2.0.0")
 #elif defined(__GNUC__) || defined(__clang__)
-#pragma GCC warning \
-    "interaction.h: VNE_INTERACTION_INTERACTION_H_DEPRECATION_BEFORE_2_0 — see file docs; v2.0.0 include policy"
+#pragma GCC warning "interaction.h: VNE_INTERACTION_INTERACTION_H_DEPRECATION_BEFORE_2_0 — see @file; v2.0.0"
 #endif
 #endif
+// clang-format on
 
 // Sub-headers (can be included individually for minimal dependencies)
 #include "vertexnova/interaction/camera_action.h"
