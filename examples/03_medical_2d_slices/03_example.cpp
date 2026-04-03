@@ -15,7 +15,7 @@ static constexpr float kCx = kVpW / 2.0f;
 static constexpr float kCy = kVpH / 2.0f;
 
 static void runUpdate(vne::interaction::Ortho2DController& ctrl,
-                      std::shared_ptr<vne::scene::ICamera> camera,
+                      const std::shared_ptr<vne::scene::ICamera>& camera,
                       int frames,
                       const char* label) {
     for (int i = 0; i < frames; ++i) {

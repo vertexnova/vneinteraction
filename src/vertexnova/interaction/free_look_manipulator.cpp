@@ -237,6 +237,17 @@ void FreeLookManipulator::setWorldUp(const vne::math::Vec3f& up) noexcept {
     }
 }
 
+void FreeLookManipulator::setYawPitchDegrees(float yaw_deg, float pitch_deg) noexcept {
+    yaw_deg_ = yaw_deg;
+    if (mode_ == FreeLookMode::eFps) {
+        pitch_deg_ = vne::math::clamp(pitch_deg, kPitchMinDeg, kPitchMaxDeg);
+    } else {
+        pitch_deg_ = pitch_deg;
+    }
+    angles_dirty_ = false;
+    applyAnglesToCamera();
+}
+
 // ---------------------------------------------------------------------------
 // getWorldUnitsPerPixel / fitToAABB
 // ---------------------------------------------------------------------------

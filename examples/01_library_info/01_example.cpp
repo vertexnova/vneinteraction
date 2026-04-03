@@ -11,7 +11,7 @@
 namespace vne::interaction::examples {
 
 int runLibraryInfoExample() {
-    vne::interaction::examples::LoggingGuard logging_guard;
+    LoggingGuard logging_guard;
 
     // ── Version ───────────────────────────────────────────────────────────────
     VNE_LOG_INFO << "VneInteraction version: " << vne::interaction::get_version();

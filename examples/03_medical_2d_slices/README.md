@@ -45,4 +45,7 @@ DICOM slice viewers, 2D maps, sprite editors, any orthographic viewport where th
 - `setZoomEnabled(false)` — scroll ignored
 - `setPanEnabled(false)` — LMB drag ignored
 
-### I — reset()
+### I — `reset()`
+- Calls `Ortho2DController::reset()` (no parameters, returns `void`), which clears the shared controller context: `InputMapper::resetState()` (active button/chord tracking), `CameraRig::resetState()` (manipulator drag/inertia flags on `Ortho2DManipulator`), and cursor bookkeeping.
+- Does **not** change slice index or DICOM data — only interaction state so the next gesture starts clean.
+- Example: after zoom/pan exercises, `ctrl.reset()` then `runUpdate(...)` shows a stable post-reset pose (see `03_example.cpp` around the `reset()` call).

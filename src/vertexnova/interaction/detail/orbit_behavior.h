@@ -44,8 +44,6 @@
  * @ref computeFrontDirection.
  */
 
-#include "vertexnova/interaction/export.h"
-
 #include <vertexnova/math/core/core.h>
 
 namespace vne::interaction {

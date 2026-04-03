@@ -197,9 +197,9 @@ int runCameraStateSaveRestoreExample() {
         // ── Bookmark initial position ─────────────────────────────────────────
         vne::interaction::FreeCameraState saved;
         saved.position = camera->getPosition();
-        saved.yaw_deg = 0.0f;  // internal — use camera direction in practice
-        saved.pitch_deg = 0.0f;
-        saved.up_hint = {0.0f, 1.0f, 0.0f};
+        saved.yaw_deg = manip.getYawDegrees();
+        saved.pitch_deg = manip.getPitchDegrees();
+        saved.up_hint = manip.getWorldUp();
         logFreeCameraState("  Bookmark (initial):", saved);
 
         // ── Walk around ───────────────────────────────────────────────────────
@@ -225,25 +225,24 @@ int runCameraStateSaveRestoreExample() {
         // ── Capture new position ──────────────────────────────────────────────
         vne::interaction::FreeCameraState after_walk;
         after_walk.position = camera->getPosition();
-        after_walk.yaw_deg = 0.0f;
-        after_walk.pitch_deg = 0.0f;
+        after_walk.yaw_deg = manip.getYawDegrees();
+        after_walk.pitch_deg = manip.getPitchDegrees();
         after_walk.up_hint = manip.getWorldUp();
         logFreeCameraState("  After walk:", after_walk);
 
         // ── Restore to saved bookmark ─────────────────────────────────────────
-        // Set camera position directly, then signal manipulator to re-sync angles.
         camera->setPosition(saved.position);
-        camera->setTarget(vne::math::Vec3f(0.0f, 1.0f, 0.0f));
         camera->updateMatrices();
-        manip.markAnglesDirty();  // tells FreeLookManipulator to re-derive yaw/pitch
+        manip.setWorldUp(saved.up_hint);
+        manip.setYawPitchDegrees(saved.yaw_deg, saved.pitch_deg);
         ctrl.reset();
         for (int i = 0; i < 5; ++i)
             ctrl.onUpdate(kDt);
         vne::interaction::FreeCameraState after_restore;
         after_restore.position = camera->getPosition();
-        after_restore.yaw_deg = 0.0f;
-        after_restore.pitch_deg = 0.0f;
-        after_restore.up_hint = vne::math::Vec3f(0.0f, 1.0f, 0.0f);
+        after_restore.yaw_deg = manip.getYawDegrees();
+        after_restore.pitch_deg = manip.getPitchDegrees();
+        after_restore.up_hint = manip.getWorldUp();
         logFreeCameraState("  After restore to bookmark:", after_restore);
 
         // ── FreeCameraState struct fields ─────────────────────────────────────

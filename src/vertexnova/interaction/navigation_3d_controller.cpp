@@ -35,7 +35,7 @@ struct Navigation3DController::Impl {
     CameraControllerContext core;
     std::shared_ptr<FreeLookManipulator> free_look;  // shared ownership; also in rig
 
-    FreeLookMode mode = FreeLookMode::eFps;
+    FreeLookMode mode_ = FreeLookMode::eFps;
 
     KeyBinding move_forward_{events::KeyCode::eW, events::ModifierKey::eModNone};
     KeyBinding move_backward_{events::KeyCode::eS, events::ModifierKey::eModNone};
@@ -146,12 +146,12 @@ void Navigation3DController::onUpdate(double dt) noexcept {
 // ---------------------------------------------------------------------------
 
 void Navigation3DController::setMode(FreeLookMode mode) noexcept {
-    impl_->mode = mode;
+    impl_->mode_ = mode;
     rebuild();
 }
 
 FreeLookMode Navigation3DController::getMode() const noexcept {
-    return impl_->mode;
+    return impl_->mode_;
 }
 
 // ---------------------------------------------------------------------------
@@ -314,7 +314,7 @@ void Navigation3DController::rebuild() noexcept {
         impl_->core.rig.addManipulator(impl_->free_look);
     }
 
-    switch (impl_->mode) {
+    switch (impl_->mode_) {
         case FreeLookMode::eFps:
             impl_->free_look->setConstrainWorldUp(true);
             break;

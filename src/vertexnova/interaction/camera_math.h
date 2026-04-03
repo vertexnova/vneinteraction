@@ -44,12 +44,16 @@ constexpr float kManipulatorUtilsEpsilon = 1e-6f;
 inline void buildReferenceFrame(const vne::math::Vec3f& world_up,
                                 vne::math::Vec3f& ref_fwd,
                                 vne::math::Vec3f& ref_right) noexcept {
+    vne::math::Vec3f up_n = world_up;
+    const float up_len = up_n.length();
+    up_n = (up_len < detail::kManipulatorUtilsEpsilon) ? vne::math::Vec3f(0.0f, 1.0f, 0.0f) : (up_n / up_len);
+
     vne::math::Vec3f candidate =
-        (std::abs(world_up.y()) > 0.9f) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : vne::math::Vec3f(0.0f, -1.0f, 0.0f);
-    ref_fwd = candidate - world_up * candidate.dot(world_up);
+        (std::abs(up_n.y()) > 0.9f) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : vne::math::Vec3f(0.0f, -1.0f, 0.0f);
+    ref_fwd = candidate - up_n * candidate.dot(up_n);
     const float fwd_len = ref_fwd.length();
     ref_fwd = (fwd_len < detail::kManipulatorUtilsEpsilon) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : (ref_fwd / fwd_len);
-    ref_right = ref_fwd.cross(world_up);
+    ref_right = ref_fwd.cross(up_n);
     const float right_len = ref_right.length();
     if (right_len > detail::kManipulatorUtilsEpsilon) {
         ref_right /= right_len;

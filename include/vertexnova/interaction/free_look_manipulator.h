@@ -115,6 +115,16 @@ class VNE_INTERACTION_API FreeLookManipulator final : public CameraManipulatorBa
     void setWorldUp(const vne::math::Vec3f& up) noexcept;
     [[nodiscard]] vne::math::Vec3f getWorldUp() const noexcept { return world_up_; }
 
+    /** Euler yaw in degrees (horizontal turn about world up in FPS; fly uses same storage). */
+    [[nodiscard]] float getYawDegrees() const noexcept { return yaw_deg_; }
+    /** Euler pitch in degrees (elevation; FPS clamps when applied via @ref setYawPitchDegrees or mouse look). */
+    [[nodiscard]] float getPitchDegrees() const noexcept { return pitch_deg_; }
+    /**
+     * Set yaw/pitch in degrees and refresh the camera look direction via @ref applyAnglesToCamera.
+     * No parameters beyond angles; returns @c void. FPS mode clamps pitch to [-89°, 89°].
+     */
+    void setYawPitchDegrees(float yaw_deg, float pitch_deg) noexcept;
+
     /** Set movement speed in world units per second (default: 3.0). */
     void setMoveSpeed(float speed) noexcept { move_speed_ = std::max(0.0f, speed); }
     [[nodiscard]] float getMoveSpeed() const noexcept { return move_speed_; }

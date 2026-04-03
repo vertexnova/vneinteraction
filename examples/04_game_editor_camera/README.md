@@ -47,4 +47,7 @@ FPS games, game editor viewports, flight sims, architectural walkthroughs, drone
 ### H — ZoomMethod variants
 - `setZoomMethod(eSceneScale / eChangeFov / eDollyToCoi)` via escape hatch
 
-### I — fitToAABB + reset()
+### I — `fitToAABB` + `reset()`
+- **`Navigation3DController::fitToAABB(min, max)`** — forwards to `FreeLookManipulator::fitToAABB` on the rig; repositions the camera outside the world-space AABB (min/max corners) with a default margin. No return value; updates the attached `ICamera` pose.
+- **`Navigation3DController::reset()`** — clears input/rig gesture state via the shared controller context (`InputMapper::resetState`, `CameraRig::resetState`, cursor reset). Returns `void`; does not change the camera pose by itself, but manipulator `resetState()` may re-sync internal yaw/pitch from the camera where implemented.
+- Example flow: frame a large scene box, run a few `onUpdate` ticks, then `reset()` so the next WASD / look session does not inherit stale chord state (see `04_example.cpp` section I).
