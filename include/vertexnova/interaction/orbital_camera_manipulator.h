@@ -13,9 +13,10 @@
  * @file orbital_camera_manipulator.h
  * @brief OrbitalCameraManipulator — orbit camera manipulator with Euler or virtual-trackball rotation.
  *
- * Public orbit manipulator used by inspect-style controllers. It composes:
- * - @ref OrbitBehavior for Euler yaw/pitch state and Euler inertia
- * - @ref TrackballBehavior for screen-to-sphere mapping and ball-space deltas
+ * Public orbit manipulator used by inspect-style controllers. Euler yaw/pitch and virtual-trackball
+ * sphere mapping are implemented by internal helpers in the library sources
+ * (\c src/vertexnova/interaction/detail/, e.g. \c orbit_behavior.h, \c trackball_behavior.h); they are
+ * not installed as public API types.
  *
  * @par Rotation modes
  * - @c OrbitalRotationMode::eOrbit: classic yaw/pitch orbit around @c world_up.
@@ -145,8 +146,8 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
 
     /**
      * @brief Set the camera view-direction preset (front, back, top, iso…).
-     * @details For @c eTop / @c eBottom, pitch matches @ref OrbitBehavior::getPitchMinDeg() /
-     *          getPitchMaxDeg() on the internal yaw/pitch state (defaults ±89°).
+     * @details For @c eTop / @c eBottom, pitch uses the same default polar limits as the internal
+     *          Euler path (±89° on the yaw/pitch state inside the implementation).
      */
     void setViewDirection(ViewDirection dir) noexcept;
 

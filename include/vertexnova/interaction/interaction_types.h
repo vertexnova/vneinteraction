@@ -26,8 +26,9 @@
  * You may include only the focused sub-headers when the full set is not needed.
  *
  * @par Math helpers
- * Orbit/trackball **geometry** lives in @ref OrbitBehavior and @ref TrackballBehavior; this header
- * holds interaction enums, payloads, and grouped state used across manipulators.
+ * Orbit/trackball geometry is implemented in internal library sources
+ * (\c src/vertexnova/interaction/detail/), not as installed types. This header holds interaction enums,
+ * payloads, and grouped state used across manipulators.
  */
 
 #include "vertexnova/interaction/camera_action.h"

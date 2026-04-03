@@ -18,9 +18,10 @@
  * in @ref CameraRig::onAction and silently ignores what it does not implement.
  *
  * @par Math vs motion
- * Orbit Euler and trackball **mapping** live in @ref OrbitBehavior and @ref TrackballBehavior.
- * Manipulators integrate those (or free-flight math), read @ref CameraCommandPayload, and write
- * @c vne::scene::ICamera poses.
+ * Concrete manipulators implement motion using internal helpers and/or free-flight math
+ * (orbit/trackball pieces under \c src/vertexnova/interaction/detail/ in sources). They read
+ * @ref CameraCommandPayload and write @c vne::scene::ICamera poses; those internal helpers are not
+ * part of the installed public API.
  */
 
 #include "vertexnova/interaction/export.h"
