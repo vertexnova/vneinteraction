@@ -42,13 +42,14 @@ vne::math::Vec3f FreeLookManipulator::upVector() const noexcept {
     if (mode_ == FreeLookMode::eFps) {
         // FPS: fixed world up
         return world_up_;
+    } else {
+        // Fly: use actual camera up (may have roll)
+        if (!camera_) {
+            return vne::math::Vec3f(0.0f, 1.0f, 0.0f);
+        }
+        vne::math::Vec3f up = camera_->getUp();
+        return up.isZero(kEpsilon) ? vne::math::Vec3f(0.0f, 1.0f, 0.0f) : up.normalized();
     }
-    // Fly: use actual camera up (may have roll)
-    if (!camera_) {
-        return vne::math::Vec3f(0.0f, 1.0f, 0.0f);
-    }
-    vne::math::Vec3f up = camera_->getUp();
-    return up.isZero(kEpsilon) ? vne::math::Vec3f(0.0f, 1.0f, 0.0f) : up.normalized();
 }
 
 // ---------------------------------------------------------------------------
@@ -159,7 +160,8 @@ void FreeLookManipulator::syncAnglesFromCamera() noexcept {
         return;
     }
     const vne::math::Vec3f horiz_n = horiz / horiz_len;
-    vne::math::Vec3f ref_fwd, ref_right;
+    vne::math::Vec3f ref_fwd;
+    vne::math::Vec3f ref_right;
     buildReferenceFrame(up, ref_fwd, ref_right);
     yaw_deg_ = vne::math::radToDeg(vne::math::atan2(horiz_n.dot(ref_right), horiz_n.dot(ref_fwd)));
 }

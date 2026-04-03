@@ -34,7 +34,7 @@
  * ctrl.setSprintMultiplier(5.0f);
  * @endcode
  *
- * Defaults match common viewport tools (e.g. Isaac Sim style): **Shift** = sprint, **Ctrl** = slow while moving.
+ * Defaults match common viewport tools: **Shift** = sprint, **Ctrl** = slow while moving.
  *
  * For direct `FreeLookManipulator` access (sensitivity, mode, etc.), use @ref freeLookManipulator(); that reference
  * stays valid across @ref setMode and internal input-rule rebuilds.
