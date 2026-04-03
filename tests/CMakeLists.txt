@@ -76,8 +76,8 @@ add_executable(vneinteraction_tests ${TEST_SOURCES})
 target_include_directories(vneinteraction_tests
     PRIVATE
         ${GTEST_INCLUDE_DIRS}
-        ${VNE_INCLUDE_DIR}
-        ${VNE_SRC_DIR}
+        ${PROJECT_SOURCE_DIR}/include
+        ${PROJECT_SOURCE_DIR}/src
 )
 
 target_link_libraries(vneinteraction_tests

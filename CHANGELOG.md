@@ -33,7 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-* **`Inspect3DController`**: LMB orbit rotation **on** by default (`OrbitRotationMode::eOrbit`); use `setRotationEnabled(false)` to disable. Matches examples that simulate LMB drag without calling `setRotationEnabled(true)`.
+* **`Inspect3DController`**: LMB orbit rotation **on** by default (`OrbitalRotationMode::eOrbit`); use `setRotationEnabled(false)` to disable. Matches examples that simulate LMB drag without calling `setRotationEnabled(true)`.
 
 ### Removed
 
@@ -44,7 +44,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * **Breaking**: Renamed `InspectController` to `Inspect3DController`; header `inspect_controller.h` → `inspect_3d_controller.h`.
 * **Breaking**: Renamed `OrbitArcballBehavior` to `OrbitalCameraBehavior`; header `orbit_arcball_behavior.h` → `orbital_camera_behavior.h`; accessors `orbitArcballBehavior()` → `orbitalCameraBehavior()` on `Inspect3DController` and `Navigation3DController`.
-* **Breaking**: `OrbitRotationMode::eArcball` renamed to `eTrackball`; `CameraRig::makeArcball()` → `makeTrackball()`.
+* **Breaking**: `OrbitalRotationMode::eArcball` renamed to `eTrackball`; `CameraRig::makeArcball()` → `makeTrackball()`.
 * **Breaking**: New behavior-based architecture. Removed legacy manipulators (`OrbitManipulator`, `ArcballManipulator`, `FpsManipulator`, `FlyManipulator`, `OrthoPanZoomManipulator`, `FollowManipulator`), `CameraManipulatorFactory`, and `CameraSystemController`.
 * **Added**: Behaviors — `OrbitalCameraBehavior`, `FreeLookBehavior`, `OrthoPanZoomBehavior`, `FollowBehavior` (implement `ICameraBehavior`).
 * **Added**: Controllers — `Inspect3DController`, `Navigation3DController`, `Ortho2DController`, `FollowController`.
@@ -59,7 +59,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * **Navigation**: Remove `NavigateMode::eGame`. `Navigation3DController` supports only **FPS** and **Fly** (`FreeLookBehavior` + `fpsPreset`). For orbit + WASD hybrid rigs, compose **`OrbitalCameraBehavior`** + **`FreeLookBehavior`** on **`CameraRig`** manually; use **`Inspect3DController`** for orbit-style inspection.
 * **`Navigation3DController::orbitalCameraBehavior()`** always returns **`nullptr`**.
-* **Inspect3DController**: When LMB orbit is enabled, default algorithm is **Euler orbit** (`OrbitRotationMode::eOrbit`). Previously the default was **trackball** when rotation was enabled.
+* **Inspect3DController**: When LMB orbit is enabled, default algorithm is **Euler orbit** (`OrbitalRotationMode::eOrbit`). Previously the default was **trackball** when rotation was enabled.
 
 ### Bug Fixes
 

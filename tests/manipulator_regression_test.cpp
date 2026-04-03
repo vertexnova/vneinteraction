@@ -8,7 +8,8 @@
  * zoom-to-cursor, mouseToNDC, and buildReferenceFrame / trackball pole safety.
  */
 
-#include "vertexnova/interaction/manipulator_utils.h"
+#include "vertexnova/interaction/camera_math.h"
+#include "vertexnova/interaction/view_math.h"
 #include "vertexnova/interaction/free_look_manipulator.h"
 #include "vertexnova/interaction/ortho_2d_manipulator.h"
 #include "vertexnova/interaction/orbital_camera_manipulator.h"
@@ -137,7 +138,7 @@ TEST(ManipulatorRegression, OrbitPan_Perspective_DragDownMovesCoiAlongUp) {
     persp->updateMatrices();
 
     vne::interaction::OrbitalCameraManipulator b;
-    b.setRotationMode(vne::interaction::OrbitRotationMode::eOrbit);
+    b.setRotationMode(vne::interaction::OrbitalRotationMode::eOrbit);
     b.setCamera(persp);
     b.onResize(200.0f, 200.0f);
 
@@ -166,7 +167,7 @@ TEST(ManipulatorRegression, OrbitPan_Orthographic_DragDownMovesCoiAlongUp) {
     ortho->updateMatrices();
 
     vne::interaction::OrbitalCameraManipulator b;
-    b.setRotationMode(vne::interaction::OrbitRotationMode::eOrbit);
+    b.setRotationMode(vne::interaction::OrbitalRotationMode::eOrbit);
     b.setCamera(ortho);
     b.onResize(200.0f, 200.0f);
 
@@ -215,6 +216,57 @@ TEST(ManipulatorRegression, FreeLook_MouseUpLooksUp) {
 }
 
 // ---------------------------------------------------------------------------
+// FreeLook yaw: mouse left (negative delta_x) vs right (positive delta_x)
+// ---------------------------------------------------------------------------
+TEST(ManipulatorRegression, FreeLook_MouseLeftDecreasesForwardX) {
+    auto persp = vne::scene::CameraFactory::createPerspective(
+        vne::scene::PerspectiveCameraParameters(60.0f, 16.0f / 9.0f, 0.1f, 1000.0f));
+    persp->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
+    persp->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
+
+    vne::interaction::FreeLookManipulator b;
+    b.setCamera(persp);
+    b.onResize(800.0f, 600.0f);
+    b.setMouseSensitivity(1.0f);
+
+    b.onAction(vne::interaction::CameraActionType::eBeginLook, vne::interaction::CameraCommandPayload{}, 0.0);
+
+    const vne::math::Vec3f fwd_before = (persp->getTarget() - persp->getPosition()).normalized();
+
+    vne::interaction::CameraCommandPayload p;
+    p.delta_x_px = -40.0f;
+    p.delta_y_px = 0.0f;
+    b.onAction(vne::interaction::CameraActionType::eLookDelta, p, 0.016);
+
+    const vne::math::Vec3f fwd_after = (persp->getTarget() - persp->getPosition()).normalized();
+    EXPECT_LT(fwd_after.x(), fwd_before.x()) << "Mouse left (negative delta_x) should decrease forward X here";
+}
+
+TEST(ManipulatorRegression, FreeLook_MouseRightIncreasesForwardX) {
+    auto persp = vne::scene::CameraFactory::createPerspective(
+        vne::scene::PerspectiveCameraParameters(60.0f, 16.0f / 9.0f, 0.1f, 1000.0f));
+    persp->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
+    persp->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
+
+    vne::interaction::FreeLookManipulator b;
+    b.setCamera(persp);
+    b.onResize(800.0f, 600.0f);
+    b.setMouseSensitivity(1.0f);
+
+    b.onAction(vne::interaction::CameraActionType::eBeginLook, vne::interaction::CameraCommandPayload{}, 0.0);
+
+    const vne::math::Vec3f fwd_before = (persp->getTarget() - persp->getPosition()).normalized();
+
+    vne::interaction::CameraCommandPayload p;
+    p.delta_x_px = 40.0f;
+    p.delta_y_px = 0.0f;
+    b.onAction(vne::interaction::CameraActionType::eLookDelta, p, 0.016);
+
+    const vne::math::Vec3f fwd_after = (persp->getTarget() - persp->getPosition()).normalized();
+    EXPECT_GT(fwd_after.x(), fwd_before.x()) << "Mouse right (positive delta_x) should increase forward X here";
+}
+
+// ---------------------------------------------------------------------------
 // Zoom-to-cursor (ortho): point under cursor stays fixed after zoom
 // ---------------------------------------------------------------------------
 TEST(ManipulatorRegression, OrthoZoomToCursor_KeepsPointUnderCursor) {
@@ -258,7 +310,7 @@ TEST(ManipulatorRegression, OrbitEuler_PositiveYawTurnsRight) {
     persp->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
     vne::interaction::OrbitalCameraManipulator b;
-    b.setRotationMode(vne::interaction::OrbitRotationMode::eOrbit);
+    b.setRotationMode(vne::interaction::OrbitalRotationMode::eOrbit);
     b.setCamera(persp);
     b.onResize(800.0f, 600.0f);
 
@@ -283,7 +335,7 @@ TEST(ManipulatorRegression, OrbitalCamera_HorizontalDragMatchesEulerSign) {
     persp->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
     vne::interaction::OrbitalCameraManipulator b;
-    b.setRotationMode(vne::interaction::OrbitRotationMode::eTrackball);
+    b.setRotationMode(vne::interaction::OrbitalRotationMode::eTrackball);
     b.setCamera(persp);
     b.onResize(800.0f, 600.0f);
 

@@ -5,7 +5,7 @@
  */
 
 #include "vertexnova/interaction/camera_manipulator_base.h"
-#include "vertexnova/interaction/manipulator_utils.h"
+#include "view_math.h"
 
 #include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/orthographic_camera.h"
@@ -22,6 +22,7 @@ namespace {
 constexpr float kEpsilon = 1e-6f;
 constexpr float kZoomOrthoHalfMin = 1e-3f;
 constexpr float kZoomOrthoHalfMax = 1e6f;
+constexpr float kMinFovZoomSpeed = 0.01f;
 }  // namespace
 
 // ---------------------------------------------------------------------------
@@ -40,7 +41,7 @@ void CameraManipulatorBase::setCamera(std::shared_ptr<vne::scene::ICamera> camer
 // ---------------------------------------------------------------------------
 
 void CameraManipulatorBase::setFovZoomSpeed(float speed) noexcept {
-    fov_zoom_speed_ = std::max(0.01f, speed);
+    fov_zoom_speed_ = std::max(kMinFovZoomSpeed, speed);
 }
 
 void CameraManipulatorBase::setZoomMethod(ZoomMethod method) noexcept {

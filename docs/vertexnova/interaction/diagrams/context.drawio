@@ -1,0 +1,70 @@
+<mxfile host="app.diagrams.net">
+    <diagram name="System Context (C4 Level 1)" id="context">
+        <mxGraphModel dx="1000" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900" math="0" shadow="0" background="#1C1C1E">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+
+                <!-- Palette: VertexNova visual style (diagrams / decks) — learnvertexnova.com/docs/docs/misc/visual-style/ -->
+                <mxCell id="app" value="C++ Application&#10;(Game / Viewer / Editor)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3A3A3C;strokeColor=#48484A;strokeWidth=2;fontStyle=1;fontSize=12;fontColor=#EBEBF0;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="340" width="220" height="80" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="vne" value="vneinteraction&#10;Camera Interaction Library" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2E1A07;strokeColor=#E8622A;strokeWidth=3;fontStyle=1;fontSize=14;fontColor=#EBEBF0;" parent="1" vertex="1">
+                    <mxGeometry x="480" y="320" width="260" height="120" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="scene" value="vne::scene&#10;Camera / Scene Model" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2C2C2E;strokeColor=#48484A;strokeWidth=2;fontSize=11;fontColor=#EBEBF0;" parent="1" vertex="1">
+                    <mxGeometry x="880" y="200" width="180" height="70" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="events" value="vne::events&#10;Input Event Bus" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2C2C2E;strokeColor=#48484A;strokeWidth=2;fontSize=11;fontColor=#EBEBF0;" parent="1" vertex="1">
+                    <mxGeometry x="880" y="320" width="180" height="70" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="math" value="vne::math&#10;Vec / Quat / Mat / Camera" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2C2C2E;strokeColor=#48484A;strokeWidth=2;fontSize=11;fontColor=#EBEBF0;" parent="1" vertex="1">
+                    <mxGeometry x="880" y="440" width="180" height="70" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="logging" value="vne::logging&#10;Diagnostic Logging" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2C2C2E;strokeColor=#F28C5E;strokeWidth=2;fontSize=11;fontColor=#EBEBF0;" parent="1" vertex="1">
+                    <mxGeometry x="880" y="560" width="180" height="70" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="e1" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=2;strokeColor=#E8622A;" parent="1" source="app" target="vne" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e1l" value="setCamera / onEvent / onUpdate&#10;High-level controllers / CameraRig" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontColor=#EBEBF0;labelBackgroundColor=#2C2C2E;" parent="e1" connectable="0" vertex="1">
+                    <mxGeometry x="0" y="-1" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+                </mxCell>
+
+                <mxCell id="e2" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=2;strokeColor=#48484A;" parent="1" source="vne" target="scene" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e2l" value="reads / writes&#10;ICamera pose" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontColor=#AEAEB2;labelBackgroundColor=#2C2C2E;" parent="e2" connectable="0" vertex="1">
+                    <mxGeometry x="0.1" y="-1" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+                </mxCell>
+
+                <mxCell id="e3" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=2;strokeColor=#48484A;" parent="1" source="vne" target="events" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e3l" value="consumes&#10;mouse / key / touch events" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontColor=#AEAEB2;labelBackgroundColor=#2C2C2E;" parent="e3" connectable="0" vertex="1">
+                    <mxGeometry x="0.1" y="-1" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+                </mxCell>
+
+                <mxCell id="e4" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=2;strokeColor=#48484A;" parent="1" source="vne" target="math" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e4l" value="uses Vec3/Quat/Mat&#10;for geometry &amp; projection" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontColor=#AEAEB2;labelBackgroundColor=#2C2C2E;" parent="e4" connectable="0" vertex="1">
+                    <mxGeometry x="0.1" y="-1" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+                </mxCell>
+
+                <mxCell id="e5" style="endArrow=blockThin;endFill=1;html=1;strokeWidth=2;strokeColor=#48484A;" parent="1" source="vne" target="logging" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e5l" value="diagnostic logs" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontSize=10;fontColor=#AEAEB2;labelBackgroundColor=#2C2C2E;" parent="e5" connectable="0" vertex="1">
+                    <mxGeometry x="0.1" y="-1" relative="1" as="geometry"><mxPoint as="offset"/></mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

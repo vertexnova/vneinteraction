@@ -11,10 +11,10 @@
 set(SOURCE_FILES
     vertexnova/interaction/version.cpp
     vertexnova/interaction/input_mapper.cpp
-    vertexnova/interaction/manipulator_utils.cpp
+    vertexnova/interaction/camera_math.cpp
     vertexnova/interaction/camera_manipulator_base.cpp
-    vertexnova/interaction/trackball_behavior.cpp
-    vertexnova/interaction/orbit_behavior.cpp
+    vertexnova/interaction/detail/orbit_behavior.cpp
+    vertexnova/interaction/detail/trackball_behavior.cpp
     vertexnova/interaction/orbital_camera_manipulator.cpp
     vertexnova/interaction/free_look_manipulator.cpp
     vertexnova/interaction/ortho_2d_manipulator.cpp
@@ -24,18 +24,19 @@ set(SOURCE_FILES
     vertexnova/interaction/navigation_3d_controller.cpp
     vertexnova/interaction/ortho_2d_controller.cpp
     vertexnova/interaction/follow_controller.cpp
-    vertexnova/interaction/controller_event_dispatch.cpp
+    vertexnova/interaction/input_event_translator.cpp
 )
 
 set(HEADER_FILES
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/export.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/version.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_action.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_state.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/input_binding.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/interaction_types.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_manipulator.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_controller.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_manipulator_base.h
-    ${VNE_INCLUDE_DIR}/vertexnova/interaction/trackball_behavior.h
-    ${VNE_INCLUDE_DIR}/vertexnova/interaction/orbit_behavior.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_rig.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/orbital_camera_manipulator.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/free_look_manipulator.h

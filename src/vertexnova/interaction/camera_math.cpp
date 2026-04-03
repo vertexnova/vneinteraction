@@ -4,7 +4,7 @@
  * ----------------------------------------------------------------------
  */
 
-#include "vertexnova/interaction/manipulator_utils.h"
+#include "view_math.h"
 
 namespace vne::interaction {
 
@@ -13,14 +13,14 @@ vne::math::Vec2f mouseToApiScreen(float mx,
                                   const vne::math::Viewport& vp,
                                   vne::math::GraphicsApi api) noexcept {
     if (!vne::math::screenOriginIsTopLeft(api)) {
-        return vne::math::Vec2f(mx, vp.height - my);
+        return {mx, vp.height - my};
     }
-    return vne::math::Vec2f(mx, my);
+    return {mx, my};
 }
 
 vne::math::Vec2f mouseWindowToNDC(float mx, float my, float w, float h, vne::math::GraphicsApi api) noexcept {
     if (w <= 0.0f || h <= 0.0f) {
-        return vne::math::Vec2f(0.0f, 0.0f);
+        return {0.0f, 0.0f};
     }
     const vne::math::Viewport vp(w, h);
     const vne::math::Vec2f api_screen = mouseToApiScreen(mx, my, vp, api);
@@ -33,13 +33,13 @@ vne::math::Vec2f mouseWindowDeltaToNDCDelta(const float delta_x_px,
                                             const float h,
                                             const vne::math::GraphicsApi api) noexcept {
     if (w <= 0.0f || h <= 0.0f) {
-        return vne::math::Vec2f(0.0f, 0.0f);
+        return {0.0f, 0.0f};
     }
     const float cx = 0.5f * w;
     const float cy = 0.5f * h;
     const vne::math::Vec2f ndc0 = mouseWindowToNDC(cx, cy, w, h, api);
     const vne::math::Vec2f ndc1 = mouseWindowToNDC(cx + delta_x_px, cy + delta_y_px, w, h, api);
-    return vne::math::Vec2f(ndc1.x() - ndc0.x(), ndc1.y() - ndc0.y());
+    return {ndc1.x() - ndc0.x(), ndc1.y() - ndc0.y()};
 }
 
 vne::math::Vec3f mouseUnproject(

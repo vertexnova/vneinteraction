@@ -171,7 +171,7 @@ void Ortho2DManipulator::applyInertia(double delta_time) noexcept {
         pan_velocity_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
         return;
     }
-    const float dt = static_cast<float>(delta_time);
+    const auto dt = static_cast<float>(delta_time);
     const vne::math::Vec3f delta = pan_velocity_ * dt;
     ortho->setPosition(ortho->getPosition() + delta);
     ortho->setTarget(ortho->getTarget() + delta);
@@ -313,6 +313,7 @@ bool Ortho2DManipulator::onAction(CameraActionType action,
             return true;
 
         case CameraActionType::eEndRotate:
+            // Always clear latch (same idea as eEndPan); return value reflects rotate_enabled_ for callers.
             rotating_ = false;
             return rotate_enabled_;
 

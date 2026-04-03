@@ -1,1 +1,1 @@
-vne_add_example(05_robotic_simulator)
+vne_add_example(05_robotic_simulator 05_example.cpp)

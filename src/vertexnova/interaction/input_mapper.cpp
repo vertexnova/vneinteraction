@@ -104,7 +104,7 @@ void InputMapper::setRules(std::span<const InputRule> rules) {
 }
 
 void InputMapper::addRule(InputRule rule) {
-    rules_.push_back(std::move(rule));
+    rules_.push_back(rule);
 }
 
 void InputMapper::clearRules() {
@@ -130,7 +130,7 @@ constexpr unsigned kKnownModifierBits = static_cast<unsigned>(kModShift | kModCt
  */
 [[nodiscard]] int modifierMaskSpecificity(int mask) noexcept {
     assert(mask >= 0);
-    const unsigned raw = static_cast<unsigned>(mask);
+    const auto raw = static_cast<unsigned>(mask);
     assert((raw & ~kKnownModifierBits) == 0U);
     return std::popcount(raw & kKnownModifierBits);
 }
@@ -300,9 +300,7 @@ void InputMapper::resetState() noexcept {
     std::fill(std::begin(active_button_rule_), std::end(active_button_rule_), -1);
     std::fill(std::begin(active_key_), std::end(active_key_), false);
     std::fill(std::begin(active_key_rule_), std::end(active_key_rule_), -1);
-    mod_shift_ = false;
-    mod_ctrl_ = false;
-    mod_alt_ = false;
+    modifiers_ = 0;
 }
 
 void InputMapper::emit(CameraActionType action, const CameraCommandPayload& payload, double dt) noexcept {
@@ -317,8 +315,7 @@ void InputMapper::emit(CameraActionType action, const CameraCommandPayload& payl
 }
 
 bool InputMapper::modifiersMatch(int mask) const noexcept {
-    const int current = (mod_shift_ ? kModShift : 0) | (mod_ctrl_ ? kModCtrl : 0) | (mod_alt_ ? kModAlt : 0);
-    return (current & mask) == mask;
+    return (modifiers_ & mask) == mask;
 }
 
 void InputMapper::onMouseButton(int button, bool pressed, float x, float y, double dt) noexcept {
@@ -370,8 +367,7 @@ void InputMapper::onMouseMove(float x, float y, float dx, float dy, double dt) n
     payload.delta_x_px = dx;
     payload.delta_y_px = dy;
 
-    for (int btn = 0; btn < kMaxButtons; ++btn) {
-        const int idx = active_button_rule_[btn];
+    for (const int idx : active_button_rule_) {
         if (idx < 0) {
             continue;
         }
@@ -406,16 +402,22 @@ void InputMapper::onKey(int key, bool pressed, double dt) noexcept {
         return;
     }
 
-    // Update modifier state
+    // Update modifier bitmask
+    auto set_mod_bit = [&](int bit) {
+        if (pressed)
+            modifiers_ |= bit;
+        else
+            modifiers_ &= ~bit;
+    };
     if (key == static_cast<int>(events::KeyCode::eLeftShift) || key == static_cast<int>(events::KeyCode::eRightShift)) {
-        mod_shift_ = pressed;
+        set_mod_bit(kModShift);
     }
     if (key == static_cast<int>(events::KeyCode::eLeftControl)
         || key == static_cast<int>(events::KeyCode::eRightControl)) {
-        mod_ctrl_ = pressed;
+        set_mod_bit(kModCtrl);
     }
     if (key == static_cast<int>(events::KeyCode::eLeftAlt) || key == static_cast<int>(events::KeyCode::eRightAlt)) {
-        mod_alt_ = pressed;
+        set_mod_bit(kModAlt);
     }
 
     // Track active key state
@@ -481,31 +483,31 @@ void InputMapper::onTouchPinch(const TouchPinch& pinch, double dt) noexcept {
 // ---------------------------------------------------------------------------
 
 std::vector<InputRule> InputMapper::orbitPreset() {
-    const int kLeft = static_cast<int>(MouseButton::eLeft);
-    const int kRight = static_cast<int>(MouseButton::eRight);
-    const int kMiddle = static_cast<int>(MouseButton::eMiddle);
+    const int left_button = static_cast<int>(MouseButton::eLeft);
+    const int right_button = static_cast<int>(MouseButton::eRight);
+    const int middle_button = static_cast<int>(MouseButton::eMiddle);
 
     return {
         // Shift+LMB: pan (stricter chord than plain LMB)
-        makeButtonRule(kLeft,
+        makeButtonRule(left_button,
                        kModShift,
                        CameraActionType::eBeginPan,
                        CameraActionType::eEndPan,
                        CameraActionType::ePanDelta),
         // LMB: rotate
-        makeButtonRule(kLeft,
+        makeButtonRule(left_button,
                        kModNone,
                        CameraActionType::eBeginRotate,
                        CameraActionType::eEndRotate,
                        CameraActionType::eRotateDelta),
         // RMB: pan
-        makeButtonRule(kRight,
+        makeButtonRule(right_button,
                        kModNone,
                        CameraActionType::eBeginPan,
                        CameraActionType::eEndPan,
                        CameraActionType::ePanDelta),
         // MMB: pan
-        makeButtonRule(kMiddle,
+        makeButtonRule(middle_button,
                        kModNone,
                        CameraActionType::eBeginPan,
                        CameraActionType::eEndPan,
@@ -517,16 +519,16 @@ std::vector<InputRule> InputMapper::orbitPreset() {
         // Touch pinch: zoom
         makeTouchPinchRule(CameraActionType::eZoomAtCursor),
         // Double-click LMB: eSetPivotAtCursor (COI along view direction in OrbitalCameraManipulator)
-        makeDblClickRule(kLeft, CameraActionType::eSetPivotAtCursor),
+        makeDblClickRule(left_button, CameraActionType::eSetPivotAtCursor),
     };
 }
 
 std::vector<InputRule> InputMapper::fpsPreset() {
-    const int kRight = static_cast<int>(MouseButton::eRight);
+    const int right_button = static_cast<int>(MouseButton::eRight);
 
     return {
         // RMB: look (mouse look while held)
-        makeButtonRule(kRight,
+        makeButtonRule(right_button,
                        kModNone,
                        CameraActionType::eBeginLook,
                        CameraActionType::eEndLook,
@@ -565,18 +567,18 @@ std::vector<InputRule> InputMapper::fpsPreset() {
 }
 
 std::vector<InputRule> InputMapper::gamePreset() {
-    const int kLeft = static_cast<int>(MouseButton::eLeft);
-    const int kRight = static_cast<int>(MouseButton::eRight);
+    const int left_button = static_cast<int>(MouseButton::eLeft);
+    const int right_button = static_cast<int>(MouseButton::eRight);
 
     return {
         // LMB: orbit rotate
-        makeButtonRule(kLeft,
+        makeButtonRule(left_button,
                        kModNone,
                        CameraActionType::eBeginRotate,
                        CameraActionType::eEndRotate,
                        CameraActionType::eRotateDelta),
         // RMB: free look
-        makeButtonRule(kRight,
+        makeButtonRule(right_button,
                        kModNone,
                        CameraActionType::eBeginLook,
                        CameraActionType::eEndLook,
@@ -606,22 +608,22 @@ std::vector<InputRule> InputMapper::gamePreset() {
         // Touch pinch: zoom
         makeTouchPinchRule(CameraActionType::eZoomAtCursor),
         // Double-click LMB: eSetPivotAtCursor (COI along view direction)
-        makeDblClickRule(kLeft, CameraActionType::eSetPivotAtCursor),
+        makeDblClickRule(left_button, CameraActionType::eSetPivotAtCursor),
     };
 }
 
 std::vector<InputRule> InputMapper::cadPreset() {
-    const int kMiddle = static_cast<int>(MouseButton::eMiddle);
+    const int middle_button = static_cast<int>(MouseButton::eMiddle);
 
     return {
         // Shift+MMB: rotate (wins over plain MMB when Shift is held)
-        makeButtonRule(kMiddle,
+        makeButtonRule(middle_button,
                        kModShift,
                        CameraActionType::eBeginRotate,
                        CameraActionType::eEndRotate,
                        CameraActionType::eRotateDelta),
         // MMB: pan
-        makeButtonRule(kMiddle,
+        makeButtonRule(middle_button,
                        kModNone,
                        CameraActionType::eBeginPan,
                        CameraActionType::eEndPan,
@@ -633,23 +635,23 @@ std::vector<InputRule> InputMapper::cadPreset() {
         // Touch pinch: zoom
         makeTouchPinchRule(CameraActionType::eZoomAtCursor),
         // Double-click MMB: eSetPivotAtCursor (COI along view direction)
-        makeDblClickRule(kMiddle, CameraActionType::eSetPivotAtCursor),
+        makeDblClickRule(middle_button, CameraActionType::eSetPivotAtCursor),
     };
 }
 
 std::vector<InputRule> InputMapper::orthoPreset() {
-    const int kRight = static_cast<int>(MouseButton::eRight);
-    const int kMiddle = static_cast<int>(MouseButton::eMiddle);
+    const int right_button = static_cast<int>(MouseButton::eRight);
+    const int middle_button = static_cast<int>(MouseButton::eMiddle);
 
     return {
         // RMB: pan
-        makeButtonRule(kRight,
+        makeButtonRule(right_button,
                        kModNone,
                        CameraActionType::eBeginPan,
                        CameraActionType::eEndPan,
                        CameraActionType::ePanDelta),
         // MMB: pan
-        makeButtonRule(kMiddle,
+        makeButtonRule(middle_button,
                        kModNone,
                        CameraActionType::eBeginPan,
                        CameraActionType::eEndPan,

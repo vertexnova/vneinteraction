@@ -1,0 +1,1 @@
+vne_add_example(08_camera_state_save_restore 08_example.cpp)

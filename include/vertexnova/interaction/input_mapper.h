@@ -32,9 +32,10 @@
  * @ref bindGesture, @ref bindScroll, @ref bindDoubleClick, and @ref bindKey adjust bindings without
  * editing @ref InputRule directly — the intended path for app-level customization from controllers.
  *
- * @par Symmetry with behaviors
- * @ref OrbitBehavior and @ref TrackballBehavior own orbit math; @ref InputMapper owns **which**
- * gestures produce @c eBeginRotate, @c ePanDelta, @c eZoomAtCursor, etc.
+ * @par Separation from orbit math
+ * @ref InputMapper decides which gestures produce @c eBeginRotate, @c ePanDelta, @c eZoomAtCursor,
+ * etc. Orbit/trackball geometry lives inside @ref OrbitalCameraManipulator via internal helpers
+ * (\c src/vertexnova/interaction/detail/ in sources), not as separate public types.
  */
 
 #include "vertexnova/interaction/export.h"
@@ -231,9 +232,7 @@ class VNE_INTERACTION_API InputMapper {
     int active_key_rule_[kMaxKeys] =
         {};  //!< Filled with @c -1 in @ref resetState; rule index for key press/release pairing.
 
-    bool mod_shift_ = false;  //!< Shift held (updated in @ref onKey).
-    bool mod_ctrl_ = false;   //!< Ctrl held.
-    bool mod_alt_ = false;    //!< Alt held.
+    int modifiers_ = 0;  //!< Current modifier bitmask (kModShift | kModCtrl | kModAlt); updated in @ref onKey.
 };
 
 }  // namespace vne::interaction

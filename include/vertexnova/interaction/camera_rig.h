@@ -108,7 +108,7 @@ class VNE_INTERACTION_API CameraRig {
      * @brief Set the controlled camera on all manipulators.
      * @param camera Shared pointer to the camera; may be nullptr to detach
      */
-    void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept;
+    void setCamera(const std::shared_ptr<vne::scene::ICamera>& camera) noexcept;
 
     /**
      * @brief Notify all manipulators of the current viewport dimensions.
@@ -141,9 +141,6 @@ class VNE_INTERACTION_API CameraRig {
 
     /** Follow rig: FollowManipulator (autonomous smooth target following). */
     static CameraRig makeFollow();
-
-    /** 2D rig: Ortho2DManipulator (alias for makeOrtho2D). */
-    static CameraRig make2D();
 
    private:
     std::vector<std::shared_ptr<ICameraManipulator>> manipulators_;

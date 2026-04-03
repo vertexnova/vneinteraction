@@ -136,7 +136,7 @@ class VNE_INTERACTION_API Ortho2DController : public ICameraController {
    private:
     void rebuildRules() noexcept;
 
-    struct Impl;
+    class Impl;
     std::unique_ptr<Impl> impl_;
 
     bool rotation_enabled_ = false;

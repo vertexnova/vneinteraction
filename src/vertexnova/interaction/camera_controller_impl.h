@@ -10,7 +10,7 @@
  */
 
 /**
- * @file camera_controller_context.h
+ * @file camera_controller_impl.h
  * @brief Shared rig + mapper + camera + viewport + cursor for high-level controllers.
  *
  * Controllers set @ref InputMapper::setActionCallback themselves (often with a custom
@@ -21,7 +21,7 @@
 #include "vertexnova/interaction/camera_rig.h"
 #include "vertexnova/interaction/input_mapper.h"
 
-#include "controller_event_dispatch.h"
+#include "input_event_translator.h"
 
 #include <memory>
 
@@ -31,6 +31,9 @@ class ICamera;
 
 namespace vne::interaction {
 
+inline constexpr float kDefaultControllerViewportWidthPx = 1280.0f;
+inline constexpr float kDefaultControllerViewportHeightPx = 720.0f;
+
 /**
  * @brief Common state wired by Inspect / Navigation / Ortho / Follow controllers.
  */
@@ -38,8 +41,8 @@ struct CameraControllerContext {
     CameraRig rig;
     InputMapper mapper;
     std::shared_ptr<vne::scene::ICamera> camera;
-    float viewport_w = 1280.0f;
-    float viewport_h = 720.0f;
+    float viewport_w = kDefaultControllerViewportWidthPx;
+    float viewport_h = kDefaultControllerViewportHeightPx;
     CursorState cursor;
 
     void setCamera(std::shared_ptr<vne::scene::ICamera> cam) noexcept {

@@ -5,7 +5,7 @@
  */
 
 #include "vertexnova/interaction/free_look_manipulator.h"
-#include "vertexnova/interaction/manipulator_utils.h"
+#include "view_math.h"
 
 #include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/perspective_camera.h"
@@ -32,6 +32,8 @@ constexpr float kPitchMaxDeg = 89.0f;
 constexpr float kMinRadiusFallback = 1.0f;
 constexpr float kFitToAabbDistFactor = 2.5f;  // fallback multiplier for non-perspective cameras
 constexpr float kFitToAabbMargin = 1.1f;      // 10 % breathing room added to FOV-derived distance
+constexpr float kPerspWorldUnitsScale = 2.0f;
+constexpr float kHalf = 0.5f;
 }  // namespace
 
 // ---------------------------------------------------------------------------
@@ -42,13 +44,14 @@ vne::math::Vec3f FreeLookManipulator::upVector() const noexcept {
     if (mode_ == FreeLookMode::eFps) {
         // FPS: fixed world up
         return world_up_;
+    } else {
+        // Fly: use actual camera up (may have roll)
+        if (!camera_) {
+            return {0.0f, 1.0f, 0.0f};
+        }
+        vne::math::Vec3f up = camera_->getUp();
+        return up.isZero(kEpsilon) ? vne::math::Vec3f{0.0f, 1.0f, 0.0f} : up.normalized();
     }
-    // Fly: use actual camera up (may have roll)
-    if (!camera_) {
-        return vne::math::Vec3f(0.0f, 1.0f, 0.0f);
-    }
-    vne::math::Vec3f up = camera_->getUp();
-    return up.isZero(kEpsilon) ? vne::math::Vec3f(0.0f, 1.0f, 0.0f) : up.normalized();
 }
 
 // ---------------------------------------------------------------------------
@@ -118,7 +121,7 @@ vne::math::Vec3f FreeLookManipulator::orthoPanUp(const vne::math::Vec3f& view_di
         len = u.length();
     }
     if (len < kEpsilon) {
-        return vne::math::Vec3f(0.0f, 1.0f, 0.0f);
+        return {0.0f, 1.0f, 0.0f};
     }
     return u / len;
 }
@@ -159,7 +162,8 @@ void FreeLookManipulator::syncAnglesFromCamera() noexcept {
         return;
     }
     const vne::math::Vec3f horiz_n = horiz / horiz_len;
-    vne::math::Vec3f ref_fwd, ref_right;
+    vne::math::Vec3f ref_fwd;
+    vne::math::Vec3f ref_right;
     buildReferenceFrame(up, ref_fwd, ref_right);
     yaw_deg_ = vne::math::radToDeg(vne::math::atan2(horiz_n.dot(ref_right), horiz_n.dot(ref_fwd)));
 }
@@ -235,6 +239,17 @@ void FreeLookManipulator::setWorldUp(const vne::math::Vec3f& up) noexcept {
     }
 }
 
+void FreeLookManipulator::setYawPitchDegrees(float yaw_deg, float pitch_deg) noexcept {
+    yaw_deg_ = yaw_deg;
+    if (mode_ == FreeLookMode::eFps) {
+        pitch_deg_ = vne::math::clamp(pitch_deg, kPitchMinDeg, kPitchMaxDeg);
+    } else {
+        pitch_deg_ = pitch_deg;
+    }
+    angles_dirty_ = false;
+    applyAnglesToCamera();
+}
+
 // ---------------------------------------------------------------------------
 // getWorldUnitsPerPixel / fitToAABB
 // ---------------------------------------------------------------------------
@@ -242,7 +257,7 @@ void FreeLookManipulator::setWorldUp(const vne::math::Vec3f& up) noexcept {
 float FreeLookManipulator::getWorldUnitsPerPixel() const noexcept {
     if (auto persp = perspCamera()) {
         const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
-        return 2.0f * vne::math::tan(fov_y_rad * 0.5f) / viewport().height;
+        return kPerspWorldUnitsScale * vne::math::tan(fov_y_rad * kHalf) / viewport().height;
     }
     return 1.0f;
 }
@@ -252,8 +267,8 @@ void FreeLookManipulator::fitToAABB(const vne::math::Vec3f& min_world, const vne
         return;
     }
     ensureAnglesSynced();
-    const vne::math::Vec3f center = (min_world + max_world) * 0.5f;
-    float radius = (max_world - min_world).length() * 0.5f;
+    const vne::math::Vec3f center = (min_world + max_world) * kHalf;
+    float radius = (max_world - min_world).length() * kHalf;
     if (radius < kEpsilon) {
         radius = kMinRadiusFallback;
     }
@@ -261,7 +276,7 @@ void FreeLookManipulator::fitToAABB(const vne::math::Vec3f& min_world, const vne
     vne::math::Vec3f eye;
     if (auto persp = perspCamera()) {
         const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
-        const float dist = (radius / vne::math::tan(fov_y_rad * 0.5f)) * kFitToAabbMargin;
+        const float dist = (radius / vne::math::tan(fov_y_rad * kHalf)) * kFitToAabbMargin;
         eye = center - f * dist;
     } else {
         eye = center - f * (radius * kFitToAabbDistFactor);
@@ -291,7 +306,7 @@ void FreeLookManipulator::onUpdate(double delta_time) noexcept {
     }
     // Refresh yaw/pitch before the dt guard so zero-dt ticks still clear angles_dirty_ (see ensureAnglesSynced).
     ensureAnglesSynced();
-    const float dt = static_cast<float>(delta_time);
+    const auto dt = static_cast<float>(delta_time);
     if (dt <= 0.0f) {
         return;
     }

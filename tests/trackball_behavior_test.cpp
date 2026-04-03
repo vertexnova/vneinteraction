@@ -3,7 +3,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License")
  * --------------------------------------------------------------------- */
 
-#include "vertexnova/interaction/trackball_behavior.h"
+#include "vertexnova/interaction/detail/trackball_behavior.h"
 
 #include <vertexnova/math/core/core.h>
 

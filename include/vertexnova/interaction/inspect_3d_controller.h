@@ -26,8 +26,8 @@
  * @endcode
  *
  * ### Defaults
- * - Rotation: **on** by default; algorithm is **Euler orbit** (`OrbitRotationMode::eOrbit`).
- *   Use `setRotationMode(OrbitRotationMode::eTrackball)` for quaternion trackball; use `setRotationEnabled(false)` to
+ * - Rotation: **on** by default; algorithm is **Euler orbit** (`OrbitalRotationMode::eOrbit`).
+ *   Use `setRotationMode(OrbitalRotationMode::eTrackball)` for quaternion trackball; use `setRotationEnabled(false)` to
  * disable LMB orbit.
  * - LMB drag = rotate (when rotation enabled), RMB/MMB drag = pan, scroll = zoom
  * - Double-click LMB = move pivot to current center-of-interest along the view direction (auto-pivot; **on** by
@@ -117,9 +117,9 @@ class VNE_INTERACTION_API Inspect3DController : public ICameraController {
     // Rotation
     // -------------------------------------------------------------------------
 
-    /** Switch rotation algorithm (default: OrbitRotationMode::eOrbit). */
-    void setRotationMode(OrbitRotationMode mode) noexcept;
-    [[nodiscard]] OrbitRotationMode getRotationMode() const noexcept;
+    /** Switch rotation algorithm (default: OrbitalRotationMode::eOrbit). */
+    void setRotationMode(OrbitalRotationMode mode) noexcept;
+    [[nodiscard]] OrbitalRotationMode getRotationMode() const noexcept;
 
     // -------------------------------------------------------------------------
     // Pivot / anchor
@@ -238,7 +238,7 @@ class VNE_INTERACTION_API Inspect3DController : public ICameraController {
    private:
     void rebuildRules() noexcept;
 
-    struct Impl;
+    class Impl;
     std::unique_ptr<Impl> impl_;
 };
 

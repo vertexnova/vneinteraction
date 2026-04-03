@@ -12,7 +12,7 @@
 #include "vertexnova/interaction/input_mapper.h"
 #include "vertexnova/interaction/ortho_2d_manipulator.h"
 
-#include "camera_controller_context.h"
+#include "camera_controller_impl.h"
 
 #include <vertexnova/events/key_event.h>
 #include <vertexnova/logging/logging.h>
@@ -43,9 +43,12 @@ using namespace vne;
 // Pimpl
 // ---------------------------------------------------------------------------
 
-struct Ortho2DController::Impl {
-    CameraControllerContext core;
-    std::shared_ptr<Ortho2DManipulator> ortho2d_behavior;
+class Ortho2DController::Impl {
+    friend class Ortho2DController;
+
+   private:
+    CameraControllerContext core_;
+    std::shared_ptr<Ortho2DManipulator> ortho2d_behavior_;
 };
 
 // ---------------------------------------------------------------------------
@@ -54,13 +57,13 @@ struct Ortho2DController::Impl {
 
 Ortho2DController::Ortho2DController()
     : impl_(std::make_unique<Impl>()) {
-    impl_->ortho2d_behavior = std::make_shared<Ortho2DManipulator>();
-    impl_->core.rig.addManipulator(impl_->ortho2d_behavior);
+    impl_->ortho2d_behavior_ = std::make_shared<Ortho2DManipulator>();
+    impl_->core_.rig.addManipulator(impl_->ortho2d_behavior_);
 
     // Capture raw Impl* so the callback stays valid across moves.
-    impl_->core.mapper.setActionCallback([impl = impl_.get()](CameraActionType a,
-                                                              const CameraCommandPayload& p,
-                                                              double dt) { impl->core.rig.onAction(a, p, dt); });
+    impl_->core_.mapper.setActionCallback([impl = impl_.get()](CameraActionType a,
+                                                               const CameraCommandPayload& p,
+                                                               double dt) { impl->core_.rig.onAction(a, p, dt); });
 
     rebuildRules();
 }
@@ -77,11 +80,11 @@ void Ortho2DController::setCamera(std::shared_ptr<vne::scene::ICamera> camera) n
     if (!camera) {
         VNE_LOG_DEBUG << "Ortho2DController: camera detached (null camera)";
     }
-    impl_->core.setCamera(std::move(camera));
+    impl_->core_.setCamera(std::move(camera));
 }
 
 void Ortho2DController::onResize(float w, float h) noexcept {
-    impl_->core.onResize(w, h);
+    impl_->core_.onResize(w, h);
 }
 
 // ---------------------------------------------------------------------------
@@ -93,22 +96,22 @@ void Ortho2DController::onEvent(const events::Event& event, double delta_time) n
         case events::EventType::eKeyPressed:
         case events::EventType::eKeyRepeat: {
             const auto& e = static_cast<const events::KeyEvent&>(event);
-            impl_->core.mapper.onKey(static_cast<int>(e.keyCode()), true, delta_time);
+            impl_->core_.mapper.onKey(static_cast<int>(e.keyCode()), true, delta_time);
             return;
         }
         case events::EventType::eKeyReleased: {
             const auto& e = static_cast<const events::KeyEvent&>(event);
-            impl_->core.mapper.onKey(static_cast<int>(e.keyCode()), false, delta_time);
+            impl_->core_.mapper.onKey(static_cast<int>(e.keyCode()), false, delta_time);
             return;
         }
         default:
             break;
     }
-    dispatchMouseEvents(impl_->core.mapper, impl_->core.cursor, event, delta_time);
+    dispatchMouseEvents(impl_->core_.mapper, impl_->core_.cursor, event, delta_time);
 }
 
 void Ortho2DController::onUpdate(double dt) noexcept {
-    impl_->core.onUpdate(dt);
+    impl_->core_.onUpdate(dt);
 }
 
 // ---------------------------------------------------------------------------
@@ -116,27 +119,27 @@ void Ortho2DController::onUpdate(double dt) noexcept {
 // ---------------------------------------------------------------------------
 
 void Ortho2DController::setRotationEnabled(bool enabled) noexcept {
-    // End in-flight rotate before clearing rules / manipulator flags so Ortho2DManipulator
-    // does not stay latched (eEndRotate is ignored once rotate_enabled_ is false).
-    if (!enabled && rotation_enabled_ && impl_->ortho2d_behavior) {
+    // End in-flight rotate before clearing rules / manipulator flags. Ortho2DManipulator always clears
+    // rotating_ on eEndRotate; eBeginRotate / eRotateDelta remain gated by rotate_enabled_.
+    if (!enabled && rotation_enabled_ && impl_->ortho2d_behavior_) {
         const CameraCommandPayload p{};
-        impl_->core.rig.onAction(CameraActionType::eEndRotate, p, 0.0);
+        impl_->core_.rig.onAction(CameraActionType::eEndRotate, p, 0.0);
     }
     rotation_enabled_ = enabled;
-    if (impl_->ortho2d_behavior) {
-        impl_->ortho2d_behavior->setRotateEnabled(enabled);
+    if (impl_->ortho2d_behavior_) {
+        impl_->ortho2d_behavior_->setRotateEnabled(enabled);
     }
     rebuildRules();
 }
 
 void Ortho2DController::setPanEnabled(bool enabled) noexcept {
-    if (!enabled && pan_enabled_ && impl_->ortho2d_behavior) {
+    if (!enabled && pan_enabled_ && impl_->ortho2d_behavior_) {
         const CameraCommandPayload p{};
-        impl_->core.rig.onAction(CameraActionType::eEndPan, p, 0.0);
+        impl_->core_.rig.onAction(CameraActionType::eEndPan, p, 0.0);
     }
     pan_enabled_ = enabled;
-    if (impl_->ortho2d_behavior) {
-        impl_->ortho2d_behavior->setPanEnabled(enabled);
+    if (impl_->ortho2d_behavior_) {
+        impl_->ortho2d_behavior_->setPanEnabled(enabled);
     }
     rebuildRules();
 }
@@ -162,26 +165,26 @@ void Ortho2DController::setZoomScrollModifier(events::ModifierKey modifier) noex
 }
 
 void Ortho2DController::setPanInertiaEnabled(bool enabled) noexcept {
-    if (impl_->ortho2d_behavior) {
-        impl_->ortho2d_behavior->setPanInertiaEnabled(enabled);
+    if (impl_->ortho2d_behavior_) {
+        impl_->ortho2d_behavior_->setPanInertiaEnabled(enabled);
     }
 }
 
 void Ortho2DController::setRotateSensitivity(float degrees_per_pixel) noexcept {
-    if (impl_->ortho2d_behavior) {
-        impl_->ortho2d_behavior->setRotationSensitivityDegreesPerPixel(degrees_per_pixel);
+    if (impl_->ortho2d_behavior_) {
+        impl_->ortho2d_behavior_->setRotationSensitivityDegreesPerPixel(degrees_per_pixel);
     }
 }
 
 void Ortho2DController::setZoomSensitivity(float multiplier) noexcept {
-    if (impl_->ortho2d_behavior) {
-        impl_->ortho2d_behavior->setZoomSpeed(multiplier);
+    if (impl_->ortho2d_behavior_) {
+        impl_->ortho2d_behavior_->setZoomSpeed(multiplier);
     }
 }
 
 void Ortho2DController::setPanSensitivity(float damping) noexcept {
-    if (impl_->ortho2d_behavior) {
-        impl_->ortho2d_behavior->setPanDamping(damping);
+    if (impl_->ortho2d_behavior_) {
+        impl_->ortho2d_behavior_->setPanDamping(damping);
     }
 }
 
@@ -190,13 +193,13 @@ void Ortho2DController::setPanSensitivity(float damping) noexcept {
 // ---------------------------------------------------------------------------
 
 void Ortho2DController::fitToAABB(const vne::math::Vec3f& mn, const vne::math::Vec3f& mx) noexcept {
-    if (impl_->ortho2d_behavior) {
-        impl_->ortho2d_behavior->fitToAABB(mn, mx);
+    if (impl_->ortho2d_behavior_) {
+        impl_->ortho2d_behavior_->fitToAABB(mn, mx);
     }
 }
 
 void Ortho2DController::reset() noexcept {
-    impl_->core.resetRigAndInteraction();
+    impl_->core_.resetRigAndInteraction();
 }
 
 // ---------------------------------------------------------------------------
@@ -204,10 +207,10 @@ void Ortho2DController::reset() noexcept {
 // ---------------------------------------------------------------------------
 
 InputMapper& Ortho2DController::inputMapper() noexcept {
-    return impl_->core.mapper;
+    return impl_->core_.mapper;
 }
 Ortho2DManipulator& Ortho2DController::ortho2DManipulator() noexcept {
-    return *impl_->ortho2d_behavior;
+    return *impl_->ortho2d_behavior_;
 }
 
 // ---------------------------------------------------------------------------
@@ -272,7 +275,7 @@ void Ortho2DController::rebuildRules() noexcept {
         }
     }
 
-    impl_->core.mapper.setRules(rules);
+    impl_->core_.mapper.setRules(rules);
 }
 
 }  // namespace vne::interaction

@@ -1,0 +1,127 @@
+<mxfile host="app.diagrams.net">
+    <diagram name="UML Class Hierarchy" id="class">
+        <mxGraphModel dx="1100" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1200" math="0" shadow="0" background="#1C1C1E">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+
+                <!-- VertexNova diagram palette — learnvertexnova.com/docs/docs/misc/visual-style/ -->
+
+                <mxCell id="IManip" value="«interface»&#10;ICameraManipulator&#10;────────────────&#10;+setCamera(ICamera)&#10;+onAction(type,payload,dt)&#10;+onUpdate(dt)&#10;+onResize(w,h)&#10;+resetState()" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2C2C2E;strokeColor=#E8622A;strokeWidth=2;fontStyle=1;fontSize=11;align=left;spacingLeft=6;fontColor=#EBEBF0;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="40" width="230" height="140" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="ICtrl" value="«interface»&#10;ICameraController&#10;────────────────&#10;+setCamera(ICamera)&#10;+onEvent(Event,dt)&#10;+onUpdate(dt)&#10;+onResize(w,h)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2C2C2E;strokeColor=#E8622A;strokeWidth=2;fontStyle=1;fontSize=11;align=left;spacingLeft=6;fontColor=#EBEBF0;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="500" width="230" height="120" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="Base" value="CameraManipulatorBase&#10;────────────────&#10;#camera_&#10;#enabled_&#10;#viewport_&#10;#zoom_method_&#10;────────────────&#10;+setEnabled(bool)&#10;+setZoomMethod(ZoomMethod)&#10;#applySceneScaleZoom(f)&#10;#applyFovZoom(f)&#10;#applyDolly(f,mx,my) «virtual»&#10;#dispatchZoom(f,mx,my)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2E1A07;strokeColor=#E8622A;strokeWidth=2;fontSize=11;align=left;spacingLeft=6;fontColor=#EBEBF0;" parent="1" vertex="1">
+                    <mxGeometry x="360" y="40" width="240" height="190" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="Orbital" value="OrbitalCameraManipulator&#10;────────────────&#10;-rotation_mode_&#10;-pivot_mode_&#10;-coi_world_&#10;-orbit_distance_&#10;-rotation_strategy_ «unique_ptr»&#10;────────────────&#10;+setRotationMode(OrbitalRotationMode)&#10;+setTrackballProjectionMode(...)&#10;+setPivotMode(OrbitPivotMode)&#10;+fitToAABB(min,max)&#10;+setViewDirection(ViewDirection)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#3A3A3C;strokeColor=#F28C5E;strokeWidth=2;fontSize=11;align=left;spacingLeft=6;fontColor=#EBEBF0;" parent="1" vertex="1">
+                    <mxGeometry x="680" y="20" width="280" height="200" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="FreeLook" value="FreeLookManipulator&#10;────────────────&#10;-mode_ : FreeLookMode&#10;-constrain_world_up_&#10;-move_speed_&#10;-sprint_multiplier_&#10;────────────────&#10;+setMode(FreeLookMode)&#10;+setMoveSpeed(float)&#10;+markAnglesDirty()" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#3A3A3C;strokeColor=#F28C5E;strokeWidth=2;fontSize=11;align=left;spacingLeft=6;fontColor=#EBEBF0;" parent="1" vertex="1">
+                    <mxGeometry x="680" y="250" width="240" height="170" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="Ortho2D" value="Ortho2DManipulator&#10;────────────────&#10;-pan / zoom state&#10;────────────────&#10;+onAction(type,payload,dt)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#3A3A3C;strokeColor=#F28C5E;strokeWidth=2;fontSize=11;align=left;spacingLeft=6;fontColor=#EBEBF0;" parent="1" vertex="1">
+                    <mxGeometry x="680" y="450" width="240" height="110" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="Follow" value="FollowManipulator&#10;────────────────&#10;-target_ / offset_&#10;────────────────&#10;+setTarget(Vec3f)&#10;+onAction(type,payload,dt)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#3A3A3C;strokeColor=#F28C5E;strokeWidth=2;fontSize=11;align=left;spacingLeft=6;fontColor=#EBEBF0;" parent="1" vertex="1">
+                    <mxGeometry x="680" y="590" width="240" height="110" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="IStrategy" value="«interface» (internal)&#10;IRotationStrategy&#10;────────────────&#10;+beginRotate(x,y,ctx)&#10;+dragRotate(x,y,dx,dy,dt,ctx)&#10;+endRotate(inertia,dt)&#10;+stepInertia(dt,damp,ctx)&#10;+syncFromCamera(ctx)&#10;+computeBackDirection(ctx)&#10;+applyViewDirection(yaw,pitch,ctx)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2C2C2E;strokeColor=#F28C5E;strokeWidth=2;fontSize=11;align=left;spacingLeft=6;fontColor=#EBEBF0;" parent="1" vertex="1">
+                    <mxGeometry x="1040" y="20" width="260" height="180" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="EulerStrat" value="EulerOrbitStrategy&#10;────────────────&#10;-orbit_ : OrbitBehavior&#10;-rotation_speed_&#10;────────────────&#10;+dragRotate(...)&#10;+stepInertia(...)&#10;+syncFromCamera(...)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#3A3A3C;strokeColor=#48484A;strokeWidth=2;fontSize=11;align=left;spacingLeft=6;fontColor=#EBEBF0;" parent="1" vertex="1">
+                    <mxGeometry x="1040" y="240" width="240" height="150" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="TbStrat" value="TrackballStrategy&#10;────────────────&#10;-trackball_ : TrackballBehavior&#10;-orientation_ : Quatf&#10;-inertia_rot_speed_&#10;────────────────&#10;+dragRotate(...)&#10;+stepInertia(...)&#10;+syncFromCamera(...)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#3A3A3C;strokeColor=#48484A;strokeWidth=2;fontSize=11;align=left;spacingLeft=6;fontColor=#EBEBF0;" parent="1" vertex="1">
+                    <mxGeometry x="1040" y="420" width="260" height="160" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="Rig" value="CameraRig&#10;────────────────&#10;-manipulators_ : vector&#10;-active_index_&#10;────────────────&#10;+addManipulator(IManip)&#10;+setActiveManipulator(i)&#10;+onAction(type,payload,dt)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2E1A07;strokeColor=#E8622A;strokeWidth=2;fontSize=11;align=left;spacingLeft=6;fontColor=#EBEBF0;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="240" width="240" height="150" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="Inspect" value="Inspect3DController&#10;────────────────&#10;-impl_ «Pimpl»&#10;  rig, mapper, orbital_manip&#10;────────────────&#10;+orbitalCameraManipulator()&#10;+setPivot(Vec3f,space)&#10;+fitToAABB(min,max)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2E1A07;strokeColor=#E8622A;strokeWidth=2;fontSize=11;align=left;spacingLeft=6;fontColor=#EBEBF0;" parent="1" vertex="1">
+                    <mxGeometry x="360" y="500" width="260" height="150" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="Nav" value="Navigation3DController&#10;────────────────&#10;-impl_ «Pimpl»&#10;  rig, mapper, free_look&#10;────────────────&#10;+setMode(FreeLookMode)&#10;+freeLookManipulator()&#10;+setMoveSpeed(float)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2E1A07;strokeColor=#E8622A;strokeWidth=2;fontSize=11;align=left;spacingLeft=6;fontColor=#EBEBF0;" parent="1" vertex="1">
+                    <mxGeometry x="360" y="680" width="260" height="150" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="Ortho2DC" value="Ortho2DController&#10;────────────────&#10;-impl_ «Pimpl»&#10;────────────────&#10;+setPanEnabled(bool)&#10;+setZoomEnabled(bool)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2E1A07;strokeColor=#E8622A;strokeWidth=2;fontSize=11;align=left;spacingLeft=6;fontColor=#EBEBF0;" parent="1" vertex="1">
+                    <mxGeometry x="680" y="740" width="240" height="120" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="FollowC" value="FollowController&#10;────────────────&#10;-impl_ «Pimpl»&#10;────────────────&#10;+setTarget(ICamera)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2E1A07;strokeColor=#E8622A;strokeWidth=2;fontSize=11;align=left;spacingLeft=6;fontColor=#EBEBF0;" parent="1" vertex="1">
+                    <mxGeometry x="960" y="740" width="220" height="100" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="Mapper" value="InputMapper&#10;────────────────&#10;-rules_ : vector&#10;-modifiers_ : int&#10;────────────────&#10;+setRules(vector)&#10;+onMouseButton(btn,pressed,dt)&#10;+onMouseMove(x,y,dt)&#10;+onScroll(dx,dy,dt)&#10;+onKey(code,pressed,dt)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2E1A07;strokeColor=#F28C5E;strokeWidth=2;fontSize=11;align=left;spacingLeft=6;fontColor=#EBEBF0;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="700" width="240" height="170" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="e_base_manip" style="endArrow=block;endFill=0;html=1;strokeWidth=2;strokeColor=#E8622A;dashed=1;" parent="1" source="Base" target="IManip" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="e_orb" style="endArrow=block;endFill=0;html=1;strokeWidth=2;strokeColor=#F28C5E;" parent="1" source="Orbital" target="Base" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_fl" style="endArrow=block;endFill=0;html=1;strokeWidth=2;strokeColor=#F28C5E;" parent="1" source="FreeLook" target="Base" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_o2d" style="endArrow=block;endFill=0;html=1;strokeWidth=2;strokeColor=#F28C5E;" parent="1" source="Ortho2D" target="Base" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_fol" style="endArrow=block;endFill=0;html=1;strokeWidth=2;strokeColor=#F28C5E;" parent="1" source="Follow" target="Base" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="e_ins_ctrl" style="endArrow=block;endFill=0;html=1;strokeWidth=2;strokeColor=#E8622A;dashed=1;" parent="1" source="Inspect" target="ICtrl" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_nav_ctrl" style="endArrow=block;endFill=0;html=1;strokeWidth=2;strokeColor=#E8622A;dashed=1;" parent="1" source="Nav" target="ICtrl" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_o2dc_ctrl" style="endArrow=block;endFill=0;html=1;strokeWidth=2;strokeColor=#E8622A;dashed=1;" parent="1" source="Ortho2DC" target="ICtrl" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_folc_ctrl" style="endArrow=block;endFill=0;html=1;strokeWidth=2;strokeColor=#E8622A;dashed=1;" parent="1" source="FollowC" target="ICtrl" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="e_orb_strat" style="endArrow=diamond;endFill=1;html=1;strokeWidth=2;strokeColor=#F28C5E;" parent="1" source="Orbital" target="IStrategy" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_strat_euler" style="endArrow=block;endFill=0;html=1;strokeWidth=2;strokeColor=#48484A;dashed=1;" parent="1" source="EulerStrat" target="IStrategy" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_strat_tb" style="endArrow=block;endFill=0;html=1;strokeWidth=2;strokeColor=#48484A;dashed=1;" parent="1" source="TbStrat" target="IStrategy" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="e_ins_rig" style="endArrow=diamond;endFill=1;html=1;strokeWidth=2;strokeColor=#E8622A;dashed=1;" parent="1" source="Inspect" target="Rig" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="e_nav_rig" style="endArrow=diamond;endFill=1;html=1;strokeWidth=2;strokeColor=#E8622A;dashed=1;" parent="1" source="Nav" target="Rig" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+
+                <mxCell id="e_rig_manip" style="endArrow=diamond;endFill=0;html=1;strokeWidth=2;strokeColor=#F28C5E;" parent="1" source="Rig" target="IManip" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

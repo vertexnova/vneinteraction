@@ -22,11 +22,6 @@ TEST(CameraRig, MakeOrbit) {
     EXPECT_NE(rig.manipulators().size(), 0u);
 }
 
-TEST(CameraRig, Make2D) {
-    auto rig = vne::interaction::CameraRig::make2D();
-    EXPECT_NE(rig.manipulators().size(), 0u);
-}
-
 TEST(CameraRig, MakeOrtho2D) {
     auto rig = vne::interaction::CameraRig::makeOrtho2D();
     EXPECT_NE(rig.manipulators().size(), 0u);

@@ -56,7 +56,7 @@ void CameraRig::onUpdate(double delta_time) noexcept {
     }
 }
 
-void CameraRig::setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept {
+void CameraRig::setCamera(const std::shared_ptr<vne::scene::ICamera>& camera) noexcept {
     for (auto& m : manipulators_) {
         if (m) {
             m->setCamera(camera);
@@ -93,7 +93,7 @@ CameraRig CameraRig::makeOrbit() {
 CameraRig CameraRig::makeTrackball() {
     CameraRig rig;
     auto m = std::make_shared<OrbitalCameraManipulator>();
-    m->setRotationMode(OrbitRotationMode::eTrackball);
+    m->setRotationMode(OrbitalRotationMode::eTrackball);
     rig.addManipulator(std::move(m));
     return rig;
 }
@@ -124,10 +124,6 @@ CameraRig CameraRig::makeFollow() {
     CameraRig rig;
     rig.addManipulator(std::make_shared<FollowManipulator>());
     return rig;
-}
-
-CameraRig CameraRig::make2D() {
-    return makeOrtho2D();
 }
 
 }  // namespace vne::interaction

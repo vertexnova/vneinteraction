@@ -33,9 +33,9 @@ static std::shared_ptr<vne::scene::PerspectiveCamera> makePerspCamera() {
         vne::scene::PerspectiveCameraParameters(45.0f, 16.0f / 9.0f, 0.1f, 1000.0f));
 }
 
-TEST(Inspect3DController, DefaultOrbitRotationMode) {
+TEST(Inspect3DController, DefaultOrbitalRotationMode) {
     vne::interaction::Inspect3DController ctrl;
-    EXPECT_EQ(ctrl.getRotationMode(), vne::interaction::OrbitRotationMode::eOrbit);
+    EXPECT_EQ(ctrl.getRotationMode(), vne::interaction::OrbitalRotationMode::eOrbit);
     EXPECT_TRUE(ctrl.isRotationEnabled());
 }
 
@@ -80,7 +80,7 @@ TEST(Inspect3DController, PivotOnDoubleClickIndependentOfRotation) {
 
 TEST(Inspect3DController, SetRotationEnabled) {
     vne::interaction::Inspect3DController ctrl;
-    EXPECT_EQ(ctrl.getRotationMode(), vne::interaction::OrbitRotationMode::eOrbit);
+    EXPECT_EQ(ctrl.getRotationMode(), vne::interaction::OrbitalRotationMode::eOrbit);
     EXPECT_TRUE(ctrl.isRotationEnabled());
 
     auto cam = makePerspCamera();
@@ -105,8 +105,8 @@ TEST(Inspect3DController, SetRotationEnabled) {
     EXPECT_GT((cam->getPosition() - pos_before_orbit).length(), 1e-4f)
         << "Same LMB drag should orbit the camera once rotation is enabled";
 
-    ctrl.setRotationMode(vne::interaction::OrbitRotationMode::eTrackball);
-    EXPECT_EQ(ctrl.getRotationMode(), vne::interaction::OrbitRotationMode::eTrackball);
+    ctrl.setRotationMode(vne::interaction::OrbitalRotationMode::eTrackball);
+    EXPECT_EQ(ctrl.getRotationMode(), vne::interaction::OrbitalRotationMode::eTrackball);
 }
 
 TEST(Inspect3DController, FitToAABB) {
