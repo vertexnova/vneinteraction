@@ -59,8 +59,8 @@ Ortho2DController::Ortho2DController()
 
     // Capture raw Impl* so the callback stays valid across moves.
     impl_->core_.mapper.setActionCallback([impl = impl_.get()](CameraActionType a,
-                                                              const CameraCommandPayload& p,
-                                                              double dt) { impl->core_.rig.onAction(a, p, dt); });
+                                                               const CameraCommandPayload& p,
+                                                               double dt) { impl->core_.rig.onAction(a, p, dt); });
 
     rebuildRules();
 }
