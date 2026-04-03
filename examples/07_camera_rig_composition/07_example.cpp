@@ -116,6 +116,8 @@ int runCameraRigCompositionExample() {
                                         const vne::interaction::CameraCommandPayload& payload,
                                         double dt) { rig.onAction(action, payload, dt); });
 
+        double last_x = 0.0;
+        double last_y = 0.0;
         auto on_event = [&](const vne::events::Event& e, double dt) {
             using ET = vne::events::EventType;
             switch (e.type()) {
@@ -126,6 +128,8 @@ int runCameraRigCompositionExample() {
                                          static_cast<float>(me.x()),
                                          static_cast<float>(me.y()),
                                          dt);
+                    last_x = me.x();
+                    last_y = me.y();
                     break;
                 }
                 case ET::eMouseButtonReleased: {
@@ -135,11 +139,19 @@ int runCameraRigCompositionExample() {
                                          static_cast<float>(me.x()),
                                          static_cast<float>(me.y()),
                                          dt);
+                    last_x = me.x();
+                    last_y = me.y();
                     break;
                 }
                 case ET::eMouseMoved: {
                     const auto& me = static_cast<const vne::events::MouseMovedEvent&>(e);
-                    mapper.onMouseMove(static_cast<float>(me.x()), static_cast<float>(me.y()), 0.0f, 0.0f, dt);
+                    const float curr_x = static_cast<float>(me.x());
+                    const float curr_y = static_cast<float>(me.y());
+                    const float dx = curr_x - static_cast<float>(last_x);
+                    const float dy = curr_y - static_cast<float>(last_y);
+                    mapper.onMouseMove(curr_x, curr_y, dx, dy, dt);
+                    last_x = me.x();
+                    last_y = me.y();
                     break;
                 }
                 case ET::eMouseScrolled: {

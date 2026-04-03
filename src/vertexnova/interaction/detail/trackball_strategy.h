@@ -14,8 +14,8 @@
  * Internal header — not installed, not part of the public API.
  */
 
+#include "orbit_behavior.h"
 #include "rotation_strategy.h"
-
 #include "trackball_behavior.h"
 
 #include <vertexnova/math/core/math_utils.h>
