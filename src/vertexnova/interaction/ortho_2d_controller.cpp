@@ -43,7 +43,10 @@ using namespace vne;
 // Pimpl
 // ---------------------------------------------------------------------------
 
-struct Ortho2DController::Impl {
+class Ortho2DController::Impl {
+    friend class Ortho2DController;
+
+   private:
     CameraControllerContext core_;
     std::shared_ptr<Ortho2DManipulator> ortho2d_behavior_;
 };

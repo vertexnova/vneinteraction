@@ -31,7 +31,10 @@ using namespace vne;
 // Pimpl
 // ---------------------------------------------------------------------------
 
-struct Navigation3DController::Impl {
+class Navigation3DController::Impl {
+    friend class Navigation3DController;
+
+   private:
     CameraControllerContext core_;
     std::shared_ptr<FreeLookManipulator> free_look_;  // shared ownership; also in rig
 

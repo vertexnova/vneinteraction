@@ -184,7 +184,7 @@ class VNE_INTERACTION_API Navigation3DController : public ICameraController {
    private:
     void rebuild() noexcept;
 
-    struct Impl;
+    class Impl;
     std::unique_ptr<Impl> impl_;
 };
 

@@ -32,7 +32,10 @@ using namespace vne;
 // Pimpl
 // ---------------------------------------------------------------------------
 
-struct Inspect3DController::Impl {
+class Inspect3DController::Impl {
+    friend class Inspect3DController;
+
+   private:
     CameraControllerContext core_;
     std::shared_ptr<OrbitalCameraManipulator> orbit_;
 

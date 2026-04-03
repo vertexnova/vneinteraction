@@ -145,7 +145,7 @@ class VNE_INTERACTION_API FollowController : public ICameraController {
     [[nodiscard]] FollowManipulator& followManipulator() noexcept;
 
    private:
-    struct Impl;
+    class Impl;
     std::unique_ptr<Impl> impl_;
 };
 

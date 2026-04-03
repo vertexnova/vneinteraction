@@ -238,7 +238,7 @@ class VNE_INTERACTION_API Inspect3DController : public ICameraController {
    private:
     void rebuildRules() noexcept;
 
-    struct Impl;
+    class Impl;
     std::unique_ptr<Impl> impl_;
 };
 

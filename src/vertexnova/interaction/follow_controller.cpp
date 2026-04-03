@@ -25,7 +25,10 @@ using namespace vne;
 // Pimpl
 // ---------------------------------------------------------------------------
 
-struct FollowController::Impl {
+class FollowController::Impl {
+    friend class FollowController;
+
+   private:
     CameraControllerContext core_;
     std::shared_ptr<FollowManipulator> follow_;
 
