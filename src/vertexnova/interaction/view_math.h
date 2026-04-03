@@ -49,7 +49,8 @@ namespace vne::interaction {
     up = up - front * front.dot(up);
     float up_len = up.length();
     if (up_len < detail::kManipulatorUtilsEpsilon) {
-        const vne::math::Vec3f axes[3] = {vne::math::Vec3f(1.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f),
+        const vne::math::Vec3f axes[3] = {vne::math::Vec3f(1.0f, 0.0f, 0.0f),
+                                          vne::math::Vec3f(0.0f, 1.0f, 0.0f),
                                           vne::math::Vec3f(0.0f, 0.0f, 1.0f)};
         int best = 0;
         float best_abs_dot = std::abs(front.dot(axes[0]));
