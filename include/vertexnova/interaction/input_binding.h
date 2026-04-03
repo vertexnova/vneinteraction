@@ -30,8 +30,10 @@ namespace vne::interaction {
 
 // InputRule / MouseBinding store mouse buttons as int codes — must match vne::events::MouseButton values.
 static_assert(static_cast<int>(vne::events::MouseButton::eLeft) == 0, "MouseButton::eLeft must remain 0 for bindings");
-static_assert(static_cast<int>(vne::events::MouseButton::eRight) == 1, "MouseButton::eRight must remain 1 for bindings");
-static_assert(static_cast<int>(vne::events::MouseButton::eMiddle) == 2, "MouseButton::eMiddle must remain 2 for bindings");
+static_assert(static_cast<int>(vne::events::MouseButton::eRight) == 1,
+              "MouseButton::eRight must remain 1 for bindings");
+static_assert(static_cast<int>(vne::events::MouseButton::eMiddle) == 2,
+              "MouseButton::eMiddle must remain 2 for bindings");
 
 //! Mouse button: use vne::events::MouseButton (eLeft, eRight, eMiddle) for compatibility.
 using MouseButton = vne::events::MouseButton;
