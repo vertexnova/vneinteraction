@@ -423,7 +423,7 @@ void OrbitalCameraManipulator::doPanInertia(double delta_time) noexcept {
 }
 
 void OrbitalCameraManipulator::applyInertia(double delta_time) noexcept {
-    if (!camera_ || delta_time <= 0.0) {
+    if (!camera_ || !std::isfinite(delta_time) || delta_time <= 0.0) {
         return;
     }
     const float dt = static_cast<float>(delta_time);
@@ -655,6 +655,9 @@ void OrbitalCameraManipulator::setViewDirection(ViewDirection dir) noexcept {
             break;
     }
 
+    // Drop rotation coasting so the preset pose is not overwritten on the next onUpdate().
+    rotation_strategy_->clearInertia();
+
     OrbitalContext ctx{camera_, world_up_, coi_world_, orbit_distance_, viewport(), graphicsApi()};
     rotation_strategy_->applyViewDirection(yaw, pitch, ctx);
     applyToCamera();
@@ -843,6 +846,45 @@ void OrbitalCameraManipulator::setTrackballProjectionMode(TrackballProjectionMod
 
 TrackballProjectionMode OrbitalCameraManipulator::getTrackballProjectionMode() const noexcept {
     return trackball_projection_mode_;
+}
+
+float OrbitalCameraManipulator::getOrbitYawDeg() const noexcept {
+    if (rotation_mode_ != OrbitalRotationMode::eOrbit || !rotation_strategy_) {
+        return 0.0f;
+    }
+    return static_cast<const EulerOrbitStrategy*>(rotation_strategy_.get())->orbitBehavior().getYawDeg();
+}
+
+float OrbitalCameraManipulator::getOrbitPitchDeg() const noexcept {
+    if (rotation_mode_ != OrbitalRotationMode::eOrbit || !rotation_strategy_) {
+        return 0.0f;
+    }
+    return static_cast<const EulerOrbitStrategy*>(rotation_strategy_.get())->orbitBehavior().getPitchDeg();
+}
+
+void OrbitalCameraManipulator::setOrbitEulerDegrees(float yaw_deg, float pitch_deg) noexcept {
+    if (rotation_mode_ != OrbitalRotationMode::eOrbit || !rotation_strategy_) {
+        return;
+    }
+    auto& orbit = static_cast<EulerOrbitStrategy*>(rotation_strategy_.get())->orbitBehavior();
+    orbit.setYawPitch(yaw_deg, pitch_deg);
+    orbit.clearInertia();
+    applyToCamera();
+}
+
+vne::math::Quatf OrbitalCameraManipulator::getTrackballOrientation() const noexcept {
+    if (rotation_mode_ != OrbitalRotationMode::eTrackball || !rotation_strategy_) {
+        return vne::math::Quatf::identity();
+    }
+    return static_cast<const TrackballStrategy*>(rotation_strategy_.get())->orientation();
+}
+
+void OrbitalCameraManipulator::setTrackballOrientation(const vne::math::Quatf& rotation) noexcept {
+    if (rotation_mode_ != OrbitalRotationMode::eTrackball || !rotation_strategy_) {
+        return;
+    }
+    static_cast<TrackballStrategy*>(rotation_strategy_.get())->setOrientation(rotation);
+    applyToCamera();
 }
 
 }  // namespace vne::interaction

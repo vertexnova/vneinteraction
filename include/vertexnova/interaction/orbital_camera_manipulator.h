@@ -143,6 +143,27 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
 
     /** Set the world-space up vector (default: +Y). */
     void setWorldUp(const vne::math::Vec3f& world_up) noexcept;
+    /** World up used for orbit framing (same convention as @ref setWorldUp). */
+    [[nodiscard]] vne::math::Vec3f getWorldUp() const noexcept { return world_up_; }
+
+    /**
+     * Euler yaw (degrees) when @ref OrbitalRotationMode::eOrbit is active; otherwise @c 0.
+     * Pairs with @ref getOrbitPitchDeg for @ref OrbitCameraState.
+     */
+    [[nodiscard]] float getOrbitYawDeg() const noexcept;
+    /** Euler pitch (degrees) when @c eOrbit is active; otherwise @c 0. */
+    [[nodiscard]] float getOrbitPitchDeg() const noexcept;
+    /**
+     * Sets internal Euler yaw/pitch and refreshes the camera. No-op unless rotation mode is @c eOrbit.
+     */
+    void setOrbitEulerDegrees(float yaw_deg, float pitch_deg) noexcept;
+
+    /**
+     * Trackball orientation when @ref OrbitalRotationMode::eTrackball is active; otherwise identity.
+     */
+    [[nodiscard]] vne::math::Quatf getTrackballOrientation() const noexcept;
+    /** Replaces trackball orientation and updates the camera. No-op unless mode is @c eTrackball. */
+    void setTrackballOrientation(const vne::math::Quatf& rotation) noexcept;
 
     /**
      * @brief Set the camera view-direction preset (front, back, top, iso…).

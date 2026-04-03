@@ -26,7 +26,7 @@ The **Vertexnova Interaction** library provides composable camera **manipulators
 
 **Diagram colors** — Draw.io sources in `diagrams/` use the [VertexNova visual style](https://learnvertexnova.com/docs/docs/misc/visual-style/) **primary palette** for slides and diagrams (canvas `#1C1C1E`, panels `#2C2C2E` / `#3A3A3C`, borders `#48484A`, accent orange `#E8622A` on tint `#2E1A07`, secondary stroke `#F28C5E`, text `#EBEBF0` / muted `#AEAEB2`).
 
-If a PNG does not load, export the matching `.drawio` from [diagrams.net](https://app.diagrams.net) (same workflow as [vnelogging’s diagram export notes](../../../deps/internal/vnelogging/docs/vertexnova/logging/diagrams/README.md)).
+If a PNG does not load, export the matching `.drawio` from [diagrams.net](https://app.diagrams.net) (same workflow as [vnelogging’s diagram export notes](https://github.com/vertexnova/vnelogging/blob/main/docs/vertexnova/logging/diagrams/README.md)).
 
 ![UML class relationships](diagrams/class.png)
 
@@ -104,7 +104,7 @@ Manipulators **ignore** actions they do not implement; the rig does not filter p
 
 #### `OrbitalCameraManipulator`
 
-Orbit around a center of interest: **Euler** or **trackball** rotation (`OrbitRotationMode`), pivot modes (`OrbitPivotMode`), pan, zoom-to-cursor / dolly / FOV, inertia, `fitToAABB`. Delegates rotation math to internal **Euler** / **trackball** strategies and behavior helpers.
+Orbit around a center of interest: **Euler** or **trackball** rotation (`OrbitalRotationMode`), pivot modes (`OrbitPivotMode`), pan, zoom-to-cursor / dolly / FOV, inertia, `fitToAABB`. Delegates rotation math to internal **Euler** / **trackball** strategies and behavior helpers.
 
 #### `FreeLookManipulator`
 
@@ -207,7 +207,7 @@ Longer recipes — trackball vs Euler orbit, pivot modes, `fitToAABB`, ortho and
 | **vne::scene** | `ICamera` and concrete camera types; pose and projection writes. |
 | **vne::events** | Event types and enums for input. |
 | **vne::math** | Linear algebra and utilities (via scene and headers). |
-| **vne::logging** | Internal diagnostics; configure logging in the host app if you want sink output from this library (patterns mirror [vnelogging](../../../deps/internal/vnelogging/docs/vertexnova/logging/logging.md)). |
+| **vne::logging** | Internal diagnostics; configure logging in the host app if you want sink output from this library (patterns mirror [vnelogging](https://github.com/vertexnova/vnelogging/blob/main/docs/vertexnova/logging/logging.md)). |
 
 ## Build configuration (CMake)
 

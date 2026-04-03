@@ -43,7 +43,39 @@ namespace vne::interaction {
     vne::math::Vec3f front = target - ortho.getPosition();
     const float front_len = front.length();
     front = (front_len < detail::kManipulatorUtilsEpsilon) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : (front / front_len);
-    const vne::math::Vec3f up = ortho.getUp().normalized();
+
+    // Orthonormalize image-plane up against view axis so NDC offsets don't pick up forward/back slip.
+    vne::math::Vec3f up = ortho.getUp();
+    up = up - front * front.dot(up);
+    float up_len = up.length();
+    if (up_len < detail::kManipulatorUtilsEpsilon) {
+        const vne::math::Vec3f axes[3] = {vne::math::Vec3f(1.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f),
+                                          vne::math::Vec3f(0.0f, 0.0f, 1.0f)};
+        int best = 0;
+        float best_abs_dot = std::abs(front.dot(axes[0]));
+        for (int i = 1; i < 3; ++i) {
+            const float ad = std::abs(front.dot(axes[i]));
+            if (ad < best_abs_dot) {
+                best_abs_dot = ad;
+                best = i;
+            }
+        }
+        up = axes[best] - front * front.dot(axes[best]);
+        up_len = up.length();
+    }
+    if (up_len < detail::kManipulatorUtilsEpsilon) {
+        vne::math::Vec3f alt(0.0f, 1.0f, 0.0f);
+        if (std::abs(front.dot(alt)) > 0.9f) {
+            alt = vne::math::Vec3f(1.0f, 0.0f, 0.0f);
+        }
+        up = front.cross(alt);
+        up_len = up.length();
+    }
+    if (up_len < detail::kManipulatorUtilsEpsilon) {
+        return target;
+    }
+    up = up / up_len;
+
     vne::math::Vec3f r = front.cross(up);
     const float r_len = r.length();
     r = (r_len < detail::kManipulatorUtilsEpsilon) ? vne::math::Vec3f(1.0f, 0.0f, 0.0f) : (r / r_len);

@@ -18,18 +18,15 @@ static constexpr float kCx = kVpW / 2.0f;
 static constexpr float kCy = kVpH / 2.0f;
 
 // ── Helpers to capture and apply OrbitCameraState ────────────────────────────
-// The library stores orbit state in the manipulator's fields. We read them
-// directly and pack into OrbitCameraState for bookmarking.
+// Pack live manipulator state into OrbitCameraState (Euler orbit mode).
 
-static vne::interaction::OrbitCameraState captureOrbitState(const vne::interaction::OrbitalCameraManipulator& manip,
-                                                            float yaw_deg,
-                                                            float pitch_deg) {
+static vne::interaction::OrbitCameraState captureOrbitState(const vne::interaction::OrbitalCameraManipulator& manip) {
     vne::interaction::OrbitCameraState s;
     s.coi_world = manip.getCenterOfInterestWorld();
     s.distance = manip.getOrbitDistance();
-    s.world_up = {0.0f, 1.0f, 0.0f};
-    s.yaw_deg = yaw_deg;
-    s.pitch_deg = pitch_deg;
+    s.world_up = manip.getWorldUp();
+    s.yaw_deg = manip.getOrbitYawDeg();
+    s.pitch_deg = manip.getOrbitPitchDeg();
     return s;
 }
 
@@ -66,9 +63,7 @@ int runCameraStateSaveRestoreExample() {
         auto on_event = [&](const vne::events::Event& e, double dt) { ctrl.onEvent(e, dt); };
 
         // ── Save bookmark A (initial pose) ───────────────────────────────────
-        // Yaw/pitch live in the internal strategy. We read the equivalent
-        // from camera direction for this example.
-        const vne::interaction::OrbitCameraState bookmark_a = captureOrbitState(manip, 0.0f, 0.0f);
+        const vne::interaction::OrbitCameraState bookmark_a = captureOrbitState(manip);
         logOrbitState("  Bookmark A (initial):", bookmark_a);
 
         // ── Interact: orbit around ────────────────────────────────────────────
@@ -84,13 +79,7 @@ int runCameraStateSaveRestoreExample() {
             ctrl.onUpdate(kDt);
 
         // ── Save bookmark B (after orbit) ─────────────────────────────────────
-        vne::interaction::OrbitCameraState bookmark_b = captureOrbitState(manip, 0.0f, 0.0f);
-        {
-            const auto pos = camera->getPosition();
-            const auto coi = manip.getCenterOfInterestWorld();
-            auto dir = vne::math::Vec3f(pos.x() - coi.x(), pos.y() - coi.y(), pos.z() - coi.z());
-            (void)dir;  // yaw/pitch would be derived here in a real app
-        }
+        const vne::interaction::OrbitCameraState bookmark_b = captureOrbitState(manip);
         logOrbitState("  Bookmark B (after orbit):", bookmark_b);
         VNE_LOG_INFO << "  distance_b=" << manip.getOrbitDistance() << " vs distance_a=" << bookmark_a.distance;
 
@@ -108,16 +97,15 @@ int runCameraStateSaveRestoreExample() {
             ctrl.onUpdate(kDt);
         VNE_LOG_INFO << "  Current distance=" << manip.getOrbitDistance() << " (panned + zoomed away from bookmark_b)";
 
-        // ── Restore bookmark A — manually set manipulator fields ─────────────
-        // Applying a saved OrbitCameraState: set COI + orbit distance,
-        // then call fitToAABB or manually set camera position via scene API.
-        // The simplest restoration path: set COI and orbit distance, let
-        // the manipulator derive pose on the next onUpdate.
+        // ── Restore bookmark A — COI, distance, world up, and Euler yaw/pitch ─
+        manip.setWorldUp(bookmark_a.world_up);
         manip.setPivot(bookmark_a.coi_world);
         manip.setOrbitDistance(bookmark_a.distance);
+        manip.setOrbitEulerDegrees(bookmark_a.yaw_deg, bookmark_a.pitch_deg);
         for (int i = 0; i < 10; ++i)
             ctrl.onUpdate(kDt);
-        VNE_LOG_INFO << "  After restore to bookmark_a: distance=" << manip.getOrbitDistance();
+        VNE_LOG_INFO << "  After restore to bookmark_a: distance=" << manip.getOrbitDistance()
+                     << " yaw=" << manip.getOrbitYawDeg() << " pitch=" << manip.getOrbitPitchDeg();
 
         // ── OrbitCameraState struct fields ───────────────────────────────────
         // Shown for documentation purposes — all fields are plain POD.
@@ -160,26 +148,31 @@ int runCameraStateSaveRestoreExample() {
         for (int i = 0; i < 20; ++i)
             ctrl.onUpdate(kDt);
 
-        // Capture TrackballCameraState
+        // Capture TrackballCameraState from live manipulator (quaternion + orbit frame)
         vne::interaction::TrackballCameraState tb_state;
         tb_state.coi_world = manip.getCenterOfInterestWorld();
         tb_state.distance = manip.getOrbitDistance();
-        tb_state.world_up = {0.0f, 1.0f, 0.0f};
-        // Quaternion is internal to TrackballBehavior; derive from camera orientation
-        // as a representative value for save/restore purposes.
-        tb_state.rotation = {0.0f, 0.0f, 0.0f, 1.0f};  // identity placeholder
+        tb_state.world_up = manip.getWorldUp();
+        tb_state.rotation = manip.getTrackballOrientation();
 
         VNE_LOG_INFO << "  TrackballCameraState: coi=(" << tb_state.coi_world.x() << "," << tb_state.coi_world.y()
                      << "," << tb_state.coi_world.z() << ")"
                      << " dist=" << tb_state.distance << " quat=(" << tb_state.rotation.x << "," << tb_state.rotation.y
                      << "," << tb_state.rotation.z << "," << tb_state.rotation.w << ")";
 
-        // Restore: set COI + distance; quat would be fed to strategy in a full impl
+        // Perturb, then restore full bookmark (COI, distance, up, orientation)
+        manip.setPivot(tb_state.coi_world + vne::math::Vec3f(2.0f, 0.0f, 0.0f));
+        manip.setOrbitDistance(tb_state.distance * 1.25f);
+        ctrl.onUpdate(kDt);
+
+        manip.setWorldUp(tb_state.world_up);
         manip.setPivot(tb_state.coi_world);
         manip.setOrbitDistance(tb_state.distance);
+        manip.setTrackballOrientation(tb_state.rotation);
         for (int i = 0; i < 10; ++i)
             ctrl.onUpdate(kDt);
-        VNE_LOG_INFO << "  Trackball state partially restored (COI + distance)";
+        const auto q = manip.getTrackballOrientation();
+        VNE_LOG_INFO << "  After full trackball restore: quat=(" << q.x << "," << q.y << "," << q.z << "," << q.w << ")";
     }
 
     // ─────────────────────────────────────────────────────────────────────────

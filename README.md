@@ -23,7 +23,7 @@
 
 **VneInteraction** is a C++20 library that turns input into camera motion for the [VertexNova](https://github.com/vertexnova) stack. It does **not** provide rendering, windowing, or a platform event loop — your app feeds events (for example from [vneevents](https://github.com/vertexnova/vneevents)), and manipulators update [vnescene](https://github.com/vertexnova/vnescene) cameras via `vne::scene::ICamera`.
 
-It sits above **vnescene** / **vnemath** (cameras and math) and **vneevents** (event types). **vnelogging** is optional; examples use it the same way as other VertexNova repos (see [vnelogging README](deps/internal/vnelogging/README.md) when this repo is checked out with submodules).
+It sits above **vnescene** / **vnemath** (cameras and math) and **vneevents** (event types). **vnelogging** is optional; examples use it the same way as other VertexNova repos (see [vnelogging README](https://github.com/vertexnova/vnelogging) when this repo is checked out with submodules).
 
 ## Features
 
@@ -196,7 +196,7 @@ If you clone vnetestbed locally, the sources live at `samples/glfw_opengl/03_tes
 - [API documentation](docs/README.md) — Doxygen (`ENABLE_DOXYGEN`, target `vneinteraction_doc_doxygen`) and `scripts/generate-docs.sh`.
 - [Architecture & usage](docs/vertexnova/interaction/interaction.md) — Module design, diagrams, integration.
 - [Review & roadmap](docs/vertexnova/tasks_plan/review_and_roadmap.md), [third-person follow (future)](docs/vertexnova/tasks_plan/third_person_follow_camera_future.md) — Planning notes.
-- [Coding guidelines](CODING_GUIDELINES.md) — Project conventions (aligned with other VertexNova libraries such as [vnelogging](deps/internal/vnelogging/README.md)).
+- [Coding guidelines](CODING_GUIDELINES.md) — Project conventions (aligned with other VertexNova libraries such as [vnelogging](https://github.com/vertexnova/vnelogging)).
 
 ## Platform Support
 

@@ -77,8 +77,13 @@ class TrackballStrategy final : public IRotationStrategy {
     bool stepInertia(float dt, float damping, OrbitalContext& /*ctx*/) noexcept override {
         constexpr float kThreshold = 1e-4f;
         constexpr float kSpeedMax = 10.0f;
+        constexpr float kMinDamping = 1e-6f;
         (void)kSpeedMax;
         if (std::abs(inertia_rot_speed_) <= kThreshold) {
+            return false;
+        }
+        if (!std::isfinite(dt) || dt <= 0.0f || !std::isfinite(damping) || damping <= kMinDamping) {
+            inertia_rot_speed_ = 0.0f;
             return false;
         }
         const vne::math::Quatf q = vne::math::Quatf::fromAxisAngle(inertia_rot_axis_, inertia_rot_speed_ * dt);
@@ -175,6 +180,15 @@ class TrackballStrategy final : public IRotationStrategy {
     [[nodiscard]] TrackballBehavior& trackball() noexcept { return trackball_; }
     [[nodiscard]] const TrackballBehavior& trackball() const noexcept { return trackball_; }
     [[nodiscard]] vne::math::Quatf orientation() const noexcept { return orientation_; }
+
+    /** Replace orientation (e.g. bookmark restore); clears rotation inertia and resets drag state. */
+    void setOrientation(const vne::math::Quatf& q) noexcept {
+        orientation_ = q.normalized();
+        normalize_counter_ = 0;
+        inertia_rot_speed_ = 0.0f;
+        inertia_rot_axis_ = vne::math::Vec3f(0.0f, 1.0f, 0.0f);
+        trackball_.reset();
+    }
 
     void setTrackballRotationScale(float scale) noexcept { trackball_rotation_scale_ = scale; }
     [[nodiscard]] float getTrackballRotationScale() const noexcept { return trackball_rotation_scale_; }

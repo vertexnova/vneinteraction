@@ -14,6 +14,7 @@
 
 #include "camera_controller_impl.h"
 
+#include <algorithm>
 #include <cmath>
 
 namespace vne::interaction {
