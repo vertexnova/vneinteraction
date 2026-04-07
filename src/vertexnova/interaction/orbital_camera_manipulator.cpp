@@ -7,7 +7,6 @@
 #include "vertexnova/interaction/orbital_camera_manipulator.h"
 #include "view_math.h"
 #include "detail/trackball_strategy.h"
-#include "detail/rotation_strategy.h"
 
 #include "vertexnova/scene/camera/camera.h"
 #include "vertexnova/scene/camera/perspective_camera.h"
@@ -88,22 +87,14 @@ constexpr float kPitchDegIso = -35.2643897f;
 // Orbit pose model:
 // - coi_world_  — look-at / orbit center
 // - orbit_distance_ — eye–COI distance along view axis
-// - rotation_strategy_ — owns all rotation-mode state (Euler or Trackball)
-
-// ---------------------------------------------------------------------------
-// Strategy factory
-// ---------------------------------------------------------------------------
-
-static std::unique_ptr<IRotationStrategy> makeStrategy(OrbitalRotationMode /*mode*/) {
-    return std::make_unique<TrackballStrategy>();
-}
+// - rotation_strategy_ — quaternion trackball strategy (always TrackballStrategy)
 
 // ---------------------------------------------------------------------------
 // Constructor
 // ---------------------------------------------------------------------------
 
 OrbitalCameraManipulator::OrbitalCameraManipulator() noexcept
-    : rotation_strategy_(makeStrategy(OrbitalRotationMode::eTrackball)) {
+    : rotation_strategy_(std::make_unique<TrackballStrategy>()) {
     world_up_ = vne::math::Vec3f(0.0f, 1.0f, 0.0f);
     coi_world_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
     inertia_pan_velocity_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
@@ -379,7 +370,7 @@ void OrbitalCameraManipulator::applyDolly(float factor, float mx, float my) noex
     if (auto persp = perspCamera()) {
         const float old_dist = orbit_distance_;
         orbit_distance_ = vne::math::clamp(orbit_distance_ * effective_factor, kMinOrbitDistance, kMaxOrbitDistance);
-        // computeRight/computeUp use view/front; computeFront() matches applyEulerOrbitToCamera / trackball basis.
+        // computeRight/computeUp use view/front; computeFront() derives front from trackball quaternion basis.
         const vne::math::Vec3f front_dir = computeFront();
         const vne::math::Vec3f r = computeRight(front_dir);
         const vne::math::Vec3f u = computeUp(front_dir, r);
@@ -632,12 +623,12 @@ void OrbitalCameraManipulator::setViewDirection(ViewDirection dir) noexcept {
         // Straight down/up: use current Euler pitch limits (defaults ±89°).
         case ViewDirection::eTop: {
             yaw = 0.0f;
-            pitch = OrbitBehavior::kDefaultPitchMinDeg;
+            pitch = -89.0f;
             break;
         }
         case ViewDirection::eBottom: {
             yaw = 0.0f;
-            pitch = OrbitBehavior::kDefaultPitchMaxDeg;
+            pitch = 89.0f;
             break;
         }
         case ViewDirection::eIso:
@@ -779,7 +770,7 @@ bool OrbitalCameraManipulator::onAction(CameraActionType action,
 }
 
 // ---------------------------------------------------------------------------
-// setRotationMode / trackball projection accessors
+// Speed / projection accessors
 // ---------------------------------------------------------------------------
 
 void OrbitalCameraManipulator::setRotationSpeed(float speed) noexcept {
@@ -792,28 +783,6 @@ void OrbitalCameraManipulator::setTrackballRotationScale(float scale) noexcept {
     if (rotation_strategy_) {
         static_cast<TrackballStrategy*>(rotation_strategy_.get())->setTrackballRotationScale(trackball_rotation_scale_);
     }
-}
-
-void OrbitalCameraManipulator::setRotationMode(OrbitalRotationMode mode) noexcept {
-    rotation_mode_ = mode;
-    if (!rotation_strategy_) {
-        rotation_strategy_ = makeStrategy(OrbitalRotationMode::eTrackball);
-    }
-    TrackballProjectionMode proj = trackball_projection_mode_;
-    if (rotation_strategy_) {
-        const auto inner = static_cast<TrackballStrategy*>(rotation_strategy_.get())->trackball().getProjectionMode();
-        proj = (inner == TrackballBehavior::ProjectionMode::eRim) ? TrackballProjectionMode::eRim
-                                                                  : TrackballProjectionMode::eHyperbolic;
-    }
-    trackball_projection_mode_ = proj;
-    rotation_strategy_ = makeStrategy(OrbitalRotationMode::eTrackball);
-    auto* tb = static_cast<TrackballStrategy*>(rotation_strategy_.get());
-    tb->trackball().setProjectionMode(proj == TrackballProjectionMode::eRim
-                                          ? TrackballBehavior::ProjectionMode::eRim
-                                          : TrackballBehavior::ProjectionMode::eHyperbolic);
-    tb->setRotationSpeed(rotation_speed_);
-    tb->setTrackballRotationScale(trackball_rotation_scale_);
-    syncFromCamera();
 }
 
 void OrbitalCameraManipulator::setTrackballProjectionMode(TrackballProjectionMode mode) noexcept {
@@ -829,33 +798,14 @@ TrackballProjectionMode OrbitalCameraManipulator::getTrackballProjectionMode() c
     return trackball_projection_mode_;
 }
 
-float OrbitalCameraManipulator::getOrbitYawDeg() const noexcept {
-    return 0.0f;
-}
-
-float OrbitalCameraManipulator::getOrbitPitchDeg() const noexcept {
-    return 0.0f;
-}
-
-void OrbitalCameraManipulator::setOrbitEulerDegrees(float yaw_deg, float pitch_deg) noexcept {
-    if (!rotation_strategy_ || !camera_) {
-        return;
-    }
-    rotation_strategy_->clearInertia();
-    OrbitalContext ctx{camera_, world_up_, coi_world_, orbit_distance_, viewport(), graphicsApi()};
-    rotation_strategy_->applyViewDirection(yaw_deg, pitch_deg, ctx);
-    applyToCamera();
-    syncFromCamera();
-}
-
-vne::math::Quatf OrbitalCameraManipulator::getTrackballOrientation() const noexcept {
+vne::math::Quatf OrbitalCameraManipulator::getOrientation() const noexcept {
     if (!rotation_strategy_) {
         return vne::math::Quatf::identity();
     }
     return static_cast<const TrackballStrategy*>(rotation_strategy_.get())->orientation();
 }
 
-void OrbitalCameraManipulator::setTrackballOrientation(const vne::math::Quatf& rotation) noexcept {
+void OrbitalCameraManipulator::setOrientation(const vne::math::Quatf& rotation) noexcept {
     if (!rotation_strategy_) {
         return;
     }

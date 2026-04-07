@@ -14,7 +14,7 @@
  * @brief ICameraController — polymorphic base for high-level viewport camera facades.
  *
  * Concrete implementations: @ref Inspect3DController, @ref Navigation3DController,
- * @ref Ortho2DController, @ref FollowController. Each composes @ref CameraRig, @ref InputMapper,
+ * @ref Ortho2DController. Each composes @ref CameraRig, @ref InputMapper,
  * and camera/viewport lifecycle; this interface exposes only the uniform setup and per-frame API.
  *
  * @par When to use

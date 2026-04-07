@@ -15,7 +15,6 @@
  */
 
 #include "../camera_math.h"
-#include "orbit_behavior.h"
 #include "rotation_strategy.h"
 #include "trackball_behavior.h"
 
@@ -146,12 +145,22 @@ class TrackballStrategy final : public IRotationStrategy {
     }
 
     void applyViewDirection(float yaw_deg, float pitch_deg, OrbitalContext& ctx) noexcept override {
-        // Build Euler pose to derive camera position, then re-sync orientation_ from that.
-        // Temporarily delegate to orbit_behavior logic via an inline computation.
-        // We reuse OrbitBehavior to derive the front, apply to camera, then sync back.
-        // This avoids duplicating the Euler-to-direction math here.
-        euler_for_preset_.setYawPitch(yaw_deg, pitch_deg);
-        const vne::math::Vec3f front = euler_for_preset_.computeFrontDirection(ctx.world_up);
+        // Compute front direction from yaw/pitch angles and world_up reference frame.
+        // Compute front direction from yaw/pitch angles relative to the world-up frame.
+        const vne::math::Vec3f up = (ctx.world_up.length() < kVectorEpsilon)
+                                        ? vne::math::Vec3f(0.0f, 1.0f, 0.0f)
+                                        : ctx.world_up.normalized();
+        vne::math::Vec3f ref_fwd;
+        vne::math::Vec3f ref_right;
+        buildReferenceFrame(up, ref_fwd, ref_right);
+        const float yaw_rad = vne::math::degToRad(yaw_deg);
+        const float pitch_rad = vne::math::degToRad(pitch_deg);
+        const float cp = vne::math::cos(pitch_rad);
+        vne::math::Vec3f front =
+            (ref_fwd * vne::math::cos(yaw_rad) + ref_right * vne::math::sin(yaw_rad)) * cp
+            + up * vne::math::sin(pitch_rad);
+        const float front_len = front.length();
+        front = (front_len < kVectorEpsilon) ? ref_fwd : (front / front_len);
         // Compute camera basis from front
         vne::math::Vec3f r = front.cross(ctx.world_up);
         const float rlen = r.length();
@@ -254,8 +263,6 @@ class TrackballStrategy final : public IRotationStrategy {
     float rotation_speed_ = kDefaultRotationSpeedDegPerPx;
     float trackball_rotation_scale_ = kDefaultTrackballRotationScale;
 
-    // Used only for view-direction preset baking (applyViewDirection)
-    OrbitBehavior euler_for_preset_;
 };
 
 }  // namespace vne::interaction

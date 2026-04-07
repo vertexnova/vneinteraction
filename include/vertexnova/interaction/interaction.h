@@ -53,7 +53,6 @@
 #include "vertexnova/interaction/orbital_camera_manipulator.h"
 #include "vertexnova/interaction/free_look_manipulator.h"
 #include "vertexnova/interaction/ortho_2d_manipulator.h"
-#include "vertexnova/interaction/follow_manipulator.h"
 
 // Rig, mapper, controller interface
 #include "vertexnova/interaction/camera_rig.h"
@@ -64,4 +63,3 @@
 #include "vertexnova/interaction/inspect_3d_controller.h"
 #include "vertexnova/interaction/navigation_3d_controller.h"
 #include "vertexnova/interaction/ortho_2d_controller.h"
-#include "vertexnova/interaction/follow_controller.h"

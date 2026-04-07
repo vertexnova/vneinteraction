@@ -26,9 +26,8 @@
  * @endcode
  *
  * ### Defaults
- * - Rotation: **on** by default; algorithm is **virtual trackball** (`OrbitalRotationMode::eTrackball`).
- *   Use `setRotationEnabled(false)` to
- * disable LMB orbit.
+ * - Rotation: **on** by default; uses quaternion virtual trackball.
+ *   Use `setRotationEnabled(false)` to disable LMB orbit.
  * - LMB drag = rotate (when rotation enabled), RMB/MMB drag = pan, scroll = zoom
  * - Double-click LMB = move pivot to current center-of-interest along the view direction (auto-pivot; **on** by
  *   default, independent of rotation). Does not use the double-click screen position; see `eSetPivotAtCursor`.
@@ -112,14 +111,6 @@ class VNE_INTERACTION_API Inspect3DController : public ICameraController {
 
     /** Advance inertia and fit animation by delta_time seconds. */
     void onUpdate(double delta_time) noexcept override;
-
-    // -------------------------------------------------------------------------
-    // Rotation
-    // -------------------------------------------------------------------------
-
-    /** Switch rotation algorithm (default: OrbitalRotationMode::eOrbit). */
-    void setRotationMode(OrbitalRotationMode mode) noexcept;
-    [[nodiscard]] OrbitalRotationMode getRotationMode() const noexcept;
 
     // -------------------------------------------------------------------------
     // Pivot / anchor

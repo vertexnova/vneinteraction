@@ -12,8 +12,8 @@
 
 /**
  * @file camera_state.h
- * @brief Serializable camera state blobs: @ref OrbitCameraState, @ref TrackballCameraState,
- *        @ref FreeCameraState, and interaction state structs.
+ * @brief Serializable camera state blobs: @ref TrackballCameraState, @ref FreeCameraState,
+ *        and interaction state structs.
  *
  * These POD-like structs hold the logical camera pose for each manipulator type and can
  * be saved/restored independently of the ICamera object. Also includes grouped input-state
@@ -68,21 +68,6 @@ struct VNE_INTERACTION_API OrbitalInteractionState {
 // -----------------------------------------------------------------------------
 // Camera pose state blobs (manipulators operate on these, then apply to ICamera)
 // -----------------------------------------------------------------------------
-
-/**
- * @brief Serializable state for Euler-orbit camera (OrbitalCameraManipulator in eOrbit mode).
- */
-struct VNE_INTERACTION_API OrbitCameraState {
-    vne::math::Vec3f coi_world;  //!< Center of interest in world space
-    float distance = 5.0f;       //!< Camera-to-pivot distance
-    vne::math::Vec3f world_up;   //!< World up vector
-    float yaw_deg = 0.0f;        //!< Yaw angle in degrees
-    float pitch_deg = 0.0f;      //!< Pitch angle in degrees
-
-    OrbitCameraState() noexcept
-        : coi_world(0.0f, 0.0f, 0.0f)
-        , world_up(0.0f, 1.0f, 0.0f) {}
-};
 
 /**
  * @brief Serializable state for trackball camera (OrbitalCameraManipulator in eTrackball mode).

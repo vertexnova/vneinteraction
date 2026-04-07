@@ -15,12 +15,12 @@
  * @brief Umbrella header for all shared interaction types.
  *
  * Includes:
- * - Behavioral enums: @ref FreeLookMode, @ref ZoomMethod, @ref OrbitalRotationMode,
+ * - Behavioral enums: @ref FreeLookMode, @ref ZoomMethod,
  *   @ref OrbitPivotMode, @ref UpAxis, @ref ViewDirection, @ref CenterOfInterestSpace
  * - @ref camera_action.h — @ref CameraActionType, @ref CameraCommandPayload, @ref GestureAction
  * - @ref input_binding.h — @ref InputRule, @ref MouseBinding, @ref KeyBinding, touch structs,
  *   modifier bitmask constants
- * - @ref camera_state.h  — @ref OrbitCameraState, @ref TrackballCameraState, @ref FreeCameraState,
+ * - @ref camera_state.h  — @ref TrackballCameraState, @ref FreeCameraState,
  *   @ref FreeLookInputState, @ref OrbitalInteractionState
  *
  * You may include only the focused sub-headers when the full set is not needed.
@@ -71,12 +71,6 @@ enum class ZoomMethod : std::uint8_t {
 enum class FreeLookMode : std::uint8_t {
     eFps = 0,  //!< FPS: world-up fixed, pitch clamped [-89°, 89°] (default)
     eFly = 1,  //!< Fly: unconstrained, up follows camera
-};
-
-/** Rotation algorithm for orbit-style camera (OrbitalCameraManipulator, Inspect3DController). */
-enum class OrbitalRotationMode : std::uint8_t {
-    eOrbit = 0,      //!< Legacy enumerator; rotation uses the trackball/quaternion path (same as eTrackball).
-    eTrackball = 1,  //!< Virtual-trackball quaternion rotation (default)
 };
 
 /**

@@ -11,16 +11,11 @@
 
 /**
  * @file orbital_camera_manipulator.h
- * @brief OrbitalCameraManipulator — orbit camera manipulator with Euler or virtual-trackball rotation.
+ * @brief OrbitalCameraManipulator — quaternion virtual-trackball orbit camera manipulator.
  *
- * Public orbit manipulator used by inspect-style controllers. Euler yaw/pitch and virtual-trackball
- * sphere mapping are implemented by internal helpers in the library sources
- * (\c src/vertexnova/interaction/detail/, e.g. \c orbit_behavior.h, \c trackball_behavior.h); they are
- * not installed as public API types.
- *
- * @par Rotation modes
- * - @c OrbitalRotationMode::eTrackball: quaternion orbit via virtual trackball (default; only implementation).
- * - @c OrbitalRotationMode::eOrbit: legacy enumerator; treated the same as trackball.
+ * Public orbit manipulator used by inspect-style controllers. Trackball sphere mapping is
+ * implemented by internal helpers (\c src/vertexnova/interaction/detail/trackball_behavior.h);
+ * they are not installed as public API types.
  *
  * @par Pivot modes
  * - @c OrbitPivotMode::eCoi: pivot follows pan in view plane.
@@ -111,11 +106,6 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
     // Orbit / trackball-specific API
     // -------------------------------------------------------------------------
 
-    /** Set the rotation algorithm (eOrbit or eTrackball); rebuilds the strategy if changed. */
-    void setRotationMode(OrbitalRotationMode mode) noexcept;
-    /** Get the current rotation algorithm. */
-    [[nodiscard]] OrbitalRotationMode getRotationMode() const noexcept { return rotation_mode_; }
-
     /** Trackball screen-to-sphere mapping (default: @ref TrackballProjectionMode::eHyperbolic). */
     void setTrackballProjectionMode(TrackballProjectionMode mode) noexcept;
     [[nodiscard]] TrackballProjectionMode getTrackballProjectionMode() const noexcept;
@@ -146,24 +136,10 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
     /** World up used for orbit framing (same convention as @ref setWorldUp). */
     [[nodiscard]] vne::math::Vec3f getWorldUp() const noexcept { return world_up_; }
 
-    /**
-     * Euler yaw (degrees) when @ref OrbitalRotationMode::eOrbit is active; otherwise @c 0.
-     * Pairs with @ref getOrbitPitchDeg for @ref OrbitCameraState.
-     */
-    [[nodiscard]] float getOrbitYawDeg() const noexcept;
-    /** Euler pitch (degrees) when @c eOrbit is active; otherwise @c 0. */
-    [[nodiscard]] float getOrbitPitchDeg() const noexcept;
-    /**
-     * Sets internal Euler yaw/pitch and refreshes the camera. No-op unless rotation mode is @c eOrbit.
-     */
-    void setOrbitEulerDegrees(float yaw_deg, float pitch_deg) noexcept;
-
-    /**
-     * Trackball orientation when @ref OrbitalRotationMode::eTrackball is active; otherwise identity.
-     */
-    [[nodiscard]] vne::math::Quatf getTrackballOrientation() const noexcept;
-    /** Replaces trackball orientation and updates the camera. No-op unless mode is @c eTrackball. */
-    void setTrackballOrientation(const vne::math::Quatf& rotation) noexcept;
+    /** Get the current trackball orientation quaternion. */
+    [[nodiscard]] vne::math::Quatf getOrientation() const noexcept;
+    /** Replace the orientation quaternion and update the camera. Clears rotation inertia. */
+    void setOrientation(const vne::math::Quatf& rotation) noexcept;
 
     /**
      * @brief Set the camera view-direction preset (front, back, top, iso…).
@@ -188,16 +164,15 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
     // are inherited from CameraManipulatorBase.
 
     /**
-     * Set rotation speed multiplier (>= 0). Scales Euler yaw/pitch (deg/pixel). For trackball mode, the
-     * effective angle scale is rotation_speed × trackball_rotation_scale (see setTrackballRotationScale).
+     * Set rotation speed multiplier (>= 0). The effective trackball angle scale is
+     * rotation_speed × trackball_rotation_scale (see setTrackballRotationScale).
      */
     void setRotationSpeed(float speed) noexcept;
     [[nodiscard]] float getRotationSpeed() const noexcept { return rotation_speed_; }
 
     /**
-     * Extra scale applied only in @c OrbitalRotationMode::eTrackball (>= 0). The trackball path scales
-     * quaternion angle by rotation_speed, while Euler uses deg/pixel — the defaults match feel across
-     * modes. Default 2.5.
+     * Extra scale applied to the trackball quaternion angle (>= 0). Effective rotation angle =
+     * rotation_speed × trackball_rotation_scale. Default 2.5.
      */
     void setTrackballRotationScale(float scale) noexcept;
     [[nodiscard]] float getTrackballRotationScale() const noexcept { return trackball_rotation_scale_; }
@@ -292,7 +267,6 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
     // camera_, enabled_, viewport_ inherited from CameraManipulatorBase
     // zoom_method_, zoom_scale_, fov_zoom_speed_ inherited from CameraManipulatorBase
 
-    OrbitalRotationMode rotation_mode_ = OrbitalRotationMode::eTrackball;
     OrbitPivotMode pivot_mode_ = OrbitPivotMode::eCoi;
 
     // Common orbit state
