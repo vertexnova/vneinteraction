@@ -21,11 +21,10 @@ namespace {
 CREATE_VNE_LOGGER_CATEGORY("vne.interaction.trackball_behavior");
 
 constexpr float kMinViewportAxis = 1e-6f;
-/** Radius in normalized trackball coordinates (unit ball). */
-constexpr float kTrackballRadius = 1.0f;
+constexpr float kTrackballRadius = 1.0f; //!< Radius in normalized trackball coordinates (unit ball).
 constexpr float kEpsilonLen = 1e-6f;
 constexpr float kCrossLenSqEps = 1e-14f;
-constexpr float kAntiParallelDot = 1e-5f;  //!< dot <= -1 + this → treat as 180° for axis fallback
+constexpr float kAntiParallelDot = 1e-5f;  //!< dot <= -1 + this -> treat as 180° for axis fallback
 
 [[nodiscard]] vne::math::Vec3f normalizeOrDefaultZ(const vne::math::Vec3f& v) noexcept {
     const float len = v.length();

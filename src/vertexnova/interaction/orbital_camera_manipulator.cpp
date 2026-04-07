@@ -89,7 +89,10 @@ struct OrbitalTrackballRotation {
         }
         vne::math::Vec3f back = camera->getPosition() - coi_world;
         const float back_len = back.length();
-        back = (back_len < kVectorEpsilon) ? vne::math::Vec3f(0.0f, 0.0f, 1.0f) : (back / back_len);
+        if (back_len < kVectorEpsilon) {
+            return;  // Degenerate eye–COI (e.g. zero-size fit); keep last valid orientation_.
+        }
+        back /= back_len;
 
         vne::math::Vec3f up = camera->getUp();
         const float up_len = up.length();
@@ -553,7 +556,8 @@ void OrbitalCameraManipulator::applyDolly(float factor, float mx, float my) noex
             }
         }
         applyToCamera();
-        syncFromCamera();
+        // Refresh distance/COI from camera without re-deriving quaternion from lookAt (avoids drift).
+        syncCoiAndDistanceFromCamera();
     }
 }
 

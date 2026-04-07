@@ -108,6 +108,8 @@ CameraRig CameraRig::makeFly() {
 CameraRig CameraRig::makeNavTrackball() {
     CameraRig rig;
     auto look = std::make_shared<FreeLookManipulator>();
+    // Explicit FPS-style world-up + pitch clamp; mouse look uses virtual trackball (not yaw/pitch deltas).
+    look->setConstrainWorldUp(true);
     look->setRotationMode(FreeLookRotationMode::eTrackball);
     rig.addManipulator(std::move(look));
     return rig;
