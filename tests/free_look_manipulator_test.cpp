@@ -1,7 +1,18 @@
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
- * --------------------------------------------------------------------- */
+ *
+ * Author:    Ajeet Singh Yadav
+ * Created:   March 2026
+ *
+ * Autodoc:   yes
+ * ----------------------------------------------------------------------
+ */
+
+/**
+ * FreeLookManipulator tests: mode, rotation, zoom, keyboard pan, external pose handoff,
+ * and orthoPanUp fallbacks.
+ */
 
 #include "vertexnova/interaction/free_look_manipulator.h"
 #include "vertexnova/scene/camera/camera_factory.h"

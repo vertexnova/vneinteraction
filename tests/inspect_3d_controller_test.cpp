@@ -1,7 +1,17 @@
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
- * --------------------------------------------------------------------- */
+ *
+ * Author:    Ajeet Singh Yadav
+ * Created:   March 2026
+ *
+ * Autodoc:   yes
+ * ----------------------------------------------------------------------
+ */
+
+/**
+ * Inspect3DController tests: pivot mode, rotation enabled, fitToAABB, event handling, and move safety.
+ */
 
 #include "vertexnova/interaction/inspect_3d_controller.h"
 #include "vertexnova/interaction/orbital_camera_manipulator.h"
