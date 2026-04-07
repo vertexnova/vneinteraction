@@ -215,8 +215,7 @@ void FreeLookManipulator::clampFpsPitch() noexcept {
     if (rl < kEpsilon) {
         return;
     }
-    orientation_ =
-        (vne::math::Quatf::fromAxisAngle(right_axis / rl, -excess) * orientation_).normalized();
+    orientation_ = (vne::math::Quatf::fromAxisAngle(right_axis / rl, -excess) * orientation_).normalized();
 }
 
 float FreeLookManipulator::getYawDegrees() const noexcept {
@@ -280,8 +279,8 @@ void FreeLookManipulator::setYawPitchDegrees(float yaw_deg, float pitch_deg) noe
     const float yaw_rad = vne::math::degToRad(yaw_deg);
     const float pitch_rad = vne::math::degToRad(pitch_use);
     const float cp = vne::math::cos(pitch_rad);
-    vne::math::Vec3f f =
-        (ref_fwd * vne::math::cos(yaw_rad) + ref_right * vne::math::sin(yaw_rad)) * cp + up_b * vne::math::sin(pitch_rad);
+    vne::math::Vec3f f = (ref_fwd * vne::math::cos(yaw_rad) + ref_right * vne::math::sin(yaw_rad)) * cp
+                         + up_b * vne::math::sin(pitch_rad);
     const float fl = f.length();
     f = (fl < kEpsilon) ? ref_fwd : (f / fl);
 
@@ -460,7 +459,8 @@ bool FreeLookManipulator::onAction(CameraActionType action,
         case CameraActionType::eLookDelta:
             if (camera_ && input_state_.looking) {
                 ensureAnglesSynced();
-                // Match legacy yaw += delta_x * sens: negative delta_x turns view left (forward.x decreases from +Z eye).
+                // Match legacy yaw += delta_x * sens: negative delta_x turns view left (forward.x decreases from +Z
+                // eye).
                 const float yaw_rad = -vne::math::degToRad(payload.delta_x_px * mouse_sensitivity_);
                 const float pitch_rad = -vne::math::degToRad(payload.delta_y_px * mouse_sensitivity_);
                 const vne::math::Vec3f wu_n = normalizedWorldUp(world_up_);
@@ -470,8 +470,7 @@ bool FreeLookManipulator::onAction(CameraActionType action,
                     const vne::math::Vec3f right_ax = orientation_.getXAxis();
                     const float rl = right_ax.length();
                     if (rl >= kEpsilon) {
-                        const vne::math::Quatf dq_pitch =
-                            vne::math::Quatf::fromAxisAngle(right_ax / rl, pitch_rad);
+                        const vne::math::Quatf dq_pitch = vne::math::Quatf::fromAxisAngle(right_ax / rl, pitch_rad);
                         orientation_ = (dq_pitch * orientation_).normalized();
                     }
                     clampFpsPitch();
@@ -484,8 +483,7 @@ bool FreeLookManipulator::onAction(CameraActionType action,
                     vne::math::Vec3f right_ax = orientation_.getXAxis();
                     ul = right_ax.length();
                     if (ul >= kEpsilon) {
-                        const vne::math::Quatf dq_pitch =
-                            vne::math::Quatf::fromAxisAngle(right_ax / ul, pitch_rad);
+                        const vne::math::Quatf dq_pitch = vne::math::Quatf::fromAxisAngle(right_ax / ul, pitch_rad);
                         orientation_ = (dq_pitch * orientation_).normalized();
                     }
                 }

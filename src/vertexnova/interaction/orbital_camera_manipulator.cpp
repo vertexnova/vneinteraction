@@ -803,13 +803,14 @@ void OrbitalCameraManipulator::setRotationMode(OrbitalRotationMode mode) noexcep
     if (rotation_strategy_) {
         const auto inner = static_cast<TrackballStrategy*>(rotation_strategy_.get())->trackball().getProjectionMode();
         proj = (inner == TrackballBehavior::ProjectionMode::eRim) ? TrackballProjectionMode::eRim
-                                                                    : TrackballProjectionMode::eHyperbolic;
+                                                                  : TrackballProjectionMode::eHyperbolic;
     }
     trackball_projection_mode_ = proj;
     rotation_strategy_ = makeStrategy(OrbitalRotationMode::eTrackball);
     auto* tb = static_cast<TrackballStrategy*>(rotation_strategy_.get());
-    tb->trackball().setProjectionMode(proj == TrackballProjectionMode::eRim ? TrackballBehavior::ProjectionMode::eRim
-                                                                              : TrackballBehavior::ProjectionMode::eHyperbolic);
+    tb->trackball().setProjectionMode(proj == TrackballProjectionMode::eRim
+                                          ? TrackballBehavior::ProjectionMode::eRim
+                                          : TrackballBehavior::ProjectionMode::eHyperbolic);
     tb->setRotationSpeed(rotation_speed_);
     tb->setTrackballRotationScale(trackball_rotation_scale_);
     syncFromCamera();

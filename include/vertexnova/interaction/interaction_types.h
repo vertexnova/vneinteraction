@@ -75,8 +75,8 @@ enum class FreeLookMode : std::uint8_t {
 
 /** Rotation algorithm for orbit-style camera (OrbitalCameraManipulator, Inspect3DController). */
 enum class OrbitalRotationMode : std::uint8_t {
-    eOrbit = 0, //!< Legacy enumerator; rotation uses the trackball/quaternion path (same as eTrackball).
-    eTrackball = 1, //!< Virtual-trackball quaternion rotation (default)
+    eOrbit = 0,      //!< Legacy enumerator; rotation uses the trackball/quaternion path (same as eTrackball).
+    eTrackball = 1,  //!< Virtual-trackball quaternion rotation (default)
 };
 
 /**

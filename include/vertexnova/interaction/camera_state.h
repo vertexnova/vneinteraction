@@ -103,8 +103,8 @@ struct VNE_INTERACTION_API TrackballCameraState {
  * @brief Serializable state for free-look camera (FreeLookManipulator).
  */
 struct VNE_INTERACTION_API FreeCameraState {
-    vne::math::Vec3f position;   //!< Camera position in world space
-    vne::math::Quatf orientation; //!< Camera-to-world rotation
+    vne::math::Vec3f position;     //!< Camera position in world space
+    vne::math::Quatf orientation;  //!< Camera-to-world rotation
 
     FreeCameraState() noexcept
         : position(0.0f, 0.0f, 0.0f)

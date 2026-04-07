@@ -101,8 +101,8 @@ int runCameraStateSaveRestoreExample() {
         for (int i = 0; i < 10; ++i)
             ctrl.onUpdate(kDt);
         const auto q = manip.getTrackballOrientation();
-        VNE_LOG_INFO << "  After restore to bookmark_a: distance=" << manip.getOrbitDistance() << " quat=(" << q.x << ","
-                     << q.y << "," << q.z << "," << q.w << ")";
+        VNE_LOG_INFO << "  After restore to bookmark_a: distance=" << manip.getOrbitDistance() << " quat=(" << q.x
+                     << "," << q.y << "," << q.z << "," << q.w << ")";
 
         vne::interaction::TrackballCameraState demo;
         demo.coi_world = {1.0f, 0.5f, 0.0f};
