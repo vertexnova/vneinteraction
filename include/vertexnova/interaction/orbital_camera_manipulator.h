@@ -35,6 +35,7 @@
 #include "vertexnova/scene/camera/perspective_camera.h"
 
 #include <vertexnova/math/core/core.h>
+#include <vertexnova/math/easing.h>
 
 #include <algorithm>
 #include <memory>
@@ -47,6 +48,9 @@ namespace vne::interaction {
 
 /** Internal trackball rotation state (defined in orbital_camera_manipulator.cpp). */
 struct OrbitalTrackballRotation;
+
+/** Unified fit + view-direction animation state (defined in orbital_camera_manipulator.cpp). */
+struct OrbitalAnimation;
 
 /**
  * @brief Orbit manipulator with quaternion virtual-trackball rotation, pan, zoom, inertia, and fit.
@@ -87,7 +91,7 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
      */
     bool onAction(CameraActionType action, const CameraCommandPayload& payload, double delta_time) noexcept override;
 
-    /** Advance inertia (rotation and pan) and fitToAABB animation. */
+    /** Advance inertia (rotation and pan) and unified orbit animation (fit / view-direction). */
     void onUpdate(double delta_time) noexcept override;
 
     /** Attach camera; syncs internal state from camera. */
@@ -146,6 +150,18 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
      *          Euler path (±89° on the yaw/pitch state inside the implementation).
      */
     void setViewDirection(ViewDirection dir) noexcept;
+
+    /**
+     * @brief Smoothly animate to a view-direction preset.
+     * @param duration_s Animation length in seconds; @c 0 uses the same instant path as @ref setViewDirection.
+     */
+    void animateToViewDirection(ViewDirection dir,
+                              float duration_s = 0.4f,
+                              vne::math::EaseType easing = vne::math::EaseType::eCubicInOut) noexcept;
+
+    /** Default duration (seconds) for @ref fitToAABB perspective animation; @c 0 applies the fit in one step. */
+    void setFitAnimationDuration(float duration_s) noexcept { fit_anim_duration_ = std::max(0.0f, duration_s); }
+    [[nodiscard]] float getFitAnimationDuration() const noexcept { return fit_anim_duration_; }
 
     /** Set orbit distance (camera-to-pivot); clamped to [0.01, 1e6]. */
     void setOrbitDistance(float distance) noexcept;
@@ -292,10 +308,8 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
     bool rotate_enabled_ = true;
     bool pan_enabled_ = true;
 
-    // fitToAABB smooth animation
-    float target_orbit_distance_ = 5.0f;
-    vne::math::Vec3f target_coi_world_{0.0f, 0.0f, 0.0f};
-    bool animating_fit_ = false;
+    std::unique_ptr<OrbitalAnimation> anim_;
+    float fit_anim_duration_ = 0.5f;
 };
 
 }  // namespace vne::interaction

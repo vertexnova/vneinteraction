@@ -262,6 +262,37 @@ struct OrbitalTrackballRotation {
     }
 };
 
+struct OrbitalAnimation {
+    bool active = false;
+    float elapsed = 0.0f;
+    float duration = 0.5f;
+    vne::math::EaseType easing = vne::math::EaseType::eCubicInOut;
+    bool animate_rotation = false;
+    vne::math::Quatf rot_from{0.0f, 0.0f, 0.0f, 1.0f};
+    vne::math::Quatf rot_to{0.0f, 0.0f, 0.0f, 1.0f};
+    vne::math::Vec3f coi_from{0.0f, 0.0f, 0.0f};
+    vne::math::Vec3f coi_to{0.0f, 0.0f, 0.0f};
+    float dist_from = 5.0f;
+    float dist_to = 5.0f;
+
+    void start(float dur, vne::math::EaseType e = vne::math::EaseType::eCubicInOut) noexcept {
+        if (!(dur > 0.0f)) {
+            active = false;
+            return;
+        }
+        active = true;
+        elapsed = 0.0f;
+        duration = dur;
+        easing = e;
+    }
+
+    void stop() noexcept {
+        active = false;
+        elapsed = 0.0f;
+        animate_rotation = false;
+    }
+};
+
 namespace {
 CREATE_VNE_LOGGER_CATEGORY("vne.interaction.orbital_camera");
 constexpr float kEpsilon = 1e-6f;
@@ -270,8 +301,6 @@ constexpr float kMaxOrbitDistance = 1e6f;
 constexpr float kMinRadiusFallback = 1.0f;
 constexpr float kFitToAabbMargin = 1.1f;
 constexpr float kPanVelocityBlendRate = 25.0f;  // EMA time-constant reciprocal (1/s) — frame-rate independent
-constexpr float kFitAnimationSpeed = 10.0f;
-constexpr float kFitConvergeThreshold = 1e-3f;
 constexpr float kInertiaPanSpeedThreshold = 1e-4f;
 /** Fraction of cursor–COI offset applied per zoom step toward (in) or away from (out) the cursor; 0.5 = 50%. */
 constexpr float kZoomToCursorStrength = 0.5f;
@@ -288,6 +317,39 @@ constexpr float kYawDegRight = 90.0f;
 constexpr float kYawDegIso = 45.0f;
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers) — classic iso view pitch (degrees)
 constexpr float kPitchDegIso = -35.2643897f;
+
+void viewDirectionYawPitch(ViewDirection dir, float& yaw, float& pitch) noexcept {
+    switch (dir) {
+        case ViewDirection::eFront:
+            yaw = 0.0f;
+            pitch = 0.0f;
+            break;
+        case ViewDirection::eBack:
+            yaw = kYawDegBack;
+            pitch = 0.0f;
+            break;
+        case ViewDirection::eLeft:
+            yaw = kYawDegLeft;
+            pitch = 0.0f;
+            break;
+        case ViewDirection::eRight:
+            yaw = kYawDegRight;
+            pitch = 0.0f;
+            break;
+        case ViewDirection::eTop:
+            yaw = 0.0f;
+            pitch = -89.0f;
+            break;
+        case ViewDirection::eBottom:
+            yaw = 0.0f;
+            pitch = 89.0f;
+            break;
+        case ViewDirection::eIso:
+            yaw = kYawDegIso;
+            pitch = kPitchDegIso;
+            break;
+    }
+}
 
 [[nodiscard]] vne::math::Vec3f stableCameraUpForLookAt(const vne::math::Vec3f& camera_up_hint,
                                                        const vne::math::Vec3f& view_dir_unit,
@@ -319,7 +381,8 @@ constexpr float kPitchDegIso = -35.2643897f;
 // ---------------------------------------------------------------------------
 
 OrbitalCameraManipulator::OrbitalCameraManipulator() noexcept
-    : orbital_rot_(std::make_unique<OrbitalTrackballRotation>()) {
+    : orbital_rot_(std::make_unique<OrbitalTrackballRotation>()),
+      anim_(std::make_unique<OrbitalAnimation>()) {
     world_up_ = vne::math::Vec3f(0.0f, 1.0f, 0.0f);
     coi_world_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
     inertia_pan_velocity_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
@@ -403,6 +466,7 @@ void OrbitalCameraManipulator::onPivotChanged() noexcept {
 // ---------------------------------------------------------------------------
 
 void OrbitalCameraManipulator::beginRotate(float x_px, float y_px) noexcept {
+    anim_->stop();
     interaction_.rotating = true;
     interaction_.last_x_px = x_px;
     interaction_.last_y_px = y_px;
@@ -427,6 +491,7 @@ void OrbitalCameraManipulator::endRotate(double /*delta_time*/) noexcept {
 // ---------------------------------------------------------------------------
 
 void OrbitalCameraManipulator::beginPan(float x_px, float y_px) noexcept {
+    anim_->stop();
     interaction_.panning = true;
     interaction_.last_x_px = x_px;
     interaction_.last_y_px = y_px;
@@ -516,6 +581,7 @@ void OrbitalCameraManipulator::dispatchZoom(float factor, float mx, float my) no
     if (!camera_ || factor <= 0.0f || !std::isfinite(factor)) {
         return;
     }
+    anim_->stop();
     switch (zoom_method_) {
         case ZoomMethod::eSceneScale:
             CameraManipulatorBase::applySceneScaleZoom(factor);
@@ -622,20 +688,28 @@ void OrbitalCameraManipulator::fitToAABB(const vne::math::Vec3f& min_world,
         radius = kMinRadiusFallback;
     }
 
-    target_coi_world_ = center;
-    coi_world_ = center;
-
     if (auto persp = perspCamera()) {
         const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
         const float aspect = std::max(viewport().width / viewport().height, CameraManipulatorBase::kMinOrthoExtent);
         const float fov_x_rad = 2.0f * vne::math::atan(vne::math::tan(fov_y_rad * 0.5f) * aspect);
         const float dist_y = radius / vne::math::tan(fov_y_rad * 0.5f);
         const float dist_x = radius / vne::math::tan(fov_x_rad * 0.5f);
-        target_orbit_distance_ = std::max(dist_x, dist_y) * kFitToAabbMargin;
-        orbit_distance_ = target_orbit_distance_;
-        applyToCamera();
-        onPivotChanged();
-        animating_fit_ = true;
+        const float dist_target = std::max(dist_x, dist_y) * kFitToAabbMargin;
+        if (fit_anim_duration_ <= 0.0f) {
+            coi_world_ = center;
+            orbit_distance_ = dist_target;
+            anim_->stop();
+            applyToCamera();
+            onPivotChanged();
+            return;
+        }
+        anim_->coi_from = coi_world_;
+        anim_->coi_to = center;
+        anim_->dist_from = orbit_distance_;
+        anim_->dist_to = dist_target;
+        anim_->animate_rotation = false;
+        anim_->start(fit_anim_duration_);
+        return;
     } else if (auto ortho = orthoCamera()) {
         const vne::math::Vec3f r = orbital_rot_->viewRight();
         const vne::math::Vec3f u = orbital_rot_->viewUp();
@@ -666,7 +740,7 @@ void OrbitalCameraManipulator::fitToAABB(const vne::math::Vec3f& min_world,
         }
         ortho->setBounds(-max_r, max_r, -max_u, max_u, ortho->getNearPlane(), ortho->getFarPlane());
         coi_world_ = center;
-        target_coi_world_ = center;
+        anim_->stop();
         applyToCamera();
         onPivotChanged();
     }
@@ -697,7 +771,7 @@ void OrbitalCameraManipulator::resetState() noexcept {
     interaction_.panning = false;
     interaction_.modifier_shift = false;
     inertia_pan_velocity_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
-    animating_fit_ = false;
+    anim_->stop();
     orbital_rot_->reset(camera_, coi_world_, world_up_);
 }
 
@@ -713,11 +787,13 @@ void OrbitalCameraManipulator::setWorldUp(const vne::math::Vec3f& world_up) noex
 }
 
 void OrbitalCameraManipulator::setOrbitDistance(float distance) noexcept {
+    anim_->stop();
     orbit_distance_ = vne::math::clamp(distance, kMinOrbitDistance, kMaxOrbitDistance);
     applyToCamera();
 }
 
 void OrbitalCameraManipulator::setPivot(const vne::math::Vec3f& pos, CenterOfInterestSpace space) noexcept {
+    anim_->stop();
     if (!camera_) {
         coi_world_ = pos;
         return;
@@ -737,6 +813,7 @@ void OrbitalCameraManipulator::setPivot(const vne::math::Vec3f& pos, CenterOfInt
 }
 
 void OrbitalCameraManipulator::setLandmark(const vne::math::Vec3f& world_pos) noexcept {
+    anim_->stop();
     coi_world_ = world_pos;
     pivot_mode_ = OrbitPivotMode::eFixed;
     if (camera_) {
@@ -749,43 +826,40 @@ void OrbitalCameraManipulator::setLandmark(const vne::math::Vec3f& world_pos) no
 void OrbitalCameraManipulator::setViewDirection(ViewDirection dir) noexcept {
     float yaw = 0.0f;
     float pitch = 0.0f;
-    switch (dir) {
-        case ViewDirection::eFront:
-            yaw = 0.0f;
-            pitch = 0.0f;
-            break;
-        case ViewDirection::eBack:
-            yaw = kYawDegBack;
-            pitch = 0.0f;
-            break;
-        case ViewDirection::eLeft:
-            yaw = kYawDegLeft;
-            pitch = 0.0f;
-            break;
-        case ViewDirection::eRight:
-            yaw = kYawDegRight;
-            pitch = 0.0f;
-            break;
-        case ViewDirection::eTop: {
-            yaw = 0.0f;
-            pitch = -89.0f;
-            break;
-        }
-        case ViewDirection::eBottom: {
-            yaw = 0.0f;
-            pitch = 89.0f;
-            break;
-        }
-        case ViewDirection::eIso:
-            yaw = kYawDegIso;
-            pitch = kPitchDegIso;
-            break;
-    }
-
+    viewDirectionYawPitch(dir, yaw, pitch);
+    anim_->stop();
     orbital_rot_->clearInertia();
     orbital_rot_->applyViewDirection(yaw, pitch, world_up_);
     applyToCamera();
     syncFromCamera();
+}
+
+void OrbitalCameraManipulator::animateToViewDirection(ViewDirection dir,
+                                                      float duration_s,
+                                                      vne::math::EaseType easing) noexcept {
+    if (duration_s <= 0.0f) {
+        setViewDirection(dir);
+        return;
+    }
+
+    float yaw = 0.0f;
+    float pitch = 0.0f;
+    viewDirectionYawPitch(dir, yaw, pitch);
+
+    anim_->rot_from = orbital_rot_->orientation;
+    anim_->coi_from = coi_world_;
+    anim_->coi_to = coi_world_;
+    anim_->dist_from = orbit_distance_;
+    anim_->dist_to = orbit_distance_;
+    anim_->animate_rotation = true;
+
+    OrbitalTrackballRotation target_rot;
+    target_rot.orientation = orbital_rot_->orientation;
+    target_rot.applyViewDirection(yaw, pitch, world_up_);
+    anim_->rot_to = target_rot.orientation;
+
+    orbital_rot_->clearInertia();
+    anim_->start(duration_s, easing);
 }
 
 // ---------------------------------------------------------------------------
@@ -796,22 +870,30 @@ void OrbitalCameraManipulator::onUpdate(double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }
-    if (animating_fit_ && delta_time > 0.0) {
-        const float alpha = 1.0f - std::exp(-kFitAnimationSpeed * static_cast<float>(delta_time));
-        orbit_distance_ += (target_orbit_distance_ - orbit_distance_) * alpha;
-        coi_world_ = coi_world_ + (target_coi_world_ - coi_world_) * alpha;
+    if (anim_->active && delta_time > 0.0) {
+        anim_->elapsed += static_cast<float>(delta_time);
+        const float t = vne::math::clamp(anim_->elapsed / anim_->duration, 0.0f, 1.0f);
+        const float et = vne::math::ease(anim_->easing, t);
+
+        orbit_distance_ = anim_->dist_from + (anim_->dist_to - anim_->dist_from) * et;
+        coi_world_ = anim_->coi_from + (anim_->coi_to - anim_->coi_from) * et;
+        if (anim_->animate_rotation) {
+            orbital_rot_->setOrientationQuat(vne::math::Quatf::slerp(anim_->rot_from, anim_->rot_to, et));
+        }
         applyToCamera();
-        const float dist_diff = std::abs(orbit_distance_ - target_orbit_distance_);
-        const float coi_diff = (coi_world_ - target_coi_world_).length();
-        if (dist_diff < kFitConvergeThreshold && coi_diff < kFitConvergeThreshold) {
-            orbit_distance_ = target_orbit_distance_;
-            coi_world_ = target_coi_world_;
+
+        if (t >= 1.0f) {
+            orbit_distance_ = anim_->dist_to;
+            coi_world_ = anim_->coi_to;
+            if (anim_->animate_rotation) {
+                orbital_rot_->setOrientationQuat(anim_->rot_to);
+            }
             applyToCamera();
-            animating_fit_ = false;
+            anim_->stop();
             onPivotChanged();
         }
     }
-    if (!animating_fit_ && !interaction_.rotating && !interaction_.panning) {
+    if (!anim_->active && !interaction_.rotating && !interaction_.panning) {
         applyInertia(delta_time);
     }
 }
@@ -893,6 +975,7 @@ bool OrbitalCameraManipulator::onAction(CameraActionType action,
             return true;
 
         case CameraActionType::eSetPivotAtCursor: {
+            anim_->stop();
             const vne::math::Vec3f front = computeFront();
             coi_world_ = camera_->getPosition() + front * orbit_distance_;
             orbit_distance_ = std::max((camera_->getPosition() - coi_world_).length(), kMinOrbitDistance);
@@ -936,6 +1019,7 @@ vne::math::Quatf OrbitalCameraManipulator::getOrientation() const noexcept {
 }
 
 void OrbitalCameraManipulator::setOrientation(const vne::math::Quatf& rotation) noexcept {
+    anim_->stop();
     orbital_rot_->setOrientationQuat(rotation);
     applyToCamera();
 }
