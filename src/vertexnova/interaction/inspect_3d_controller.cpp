@@ -46,7 +46,7 @@ class Inspect3DController::Impl {
     CameraControllerContext core_;
     std::shared_ptr<OrbitalCameraManipulator> orbit_;
 
-    OrbitalRotationMode rotation_mode_ = OrbitalRotationMode::eOrbit;
+    OrbitalRotationMode rotation_mode_ = OrbitalRotationMode::eTrackball;
     bool rotation_enabled_ = true;
     bool pivot_on_double_click_enabled_ = true;
     bool pan_enabled_ = true;
@@ -229,7 +229,7 @@ static std::vector<InputRule> buildInspectRules(const InspectRuleConfig& cfg) {
 Inspect3DController::Inspect3DController()
     : impl_(std::make_unique<Impl>()) {
     impl_->orbit_ = std::make_shared<OrbitalCameraManipulator>();
-    impl_->orbit_->setRotationMode(OrbitalRotationMode::eOrbit);
+    impl_->orbit_->setRotationMode(OrbitalRotationMode::eTrackball);
     impl_->core_.rig.addManipulator(impl_->orbit_);
 
     impl_->user_rotation_speed_ = impl_->orbit_->getRotationSpeed();

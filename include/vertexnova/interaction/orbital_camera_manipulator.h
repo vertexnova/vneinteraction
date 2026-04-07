@@ -19,8 +19,8 @@
  * not installed as public API types.
  *
  * @par Rotation modes
- * - @c OrbitalRotationMode::eOrbit: classic yaw/pitch orbit around @c world_up.
- * - @c OrbitalRotationMode::eTrackball: quaternion orbit via virtual trackball.
+ * - @c OrbitalRotationMode::eTrackball: quaternion orbit via virtual trackball (default; only implementation).
+ * - @c OrbitalRotationMode::eOrbit: legacy enumerator; treated the same as trackball.
  *
  * @par Pivot modes
  * - @c OrbitPivotMode::eCoi: pivot follows pan in view plane.
@@ -72,7 +72,7 @@ namespace vne::interaction {
  */
 class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipulatorBase {
    public:
-    /** Construct with default settings (eOrbit mode, eCoi pivot, Y-up). */
+    /** Construct with default settings (trackball rotation, eCoi pivot, Y-up). */
     OrbitalCameraManipulator() noexcept;
     ~OrbitalCameraManipulator() noexcept override;
 
@@ -292,7 +292,7 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
     // camera_, enabled_, viewport_ inherited from CameraManipulatorBase
     // zoom_method_, zoom_scale_, fov_zoom_speed_ inherited from CameraManipulatorBase
 
-    OrbitalRotationMode rotation_mode_ = OrbitalRotationMode::eOrbit;
+    OrbitalRotationMode rotation_mode_ = OrbitalRotationMode::eTrackball;
     OrbitPivotMode pivot_mode_ = OrbitPivotMode::eCoi;
 
     // Common orbit state

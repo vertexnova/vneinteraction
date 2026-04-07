@@ -28,7 +28,7 @@ static std::shared_ptr<vne::scene::PerspectiveCamera> makePerspCamera() {
 
 TEST(OrbitalCameraManipulator, DefaultValues) {
     vne::interaction::OrbitalCameraManipulator b;
-    EXPECT_EQ(b.getRotationMode(), vne::interaction::OrbitalRotationMode::eOrbit);
+    EXPECT_EQ(b.getRotationMode(), vne::interaction::OrbitalRotationMode::eTrackball);
     EXPECT_EQ(b.getPivotMode(), vne::interaction::OrbitPivotMode::eCoi);
     EXPECT_GT(b.getOrbitDistance(), 0.0f);
     EXPECT_GT(b.getZoomSpeed(), 0.0f);
@@ -79,10 +79,11 @@ TEST(OrbitalCameraManipulator, CameraIntegration) {
     vne::interaction::CameraCommandPayload p;
     p.x_px = 640.0f;
     p.y_px = 360.0f;
+    b.onAction(vne::interaction::CameraActionType::eBeginRotate, p, 0.016);
+    p.x_px = 690.0f;
+    p.y_px = 360.0f;
     p.delta_x_px = 50.0f;
     p.delta_y_px = 0.0f;
-
-    b.onAction(vne::interaction::CameraActionType::eBeginRotate, p, 0.016);
     b.onAction(vne::interaction::CameraActionType::eRotateDelta, p, 0.016);
     b.onAction(vne::interaction::CameraActionType::eEndRotate, p, 0.016);
     b.onUpdate(0.016);

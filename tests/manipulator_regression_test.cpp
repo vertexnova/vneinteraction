@@ -138,7 +138,6 @@ TEST(ManipulatorRegression, OrbitPan_Perspective_DragDownMovesCoiAlongUp) {
     persp->updateMatrices();
 
     vne::interaction::OrbitalCameraManipulator b;
-    b.setRotationMode(vne::interaction::OrbitalRotationMode::eOrbit);
     b.setCamera(persp);
     b.onResize(200.0f, 200.0f);
 
@@ -167,7 +166,6 @@ TEST(ManipulatorRegression, OrbitPan_Orthographic_DragDownMovesCoiAlongUp) {
     ortho->updateMatrices();
 
     vne::interaction::OrbitalCameraManipulator b;
-    b.setRotationMode(vne::interaction::OrbitalRotationMode::eOrbit);
     b.setCamera(ortho);
     b.onResize(200.0f, 200.0f);
 
@@ -300,34 +298,7 @@ TEST(ManipulatorRegression, OrthoZoomToCursor_KeepsPointUnderCursor) {
     EXPECT_LT(dist, 0.01f) << "World point under cursor should stay fixed after zoom";
 }
 
-// ---------------------------------------------------------------------------
-// Orbit Euler: positive yaw = turn right
-// ---------------------------------------------------------------------------
-TEST(ManipulatorRegression, OrbitEuler_PositiveYawTurnsRight) {
-    auto persp = vne::scene::CameraFactory::createPerspective(
-        vne::scene::PerspectiveCameraParameters(45.0f, 16.0f / 9.0f, 0.1f, 1000.0f));
-    persp->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
-    persp->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
-
-    vne::interaction::OrbitalCameraManipulator b;
-    b.setRotationMode(vne::interaction::OrbitalRotationMode::eOrbit);
-    b.setCamera(persp);
-    b.onResize(800.0f, 600.0f);
-
-    vne::math::Vec3f pos_before = persp->getPosition();
-    b.onAction(vne::interaction::CameraActionType::eBeginRotate, vne::interaction::CameraCommandPayload{}, 0.0);
-    vne::interaction::CameraCommandPayload p;
-    p.delta_x_px = 50.0f;
-    p.delta_y_px = 0.0f;
-    b.onAction(vne::interaction::CameraActionType::eRotateDelta, p, 0.016);
-    b.onAction(vne::interaction::CameraActionType::eEndRotate, p, 0.0);
-
-    vne::math::Vec3f pos_after = persp->getPosition();
-    EXPECT_LT(pos_after.x(), pos_before.x())
-        << "Drag right (positive delta_x) should orbit camera left (position X decreases in RH Y-up)";
-}
-
-// Trackball mode uses absolute cursor in eRotateDelta; same horizontal drag should match Euler orbit sense.
+// Trackball rotation (default): horizontal drag matches legacy Euler orbit sense (position X decreases).
 TEST(ManipulatorRegression, OrbitalCamera_HorizontalDragMatchesEulerSign) {
     auto persp = vne::scene::CameraFactory::createPerspective(
         vne::scene::PerspectiveCameraParameters(45.0f, 16.0f / 9.0f, 0.1f, 1000.0f));

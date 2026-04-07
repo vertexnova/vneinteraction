@@ -140,7 +140,7 @@ TEST(FreeLookManipulator, KeyboardMoveCompensatesSceneScale) {
     EXPECT_NEAR(step_double_scale, 0.5f, 1e-4f);
 }
 
-TEST(FreeLookManipulator, ResetStateResyncsAnglesFromCamera) {
+TEST(FreeLookManipulator, ResetStateResyncsOrientationFromCamera) {
     auto cam = makePerspCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 10.0f));
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
@@ -171,8 +171,8 @@ TEST(FreeLookManipulator, ResetStateResyncsAnglesFromCamera) {
 
 /**
  * Handoff after external camera pose change: markAnglesDirty() sets angles_dirty_; onUpdate runs
- * ensureAnglesSynced() (which calls syncAnglesFromCamera) before WASD so yaw_deg_/pitch_deg_ match the rig.
- * Subcase A: perspCamera() path uses view forward for move_forward; view_offset (target - position) preserved.
+ * ensureAnglesSynced() (syncOrientationFromCamera) before WASD so orientation_ matches the rig.
+ * Perspective: move_forward uses view forward; look distance (target - position) preserved.
  */
 TEST(FreeLookManipulator, ExternalPoseHandoff_PerspectiveForwardAndViewOffset) {
     auto cam = makePerspCamera();
@@ -212,10 +212,10 @@ TEST(FreeLookManipulator, ExternalPoseHandoff_PerspectiveForwardAndViewOffset) {
 }
 
 /**
- * Zero-dt onUpdate must still run ensureAnglesSynced / syncAnglesFromCamera so the next positive-dt move
- * does not use stale yaw_deg_/pitch_deg_ after markAnglesDirty().
+ * Zero-dt onUpdate must still run ensureAnglesSynced / syncOrientationFromCamera so the next positive-dt move
+ * does not use stale orientation_ after markAnglesDirty().
  */
-TEST(FreeLookManipulator, OnUpdateZeroDeltaTimeStillSyncsAnglesFromCamera) {
+TEST(FreeLookManipulator, OnUpdateZeroDeltaTimeStillSyncsOrientationFromCamera) {
     auto cam = makePerspCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 10.0f));
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));

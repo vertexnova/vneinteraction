@@ -26,8 +26,8 @@
  * @endcode
  *
  * ### Defaults
- * - Rotation: **on** by default; algorithm is **Euler orbit** (`OrbitalRotationMode::eOrbit`).
- *   Use `setRotationMode(OrbitalRotationMode::eTrackball)` for quaternion trackball; use `setRotationEnabled(false)` to
+ * - Rotation: **on** by default; algorithm is **virtual trackball** (`OrbitalRotationMode::eTrackball`).
+ *   Use `setRotationEnabled(false)` to
  * disable LMB orbit.
  * - LMB drag = rotate (when rotation enabled), RMB/MMB drag = pan, scroll = zoom
  * - Double-click LMB = move pivot to current center-of-interest along the view direction (auto-pivot; **on** by

@@ -48,9 +48,9 @@ TEST(CameraRig, OnActionDispatchesToManipulators) {
     vne::interaction::CameraCommandPayload p;
     p.x_px = 640.0f;
     p.y_px = 360.0f;
-    p.delta_x_px = 50.0f;
-
     rig.onAction(vne::interaction::CameraActionType::eBeginRotate, p, 0.016);
+    p.x_px = 690.0f;
+    p.delta_x_px = 50.0f;
     rig.onAction(vne::interaction::CameraActionType::eRotateDelta, p, 0.016);
     rig.onAction(vne::interaction::CameraActionType::eEndRotate, p, 0.016);
     rig.onUpdate(0.016);

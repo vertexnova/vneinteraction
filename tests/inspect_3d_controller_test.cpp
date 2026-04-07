@@ -35,7 +35,7 @@ static std::shared_ptr<vne::scene::PerspectiveCamera> makePerspCamera() {
 
 TEST(Inspect3DController, DefaultOrbitalRotationMode) {
     vne::interaction::Inspect3DController ctrl;
-    EXPECT_EQ(ctrl.getRotationMode(), vne::interaction::OrbitalRotationMode::eOrbit);
+    EXPECT_EQ(ctrl.getRotationMode(), vne::interaction::OrbitalRotationMode::eTrackball);
     EXPECT_TRUE(ctrl.isRotationEnabled());
 }
 
@@ -80,7 +80,7 @@ TEST(Inspect3DController, PivotOnDoubleClickIndependentOfRotation) {
 
 TEST(Inspect3DController, SetRotationEnabled) {
     vne::interaction::Inspect3DController ctrl;
-    EXPECT_EQ(ctrl.getRotationMode(), vne::interaction::OrbitalRotationMode::eOrbit);
+    EXPECT_EQ(ctrl.getRotationMode(), vne::interaction::OrbitalRotationMode::eTrackball);
     EXPECT_TRUE(ctrl.isRotationEnabled());
 
     auto cam = makePerspCamera();
