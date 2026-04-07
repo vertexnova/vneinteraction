@@ -381,8 +381,8 @@ void viewDirectionYawPitch(ViewDirection dir, float& yaw, float& pitch) noexcept
 // ---------------------------------------------------------------------------
 
 OrbitalCameraManipulator::OrbitalCameraManipulator() noexcept
-    : orbital_rot_(std::make_unique<OrbitalTrackballRotation>()),
-      anim_(std::make_unique<OrbitalAnimation>()) {
+    : orbital_rot_(std::make_unique<OrbitalTrackballRotation>())
+    , anim_(std::make_unique<OrbitalAnimation>()) {
     world_up_ = vne::math::Vec3f(0.0f, 1.0f, 0.0f);
     coi_world_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
     inertia_pan_velocity_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);

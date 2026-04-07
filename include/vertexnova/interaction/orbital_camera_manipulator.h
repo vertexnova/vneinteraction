@@ -156,8 +156,8 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
      * @param duration_s Animation length in seconds; @c 0 uses the same instant path as @ref setViewDirection.
      */
     void animateToViewDirection(ViewDirection dir,
-                              float duration_s = 0.4f,
-                              vne::math::EaseType easing = vne::math::EaseType::eCubicInOut) noexcept;
+                                float duration_s = 0.4f,
+                                vne::math::EaseType easing = vne::math::EaseType::eCubicInOut) noexcept;
 
     /** Default duration (seconds) for @ref fitToAABB perspective animation; @c 0 applies the fit in one step. */
     void setFitAnimationDuration(float duration_s) noexcept { fit_anim_duration_ = std::max(0.0f, duration_s); }
