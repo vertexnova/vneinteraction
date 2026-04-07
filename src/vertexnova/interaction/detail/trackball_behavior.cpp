@@ -21,7 +21,7 @@ namespace {
 CREATE_VNE_LOGGER_CATEGORY("vne.interaction.trackball_behavior");
 
 constexpr float kMinViewportAxis = 1e-6f;
-constexpr float kTrackballRadius = 1.0f; //!< Radius in normalized trackball coordinates (unit ball).
+constexpr float kTrackballRadius = 1.0f;  //!< Radius in normalized trackball coordinates (unit ball).
 constexpr float kEpsilonLen = 1e-6f;
 constexpr float kCrossLenSqEps = 1e-14f;
 constexpr float kAntiParallelDot = 1e-5f;  //!< dot <= -1 + this -> treat as 180° for axis fallback
@@ -46,7 +46,7 @@ vne::math::Vec3f TrackballBehavior::projectHyperbolic(float rx, float ry) const 
     const float radius = kTrackballRadius;
     const float t = radius / std::sqrt(2.0f);
     const float d = std::sqrt(rx * rx + ry * ry);
-    float rz{};
+    float rz = 0.0f;
     if (d < t) {
         rz = std::sqrt(std::max(0.0f, radius * radius - d * d));
     } else {
