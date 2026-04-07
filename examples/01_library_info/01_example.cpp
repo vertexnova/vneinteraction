@@ -22,9 +22,9 @@ int runLibraryInfoExample() {
         vne::interaction::Inspect3DController c;
         VNE_LOG_INFO << "Inspect3DController: trackball_projection="
                      << (c.orbitalCameraManipulator().getTrackballProjectionMode()
-                             == vne::interaction::TrackballProjectionMode::eHyperbolic
-                         ? "eHyperbolic"
-                         : "eRim")
+                                 == vne::interaction::TrackballProjectionMode::eHyperbolic
+                             ? "eHyperbolic"
+                             : "eRim")
                      << "  pivot_mode="
                      << (c.getPivotMode() == vne::interaction::OrbitPivotMode::eCoi     ? "eCoi"
                          : c.getPivotMode() == vne::interaction::OrbitPivotMode::eFixed ? "eFixed"
@@ -70,9 +70,8 @@ int runLibraryInfoExample() {
     auto rig_ortho = vne::interaction::CameraRig::makeOrtho2D();
 
     VNE_LOG_INFO << "CameraRig factories — manipulator counts:"
-                 << "  trackball=" << rig_trackball.manipulators().size()
-                 << "  fps=" << rig_fps.manipulators().size() << "  fly=" << rig_fly.manipulators().size()
-                 << "  ortho2d=" << rig_ortho.manipulators().size();
+                 << "  trackball=" << rig_trackball.manipulators().size() << "  fps=" << rig_fps.manipulators().size()
+                 << "  fly=" << rig_fly.manipulators().size() << "  ortho2d=" << rig_ortho.manipulators().size();
 
     // ── Rotation / pivot mode enums ───────────────────────────────────────────
     VNE_LOG_INFO << "TrackballProjectionMode:  eHyperbolic="

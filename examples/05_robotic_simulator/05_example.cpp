@@ -147,8 +147,14 @@ int runRoboticSimulatorExample() {
     inspect.setPivot(vne::math::Vec3f(0.0f, 1.0f, 0.0f));
     {
         auto on_event = [&](const vne::events::Event& e, double dt) { inspect.onEvent(e, dt); };
-        vne::interaction::examples::simulateMouseDrag(
-            on_event, vne::events::MouseButton::eLeft, kCx, kCy, 100.0f, 0.0f, 12, kDt);
+        vne::interaction::examples::simulateMouseDrag(on_event,
+                                                      vne::events::MouseButton::eLeft,
+                                                      kCx,
+                                                      kCy,
+                                                      100.0f,
+                                                      0.0f,
+                                                      12,
+                                                      kDt);
     }
     for (int i = 0; i < 25; ++i)
         inspect.onUpdate(kDt);
@@ -160,8 +166,14 @@ int runRoboticSimulatorExample() {
     inspect.orbitalCameraManipulator().setRotationDamping(2.0f);
     {
         auto on_event = [&](const vne::events::Event& e, double dt) { inspect.onEvent(e, dt); };
-        vne::interaction::examples::simulateMouseDrag(
-            on_event, vne::events::MouseButton::eLeft, kCx, kCy, -80.0f, 0.0f, 10, kDt);
+        vne::interaction::examples::simulateMouseDrag(on_event,
+                                                      vne::events::MouseButton::eLeft,
+                                                      kCx,
+                                                      kCy,
+                                                      -80.0f,
+                                                      0.0f,
+                                                      10,
+                                                      kDt);
     }
     for (int i = 0; i < 35; ++i)
         inspect.onUpdate(kDt);

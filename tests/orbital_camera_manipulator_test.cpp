@@ -147,7 +147,7 @@ TEST(OrbitalCameraManipulator, ChangeFovAtClampDoesNotChangeOrbitDistance) {
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
     vne::interaction::OrbitalCameraManipulator b;
-    //b.setRotationMode(vne::interaction::OrbitalRotationMode::eTrackball);
+    // b.setRotationMode(vne::interaction::OrbitalRotationMode::eTrackball);
     b.setCamera(cam);
     b.onResize(800.0f, 600.0f);
 
@@ -178,7 +178,7 @@ TEST(OrbitalCameraManipulator, TrackballInertiaNotUpdatedWhenDeltaTimeBelowInert
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
     vne::interaction::OrbitalCameraManipulator b;
-    //b.setRotationMode(vne::interaction::OrbitalRotationMode::eTrackball);
+    // b.setRotationMode(vne::interaction::OrbitalRotationMode::eTrackball);
     b.setCamera(cam);
     b.onResize(800.0f, 600.0f);
 

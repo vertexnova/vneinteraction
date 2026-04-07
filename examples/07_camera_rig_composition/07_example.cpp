@@ -62,9 +62,8 @@ int runCameraRigCompositionExample() {
         auto r_fly = vne::interaction::CameraRig::makeFly();
         auto r_ortho = vne::interaction::CameraRig::makeOrtho2D();
 
-        VNE_LOG_INFO << "  trackball=" << r_tb.manipulators().size()
-                     << "  fps=" << r_fps.manipulators().size() << "  fly=" << r_fly.manipulators().size()
-                     << "  ortho2d=" << r_ortho.manipulators().size();
+        VNE_LOG_INFO << "  trackball=" << r_tb.manipulators().size() << "  fps=" << r_fps.manipulators().size()
+                     << "  fly=" << r_fly.manipulators().size() << "  ortho2d=" << r_ortho.manipulators().size();
 
         // Simple trackball factory drive via direct actions
         r_tb.setCamera(camera);
@@ -230,7 +229,8 @@ int runCameraRigCompositionExample() {
 
         // Disable fly — only trackball responds
         fly_manip->setEnabled(false);
-        VNE_LOG_INFO << "  fly enabled=" << fly_manip->isEnabled() << "  trackball enabled=" << orbit_manip->isEnabled();
+        VNE_LOG_INFO << "  fly enabled=" << fly_manip->isEnabled()
+                     << "  trackball enabled=" << orbit_manip->isEnabled();
 
         directOrbitDrag(rig, 50.0f, 10.0f);
         rig.onUpdate(kDt);
