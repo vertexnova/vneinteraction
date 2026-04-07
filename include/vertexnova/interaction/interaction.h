@@ -15,9 +15,9 @@
  * Pulls in manipulators, @ref CameraRig, high-level controllers, @ref InputMapper,
  * and the full type surface (actions, state blobs, bindings, behavioral enums).
  *
- * @par Type surface (backward compatible with pre-split TUs)
- * This header includes @c vertexnova/interaction/interaction_types.h, which pulls in @c camera_action.h,
- * @c camera_state.h, and @c input_binding.h (behavioral enums, actions, state blobs, bindings).
+ * @par Type surface
+ * This header includes @c vertexnova/interaction/interaction_types.h, the single source for actions, state blobs,
+ * input bindings, and behavioral enums.
  *
  * TUs that previously depended only on @c interaction.h for those symbols should keep working without extra includes.
  *
@@ -32,7 +32,7 @@
  *
  * @par Usage
  * Prefer `#include <vertexnova/interaction/interaction.h>` once per translation unit that needs the full surface;
- * include @c interaction_types.h or individual headers when you want a smaller dependency set (faster builds).
+ * include @c interaction_types.h when you want types only.
  */
 
 // clang-format off
@@ -45,7 +45,7 @@
 #endif
 // clang-format on
 
-// Full umbrella types (behavioral enums + camera_action.h, camera_state.h, input_binding.h)
+// Full type surface (actions, state blobs, bindings, behavioral enums)
 #include "vertexnova/interaction/interaction_types.h"
 
 // Manipulators

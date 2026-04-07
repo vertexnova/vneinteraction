@@ -6,26 +6,103 @@
  */
 
 /**
- * @file view_math.h
- * @brief World-space camera math utilities for camera manipulators.
+ * @file interaction_utils.h
+ * @brief Internal NDC / screen / world-space helpers for camera manipulators.
+ *
+ * Merges the former @c camera_math.h and @c view_math.h. Not installed as public API.
  *
  * Provides:
- *   - worldUnderCursorOrtho  — cursor world position for orthographic camera (inline)
- *   - mouseUnproject         — API-aware unproject from mouse coords
- *   - mouseToWorldRay        — API-aware world ray from mouse coords
- *   - worldUnderCursor       — world point at distance along view ray
- *   - worldUnderCursorPersp  — cursor world position for perspective camera
- *
- * Internal header — not installed, not included from any public header.
+ *   - buildReferenceFrame, mouseToNDC, mouseWindowToNDC, mouseWindowDeltaToNDCDelta
+ *   - worldUnderCursorOrtho, mouseUnproject, mouseToWorldRay, worldUnderCursor,
+ *     worldUnderCursorPersp
  */
 
-#include "camera_math.h"
+#include <cmath>
 
+#include <vertexnova/math/core/core.h>
+#include <vertexnova/math/core/math_utils.h>
+#include <vertexnova/math/core/types.h>
+#include <vertexnova/math/projection_utils.h>
+#include <vertexnova/math/viewport.h>
 #include <vertexnova/scene/camera/camera.h>
 #include <vertexnova/scene/camera/orthographic_camera.h>
 #include <vertexnova/scene/camera/perspective_camera.h>
 
 namespace vne::interaction {
+
+namespace detail {
+constexpr float kManipulatorUtilsEpsilon = 1e-6f;
+/** |dot| above this ⇒ treat axis as nearly parallel to reference (pick alternate basis). */
+constexpr float kNearlyParallelAxisDot = 0.9f;
+/** Full NDC span when mapping window [0, size] → [-1, 1]. */
+constexpr float kNdcFullSpan = 2.0f;
+}  // namespace detail
+
+// -----------------------------------------------------------------------------
+// Reference frame + NDC (inline)
+// -----------------------------------------------------------------------------
+
+/**
+ * @brief Build reference forward and right vectors from an arbitrary world-up.
+ * ref_right is the actual RIGHT vector (ref_fwd × world_up), not left.
+ */
+inline void buildReferenceFrame(const vne::math::Vec3f& world_up,
+                                vne::math::Vec3f& ref_fwd,
+                                vne::math::Vec3f& ref_right) noexcept {
+    vne::math::Vec3f up_n = world_up;
+    const float up_len = up_n.length();
+    up_n = (up_len < detail::kManipulatorUtilsEpsilon) ? vne::math::Vec3f(0.0f, 1.0f, 0.0f) : (up_n / up_len);
+
+    vne::math::Vec3f candidate = (std::abs(up_n.y()) > detail::kNearlyParallelAxisDot)
+                                     ? vne::math::Vec3f(0.0f, 0.0f, -1.0f)
+                                     : vne::math::Vec3f(0.0f, -1.0f, 0.0f);
+    ref_fwd = candidate - up_n * candidate.dot(up_n);
+    const float fwd_len = ref_fwd.length();
+    ref_fwd = (fwd_len < detail::kManipulatorUtilsEpsilon) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : (ref_fwd / fwd_len);
+    ref_right = ref_fwd.cross(up_n);
+    const float right_len = ref_right.length();
+    if (right_len > detail::kManipulatorUtilsEpsilon) {
+        ref_right /= right_len;
+    } else {
+        ref_right = vne::math::Vec3f(1.0f, 0.0f, 0.0f);
+    }
+}
+
+/**
+ * @brief Convert top-left-origin mouse coords to NDC [-1, 1] (OpenGL-style Y only).
+ * Prefer @ref mouseWindowToNDC with @c GraphicsApi for Vulkan/Metal/DX.
+ */
+[[nodiscard]] inline vne::math::Vec2f mouseToNDC(float mx, float my, float w, float h) noexcept {
+    if (w <= 0.0f || h <= 0.0f) {
+        return {0.0f, 0.0f};
+    }
+    return {(detail::kNdcFullSpan * mx / w) - 1.0f, 1.0f - (detail::kNdcFullSpan * my / h)};
+}
+
+// -----------------------------------------------------------------------------
+// API-dependent NDC — defined in interaction_utils.cpp
+// -----------------------------------------------------------------------------
+
+/**
+ * @brief Convert top-left-origin mouse coords to API-native screen coords.
+ * OpenGL expects bottom-left: flip Y. Vulkan/Metal/DirectX/WebGPU: pass-through.
+ */
+[[nodiscard]] vne::math::Vec2f mouseToApiScreen(float mx,
+                                                float my,
+                                                const vne::math::Viewport& vp,
+                                                vne::math::GraphicsApi api) noexcept;
+
+/**
+ * @brief Top-left window/client mouse coords → NDC [-1, 1] for the given graphics API.
+ */
+[[nodiscard]] vne::math::Vec2f mouseWindowToNDC(
+    float mx, float my, float w, float h, vne::math::GraphicsApi api) noexcept;
+
+/**
+ * @brief Pointer delta in top-left window pixels → change in NDC (same convention as @ref mouseWindowToNDC).
+ */
+[[nodiscard]] vne::math::Vec2f mouseWindowDeltaToNDCDelta(
+    float delta_x_px, float delta_y_px, float w, float h, vne::math::GraphicsApi api) noexcept;
 
 // -----------------------------------------------------------------------------
 // worldUnderCursorOrtho — inline
@@ -44,7 +121,6 @@ namespace vne::interaction {
     const float front_len = front.length();
     front = (front_len < detail::kManipulatorUtilsEpsilon) ? vne::math::Vec3f(0.0f, 0.0f, -1.0f) : (front / front_len);
 
-    // Orthonormalize image-plane up against view axis so NDC offsets don't pick up forward/back slip.
     vne::math::Vec3f up = ortho.getUp();
     up = up - front * front.dot(up);
     float up_len = up.length();
@@ -84,7 +160,7 @@ namespace vne::interaction {
 }
 
 // -----------------------------------------------------------------------------
-// World-space camera math — defined in camera_math.cpp
+// World-space camera math — defined in interaction_utils.cpp
 // -----------------------------------------------------------------------------
 
 /**

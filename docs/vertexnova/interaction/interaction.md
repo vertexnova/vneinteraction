@@ -76,15 +76,15 @@ The design is **layered**: application and events sit above controllers; control
 
 | Swimlane | Contents |
 |----------|----------|
-| Public API | `interaction.h`, type headers (`interaction_types.h`, `camera_action.h`, `input_binding.h`, `camera_state.h`), controllers, `CameraRig`, `InputMapper`, manipulators, `ICameraManipulator` / `ICameraController`. |
-| Implementation | `input_event_translator`, controller context helpers, rotation strategies (`IRotationStrategy`, Euler/trackball), `OrbitBehavior` / `TrackballBehavior`, `camera_math` / `view_math`, and per-class `.cpp` files. |
+| Public API | `interaction.h`, `interaction_types.h` (actions, state, bindings, enums), controllers, `CameraRig`, `InputMapper`, manipulators, `ICameraManipulator` / `ICameraController`. |
+| Implementation | `input_event_translator`, controller context helpers, `OrbitBehavior` / `TrackballBehavior` (`detail/`), internal `interaction_utils` (NDC / screen / world cursor math), and per-class `.cpp` files. |
 
 Export `diagrams/component.drawio` → `diagrams/component.png`.
 
 ## Intent model (events → actions)
 
 - **`InputMapper`** — Built from `InputRule` rows (keys, mouse buttons, modifiers, gestures). **Presets** include `orbitPreset`, `fpsPreset`, `gamePreset`, `cadPreset`, and `orthoPreset`.
-- **`CameraActionType`** — Semantic commands such as `eBeginRotate`, `eRotateDelta`, `eEndRotate`, pan and zoom actions, free-look deltas, WASD moves, modifiers, reset, pivot-at-cursor, and optional discrete speed keys (declared in `camera_action.h`).
+- **`CameraActionType`** — Semantic commands such as `eBeginRotate`, `eRotateDelta`, `eEndRotate`, pan and zoom actions, free-look deltas, WASD moves, modifiers, reset, pivot-at-cursor, and optional discrete speed keys (defined in `interaction_types.h`).
 - **`CameraCommandPayload`** — Cursor position, deltas, zoom factor, and button/pressed flags carried with actions.
 - **`GestureAction`** — High-level gesture identifiers used with remapping helpers (`bindGesture`, scroll, double-click bindings) without exposing full `InputRule` details to callers.
 
@@ -144,15 +144,12 @@ Maps mouse, keyboard, scroll, and touch-style input to **callbacks** invoking `(
 | Header | Role |
 |--------|------|
 | `interaction.h` | Umbrella include for full API surface (manipulators, rig, mapper, controllers, types). |
-| `interaction_types.h` | Aggregates behavioral enums and re-exports `camera_action`, `camera_state`, `input_binding`. |
-| `camera_action.h` | `CameraActionType`, `CameraCommandPayload`, `GestureAction`. |
-| `camera_state.h` | Grouped state structs for orbit, trackball, free-look, etc. |
-| `input_binding.h` | `InputRule`, mouse/key bindings, touch helpers, modifier constants. |
+| `interaction_types.h` | Behavioral enums, `CameraActionType` / `CameraCommandPayload` / `GestureAction`, grouped state structs, and `InputRule` / bindings / touch helpers. |
 | `version.h` | `get_version()` string. |
 
 ### Implementation layout (`src/vertexnova/interaction/`)
 
-One **`.cpp` per public class** where applicable, plus `input_mapper.cpp`, `camera_rig.cpp`, `camera_manipulator_base.cpp`, `input_event_translator.cpp`, `camera_math.cpp`, `version.cpp`, and **`detail/`** sources for orbit/trackball behaviors and rotation strategies.
+One **`.cpp` per public class** where applicable, plus `input_mapper.cpp`, `camera_rig.cpp`, `camera_manipulator_base.cpp`, `input_event_translator.cpp`, `interaction_utils.cpp`, `version.cpp`, and **`detail/`** sources for orbit/trackball behaviors.
 
 ## Quick start
 

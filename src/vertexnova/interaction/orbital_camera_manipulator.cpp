@@ -5,8 +5,7 @@
  */
 
 #include "vertexnova/interaction/orbital_camera_manipulator.h"
-#include "camera_math.h"
-#include "view_math.h"
+#include "interaction_utils.h"
 #include "detail/trackball_behavior.h"
 
 #include "vertexnova/scene/camera/camera.h"

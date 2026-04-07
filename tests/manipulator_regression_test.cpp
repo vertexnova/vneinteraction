@@ -8,8 +8,7 @@
  * zoom-to-cursor, mouseToNDC, and buildReferenceFrame / trackball pole safety.
  */
 
-#include "vertexnova/interaction/camera_math.h"
-#include "vertexnova/interaction/view_math.h"
+#include "vertexnova/interaction/interaction_utils.h"
 #include "vertexnova/interaction/free_look_manipulator.h"
 #include "vertexnova/interaction/ortho_2d_manipulator.h"
 #include "vertexnova/interaction/orbital_camera_manipulator.h"

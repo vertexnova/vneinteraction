@@ -1,6 +1,6 @@
 #include "08_example.h"
 
-#include "vertexnova/interaction/camera_state.h"
+#include "vertexnova/interaction/interaction_types.h"
 #include "vertexnova/interaction/free_look_manipulator.h"
 #include "vertexnova/interaction/inspect_3d_controller.h"
 #include "vertexnova/interaction/navigation_3d_controller.h"

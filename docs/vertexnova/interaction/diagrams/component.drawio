@@ -14,7 +14,7 @@
                 <mxCell id="interaction_h" value="interaction.h&#10;(umbrella)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3A3A3C;strokeColor=#48484A;fontSize=11;fontColor=#EBEBF0;" parent="bg_pub" vertex="1">
                     <mxGeometry x="20" y="60" width="140" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="interaction_types_h" value="interaction_types.h&#10;camera_action.h&#10;input_binding.h&#10;camera_state.h" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3A3A3C;strokeColor=#48484A;fontSize=11;fontColor=#EBEBF0;" parent="bg_pub" vertex="1">
+                <mxCell id="interaction_types_h" value="interaction_types.h" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3A3A3C;strokeColor=#48484A;fontSize=11;fontColor=#EBEBF0;" parent="bg_pub" vertex="1">
                     <mxGeometry x="200" y="50" width="160" height="80" as="geometry"/>
                 </mxCell>
                 <mxCell id="controllers_pub" value="Inspect3DController&#10;Navigation3DController&#10;Ortho2DController&#10;FollowController" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3A3A3C;strokeColor=#F28C5E;fontSize=11;fontColor=#EBEBF0;" parent="bg_pub" vertex="1">
@@ -46,7 +46,7 @@
                 <mxCell id="behaviors" value="detail/OrbitBehavior&#10;detail/TrackballBehavior" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3A3A3C;strokeColor=#48484A;fontSize=11;fontColor=#EBEBF0;" parent="bg_impl" vertex="1">
                     <mxGeometry x="760" y="60" width="200" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="math_impl" value="camera_math&#10;view_math" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3A3A3C;strokeColor=#48484A;fontSize=11;fontColor=#EBEBF0;" parent="bg_impl" vertex="1">
+                <mxCell id="math_impl" value="interaction_utils" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3A3A3C;strokeColor=#48484A;fontSize=11;fontColor=#EBEBF0;" parent="bg_impl" vertex="1">
                     <mxGeometry x="1000" y="60" width="160" height="60" as="geometry"/>
                 </mxCell>
 

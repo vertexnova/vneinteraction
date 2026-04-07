@@ -2,7 +2,7 @@
 
 #include "vertexnova/interaction/camera_rig.h"
 #include "vertexnova/interaction/inspect_3d_controller.h"
-#include "vertexnova/interaction/input_binding.h"
+#include "vertexnova/interaction/interaction_types.h"
 #include "vertexnova/interaction/input_mapper.h"
 #include "vertexnova/interaction/interaction_types.h"
 #include "vertexnova/scene/camera/camera_factory.h"
