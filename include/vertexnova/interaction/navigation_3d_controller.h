@@ -103,6 +103,10 @@ class VNE_INTERACTION_API Navigation3DController : public ICameraController {
     void setMode(FreeLookMode mode) noexcept;
     [[nodiscard]] FreeLookMode getMode() const noexcept;
 
+    /** Mouse look: yaw/pitch or virtual trackball (see @ref FreeLookManipulator). */
+    void setRotationMode(FreeLookRotationMode mode) noexcept;
+    [[nodiscard]] FreeLookRotationMode getRotationMode() const noexcept;
+
     // -------------------------------------------------------------------------
     // Speed / sensitivity
     // -------------------------------------------------------------------------

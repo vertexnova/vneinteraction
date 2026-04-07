@@ -4,6 +4,7 @@
  * --------------------------------------------------------------------- */
 
 #include "vertexnova/interaction/camera_rig.h"
+#include "vertexnova/interaction/free_look_manipulator.h"
 #include "vertexnova/interaction/orbital_camera_manipulator.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
@@ -20,6 +21,14 @@ static std::shared_ptr<vne::scene::PerspectiveCamera> makePerspCamera() {
 TEST(CameraRig, MakeTrackball) {
     auto rig = vne::interaction::CameraRig::makeTrackball();
     EXPECT_NE(rig.manipulators().size(), 0u);
+}
+
+TEST(CameraRig, MakeNavTrackball) {
+    auto rig = vne::interaction::CameraRig::makeNavTrackball();
+    ASSERT_EQ(rig.manipulators().size(), 1u);
+    auto fl = std::dynamic_pointer_cast<vne::interaction::FreeLookManipulator>(rig.manipulators()[0]);
+    ASSERT_NE(fl, nullptr);
+    EXPECT_EQ(fl->getRotationMode(), vne::interaction::FreeLookRotationMode::eTrackball);
 }
 
 TEST(CameraRig, MakeOrtho2D) {

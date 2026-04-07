@@ -6,6 +6,7 @@
 
 #include "vertexnova/interaction/free_look_manipulator.h"
 #include "camera_math.h"
+#include "detail/trackball_behavior.h"
 #include "view_math.h"
 
 #include "vertexnova/scene/camera/camera.h"
@@ -32,12 +33,65 @@ constexpr float kFitToAabbDistFactor = 2.5f;
 constexpr float kFitToAabbMargin = 1.1f;
 constexpr float kPerspWorldUnitsScale = 2.0f;
 constexpr float kHalf = 0.5f;
+// Matches OrbitalCameraManipulator default rotation_speed × trackball_rotation_scale (0.2 × 2.5) tuning.
+constexpr float kFreeLookTrackballScale = 2.5f;
+
+[[nodiscard]] vne::math::Quatf scaleTrackballDeltaQuaternion(vne::math::Quatf q, float scale) noexcept {
+    if (scale <= 0.0f) {
+        return vne::math::Quatf::identity();
+    }
+    if (q.w < 0.0f) {
+        q = vne::math::Quatf(-q.x, -q.y, -q.z, -q.w);
+    }
+    const float imag_sq = q.x * q.x + q.y * q.y + q.z * q.z;
+    constexpr float kImagEpsSq = 1e-12f;
+    if (imag_sq < kImagEpsSq) {
+        if (scale <= 1.0f) {
+            return vne::math::Quatf::slerp(vne::math::Quatf::identity(), q, scale);
+        }
+        if (imag_sq <= 0.0f) {
+            return vne::math::Quatf::identity();
+        }
+    }
+    const float ang = q.angle();
+    const vne::math::Vec3f axis = vne::math::Vec3f(q.x, q.y, q.z) * (1.0f / std::sqrt(std::max(imag_sq, kImagEpsSq)));
+    return vne::math::Quatf::fromAxisAngle(axis, ang * scale);
+}
 
 [[nodiscard]] vne::math::Vec3f normalizedWorldUp(const vne::math::Vec3f& w) noexcept {
     const float l = w.length();
     return (l >= kEpsilon) ? (w / l) : vne::math::Vec3f(0.0f, 1.0f, 0.0f);
 }
 }  // namespace
+
+// ---------------------------------------------------------------------------
+// Construction / move (TrackballBehavior via unique_ptr — complete type here)
+// ---------------------------------------------------------------------------
+
+FreeLookManipulator::FreeLookManipulator() noexcept
+    : trackball_(std::make_unique<TrackballBehavior>()) {}
+
+FreeLookManipulator::~FreeLookManipulator() noexcept = default;
+
+FreeLookManipulator::FreeLookManipulator(FreeLookManipulator&&) noexcept = default;
+
+FreeLookManipulator& FreeLookManipulator::operator=(FreeLookManipulator&&) noexcept = default;
+
+void FreeLookManipulator::setRotationMode(FreeLookRotationMode mode) noexcept {
+    rotation_mode_ = mode;
+    trackball_->reset();
+}
+
+void FreeLookManipulator::setTrackballProjectionMode(TrackballProjectionMode mode) noexcept {
+    trackball_projection_mode_ = mode;
+    const auto inner = (mode == TrackballProjectionMode::eRim) ? TrackballBehavior::ProjectionMode::eRim
+                                                               : TrackballBehavior::ProjectionMode::eHyperbolic;
+    trackball_->setProjectionMode(inner);
+}
+
+TrackballProjectionMode FreeLookManipulator::getTrackballProjectionMode() const noexcept {
+    return trackball_projection_mode_;
+}
 
 // ---------------------------------------------------------------------------
 // Up-vector policy
@@ -234,7 +288,9 @@ float FreeLookManipulator::getPitchDegrees() const noexcept {
 
 void FreeLookManipulator::setOrientation(const vne::math::Quatf& q) noexcept {
     orientation_ = q.normalized();
+    orientation_at_drag_start_ = orientation_;
     orientation_dirty_ = false;
+    trackball_->reset();
     if (camera_) {
         applyOrientationToCamera();
     }
@@ -345,6 +401,7 @@ void FreeLookManipulator::fitToAABB(const vne::math::Vec3f& min_world, const vne
 
 void FreeLookManipulator::resetState() noexcept {
     input_state_ = FreeLookInputState{};
+    trackball_->reset();
     syncOrientationFromCamera();
     orientation_dirty_ = false;
 }
@@ -450,41 +507,64 @@ bool FreeLookManipulator::onAction(CameraActionType action,
         case CameraActionType::eBeginLook:
             ensureAnglesSynced();
             input_state_.looking = true;
+            if (rotation_mode_ == FreeLookRotationMode::eTrackball) {
+                trackball_->setViewport({viewportWidth(), viewportHeight()});
+                trackball_->setGraphicsApi(graphicsApi());
+                trackball_->beginDrag({payload.x_px, payload.y_px});
+                orientation_at_drag_start_ = orientation_;
+            }
             return true;
 
         case CameraActionType::eEndLook:
             input_state_.looking = false;
+            if (rotation_mode_ == FreeLookRotationMode::eTrackball) {
+                trackball_->reset();
+            }
             return true;
 
         case CameraActionType::eLookDelta:
             if (camera_ && input_state_.looking) {
                 ensureAnglesSynced();
-                // Match legacy yaw += delta_x * sens: negative delta_x turns view left (forward.x decreases from +Z
-                // eye).
-                const float yaw_rad = -vne::math::degToRad(payload.delta_x_px * mouse_sensitivity_);
-                const float pitch_rad = -vne::math::degToRad(payload.delta_y_px * mouse_sensitivity_);
-                const vne::math::Vec3f wu_n = normalizedWorldUp(world_up_);
-                if (mode_ == FreeLookMode::eFps) {
-                    const vne::math::Quatf dq_yaw = vne::math::Quatf::fromAxisAngle(wu_n, yaw_rad);
-                    orientation_ = (dq_yaw * orientation_).normalized();
-                    const vne::math::Vec3f right_ax = orientation_.getXAxis();
-                    const float rl = right_ax.length();
-                    if (rl >= kEpsilon) {
-                        const vne::math::Quatf dq_pitch = vne::math::Quatf::fromAxisAngle(right_ax / rl, pitch_rad);
-                        orientation_ = (dq_pitch * orientation_).normalized();
+                if (rotation_mode_ == FreeLookRotationMode::eYawPitch) {
+                    // Match legacy yaw += delta_x * sens: negative delta_x turns view left (forward.x decreases from +Z
+                    // eye).
+                    const float yaw_rad = -vne::math::degToRad(payload.delta_x_px * mouse_sensitivity_);
+                    const float pitch_rad = -vne::math::degToRad(payload.delta_y_px * mouse_sensitivity_);
+                    const vne::math::Vec3f wu_n = normalizedWorldUp(world_up_);
+                    if (mode_ == FreeLookMode::eFps) {
+                        const vne::math::Quatf dq_yaw = vne::math::Quatf::fromAxisAngle(wu_n, yaw_rad);
+                        orientation_ = (dq_yaw * orientation_).normalized();
+                        const vne::math::Vec3f right_ax = orientation_.getXAxis();
+                        const float rl = right_ax.length();
+                        if (rl >= kEpsilon) {
+                            const vne::math::Quatf dq_pitch = vne::math::Quatf::fromAxisAngle(right_ax / rl, pitch_rad);
+                            orientation_ = (dq_pitch * orientation_).normalized();
+                        }
+                        clampFpsPitch();
+                    } else {
+                        const vne::math::Vec3f local_up = orientation_.getYAxis();
+                        float ul = local_up.length();
+                        const vne::math::Vec3f up_n = (ul >= kEpsilon) ? (local_up / ul) : wu_n;
+                        const vne::math::Quatf dq_yaw = vne::math::Quatf::fromAxisAngle(up_n, yaw_rad);
+                        orientation_ = (dq_yaw * orientation_).normalized();
+                        vne::math::Vec3f right_ax = orientation_.getXAxis();
+                        ul = right_ax.length();
+                        if (ul >= kEpsilon) {
+                            const vne::math::Quatf dq_pitch = vne::math::Quatf::fromAxisAngle(right_ax / ul, pitch_rad);
+                            orientation_ = (dq_pitch * orientation_).normalized();
+                        }
                     }
-                    clampFpsPitch();
                 } else {
-                    const vne::math::Vec3f local_up = orientation_.getYAxis();
-                    float ul = local_up.length();
-                    const vne::math::Vec3f up_n = (ul >= kEpsilon) ? (local_up / ul) : wu_n;
-                    const vne::math::Quatf dq_yaw = vne::math::Quatf::fromAxisAngle(up_n, yaw_rad);
-                    orientation_ = (dq_yaw * orientation_).normalized();
-                    vne::math::Vec3f right_ax = orientation_.getXAxis();
-                    ul = right_ax.length();
-                    if (ul >= kEpsilon) {
-                        const vne::math::Quatf dq_pitch = vne::math::Quatf::fromAxisAngle(right_ax / ul, pitch_rad);
-                        orientation_ = (dq_pitch * orientation_).normalized();
+                    trackball_->setViewport({viewportWidth(), viewportHeight()});
+                    trackball_->setGraphicsApi(graphicsApi());
+                    const vne::math::Vec2f cursor{payload.x_px, payload.y_px};
+                    const float eff_scale = mouse_sensitivity_ * kFreeLookTrackballScale;
+                    const vne::math::Quatf delta_raw = trackball_->cumulativeDeltaQuaternion(cursor);
+                    const vne::math::Quatf delta_q = scaleTrackballDeltaQuaternion(delta_raw, eff_scale);
+                    orientation_ = (orientation_at_drag_start_ * delta_q.conjugate()).normalized();
+                    trackball_->endFrame(cursor);
+                    if (mode_ == FreeLookMode::eFps) {
+                        clampFpsPitch();
                     }
                 }
                 applyOrientationToCamera();

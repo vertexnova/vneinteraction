@@ -38,18 +38,17 @@
 #include <algorithm>
 #include <memory>
 
-namespace vne::interaction {
-class IRotationStrategy;
-}  // namespace vne::interaction
-
 namespace vne::scene {
 class ICamera;
 }
 
 namespace vne::interaction {
 
+/** Internal trackball rotation state (defined in orbital_camera_manipulator.cpp). */
+struct OrbitalTrackballRotation;
+
 /**
- * @brief Orbit manipulator with Euler/trackball rotation, pan, zoom, inertia, and fit.
+ * @brief Orbit manipulator with quaternion virtual-trackball rotation, pan, zoom, inertia, and fit.
  *
  * Handles action-driven interaction and writes the resulting pose to the attached
  * @ref vne::scene::ICamera.
@@ -73,7 +72,6 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
 
     OrbitalCameraManipulator(const OrbitalCameraManipulator&) = delete;
     OrbitalCameraManipulator& operator=(const OrbitalCameraManipulator&) = delete;
-    // Move defined in .cpp: std::unique_ptr<IRotationStrategy> requires a complete type there (MSVC).
     OrbitalCameraManipulator(OrbitalCameraManipulator&&) noexcept;
     OrbitalCameraManipulator& operator=(OrbitalCameraManipulator&&) noexcept;
 
@@ -189,7 +187,7 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
     void setPanDamping(float damping) noexcept { pan_damping_ = std::max(0.0f, damping); }
     [[nodiscard]] float getPanDamping() const noexcept { return pan_damping_; }
 
-    /** When false, rotation drag/release does not coast (Euler and trackball). Default: true. */
+    /** When false, rotation drag/release does not coast. Default: true. */
     void setRotationInertiaEnabled(bool enabled) noexcept { rotation_inertia_enabled_ = enabled; }
     [[nodiscard]] bool isRotationInertiaEnabled() const noexcept { return rotation_inertia_enabled_; }
 
@@ -223,11 +221,7 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
     void dispatchZoom(float factor, float mx, float my) noexcept;
 
    private:
-    // ---- helpers shared by both rotation modes --------------------------------
     [[nodiscard]] vne::math::Vec3f computeFront() noexcept;
-    [[nodiscard]] vne::math::Vec3f computeRight(const vne::math::Vec3f& front) const noexcept;
-    [[nodiscard]] vne::math::Vec3f computeUp(const vne::math::Vec3f& front,
-                                             const vne::math::Vec3f& right) const noexcept;
 
     void syncFromCamera() noexcept;
     void applyToCamera() noexcept;
@@ -257,7 +251,6 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
 
     // ---- inertia ----------------------------------------------------------------
     void applyInertia(double delta_time) noexcept;
-    void doPanInertia(double delta_time) noexcept;
 
     // ---- camera helpers ---------------------------------------------------------
     [[nodiscard]] bool isPerspective() const noexcept;
@@ -274,8 +267,7 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
     vne::math::Vec3f coi_world_{0.0f, 0.0f, 0.0f};
     float orbit_distance_ = 5.0f;
 
-    // Rotation strategy (Euler or Trackball); replaces per-mode state fields.
-    std::unique_ptr<IRotationStrategy> rotation_strategy_;
+    std::unique_ptr<OrbitalTrackballRotation> orbital_rot_;
 
     /** Trackball sphere mapping; cached for strategy rebuild and pre-switch configuration. */
     TrackballProjectionMode trackball_projection_mode_ = TrackballProjectionMode::eHyperbolic;

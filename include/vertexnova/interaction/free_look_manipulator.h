@@ -44,6 +44,8 @@ class ICamera;
 
 namespace vne::interaction {
 
+class TrackballBehavior;
+
 /**
  * @brief Free-look camera manipulator supporting FPS and Fly movement modes.
  *
@@ -63,13 +65,13 @@ namespace vne::interaction {
 class VNE_INTERACTION_API FreeLookManipulator final : public CameraManipulatorBase {
    public:
     /** Construct with default FPS settings (FreeLookMode::eFps, Y-up). */
-    FreeLookManipulator() noexcept = default;
-    ~FreeLookManipulator() noexcept override = default;
+    FreeLookManipulator() noexcept;
+    ~FreeLookManipulator() noexcept override;
 
     FreeLookManipulator(const FreeLookManipulator&) = delete;
     FreeLookManipulator& operator=(const FreeLookManipulator&) = delete;
-    FreeLookManipulator(FreeLookManipulator&&) noexcept = default;
-    FreeLookManipulator& operator=(FreeLookManipulator&&) noexcept = default;
+    FreeLookManipulator(FreeLookManipulator&&) noexcept;
+    FreeLookManipulator& operator=(FreeLookManipulator&&) noexcept;
 
     // -------------------------------------------------------------------------
     // ICameraManipulator
@@ -103,6 +105,14 @@ class VNE_INTERACTION_API FreeLookManipulator final : public CameraManipulatorBa
     /** Set movement mode (eFps or eFly). */
     void setMode(FreeLookMode mode) noexcept { mode_ = mode; }
     [[nodiscard]] FreeLookMode getMode() const noexcept { return mode_; }
+
+    /** Mouse-look style: yaw/pitch deltas or virtual trackball quaternion. */
+    void setRotationMode(FreeLookRotationMode mode) noexcept;
+    [[nodiscard]] FreeLookRotationMode getRotationMode() const noexcept { return rotation_mode_; }
+
+    /** Trackball sphere mapping when @ref getRotationMode is @c eTrackball. */
+    void setTrackballProjectionMode(TrackballProjectionMode mode) noexcept;
+    [[nodiscard]] TrackballProjectionMode getTrackballProjectionMode() const noexcept;
 
     /**
      * @brief Convenience: set mode from bool (true = eFps, false = eFly).
@@ -214,9 +224,15 @@ class VNE_INTERACTION_API FreeLookManipulator final : public CameraManipulatorBa
     // zoom_method_, zoom_scale_, fov_zoom_speed_ inherited from CameraManipulatorBase
 
     FreeLookMode mode_ = FreeLookMode::eFps;
+    FreeLookRotationMode rotation_mode_ = FreeLookRotationMode::eYawPitch;
+    TrackballProjectionMode trackball_projection_mode_ = TrackballProjectionMode::eHyperbolic;
     vne::math::Vec3f world_up_{0.0f, 1.0f, 0.0f};
 
     vne::math::Quatf orientation_{0.0f, 0.0f, 0.0f, 1.0f};
+    vne::math::Quatf orientation_at_drag_start_{0.0f, 0.0f, 0.0f, 1.0f};
+
+    // TrackballBehavior is non-copyable; stored by pointer so FreeLookManipulator stays movable.
+    std::unique_ptr<TrackballBehavior> trackball_;
     float move_speed_ = 3.0f;
     float mouse_sensitivity_ = 0.15f;
     float sprint_mult_ = 4.0f;

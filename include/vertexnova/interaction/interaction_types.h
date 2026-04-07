@@ -73,6 +73,12 @@ enum class FreeLookMode : std::uint8_t {
     eFly = 1,  //!< Fly: unconstrained, up follows camera
 };
 
+/** Rotation style for FreeLookManipulator mouse look. */
+enum class FreeLookRotationMode : std::uint8_t {
+    eYawPitch = 0,   //!< Mouse drag = yaw + pitch deltas (default).
+    eTrackball = 1,  //!< Mouse drag = virtual-trackball quaternion (full 3D, no gimbal).
+};
+
 /**
  * @brief Screen-to-sphere projection mode for virtual trackball rotation.
  * @see OrbitalCameraManipulator::setTrackballProjectionMode

@@ -133,6 +133,9 @@ class VNE_INTERACTION_API CameraRig {
     /** Fly rig: FreeLookManipulator unconstrained (no world-up, allows barrel roll). */
     static CameraRig makeFly();
 
+    /** Navigation rig: FreeLookManipulator with virtual-trackball mouse look. */
+    static CameraRig makeNavTrackball();
+
     /** 2D orthographic rig: Ortho2DManipulator (pan, zoom, optional in-plane rotation). */
     static CameraRig makeOrtho2D();
 

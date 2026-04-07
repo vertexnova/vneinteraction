@@ -105,6 +105,14 @@ CameraRig CameraRig::makeFly() {
     return rig;
 }
 
+CameraRig CameraRig::makeNavTrackball() {
+    CameraRig rig;
+    auto look = std::make_shared<FreeLookManipulator>();
+    look->setRotationMode(FreeLookRotationMode::eTrackball);
+    rig.addManipulator(std::move(look));
+    return rig;
+}
+
 CameraRig CameraRig::makeOrtho2D() {
     CameraRig rig;
     rig.addManipulator(std::make_shared<Ortho2DManipulator>());

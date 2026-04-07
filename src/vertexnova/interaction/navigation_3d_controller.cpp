@@ -165,6 +165,16 @@ FreeLookMode Navigation3DController::getMode() const noexcept {
     return impl_->mode_;
 }
 
+void Navigation3DController::setRotationMode(FreeLookRotationMode mode) noexcept {
+    if (impl_->free_look_) {
+        impl_->free_look_->setRotationMode(mode);
+    }
+}
+
+FreeLookRotationMode Navigation3DController::getRotationMode() const noexcept {
+    return impl_->free_look_ ? impl_->free_look_->getRotationMode() : FreeLookRotationMode::eYawPitch;
+}
+
 // ---------------------------------------------------------------------------
 // Speed / sensitivity (delegates to free_look_)
 // ---------------------------------------------------------------------------
