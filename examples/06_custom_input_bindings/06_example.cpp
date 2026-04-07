@@ -197,7 +197,7 @@ int runCustomInputBindingsExample() {
         VNE_LOG_INFO << "  Custom orbit rules from scratch: count=" << mapper.rules().size();
 
         // Wire to a CameraRig and drive with simulated events
-        auto rig = vne::interaction::CameraRig::makeOrbit();
+        auto rig = vne::interaction::CameraRig::makeTrackball();
         rig.setCamera(camera);
         rig.onResize(kVpW, kVpH);
 
@@ -231,7 +231,7 @@ int runCustomInputBindingsExample() {
         vne::interaction::InputMapper mapper;
         mapper.setRules(vne::interaction::InputMapper::orbitPreset());
 
-        auto rig = vne::interaction::CameraRig::makeOrbit();
+        auto rig = vne::interaction::CameraRig::makeTrackball();
         rig.setCamera(camera);
         rig.onResize(kVpW, kVpH);
         mapper.setActionCallback([&rig](vne::interaction::CameraActionType action,

@@ -25,7 +25,7 @@ static vne::interaction::TrackballCameraState captureTrackballState(
     s.coi_world = manip.getCenterOfInterestWorld();
     s.distance = manip.getOrbitDistance();
     s.world_up = manip.getWorldUp();
-    s.rotation = manip.getTrackballOrientation();
+    s.rotation = manip.getOrientation();
     return s;
 }
 
@@ -97,10 +97,10 @@ int runCameraStateSaveRestoreExample() {
         manip.setWorldUp(bookmark_a.world_up);
         manip.setPivot(bookmark_a.coi_world);
         manip.setOrbitDistance(bookmark_a.distance);
-        manip.setTrackballOrientation(bookmark_a.rotation);
+        manip.setOrientation(bookmark_a.rotation);
         for (int i = 0; i < 10; ++i)
             ctrl.onUpdate(kDt);
-        const auto q = manip.getTrackballOrientation();
+        const auto q = manip.getOrientation();
         VNE_LOG_INFO << "  After restore to bookmark_a: distance=" << manip.getOrbitDistance() << " quat=(" << q.x
                      << "," << q.y << "," << q.z << "," << q.w << ")";
 
@@ -145,7 +145,7 @@ int runCameraStateSaveRestoreExample() {
         tb_state.coi_world = manip.getCenterOfInterestWorld();
         tb_state.distance = manip.getOrbitDistance();
         tb_state.world_up = manip.getWorldUp();
-        tb_state.rotation = manip.getTrackballOrientation();
+        tb_state.rotation = manip.getOrientation();
 
         VNE_LOG_INFO << "  TrackballCameraState: coi=(" << tb_state.coi_world.x() << "," << tb_state.coi_world.y()
                      << "," << tb_state.coi_world.z() << ")"
@@ -160,10 +160,10 @@ int runCameraStateSaveRestoreExample() {
         manip.setWorldUp(tb_state.world_up);
         manip.setPivot(tb_state.coi_world);
         manip.setOrbitDistance(tb_state.distance);
-        manip.setTrackballOrientation(tb_state.rotation);
+        manip.setOrientation(tb_state.rotation);
         for (int i = 0; i < 10; ++i)
             ctrl.onUpdate(kDt);
-        const auto q = manip.getTrackballOrientation();
+        const auto q = manip.getOrientation();
         VNE_LOG_INFO << "  After full trackball restore: quat=(" << q.x << "," << q.y << "," << q.z << "," << q.w
                      << ")";
     }

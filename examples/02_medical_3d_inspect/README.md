@@ -8,15 +8,14 @@ Full coverage of `Inspect3DController` and `OrbitalCameraManipulator`.
 
 ## What it covers
 
-### A — Euler orbit (default), inertia
-- `setRotationMode(eOrbit)` + `setPivotMode(eCoi)`
+### A — Virtual trackball orbit, inertia
+- `setPivotMode(eCoi)`
 - `setRotateSensitivity`, `setPanSensitivity`, `setZoomSensitivity`
 - `setRotationInertiaEnabled(true)`, `setPanInertiaEnabled(true)`
 - Fine-tune damping via escape hatch: `orbitalCameraManipulator().setRotationDamping / setPanDamping`
 - LMB drag → orbit, RMB drag → pan, scroll → zoom
 
-### B — Trackball rotation modes
-- `setRotationMode(eTrackball)`
+### B — Trackball projection modes
 - `setTrackballProjectionMode(eHyperbolic)` — smooth centre-to-rim (default)
 - `setTrackballProjectionMode(eRim)` — aggressive edge spin
 - `setTrackballRotationScale` — overall trackball response

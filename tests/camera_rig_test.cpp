@@ -17,8 +17,8 @@ static std::shared_ptr<vne::scene::PerspectiveCamera> makePerspCamera() {
         vne::scene::PerspectiveCameraParameters(45.0f, 16.0f / 9.0f, 0.1f, 1000.0f));
 }
 
-TEST(CameraRig, MakeOrbit) {
-    auto rig = vne::interaction::CameraRig::makeOrbit();
+TEST(CameraRig, MakeTrackball) {
+    auto rig = vne::interaction::CameraRig::makeTrackball();
     EXPECT_NE(rig.manipulators().size(), 0u);
 }
 
@@ -37,7 +37,7 @@ TEST(CameraRig, AddRemoveManipulator) {
 }
 
 TEST(CameraRig, OnActionDispatchesToManipulators) {
-    auto rig = vne::interaction::CameraRig::makeOrbit();
+    auto rig = vne::interaction::CameraRig::makeTrackball();
     auto cam = makePerspCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
