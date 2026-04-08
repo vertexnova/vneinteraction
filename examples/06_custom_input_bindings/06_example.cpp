@@ -4,7 +4,6 @@
 #include "vertexnova/interaction/inspect_3d_controller.h"
 #include "vertexnova/interaction/interaction_types.h"
 #include "vertexnova/interaction/input_mapper.h"
-#include "vertexnova/interaction/interaction_types.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
 
