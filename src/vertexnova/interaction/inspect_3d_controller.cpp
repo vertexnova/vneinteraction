@@ -369,6 +369,19 @@ void Inspect3DController::setZoomEnabled(bool enabled) noexcept {
     rebuildRules();
 }
 
+void Inspect3DController::setOrbitAnimationEnabled(bool enabled) noexcept {
+    if (impl_->orbit_) {
+        impl_->orbit_->setOrbitAnimationEnabled(enabled);
+    }
+}
+
+bool Inspect3DController::isOrbitAnimationEnabled() const noexcept {
+    if (!impl_->orbit_) {
+        return true;
+    }
+    return impl_->orbit_->isOrbitAnimationEnabled();
+}
+
 // ---------------------------------------------------------------------------
 // Bindings
 // ---------------------------------------------------------------------------

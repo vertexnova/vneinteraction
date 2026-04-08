@@ -210,6 +210,9 @@ int runMedical3dInspectExample() {
     manip.setViewDirection(vne::interaction::ViewDirection::eIso);
     runUpdate(ctrl, camera, 10, "View preset: eIso");
 
+    manip.animateToViewDirection(vne::interaction::ViewDirection::eBack, 0.3f);
+    runUpdate(ctrl, camera, 25, "Animated view preset: eBack (0.3s ease)");
+
     // ─────────────────────────────────────────────────────────────────────────
     // Section G: Interaction speed step keys (optional runtime rebind)
     // ─────────────────────────────────────────────────────────────────────────

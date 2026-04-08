@@ -45,6 +45,16 @@
  * ctrl.setRotationEnabled(false);   // no LMB orbit; pan/zoom/double-click pivot unchanged
  * @endcode
  *
+ * ### Turn off fit / view-preset animation only
+ * @ref setOrbitAnimationEnabled(false) makes @ref fitToAABB snap (perspective) and makes the manipulator's
+ * `animateToViewDirection` use the instant path, without changing @ref
+ * OrbitalCameraManipulator::getFitAnimationDuration on @ref orbitalCameraManipulator — re-enable when you want easing
+ * again.
+ * @code
+ * ctrl.setOrbitAnimationEnabled(false);
+ * ctrl.setOrbitAnimationEnabled(true);
+ * @endcode
+ *
  * ### Rebind inputs
  * @code
  * // All rules are accessible — swap or add as needed:
@@ -150,6 +160,14 @@ class VNE_INTERACTION_API Inspect3DController : public ICameraController {
     void setPanEnabled(bool enabled) noexcept;
     /** Enable or disable zoom (removes/restores zoom rules). */
     void setZoomEnabled(bool enabled) noexcept;
+
+    /**
+     * @brief Enable or disable time-based orbit fit and view-direction animation (delegates to @ref
+     * OrbitalCameraManipulator).
+     * @see OrbitalCameraManipulator::setOrbitAnimationEnabled
+     */
+    void setOrbitAnimationEnabled(bool enabled) noexcept;
+    [[nodiscard]] bool isOrbitAnimationEnabled() const noexcept;
 
     // -------------------------------------------------------------------------
     // Bindings (primary API — avoids manual InputRule setup)

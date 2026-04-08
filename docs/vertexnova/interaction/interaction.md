@@ -104,7 +104,7 @@ Manipulators **ignore** actions they do not implement; the rig does not filter p
 
 #### `OrbitalCameraManipulator`
 
-Orbit around a center of interest using a **quaternion virtual trackball** (screen mapping via `TrackballBehavior`), plus pivot modes (`OrbitPivotMode`), pan, zoom-to-cursor / dolly / FOV, rotation and pan inertia, optional **time-eased** `fitToAABB` / view-direction animation, and `setViewDirection` presets.
+Orbit around a center of interest using a **quaternion virtual trackball** (screen mapping via `TrackballBehavior`), plus pivot modes (`OrbitPivotMode`), pan, zoom-to-cursor / dolly / FOV, rotation and pan inertia, optional **time-eased** perspective `fitToAABB` (`setFitAnimationDuration`, use `0` for instant) and **`animateToViewDirection`** for animated view presets (`setViewDirection` stays instant). **`setOrbitAnimationEnabled(false)`** turns off eased fit and view animation together while keeping the stored fit duration. `Inspect3DController` forwards `fitToAABB` and **`setOrbitAnimationEnabled`**; other tuning via **`orbitalCameraManipulator()`**.
 
 #### `FreeLookManipulator`
 
@@ -122,7 +122,7 @@ Smooth follow of a world target or a callback-provided target; configurable offs
 
 | Class | Role |
 |-------|------|
-| `Inspect3DController` | 3D inspection (medical, CAD-style): `OrbitalCameraManipulator` + `InputMapper` (orbit preset), pivot and DOF toggles, `fitToAABB`. |
+| `Inspect3DController` | 3D inspection (medical, CAD-style): `OrbitalCameraManipulator` + `InputMapper` (orbit preset), pivot and DOF toggles, `fitToAABB`; **`setOrbitAnimationEnabled`** to disable eased fit / `animateToViewDirection` without changing stored duration; fine-tuning via `orbitalCameraManipulator()`. |
 | `Navigation3DController` | World traversal: `FreeLookManipulator` + `InputMapper` (FPS-style preset), mode and binding configuration. |
 | `Ortho2DController` | 2D ortho viewports: `Ortho2DManipulator` + ortho preset. |
 | `FollowController` | Follow camera: `FollowManipulator` only; no user input mapping required. |

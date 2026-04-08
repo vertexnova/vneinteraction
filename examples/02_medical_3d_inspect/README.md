@@ -37,8 +37,9 @@ Full coverage of `Inspect3DController` and `OrbitalCameraManipulator`.
 - `ZoomMethod::eDollyToCoi` — moves camera along view ray
 
 ### F — fitToAABB + view direction presets
-- `fitToAABB` with 60-frame smooth animation
-- `setViewDirection(eTop / eFront / eIso)`
+- `fitToAABB` with 60-frame smooth animation (call `orbitalCameraManipulator().setFitAnimationDuration(0.f)` before `fitToAABB` if you want an instant snap)
+- `setViewDirection(eTop / eFront / eIso)` — instant
+- `animateToViewDirection(..., 0.3f)` — eased rotation to a preset (same escape hatch as damping)
 
 ### G — Interaction speed step keys
 - `setIncreaseInteractionSpeedKey` / `setDecreaseInteractionSpeedKey`

@@ -67,6 +67,15 @@ struct OrbitalAnimation;
  * @par Inertia
  * Rotation and pan both support damping-based inertia via @ref onUpdate.
  *
+ * @par Animation (fit + view presets)
+ * Perspective @ref fitToAABB uses a single eased lerp (COI + orbit distance); duration from
+ * @ref setFitAnimationDuration (default ~0.5s). Use duration @c 0 for an instant snap. Animated view
+ * presets use @ref animateToViewDirection; @ref setViewDirection remains instant.
+ * @ref setOrbitAnimationEnabled turns off **both** fit and view-direction time-based animation (while keeping
+ * @ref setFitAnimationDuration for when animation is on again); disabling stops any in-flight animation.
+ * User input (rotate, pan, zoom, pivot, @ref resetState, etc.) also calls @c anim_->stop().
+ * If @ref setEnabled (base) is @c false, @ref onUpdate does not advance an in-flight animation until re-enabled.
+ *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
  */
 class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipulatorBase {
@@ -91,7 +100,10 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
      */
     bool onAction(CameraActionType action, const CameraCommandPayload& payload, double delta_time) noexcept override;
 
-    /** Advance inertia (rotation and pan) and unified orbit animation (fit / view-direction). */
+    /**
+     * @brief Advance inertia (rotation and pan) and unified orbit animation (fit / view-direction).
+     * @note When @c isEnabled() is @c false, returns without advancing animation or inertia.
+     */
     void onUpdate(double delta_time) noexcept override;
 
     /** Attach camera; syncs internal state from camera. */
@@ -162,6 +174,16 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
     /** Default duration (seconds) for @ref fitToAABB perspective animation; @c 0 applies the fit in one step. */
     void setFitAnimationDuration(float duration_s) noexcept { fit_anim_duration_ = std::max(0.0f, duration_s); }
     [[nodiscard]] float getFitAnimationDuration() const noexcept { return fit_anim_duration_; }
+
+    /**
+     * @brief Enable or disable time-based fit and view-direction animation.
+     * @details When @c false: perspective @ref fitToAABB applies in one step; @ref animateToViewDirection uses the
+     *          instant @ref setViewDirection path for any positive duration; in-flight animation stops at the
+     *          current pose. @ref setFitAnimationDuration is unchanged for when animation is enabled again.
+     *          Default: @c true.
+     */
+    void setOrbitAnimationEnabled(bool enabled) noexcept;
+    [[nodiscard]] bool isOrbitAnimationEnabled() const noexcept { return orbit_animation_enabled_; }
 
     /** Set orbit distance (camera-to-pivot); clamped to [0.01, 1e6]. */
     void setOrbitDistance(float distance) noexcept;
@@ -310,6 +332,7 @@ class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipula
 
     std::unique_ptr<OrbitalAnimation> anim_;
     float fit_anim_duration_ = 0.5f;
+    bool orbit_animation_enabled_ = true;
 };
 
 }  // namespace vne::interaction

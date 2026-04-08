@@ -676,7 +676,7 @@ void OrbitalCameraManipulator::fitToAABB(const vne::math::Vec3f& min_world,
         const float dist_y = radius / vne::math::tan(fov_y_rad * 0.5f);
         const float dist_x = radius / vne::math::tan(fov_x_rad * 0.5f);
         const float dist_target = std::max(dist_x, dist_y) * kFitToAabbMargin;
-        if (fit_anim_duration_ <= 0.0f) {
+        if (fit_anim_duration_ <= 0.0f || !orbit_animation_enabled_) {
             coi_world_ = center;
             orbit_distance_ = dist_target;
             anim_->stop();
@@ -822,6 +822,10 @@ void OrbitalCameraManipulator::setViewDirection(ViewDirection dir) noexcept {
 void OrbitalCameraManipulator::animateToViewDirection(ViewDirection dir,
                                                       float duration_s,
                                                       vne::math::EaseType easing) noexcept {
+    if (!orbit_animation_enabled_) {
+        setViewDirection(dir);
+        return;
+    }
     if (duration_s <= 0.0f) {
         setViewDirection(dir);
         return;
@@ -847,6 +851,13 @@ void OrbitalCameraManipulator::animateToViewDirection(ViewDirection dir,
     anim_->start(duration_s, easing);
 }
 
+void OrbitalCameraManipulator::setOrbitAnimationEnabled(bool enabled) noexcept {
+    orbit_animation_enabled_ = enabled;
+    if (!enabled) {
+        anim_->stop();
+    }
+}
+
 // ---------------------------------------------------------------------------
 // onUpdate
 // ---------------------------------------------------------------------------
@@ -855,7 +866,7 @@ void OrbitalCameraManipulator::onUpdate(double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return;
     }
-    if (anim_->active && delta_time > 0.0) {
+    if (orbit_animation_enabled_ && anim_->active && delta_time > 0.0) {
         anim_->elapsed += static_cast<float>(delta_time);
         const float t = vne::math::clamp(anim_->elapsed / anim_->duration, 0.0f, 1.0f);
         const float et = vne::math::ease(anim_->easing, t);

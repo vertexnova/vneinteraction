@@ -49,6 +49,28 @@ TEST(Inspect3DController, DefaultTrackballProjection) {
     EXPECT_EQ(ctrl.orbitalCameraManipulator().getTrackballProjectionMode(),
               vne::interaction::TrackballProjectionMode::eHyperbolic);
     EXPECT_TRUE(ctrl.isRotationEnabled());
+    EXPECT_TRUE(ctrl.isOrbitAnimationEnabled());
+}
+
+TEST(Inspect3DController, SetOrbitAnimationEnabledFalseSnapFitWithoutSteppingUpdate) {
+    vne::interaction::Inspect3DController ctrl;
+    auto cam = makePerspCamera();
+    cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
+    cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
+    ctrl.setCamera(cam);
+    ctrl.onResize(1280.0f, 720.0f);
+
+    ctrl.orbitalCameraManipulator().setFitAnimationDuration(0.5f);
+    ctrl.setOrbitAnimationEnabled(false);
+    EXPECT_FALSE(ctrl.isOrbitAnimationEnabled());
+
+    ctrl.fitToAABB(vne::math::Vec3f(9.0f, -1.0f, -1.0f), vne::math::Vec3f(11.0f, 1.0f, 1.0f));
+    const auto coi = ctrl.orbitalCameraManipulator().getCenterOfInterestWorld();
+    EXPECT_NEAR(coi.x(), 10.0f, 0.02f);
+    EXPECT_FLOAT_EQ(ctrl.orbitalCameraManipulator().getFitAnimationDuration(), 0.5f);
+
+    ctrl.setOrbitAnimationEnabled(true);
+    EXPECT_TRUE(ctrl.isOrbitAnimationEnabled());
 }
 
 TEST(Inspect3DController, SetPivotMode) {
