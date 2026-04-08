@@ -39,6 +39,8 @@ constexpr float kPerspWorldUnitsScale = 2.0f;
 constexpr float kHalf = 0.5f;
 // Matches OrbitalCameraManipulator default rotation_speed × trackball_rotation_scale (0.2 × 2.5) tuning.
 constexpr float kFreeLookTrackballScale = 2.5f;
+/** Clamp |forward·worldUp| below 1 for stable @c asin in @ref FreeLookManipulator::clampFpsPitch. */
+constexpr float kPitchAsinSinAbsMax = 0.999f;
 
 [[nodiscard]] vne::math::Vec3f normalizedWorldUp(const vne::math::Vec3f& w) noexcept {
     const float l = w.length();
@@ -238,7 +240,7 @@ void FreeLookManipulator::clampFpsPitch() noexcept {
     }
     const vne::math::Vec3f wu = normalizedWorldUp(world_up_);
     vne::math::Vec3f f = (-orientation_.getZAxis()).normalized();
-    float s = vne::math::clamp(f.dot(wu), -0.999f, 0.999f);
+    float s = vne::math::clamp(f.dot(wu), -kPitchAsinSinAbsMax, kPitchAsinSinAbsMax);
     float pitch_rad = std::asin(s);
     const float lim = vne::math::degToRad(kPitchMaxDeg);
     if (pitch_rad <= lim && pitch_rad >= -lim) {
@@ -266,6 +268,11 @@ float FreeLookManipulator::getPitchDegrees() const noexcept {
     float p = 0.0f;
     yawPitchFromOrientation(y, p);
     return p;
+}
+
+vne::math::Quatf FreeLookManipulator::getOrientation() const noexcept {
+    const_cast<FreeLookManipulator*>(this)->ensureAnglesSynced();
+    return orientation_;
 }
 
 void FreeLookManipulator::setOrientation(const vne::math::Quatf& q) noexcept {

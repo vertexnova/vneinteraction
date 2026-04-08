@@ -135,8 +135,11 @@ class VNE_INTERACTION_API FreeLookManipulator final : public CameraManipulatorBa
      */
     void setYawPitchDegrees(float yaw_deg, float pitch_deg) noexcept;
 
-    /** Camera-to-world orientation used for mouse look and movement (normalised on set). */
-    [[nodiscard]] vne::math::Quatf getOrientation() const noexcept { return orientation_; }
+    /**
+     * @brief Camera-to-world orientation used for mouse look and movement (normalised on set).
+     * @details If @ref markAnglesDirty was used (e.g. external camera pose), re-reads the camera before returning.
+     */
+    [[nodiscard]] vne::math::Quatf getOrientation() const noexcept;
     void setOrientation(const vne::math::Quatf& q) noexcept;
 
     /** Set movement speed in world units per second (default: 3.0). */

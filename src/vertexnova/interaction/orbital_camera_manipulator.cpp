@@ -295,6 +295,8 @@ constexpr float kYawDegRight = 90.0f;
 constexpr float kYawDegIso = 45.0f;
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers) — classic iso view pitch (degrees)
 constexpr float kPitchDegIso = -35.2643897f;
+/** Top/bottom view presets: magnitude below 90° to stay off the polar singularity with world up. */
+constexpr float kViewDirPitchLimitDeg = 89.0f;
 
 void viewDirectionYawPitch(ViewDirection dir, float& yaw, float& pitch) noexcept {
     switch (dir) {
@@ -316,11 +318,11 @@ void viewDirectionYawPitch(ViewDirection dir, float& yaw, float& pitch) noexcept
             break;
         case ViewDirection::eTop:
             yaw = 0.0f;
-            pitch = -89.0f;
+            pitch = -kViewDirPitchLimitDeg;
             break;
         case ViewDirection::eBottom:
             yaw = 0.0f;
-            pitch = 89.0f;
+            pitch = kViewDirPitchLimitDeg;
             break;
         case ViewDirection::eIso:
             yaw = kYawDegIso;
