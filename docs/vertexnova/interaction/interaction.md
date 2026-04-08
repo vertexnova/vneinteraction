@@ -9,7 +9,7 @@ The **Vertexnova Interaction** library provides composable camera **manipulators
 - **Event-driven** — Controllers accept `vne::events::Event` via `onEvent(event, delta_time)` and advance simulation-style state with `onUpdate(delta_time)`.
 - **Intent layer** — `InputMapper` turns low-level events into semantic `CameraActionType` values and `CameraCommandPayload` data; manipulators consume only what they understand.
 - **Composable rigs** — `CameraRig` holds zero or more `ICameraManipulator` instances and forwards every action and update to each (enables hybrid setups, e.g. orbit tooling beside free-look in an editor).
-- **Focused math helpers** — Orbit and virtual-trackball geometry live in implementation-side helpers (`OrbitBehavior`, `TrackballBehavior` under `src/vertexnova/interaction/detail/`), composed by `OrbitalCameraManipulator`; they are not registered on the rig as standalone manipulators.
+- **Focused math helpers** — `OrbitalCameraManipulator` implements quaternion virtual-trackball orbit in its `.cpp` (internal rotation state + inertia) and uses `TrackballBehavior` in `src/vertexnova/interaction/detail/` for screen-to-sphere mapping; those types are not registered on the rig as standalone manipulators.
 
 ![System context](diagrams/context.png)
 
@@ -34,11 +34,11 @@ If a PNG does not load, export the matching `.drawio` from [diagrams.net](https:
 
 | Group | Types |
 |-------|--------|
-| Interfaces | `ICameraManipulator`, `ICameraController`, internal `IRotationStrategy` for orbit modes. |
+| Interfaces | `ICameraManipulator`, `ICameraController`. |
 | Base / rig / mapper | `CameraManipulatorBase`, `CameraRig`, `InputMapper`. |
 | Manipulators | `OrbitalCameraManipulator`, `FreeLookManipulator`, `Ortho2DManipulator`, `FollowManipulator`. |
 | Controllers | `Inspect3DController`, `Navigation3DController`, `Ortho2DController`, `FollowController`. |
-| Orbit internals | `EulerOrbitStrategy`, `TrackballStrategy` (composition from `OrbitalCameraManipulator`). |
+| Orbit internals | Virtual-trackball mapping via `TrackballBehavior` (`detail/`), composed into `OrbitalCameraManipulator` (quaternion orbit + pivot / pan / zoom in the manipulator implementation). |
 
 Export `diagrams/class.drawio` → `diagrams/class.png`.
 
@@ -77,7 +77,7 @@ The design is **layered**: application and events sit above controllers; control
 | Swimlane | Contents |
 |----------|----------|
 | Public API | `interaction.h`, `interaction_types.h` (actions, state, bindings, enums), controllers, `CameraRig`, `InputMapper`, manipulators, `ICameraManipulator` / `ICameraController`. |
-| Implementation | `input_event_translator`, controller context helpers, `OrbitBehavior` / `TrackballBehavior` (`detail/`), internal `interaction_utils` (NDC / screen / world cursor math), and per-class `.cpp` files. |
+| Implementation | `input_event_translator`, controller context helpers, `TrackballBehavior` (`detail/trackball_behavior.*`), internal `interaction_utils` (NDC / screen / world cursor math), and per-class `.cpp` files (orbit quaternion + inertia live in `orbital_camera_manipulator.cpp`). |
 
 Export `diagrams/component.drawio` → `diagrams/component.png`.
 
@@ -104,7 +104,7 @@ Manipulators **ignore** actions they do not implement; the rig does not filter p
 
 #### `OrbitalCameraManipulator`
 
-Orbit around a center of interest: **Euler** or **trackball** rotation (`OrbitalRotationMode`), pivot modes (`OrbitPivotMode`), pan, zoom-to-cursor / dolly / FOV, inertia, `fitToAABB`. Delegates rotation math to internal **Euler** / **trackball** strategies and behavior helpers.
+Orbit around a center of interest using a **quaternion virtual trackball** (screen mapping via `TrackballBehavior`), plus pivot modes (`OrbitPivotMode`), pan, zoom-to-cursor / dolly / FOV, rotation and pan inertia, optional **time-eased** `fitToAABB` / view-direction animation, and `setViewDirection` presets.
 
 #### `FreeLookManipulator`
 
@@ -149,7 +149,7 @@ Maps mouse, keyboard, scroll, and touch-style input to **callbacks** invoking `(
 
 ### Implementation layout (`src/vertexnova/interaction/`)
 
-One **`.cpp` per public class** where applicable, plus `input_mapper.cpp`, `camera_rig.cpp`, `camera_manipulator_base.cpp`, `input_event_translator.cpp`, `interaction_utils.cpp`, `version.cpp`, and **`detail/`** sources for orbit/trackball behaviors.
+One **`.cpp` per public class** where applicable, plus `input_mapper.cpp`, `camera_rig.cpp`, `camera_manipulator_base.cpp`, `input_event_translator.cpp`, `interaction_utils.cpp`, `version.cpp`, and **`detail/trackball_behavior.cpp`** for virtual-trackball screen mapping (used by `OrbitalCameraManipulator`).
 
 ## Quick start
 
@@ -193,7 +193,7 @@ while (!window.shouldClose()) {
 
 ### Examples
 
-Longer recipes — trackball vs Euler orbit, pivot modes, `fitToAABB`, ortho and navigation tuning, `InputMapper` rebinding, hybrid `CameraRig` stacks, camera state save/restore, and headless simulated input — live in the repository **[`examples/`](../../../examples/README.md)**. Build with `-DVNE_INTERACTION_EXAMPLES=ON` or `-DVNE_INTERACTION_DEV=ON` at the repo root; executables are written to `build/bin/examples/`. See **[`examples/README.md`](../../../examples/README.md)** for the numbered topic index (`01_library_info` … `08_camera_state_save_restore`).
+Longer recipes — orbit / pan / zoom, pivot modes, `fitToAABB`, ortho and navigation tuning, `InputMapper` rebinding, hybrid `CameraRig` stacks, camera state save/restore, and headless simulated input — live in the repository **[`examples/`](../../../examples/README.md)**. Build with `-DVNE_INTERACTION_EXAMPLES=ON` or `-DVNE_INTERACTION_DEV=ON` at the repo root; executables are written to `build/bin/examples/`. See **[`examples/README.md`](../../../examples/README.md)** for the numbered topic index (`01_library_info` … `08_camera_state_save_restore`).
 
 **Event coverage** — `Inspect3DController` and `Ortho2DController` need mouse button, move, and scroll events; `Navigation3DController` also needs key pressed/released. `FollowController` is driven by `onUpdate` only. Translate your windowing API into `vne::events::Event`; the examples use helpers under `examples/common/` for headless runs.
 
