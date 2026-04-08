@@ -242,6 +242,8 @@ TEST(FreeLookManipulator, OnUpdateZeroDeltaTimeStillSyncsOrientationFromCamera) 
     cam->updateMatrices();
     b.markAnglesDirty();
 
+    // onUpdate always runs ensureAnglesSynced() first; dt <= 0 skips movement integration only (robustness for
+    // bogus/unknown frame timing). Exercise both zero and negative dt so sync still runs before the real move.
     b.onUpdate(0.0);
     b.onUpdate(-1.0);
 
