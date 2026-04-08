@@ -668,7 +668,8 @@ void OrbitalCameraManipulator::fitToAABB(const vne::math::Vec3f& min_world,
 
     if (auto persp = perspCamera()) {
         const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
-        const float aspect = std::max(viewport().width / viewport().height, CameraManipulatorBase::kMinOrthoExtent);
+        const float height = std::max(viewport().height, CameraManipulatorBase::kMinOrthoExtent);
+        const float aspect = std::max(viewport().width / height, CameraManipulatorBase::kMinOrthoExtent);
         const float fov_x_rad = 2.0f * vne::math::atan(vne::math::tan(fov_y_rad * 0.5f) * aspect);
         const float dist_y = radius / vne::math::tan(fov_y_rad * 0.5f);
         const float dist_x = radius / vne::math::tan(fov_x_rad * 0.5f);
@@ -710,7 +711,8 @@ void OrbitalCameraManipulator::fitToAABB(const vne::math::Vec3f& min_world,
         }
         max_r = std::max(max_r * kFitToAabbMargin, CameraManipulatorBase::kMinOrthoExtent);
         max_u = std::max(max_u * kFitToAabbMargin, CameraManipulatorBase::kMinOrthoExtent);
-        const float aspect = viewport().width / viewport().height;
+        const float safe_h = std::max(viewport().height, CameraManipulatorBase::kMinOrthoExtent);
+        const float aspect = std::max(viewport().width / safe_h, CameraManipulatorBase::kMinOrthoExtent);
         if (max_r / max_u < aspect) {
             max_r = max_u * aspect;
         } else {
@@ -729,13 +731,16 @@ void OrbitalCameraManipulator::fitToAABB(const vne::math::Vec3f& min_world,
 // ---------------------------------------------------------------------------
 
 float OrbitalCameraManipulator::getWorldUnitsPerPixel() const noexcept {
+    const float vh = viewport().height;
+    if (!(vh > 0.0f)) {
+        return 0.0f;
+    }
     if (auto ortho = orthoCamera()) {
-        return ortho->getHeight() / viewport().height;
+        return ortho->getHeight() / vh;
     }
     if (auto persp = perspCamera()) {
         const float fov_y_rad = vne::math::degToRad(persp->getFieldOfView());
-        return kPerspWorldUnitsScale * orbit_distance_ * vne::math::tan(fov_y_rad * kAabbCenterScale)
-               / viewport().height;
+        return kPerspWorldUnitsScale * orbit_distance_ * vne::math::tan(fov_y_rad * kAabbCenterScale) / vh;
     }
     return 0.0f;
 }
