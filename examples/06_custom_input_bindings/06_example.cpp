@@ -247,7 +247,7 @@ int runCustomInputBindingsExample() {
         }
         VNE_LOG_INFO << "  Touch pan applied";
 
-        // Touch pinch (two-finger pinch-to-zoom)
+        // Touch pinch (two-finger pinch-to-zoom): scale is the same multiplicative sense as scroll zoom_factor.
         vne::interaction::TouchPinch pinch_gesture;
         pinch_gesture.scale = 0.9f;  // < 1 = zoom in
         pinch_gesture.center_x_px = kCx;

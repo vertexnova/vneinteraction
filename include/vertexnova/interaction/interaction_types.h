@@ -222,9 +222,14 @@ struct VNE_INTERACTION_API TouchPan final {
     float delta_y_px = 0.0f;  //!< Vertical pan delta in screen pixels
 };
 
-/** Touch pinch (zoom) gesture data with scale and center position. */
+/**
+ * @brief Touch pinch (zoom) gesture data with scale and center position.
+ *
+ * @note @ref InputMapper::onTouchPinch passes @c scale through as @c zoom_factor for @c eZoomAtCursor
+ *       (same wheel/dolly convention as scroll).
+ */
 struct VNE_INTERACTION_API TouchPinch final {
-    float scale = 1.0f;        //!< Zoom scale factor (>1 zooms in, <1 zooms out)
+    float scale = 1.0f;  //!< Zoom scale factor (<1 zooms in, >1 zooms out)
     float center_x_px = 0.0f;  //!< Pinch center X position in screen pixels
     float center_y_px = 0.0f;  //!< Pinch center Y position in screen pixels
 };
