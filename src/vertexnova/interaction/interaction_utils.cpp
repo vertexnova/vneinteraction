@@ -11,7 +11,34 @@
 
 #include "interaction_utils.h"
 
+#include <algorithm>
+#include <cmath>
+
 namespace vne::interaction {
+
+vne::math::Quatf scaleTrackballQuaternion(vne::math::Quatf q, float scale) noexcept {
+    if (scale <= 0.0f) {
+        return vne::math::Quatf::identity();
+    }
+    if (q.w < 0.0f) {
+        q = vne::math::Quatf(-q.x, -q.y, -q.z, -q.w);
+    }
+    const float imag_sq = q.x * q.x + q.y * q.y + q.z * q.z;
+    constexpr float kImagEpsSq = 1e-12f;
+    if (imag_sq < kImagEpsSq) {
+        if (scale <= 1.0f) {
+            return vne::math::Quatf::slerp(vne::math::Quatf::identity(), q, scale);
+        }
+        if (imag_sq <= 0.0f) {
+            return vne::math::Quatf::identity();
+        }
+    }
+    const float ang = q.angle();
+    const vne::math::Vec3f axis =
+        vne::math::Vec3f(q.x, q.y, q.z) * (1.0f / std::sqrt(std::max(imag_sq, kImagEpsSq)));
+    return vne::math::Quatf::fromAxisAngle(axis, ang * scale);
+}
+
 
 vne::math::Vec2f mouseToApiScreen(float mx,
                                   float my,

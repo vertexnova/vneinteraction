@@ -43,29 +43,6 @@ struct OrbitalTrackballRotation {
     float inertia_rot_speed = 0.0f;
     int normalize_counter = 0;
 
-    [[nodiscard]] static vne::math::Quatf scaleQuaternion(vne::math::Quatf q, float scale) noexcept {
-        if (scale <= 0.0f) {
-            return vne::math::Quatf::identity();
-        }
-        if (q.w < 0.0f) {
-            q = vne::math::Quatf(-q.x, -q.y, -q.z, -q.w);
-        }
-        const float imag_sq = q.x * q.x + q.y * q.y + q.z * q.z;
-        constexpr float kImagEpsSq = 1e-12f;
-        if (imag_sq < kImagEpsSq) {
-            if (scale <= 1.0f) {
-                return vne::math::Quatf::slerp(vne::math::Quatf::identity(), q, scale);
-            }
-            if (imag_sq <= 0.0f) {
-                return vne::math::Quatf::identity();
-            }
-        }
-        const float ang = q.angle();
-        const vne::math::Vec3f axis =
-            vne::math::Vec3f(q.x, q.y, q.z) * (1.0f / std::sqrt(std::max(imag_sq, kImagEpsSq)));
-        return vne::math::Quatf::fromAxisAngle(axis, ang * scale);
-    }
-
     void updateInertiaFromSpheres(const vne::math::Vec3f& prev_sphere,
                                   const vne::math::Vec3f& curr_sphere,
                                   float trackball_rot,
@@ -155,7 +132,8 @@ struct OrbitalTrackballRotation {
         const vne::math::Vec3f curr_sphere = trackball.project(cursor);
 
         const float trackball_rot = rotation_speed * trackball_rotation_scale;
-        const vne::math::Quatf delta_q = scaleQuaternion(trackball.cumulativeDeltaQuaternion(cursor), trackball_rot);
+        const vne::math::Quatf delta_q =
+            scaleTrackballQuaternion(trackball.cumulativeDeltaQuaternion(cursor), trackball_rot);
         orientation = (orientation_at_drag_start * delta_q.conjugate()).normalized();
 
         updateInertiaFromSpheres(prev_sphere, curr_sphere, trackball_rot, delta_time);

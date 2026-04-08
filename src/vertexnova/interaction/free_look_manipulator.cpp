@@ -40,28 +40,6 @@ constexpr float kHalf = 0.5f;
 // Matches OrbitalCameraManipulator default rotation_speed × trackball_rotation_scale (0.2 × 2.5) tuning.
 constexpr float kFreeLookTrackballScale = 2.5f;
 
-[[nodiscard]] vne::math::Quatf scaleTrackballDeltaQuaternion(vne::math::Quatf q, float scale) noexcept {
-    if (scale <= 0.0f) {
-        return vne::math::Quatf::identity();
-    }
-    if (q.w < 0.0f) {
-        q = vne::math::Quatf(-q.x, -q.y, -q.z, -q.w);
-    }
-    const float imag_sq = q.x * q.x + q.y * q.y + q.z * q.z;
-    constexpr float kImagEpsSq = 1e-12f;
-    if (imag_sq < kImagEpsSq) {
-        if (scale <= 1.0f) {
-            return vne::math::Quatf::slerp(vne::math::Quatf::identity(), q, scale);
-        }
-        if (imag_sq <= 0.0f) {
-            return vne::math::Quatf::identity();
-        }
-    }
-    const float ang = q.angle();
-    const vne::math::Vec3f axis = vne::math::Vec3f(q.x, q.y, q.z) * (1.0f / std::sqrt(std::max(imag_sq, kImagEpsSq)));
-    return vne::math::Quatf::fromAxisAngle(axis, ang * scale);
-}
-
 [[nodiscard]] vne::math::Vec3f normalizedWorldUp(const vne::math::Vec3f& w) noexcept {
     const float l = w.length();
     return (l >= kEpsilon) ? (w / l) : vne::math::Vec3f(0.0f, 1.0f, 0.0f);
@@ -564,7 +542,7 @@ bool FreeLookManipulator::onAction(CameraActionType action,
                     const vne::math::Vec2f cursor{payload.x_px, payload.y_px};
                     const float eff_scale = mouse_sensitivity_ * kFreeLookTrackballScale;
                     const vne::math::Quatf delta_raw = trackball_->cumulativeDeltaQuaternion(cursor);
-                    const vne::math::Quatf delta_q = scaleTrackballDeltaQuaternion(delta_raw, eff_scale);
+                    const vne::math::Quatf delta_q = scaleTrackballQuaternion(delta_raw, eff_scale);
                     orientation_ = (orientation_at_drag_start_ * delta_q.conjugate()).normalized();
                     trackball_->endFrame(cursor);
                     if (mode_ == FreeLookMode::eFps) {

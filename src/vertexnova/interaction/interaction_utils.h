@@ -20,6 +20,7 @@
  *   - buildReferenceFrame, mouseToNDC, mouseWindowToNDC, mouseWindowDeltaToNDCDelta
  *   - worldUnderCursorOrtho, mouseUnproject, mouseToWorldRay, worldUnderCursor,
  *     worldUnderCursorPersp
+ *   - scaleTrackballQuaternion (shared trackball delta scaling for orbit / free-look)
  */
 
 #include <cmath>
@@ -108,6 +109,16 @@ inline void buildReferenceFrame(const vne::math::Vec3f& world_up,
  */
 [[nodiscard]] vne::math::Vec2f mouseWindowDeltaToNDCDelta(
     float delta_x_px, float delta_y_px, float w, float h, vne::math::GraphicsApi api) noexcept;
+
+// -----------------------------------------------------------------------------
+// Trackball quaternion — defined in interaction_utils.cpp
+// -----------------------------------------------------------------------------
+
+/**
+ * @brief Scale the angle of rotation quaternion @a q by @a scale (virtual-trackball drag sensitivity).
+ * @return Identity if @a scale <= 0; hemisphere-normalizes @a q (w >= 0); near-identity path uses slerp.
+ */
+[[nodiscard]] vne::math::Quatf scaleTrackballQuaternion(vne::math::Quatf q, float scale) noexcept;
 
 // -----------------------------------------------------------------------------
 // worldUnderCursorOrtho — inline
