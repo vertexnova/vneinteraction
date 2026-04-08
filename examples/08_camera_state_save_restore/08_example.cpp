@@ -1,6 +1,6 @@
 #include "08_example.h"
 
-#include "vertexnova/interaction/camera_state.h"
+#include "vertexnova/interaction/interaction_types.h"
 #include "vertexnova/interaction/free_look_manipulator.h"
 #include "vertexnova/interaction/inspect_3d_controller.h"
 #include "vertexnova/interaction/navigation_3d_controller.h"
@@ -17,27 +17,28 @@ static constexpr float kVpH = 720.0f;
 static constexpr float kCx = kVpW / 2.0f;
 static constexpr float kCy = kVpH / 2.0f;
 
-// ── Helpers to capture and apply OrbitCameraState ────────────────────────────
-// Pack live manipulator state into OrbitCameraState (Euler orbit mode).
+// ── Helpers: trackball bookmark + free-look state logging ───────────────────
 
-static vne::interaction::OrbitCameraState captureOrbitState(const vne::interaction::OrbitalCameraManipulator& manip) {
-    vne::interaction::OrbitCameraState s;
+static vne::interaction::TrackballCameraState captureTrackballState(
+    const vne::interaction::OrbitalCameraManipulator& manip) {
+    vne::interaction::TrackballCameraState s;
     s.coi_world = manip.getCenterOfInterestWorld();
     s.distance = manip.getOrbitDistance();
     s.world_up = manip.getWorldUp();
-    s.yaw_deg = manip.getOrbitYawDeg();
-    s.pitch_deg = manip.getOrbitPitchDeg();
+    s.rotation = manip.getOrientation();
     return s;
 }
 
-static void logOrbitState(const char* label, const vne::interaction::OrbitCameraState& s) {
+static void logTrackballState(const char* label, const vne::interaction::TrackballCameraState& s) {
     VNE_LOG_INFO << label << " coi=(" << s.coi_world.x() << "," << s.coi_world.y() << "," << s.coi_world.z() << ")"
-                 << " dist=" << s.distance << " yaw=" << s.yaw_deg << " pitch=" << s.pitch_deg;
+                 << " dist=" << s.distance << " quat=(" << s.rotation.x << "," << s.rotation.y << "," << s.rotation.z
+                 << "," << s.rotation.w << ")";
 }
 
 static void logFreeCameraState(const char* label, const vne::interaction::FreeCameraState& s) {
     VNE_LOG_INFO << label << " pos=(" << s.position.x() << "," << s.position.y() << "," << s.position.z() << ")"
-                 << " yaw=" << s.yaw_deg << " pitch=" << s.pitch_deg;
+                 << " quat=(" << s.orientation.x << "," << s.orientation.y << "," << s.orientation.z << ","
+                 << s.orientation.w << ")";
 }
 
 namespace vne::interaction::examples {
@@ -46,9 +47,9 @@ int runCameraStateSaveRestoreExample() {
     vne::interaction::examples::LoggingGuard logging_guard;
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Section A: OrbitCameraState — bookmark/undo for Inspect3DController
+    // Section A: TrackballCameraState — bookmark/undo for Inspect3DController
     // ─────────────────────────────────────────────────────────────────────────
-    VNE_LOG_INFO << "--- A: OrbitCameraState bookmark / undo ---";
+    VNE_LOG_INFO << "--- A: TrackballCameraState bookmark / undo (Inspect3D) ---";
     {
         auto camera = vne::scene::CameraFactory::createPerspective(
             vne::scene::PerspectiveCameraParameters(45.0f, kVpW / kVpH, 0.1f, 1000.0f));
@@ -62,11 +63,9 @@ int runCameraStateSaveRestoreExample() {
         auto& manip = ctrl.orbitalCameraManipulator();
         auto on_event = [&](const vne::events::Event& e, double dt) { ctrl.onEvent(e, dt); };
 
-        // ── Save bookmark A (initial pose) ───────────────────────────────────
-        const vne::interaction::OrbitCameraState bookmark_a = captureOrbitState(manip);
-        logOrbitState("  Bookmark A (initial):", bookmark_a);
+        const vne::interaction::TrackballCameraState bookmark_a = captureTrackballState(manip);
+        logTrackballState("  Bookmark A (initial):", bookmark_a);
 
-        // ── Interact: orbit around ────────────────────────────────────────────
         vne::interaction::examples::simulateMouseDrag(on_event,
                                                       vne::events::MouseButton::eLeft,
                                                       kCx,
@@ -78,12 +77,10 @@ int runCameraStateSaveRestoreExample() {
         for (int i = 0; i < 30; ++i)
             ctrl.onUpdate(kDt);
 
-        // ── Save bookmark B (after orbit) ─────────────────────────────────────
-        const vne::interaction::OrbitCameraState bookmark_b = captureOrbitState(manip);
-        logOrbitState("  Bookmark B (after orbit):", bookmark_b);
+        const vne::interaction::TrackballCameraState bookmark_b = captureTrackballState(manip);
+        logTrackballState("  Bookmark B (after orbit):", bookmark_b);
         VNE_LOG_INFO << "  distance_b=" << manip.getOrbitDistance() << " vs distance_a=" << bookmark_a.distance;
 
-        // ── Pan + zoom further ────────────────────────────────────────────────
         vne::interaction::examples::simulateMouseDrag(on_event,
                                                       vne::events::MouseButton::eRight,
                                                       kCx,
@@ -97,25 +94,22 @@ int runCameraStateSaveRestoreExample() {
             ctrl.onUpdate(kDt);
         VNE_LOG_INFO << "  Current distance=" << manip.getOrbitDistance() << " (panned + zoomed away from bookmark_b)";
 
-        // ── Restore bookmark A — COI, distance, world up, and Euler yaw/pitch ─
         manip.setWorldUp(bookmark_a.world_up);
         manip.setPivot(bookmark_a.coi_world);
         manip.setOrbitDistance(bookmark_a.distance);
-        manip.setOrbitEulerDegrees(bookmark_a.yaw_deg, bookmark_a.pitch_deg);
+        manip.setOrientation(bookmark_a.rotation);
         for (int i = 0; i < 10; ++i)
             ctrl.onUpdate(kDt);
-        VNE_LOG_INFO << "  After restore to bookmark_a: distance=" << manip.getOrbitDistance()
-                     << " yaw=" << manip.getOrbitYawDeg() << " pitch=" << manip.getOrbitPitchDeg();
+        const auto q = manip.getOrientation();
+        VNE_LOG_INFO << "  After restore to bookmark_a: distance=" << manip.getOrbitDistance() << " quat=(" << q.x
+                     << "," << q.y << "," << q.z << "," << q.w << ")";
 
-        // ── OrbitCameraState struct fields ───────────────────────────────────
-        // Shown for documentation purposes — all fields are plain POD.
-        vne::interaction::OrbitCameraState demo;
+        vne::interaction::TrackballCameraState demo;
         demo.coi_world = {1.0f, 0.5f, 0.0f};
         demo.distance = 6.0f;
         demo.world_up = {0.0f, 1.0f, 0.0f};
-        demo.yaw_deg = 45.0f;
-        demo.pitch_deg = -20.0f;
-        logOrbitState("  POD demo state:", demo);
+        demo.rotation = vne::math::Quatf::identity();
+        logTrackballState("  POD demo TrackballCameraState:", demo);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -131,8 +125,6 @@ int runCameraStateSaveRestoreExample() {
         vne::interaction::Inspect3DController ctrl;
         ctrl.setCamera(camera);
         ctrl.onResize(kVpW, kVpH);
-        ctrl.setRotationMode(vne::interaction::OrbitalRotationMode::eTrackball);
-
         auto& manip = ctrl.orbitalCameraManipulator();
         auto on_event = [&](const vne::events::Event& e, double dt) { ctrl.onEvent(e, dt); };
 
@@ -153,7 +145,7 @@ int runCameraStateSaveRestoreExample() {
         tb_state.coi_world = manip.getCenterOfInterestWorld();
         tb_state.distance = manip.getOrbitDistance();
         tb_state.world_up = manip.getWorldUp();
-        tb_state.rotation = manip.getTrackballOrientation();
+        tb_state.rotation = manip.getOrientation();
 
         VNE_LOG_INFO << "  TrackballCameraState: coi=(" << tb_state.coi_world.x() << "," << tb_state.coi_world.y()
                      << "," << tb_state.coi_world.z() << ")"
@@ -168,10 +160,10 @@ int runCameraStateSaveRestoreExample() {
         manip.setWorldUp(tb_state.world_up);
         manip.setPivot(tb_state.coi_world);
         manip.setOrbitDistance(tb_state.distance);
-        manip.setTrackballOrientation(tb_state.rotation);
+        manip.setOrientation(tb_state.rotation);
         for (int i = 0; i < 10; ++i)
             ctrl.onUpdate(kDt);
-        const auto q = manip.getTrackballOrientation();
+        const auto q = manip.getOrientation();
         VNE_LOG_INFO << "  After full trackball restore: quat=(" << q.x << "," << q.y << "," << q.z << "," << q.w
                      << ")";
     }
@@ -197,9 +189,7 @@ int runCameraStateSaveRestoreExample() {
         // ── Bookmark initial position ─────────────────────────────────────────
         vne::interaction::FreeCameraState saved;
         saved.position = camera->getPosition();
-        saved.yaw_deg = manip.getYawDegrees();
-        saved.pitch_deg = manip.getPitchDegrees();
-        saved.up_hint = manip.getWorldUp();
+        saved.orientation = manip.getOrientation();
         logFreeCameraState("  Bookmark (initial):", saved);
 
         // ── Walk around ───────────────────────────────────────────────────────
@@ -225,32 +215,24 @@ int runCameraStateSaveRestoreExample() {
         // ── Capture new position ──────────────────────────────────────────────
         vne::interaction::FreeCameraState after_walk;
         after_walk.position = camera->getPosition();
-        after_walk.yaw_deg = manip.getYawDegrees();
-        after_walk.pitch_deg = manip.getPitchDegrees();
-        after_walk.up_hint = manip.getWorldUp();
+        after_walk.orientation = manip.getOrientation();
         logFreeCameraState("  After walk:", after_walk);
 
         // ── Restore to saved bookmark ─────────────────────────────────────────
         camera->setPosition(saved.position);
         camera->updateMatrices();
-        manip.setWorldUp(saved.up_hint);
-        manip.setYawPitchDegrees(saved.yaw_deg, saved.pitch_deg);
+        manip.setOrientation(saved.orientation);
         ctrl.reset();
         for (int i = 0; i < 5; ++i)
             ctrl.onUpdate(kDt);
         vne::interaction::FreeCameraState after_restore;
         after_restore.position = camera->getPosition();
-        after_restore.yaw_deg = manip.getYawDegrees();
-        after_restore.pitch_deg = manip.getPitchDegrees();
-        after_restore.up_hint = manip.getWorldUp();
+        after_restore.orientation = manip.getOrientation();
         logFreeCameraState("  After restore to bookmark:", after_restore);
 
-        // ── FreeCameraState struct fields ─────────────────────────────────────
         vne::interaction::FreeCameraState demo;
         demo.position = {-3.0f, 1.5f, 7.0f};
-        demo.yaw_deg = 135.0f;
-        demo.pitch_deg = -10.0f;
-        demo.up_hint = {0.0f, 1.0f, 0.0f};
+        demo.orientation = vne::math::Quatf::identity();
         logFreeCameraState("  POD demo FreeCameraState:", demo);
     }
 

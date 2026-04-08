@@ -30,13 +30,13 @@ Executables land in `build/bin/examples/`.
 
 | # | Directory | Controller(s) | What it covers |
 |---|-----------|---------------|----------------|
-| 01 | `01_library_info` | All | Version, all preset rule counts, all controller defaults, ZoomMethod and rotation-mode enums, CameraRig factory methods |
-| 02 | `02_medical_3d_inspect` | `Inspect3DController` | Euler orbit + trackball modes, inertia damping, fixed landmark pivot, DOF toggles, all three ZoomMethod variants, fitToAABB, view presets, interaction speed step keys, `orbitalCameraManipulator()` escape hatch |
+| 01 | `01_library_info` | All | Version, all preset rule counts, controller defaults (Inspect / Navigate / Ortho2D), ZoomMethod and trackball-projection enums, CameraRig factory methods |
+| 02 | `02_medical_3d_inspect` | `Inspect3DController` | Virtual trackball orbit, projection modes (eHyperbolic / eRim), inertia damping, fixed landmark pivot, DOF toggles, all three ZoomMethod variants, fitToAABB, view presets, interaction speed step keys, `orbitalCameraManipulator()` escape hatch |
 | 03 | `03_medical_2d_slices` | `Ortho2DController` | Pan + scroll zoom, in-plane rotation, pan inertia, zoom sensitivity, button rebinding, ZoomMethod variants via `ortho2DManipulator()`, fitToAABB, DOF gating |
 | 04 | `04_game_editor_camera` | `Navigation3DController` | FPS and Fly modes, WASD + mouse look, sprint/slow, full 6-DoF key bindings (up/down), key rebinding to arrow keys, DOF gating, discrete speed-step keys, `freeLookManipulator()` escape hatch, ZoomMethod variants |
-| 05 | `05_robotic_simulator` | `Inspect3DController` + `Navigation3DController` + `FollowController` | Runtime controller switching, callback-based dynamic follow target, static world-space follow target, damping comparison (responsive vs cinematic), reset-on-switch pattern |
+| 05 | `05_robotic_simulator` | `Inspect3DController` + `Navigation3DController` | Runtime controller switching, moving pivot to track a simulated end-effector, orbit rotation damping comparison, reset-on-switch pattern |
 | 06 | `06_custom_input_bindings` | `InputMapper` + `Inspect3DController` | All presets, `bindGesture` / `bindScroll` / `bindDoubleClick` / `bindKey` / `unbindKey` / `unbindGesture`, direct `InputRule` struct construction, full `addRule` / `clearRules` workflow, `onMouseButton` / `onMouseMove` / `onMouseScroll` / `onKey` direct drive, touch pan + pinch, `resetState` on focus loss |
-| 07 | `07_camera_rig_composition` | `CameraRig` (direct) | All factory methods, hybrid orbit+fly rig via `addManipulator`, `removeManipulator` hot-swap, `clearManipulators` + rebuild, `setEnabled` per manipulator, `setHandleZoom(false)` to avoid double-zoom, `resetState` |
+| 07 | `07_camera_rig_composition` | `CameraRig` (direct) | Factory methods (`makeTrackball`, FPS, fly, ortho2D), hybrid trackball+fly rig via `addManipulator`, `removeManipulator` hot-swap, `clearManipulators` + rebuild, `setEnabled` per manipulator, `setHandleZoom(false)` to avoid double-zoom, `resetState` |
 | 08 | `08_camera_state_save_restore` | `Inspect3DController` + `Navigation3DController` | `OrbitCameraState` and `TrackballCameraState` bookmark/undo, `FreeCameraState` save/restore with `markAnglesDirty`, `FreeLookInputState` held-key model, `OrbitalInteractionState` drag-tracking model |
 
 ---

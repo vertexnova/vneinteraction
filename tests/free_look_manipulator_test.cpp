@@ -1,7 +1,18 @@
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
- * --------------------------------------------------------------------- */
+ *
+ * Author:    Ajeet Singh Yadav
+ * Created:   March 2026
+ *
+ * Autodoc:   yes
+ * ----------------------------------------------------------------------
+ */
+
+/**
+ * FreeLookManipulator tests: mode, rotation, zoom, keyboard pan, external pose handoff,
+ * and orthoPanUp fallbacks.
+ */
 
 #include "vertexnova/interaction/free_look_manipulator.h"
 #include "vertexnova/scene/camera/camera_factory.h"
@@ -140,7 +151,7 @@ TEST(FreeLookManipulator, KeyboardMoveCompensatesSceneScale) {
     EXPECT_NEAR(step_double_scale, 0.5f, 1e-4f);
 }
 
-TEST(FreeLookManipulator, ResetStateResyncsAnglesFromCamera) {
+TEST(FreeLookManipulator, ResetStateResyncsOrientationFromCamera) {
     auto cam = makePerspCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 10.0f));
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
@@ -171,8 +182,8 @@ TEST(FreeLookManipulator, ResetStateResyncsAnglesFromCamera) {
 
 /**
  * Handoff after external camera pose change: markAnglesDirty() sets angles_dirty_; onUpdate runs
- * ensureAnglesSynced() (which calls syncAnglesFromCamera) before WASD so yaw_deg_/pitch_deg_ match the rig.
- * Subcase A: perspCamera() path uses view forward for move_forward; view_offset (target - position) preserved.
+ * ensureAnglesSynced() (syncOrientationFromCamera) before WASD so orientation_ matches the rig.
+ * Perspective: move_forward uses view forward; look distance (target - position) preserved.
  */
 TEST(FreeLookManipulator, ExternalPoseHandoff_PerspectiveForwardAndViewOffset) {
     auto cam = makePerspCamera();
@@ -212,10 +223,10 @@ TEST(FreeLookManipulator, ExternalPoseHandoff_PerspectiveForwardAndViewOffset) {
 }
 
 /**
- * Zero-dt onUpdate must still run ensureAnglesSynced / syncAnglesFromCamera so the next positive-dt move
- * does not use stale yaw_deg_/pitch_deg_ after markAnglesDirty().
+ * Zero-dt onUpdate must still run ensureAnglesSynced / syncOrientationFromCamera so the next positive-dt move
+ * does not use stale orientation_ after markAnglesDirty().
  */
-TEST(FreeLookManipulator, OnUpdateZeroDeltaTimeStillSyncsAnglesFromCamera) {
+TEST(FreeLookManipulator, OnUpdateZeroDeltaTimeStillSyncsOrientationFromCamera) {
     auto cam = makePerspCamera();
     cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 10.0f));
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
@@ -231,6 +242,8 @@ TEST(FreeLookManipulator, OnUpdateZeroDeltaTimeStillSyncsAnglesFromCamera) {
     cam->updateMatrices();
     b.markAnglesDirty();
 
+    // onUpdate always runs ensureAnglesSynced() first; dt <= 0 skips movement integration only (robustness for
+    // bogus/unknown frame timing). Exercise both zero and negative dt so sync still runs before the real move.
     b.onUpdate(0.0);
     b.onUpdate(-1.0);
 

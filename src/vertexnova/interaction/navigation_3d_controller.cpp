@@ -4,6 +4,8 @@
  *
  * Author:    Ajeet Singh Yadav
  * Created:   March 2026
+ *
+ * Autodoc:   yes
  * ----------------------------------------------------------------------
  */
 
@@ -163,6 +165,16 @@ void Navigation3DController::setMode(FreeLookMode mode) noexcept {
 
 FreeLookMode Navigation3DController::getMode() const noexcept {
     return impl_->mode_;
+}
+
+void Navigation3DController::setRotationMode(FreeLookRotationMode mode) noexcept {
+    if (impl_->free_look_) {
+        impl_->free_look_->setRotationMode(mode);
+    }
+}
+
+FreeLookRotationMode Navigation3DController::getRotationMode() const noexcept {
+    return impl_->free_look_ ? impl_->free_look_->getRotationMode() : FreeLookRotationMode::eYawPitch;
 }
 
 // ---------------------------------------------------------------------------

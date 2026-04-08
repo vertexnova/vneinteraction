@@ -8,15 +8,14 @@ Full coverage of `Inspect3DController` and `OrbitalCameraManipulator`.
 
 ## What it covers
 
-### A — Euler orbit (default), inertia
-- `setRotationMode(eOrbit)` + `setPivotMode(eCoi)`
+### A — Virtual trackball orbit, inertia
+- `setPivotMode(eCoi)`
 - `setRotateSensitivity`, `setPanSensitivity`, `setZoomSensitivity`
 - `setRotationInertiaEnabled(true)`, `setPanInertiaEnabled(true)`
 - Fine-tune damping via escape hatch: `orbitalCameraManipulator().setRotationDamping / setPanDamping`
 - LMB drag → orbit, RMB drag → pan, scroll → zoom
 
-### B — Trackball rotation modes
-- `setRotationMode(eTrackball)`
+### B — Trackball projection modes
 - `setTrackballProjectionMode(eHyperbolic)` — smooth centre-to-rim (default)
 - `setTrackballProjectionMode(eRim)` — aggressive edge spin
 - `setTrackballRotationScale` — overall trackball response
@@ -38,8 +37,9 @@ Full coverage of `Inspect3DController` and `OrbitalCameraManipulator`.
 - `ZoomMethod::eDollyToCoi` — moves camera along view ray
 
 ### F — fitToAABB + view direction presets
-- `fitToAABB` with 60-frame smooth animation
-- `setViewDirection(eTop / eFront / eIso)`
+- `fitToAABB` with 60-frame smooth animation (call `orbitalCameraManipulator().setFitAnimationDuration(0.f)` before `fitToAABB` if you want an instant snap)
+- `setViewDirection(eTop / eFront / eIso)` — instant
+- `animateToViewDirection(..., 0.3f)` — eased rotation to a preset (same escape hatch as damping)
 
 ### G — Interaction speed step keys
 - `setIncreaseInteractionSpeedKey` / `setDecreaseInteractionSpeedKey`

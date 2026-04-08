@@ -5,9 +5,8 @@
  * Example 07: CameraRig composition
  *
  * Demonstrates:
- *   - CameraRig factory methods (makeOrbit, makeTrackball, makeFps, makeFly,
- *     makeOrtho2D, makeFollow)
- *   - addManipulator() for a hybrid orbit + fly rig
+ *   - CameraRig factory methods (makeTrackball, makeFps, makeFly, makeOrtho2D)
+ *   - addManipulator() for a hybrid trackball + fly rig
  *   - removeManipulator() to hot-swap a manipulator at runtime
  *   - clearManipulators() and manual rebuild
  *   - setEnabled() on individual manipulators (mute one, keep the other)

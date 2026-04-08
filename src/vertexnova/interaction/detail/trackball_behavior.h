@@ -24,9 +24,8 @@
  * Hemisphere `z = √(1 − x² − y²)` inside the unit disk; outside, points map to the
  * equatorial rim (`z = 0`) in normalized coordinates. Classic textbook trackball variant.
  *
- * @par Symmetry with @ref OrbitBehavior
- * @ref OrbitBehavior owns yaw/pitch (degrees), pitch limits, and Euler drag inertia in one type.
- * @ref TrackballBehavior owns **sphere mapping** and **ball-space** frame deltas (@ref BallFrameDelta via
+ * @par Role
+ * TrackballBehavior owns **sphere mapping** and **ball-space** frame deltas (@ref BallFrameDelta via
  * @ref TrackballBehavior::ballFrameDeltaFromSpheres). Integrating release inertia into the orbit
  * **orientation quaternion** (world-space axis, rad/s) stays in @c OrbitalCameraManipulator because
  * it requires the current camera/orientation basis — same split as mapping ball axes to world.

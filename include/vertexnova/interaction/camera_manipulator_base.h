@@ -5,6 +5,7 @@
  *
  * Author:    Ajeet Singh Yadav
  * Created:   March 2026
+ *
  * Autodoc:   yes
  * ----------------------------------------------------------------------
  */
@@ -71,7 +72,9 @@ class VNE_INTERACTION_API CameraManipulatorBase : public ICameraManipulator {
         viewport_.height = std::max(1.0f, height_px);
     }
 
+    /** @copydoc ICameraManipulator::isEnabled */
     [[nodiscard]] bool isEnabled() const noexcept override { return enabled_; }
+    /** @copydoc ICameraManipulator::setEnabled */
     void setEnabled(bool enabled) noexcept override { enabled_ = enabled; }
 
     // -------------------------------------------------------------------------

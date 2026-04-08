@@ -5,15 +5,13 @@
  * Example 05: Robotic simulator — multi-controller switching
  *
  * Demonstrates:
- *   - Three view modes on one camera:
- *       Inspect3DController  — inspect robot arm / tool in orbit
+ *   - Two view modes on one camera:
+ *       Inspect3DController — orbit / inspect robot arm or moving pivot
  *       Navigation3DController — walk the environment (FPS)
- *       FollowController      — end-effector chase cam
  *   - Runtime controller switching (Tab-key pattern)
- *   - FollowController with dynamic callback target (Vec3f provider)
- *   - FollowController with static world-space target
- *   - FollowManipulator damping: responsive vs cinematic
- *   - Shared camera state across all three controllers
+ *   - Moving pivot each frame to track a simulated end-effector path
+ *   - Orbit rotation damping (snappy vs floaty decay)
+ *   - Shared camera state across controllers
  *   - reset() on controller switch to clear stale drag state
  * ----------------------------------------------------------------------
  */

@@ -4,6 +4,8 @@
  *
  * Author:    Ajeet Singh Yadav
  * Created:   March 2026
+ *
+ * Autodoc:   yes
  * ----------------------------------------------------------------------
  */
 
@@ -468,7 +470,7 @@ void InputMapper::onTouchPinch(const TouchPinch& pinch, double dt) noexcept {
     CameraCommandPayload payload;
     payload.x_px = pinch.center_x_px;
     payload.y_px = pinch.center_y_px;
-    payload.zoom_factor = 1.0f / pinch.scale;
+    payload.zoom_factor = pinch.scale;
 
     const int i = pickBestRuleIndexByModifierSpecificity(rules_, [this](const InputRule& r, int) {
         return r.trigger == InputRule::Trigger::eTouchPinch && modifiersMatch(r.modifier_mask);

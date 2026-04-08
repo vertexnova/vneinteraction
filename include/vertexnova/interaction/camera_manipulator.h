@@ -5,6 +5,7 @@
  *
  * Author:    Ajeet Singh Yadav
  * Created:   March 2026
+ *
  * Autodoc:   yes
  * ----------------------------------------------------------------------
  */
@@ -43,10 +44,9 @@ namespace vne::interaction {
  * simultaneously on a CameraRig — they each receive every action independently.
  *
  * Concrete implementations:
- *  - OrbitalCameraManipulator — rotate/pan/zoom around a pivot (Euler or Quaternion mode)
+ *  - OrbitalCameraManipulator — rotate/pan/zoom around a pivot (quaternion virtual trackball)
  *  - FreeLookManipulator — WASD movement + mouse look (FPS or unconstrained Fly mode)
  *  - Ortho2DManipulator — orthographic 2D pan, zoom, optional in-plane rotation
- *  - FollowManipulator   — autonomous smooth target following
  *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
  */

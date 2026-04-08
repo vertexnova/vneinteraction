@@ -1,9 +1,20 @@
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
- * --------------------------------------------------------------------- */
+ *
+ * Author:    Ajeet Singh Yadav
+ * Created:   March 2026
+ *
+ * Autodoc:   yes
+ * ----------------------------------------------------------------------
+ */
+
+/**
+ * Inspect3DController tests: pivot mode, rotation enabled, fitToAABB, event handling, and move safety.
+ */
 
 #include "vertexnova/interaction/inspect_3d_controller.h"
+#include "vertexnova/interaction/orbital_camera_manipulator.h"
 #include "vertexnova/events/mouse_event.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
@@ -33,10 +44,33 @@ static std::shared_ptr<vne::scene::PerspectiveCamera> makePerspCamera() {
         vne::scene::PerspectiveCameraParameters(45.0f, 16.0f / 9.0f, 0.1f, 1000.0f));
 }
 
-TEST(Inspect3DController, DefaultOrbitalRotationMode) {
+TEST(Inspect3DController, DefaultTrackballProjection) {
     vne::interaction::Inspect3DController ctrl;
-    EXPECT_EQ(ctrl.getRotationMode(), vne::interaction::OrbitalRotationMode::eOrbit);
+    EXPECT_EQ(ctrl.orbitalCameraManipulator().getTrackballProjectionMode(),
+              vne::interaction::TrackballProjectionMode::eHyperbolic);
     EXPECT_TRUE(ctrl.isRotationEnabled());
+    EXPECT_TRUE(ctrl.isOrbitAnimationEnabled());
+}
+
+TEST(Inspect3DController, SetOrbitAnimationEnabledFalseSnapFitWithoutSteppingUpdate) {
+    vne::interaction::Inspect3DController ctrl;
+    auto cam = makePerspCamera();
+    cam->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
+    cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
+    ctrl.setCamera(cam);
+    ctrl.onResize(1280.0f, 720.0f);
+
+    ctrl.orbitalCameraManipulator().setFitAnimationDuration(0.5f);
+    ctrl.setOrbitAnimationEnabled(false);
+    EXPECT_FALSE(ctrl.isOrbitAnimationEnabled());
+
+    ctrl.fitToAABB(vne::math::Vec3f(9.0f, -1.0f, -1.0f), vne::math::Vec3f(11.0f, 1.0f, 1.0f));
+    const auto coi = ctrl.orbitalCameraManipulator().getCenterOfInterestWorld();
+    EXPECT_NEAR(coi.x(), 10.0f, 0.02f);
+    EXPECT_FLOAT_EQ(ctrl.orbitalCameraManipulator().getFitAnimationDuration(), 0.5f);
+
+    ctrl.setOrbitAnimationEnabled(true);
+    EXPECT_TRUE(ctrl.isOrbitAnimationEnabled());
 }
 
 TEST(Inspect3DController, SetPivotMode) {
@@ -80,7 +114,6 @@ TEST(Inspect3DController, PivotOnDoubleClickIndependentOfRotation) {
 
 TEST(Inspect3DController, SetRotationEnabled) {
     vne::interaction::Inspect3DController ctrl;
-    EXPECT_EQ(ctrl.getRotationMode(), vne::interaction::OrbitalRotationMode::eOrbit);
     EXPECT_TRUE(ctrl.isRotationEnabled());
 
     auto cam = makePerspCamera();
@@ -104,9 +137,6 @@ TEST(Inspect3DController, SetRotationEnabled) {
     simulateLeftButtonHorizontalDrag(ctrl, 640.0, 360.0, 690.0, 360.0);
     EXPECT_GT((cam->getPosition() - pos_before_orbit).length(), 1e-4f)
         << "Same LMB drag should orbit the camera once rotation is enabled";
-
-    ctrl.setRotationMode(vne::interaction::OrbitalRotationMode::eTrackball);
-    EXPECT_EQ(ctrl.getRotationMode(), vne::interaction::OrbitalRotationMode::eTrackball);
 }
 
 TEST(Inspect3DController, FitToAABB) {

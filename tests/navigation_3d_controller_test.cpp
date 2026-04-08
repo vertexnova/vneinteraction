@@ -78,6 +78,18 @@ TEST(Navigation3DController, DefaultFpsMode) {
     EXPECT_EQ(ctrl.getMode(), vne::interaction::FreeLookMode::eFps);
 }
 
+TEST(Navigation3DController, DefaultYawPitchRotationMode) {
+    vne::interaction::Navigation3DController ctrl;
+    EXPECT_EQ(ctrl.getRotationMode(), vne::interaction::FreeLookRotationMode::eYawPitch);
+}
+
+TEST(Navigation3DController, SetRotationModeTrackball) {
+    vne::interaction::Navigation3DController ctrl;
+    ctrl.setRotationMode(vne::interaction::FreeLookRotationMode::eTrackball);
+    EXPECT_EQ(ctrl.getRotationMode(), vne::interaction::FreeLookRotationMode::eTrackball);
+    EXPECT_EQ(ctrl.freeLookManipulator().getRotationMode(), vne::interaction::FreeLookRotationMode::eTrackball);
+}
+
 TEST(Navigation3DController, SetMode) {
     vne::interaction::Navigation3DController ctrl;
     ctrl.setMode(vne::interaction::FreeLookMode::eFly);

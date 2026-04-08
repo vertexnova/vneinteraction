@@ -1,7 +1,13 @@
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
- * --------------------------------------------------------------------- */
+ *
+ * Author:    Ajeet Singh Yadav
+ * Created:   March 2026
+ *
+ * Autodoc:   yes
+ * ----------------------------------------------------------------------
+ */
 
 /**
  * Controllers store InputMapper callbacks that must stay valid after std::move
@@ -9,7 +15,6 @@
  * onUpdate so actions still reach the CameraRig without dangling captures.
  */
 
-#include "vertexnova/interaction/follow_controller.h"
 #include "vertexnova/interaction/inspect_3d_controller.h"
 #include "vertexnova/interaction/navigation_3d_controller.h"
 #include "vertexnova/interaction/ortho_2d_controller.h"
@@ -81,21 +86,6 @@ TEST(ControllerMoveSafety, Ortho2DController_EventAndUpdateAfterMove) {
     vne::events::MouseMovedEvent move(256.0, 256.0);
     vne::events::MouseScrolledEvent scroll(0.0, 1.0);
     EXPECT_NO_FATAL_FAILURE(moved.onEvent(move));
-    EXPECT_NO_FATAL_FAILURE(moved.onEvent(scroll));
-    EXPECT_NO_FATAL_FAILURE(moved.onUpdate(0.016));
-}
-
-TEST(ControllerMoveSafety, FollowController_EventAndUpdateAfterMove) {
-    vne::interaction::FollowController src;
-    auto cam = makePerspCamera();
-    src.setCamera(cam);
-    src.onResize(1280.0f, 720.0f);
-    const vne::math::Mat4f target = vne::math::Mat4f::translate(vne::math::Vec3f(0.0f, 0.0f, 0.0f));
-    src.setTarget(target);
-
-    vne::interaction::FollowController moved = std::move(src);
-
-    vne::events::MouseScrolledEvent scroll(0.0, 1.0);
     EXPECT_NO_FATAL_FAILURE(moved.onEvent(scroll));
     EXPECT_NO_FATAL_FAILURE(moved.onUpdate(0.016));
 }
