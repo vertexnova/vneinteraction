@@ -34,11 +34,9 @@ vne::math::Quatf scaleTrackballQuaternion(vne::math::Quatf q, float scale) noexc
         }
     }
     const float ang = q.angle();
-    const vne::math::Vec3f axis =
-        vne::math::Vec3f(q.x, q.y, q.z) * (1.0f / std::sqrt(std::max(imag_sq, kImagEpsSq)));
+    const vne::math::Vec3f axis = vne::math::Vec3f(q.x, q.y, q.z) * (1.0f / std::sqrt(std::max(imag_sq, kImagEpsSq)));
     return vne::math::Quatf::fromAxisAngle(axis, ang * scale);
 }
-
 
 vne::math::Vec2f mouseToApiScreen(float mx,
                                   float my,
