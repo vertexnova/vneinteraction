@@ -304,23 +304,25 @@ TEST(ManipulatorRegression, OrbitalCamera_HorizontalDragMatchesEulerSign) {
     persp->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
     persp->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
-    // vne::interaction::OrbitalCameraManipulator b;
-    // b.setRotationMode(vne::interaction::OrbitalRotationMode::eTrackball);
-    // b.setCamera(persp);
-    // b.onResize(800.0f, 600.0f);
+    vne::interaction::OrbitalCameraManipulator b;
+    b.setCamera(persp);
+    b.onResize(800.0f, 600.0f);
 
-    // vne::math::Vec3f pos_before = persp->getPosition();
-    // vne::interaction::CameraCommandPayload p;
-    // p.x_px = 400.0f;
-    // p.y_px = 300.0f;
-    // b.onAction(vne::interaction::CameraActionType::eBeginRotate, p, 0.016);
-    // p.x_px = 450.0f;
-    // p.y_px = 300.0f;
-    // b.onAction(vne::interaction::CameraActionType::eRotateDelta, p, 0.016);
-    // b.onAction(vne::interaction::CameraActionType::eEndRotate, p, 0.0);
+    const vne::math::Vec3f pos_before = persp->getPosition();
+    vne::interaction::CameraCommandPayload p;
+    p.x_px = 400.0f;
+    p.y_px = 300.0f;
+    constexpr double kDt = 0.016;
+    b.onAction(vne::interaction::CameraActionType::eBeginRotate, p, kDt);
+    p.x_px = 450.0f;
+    p.y_px = 300.0f;
+    p.delta_x_px = 50.0f;
+    p.delta_y_px = 0.0f;
+    b.onAction(vne::interaction::CameraActionType::eRotateDelta, p, kDt);
+    b.onAction(vne::interaction::CameraActionType::eEndRotate, p, kDt);
 
-    // vne::math::Vec3f pos_after = persp->getPosition();
-    // EXPECT_LT(pos_after.x(), pos_before.x()) << "Trackball drag right should match Euler: camera X decreases";
+    const vne::math::Vec3f pos_after = persp->getPosition();
+    EXPECT_LT(pos_after.x(), pos_before.x()) << "Trackball drag right should match Euler: camera X decreases";
 }
 
 }  // namespace vne_interaction_regression_test

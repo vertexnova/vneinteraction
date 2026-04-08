@@ -143,7 +143,8 @@ struct VNE_INTERACTION_API OrbitalInteractionState {
 // =============================================================================
 
 /**
- * @brief Serializable state for trackball camera (OrbitalCameraManipulator in eTrackball mode).
+ * @brief Serializable state snapshot for @ref OrbitalCameraManipulator — orbit pivot (COI), camera–pivot
+ *        distance, virtual-trackball orientation quaternion, and world up.
  */
 struct VNE_INTERACTION_API TrackballCameraState {
     vne::math::Vec3f coi_world;  //!< Center of interest in world space

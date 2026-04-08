@@ -26,19 +26,14 @@ static std::shared_ptr<vne::scene::PerspectiveCamera> makePerspCamera() {
         vne::scene::PerspectiveCameraParameters(45.0f, 16.0f / 9.0f, 0.1f, 1000.0f));
 }
 
-// TEST(OrbitalCameraManipulator, DefaultValues) {
-//     vne::interaction::OrbitalCameraManipulator b;
-//     EXPECT_EQ(b.getRotationMode(), vne::interaction::OrbitalRotationMode::eTrackball);
-//     EXPECT_EQ(b.getPivotMode(), vne::interaction::OrbitPivotMode::eCoi);
-//     EXPECT_GT(b.getOrbitDistance(), 0.0f);
-//     EXPECT_GT(b.getZoomSpeed(), 0.0f);
-// }
-
-// TEST(OrbitalCameraManipulator, SetRotationMode) {
-//     vne::interaction::OrbitalCameraManipulator b;
-//     b.setRotationMode(vne::interaction::OrbitalRotationMode::eTrackball);
-//     EXPECT_EQ(b.getRotationMode(), vne::interaction::OrbitalRotationMode::eTrackball);
-// }
+TEST(OrbitalCameraManipulator, DefaultValues) {
+    vne::interaction::OrbitalCameraManipulator b;
+    EXPECT_EQ(b.getPivotMode(), vne::interaction::OrbitPivotMode::eCoi);
+    EXPECT_EQ(b.getTrackballProjectionMode(), vne::interaction::TrackballProjectionMode::eHyperbolic);
+    EXPECT_FLOAT_EQ(b.getTrackballRotationScale(), 2.5f);
+    EXPECT_GT(b.getOrbitDistance(), 0.0f);
+    EXPECT_GT(b.getZoomSpeed(), 0.0f);
+}
 
 TEST(OrbitalCameraManipulator, SetTrackballRotationScale) {
     vne::interaction::OrbitalCameraManipulator b;
@@ -147,7 +142,6 @@ TEST(OrbitalCameraManipulator, ChangeFovAtClampDoesNotChangeOrbitDistance) {
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
     vne::interaction::OrbitalCameraManipulator b;
-    // b.setRotationMode(vne::interaction::OrbitalRotationMode::eTrackball);
     b.setCamera(cam);
     b.onResize(800.0f, 600.0f);
 
@@ -178,7 +172,6 @@ TEST(OrbitalCameraManipulator, TrackballInertiaNotUpdatedWhenDeltaTimeBelowInert
     cam->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
     vne::interaction::OrbitalCameraManipulator b;
-    // b.setRotationMode(vne::interaction::OrbitalRotationMode::eTrackball);
     b.setCamera(cam);
     b.onResize(800.0f, 600.0f);
 
