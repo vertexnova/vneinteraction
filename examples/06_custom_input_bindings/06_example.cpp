@@ -2,9 +2,8 @@
 
 #include "vertexnova/interaction/camera_rig.h"
 #include "vertexnova/interaction/inspect_3d_controller.h"
-#include "vertexnova/interaction/input_binding.h"
-#include "vertexnova/interaction/input_mapper.h"
 #include "vertexnova/interaction/interaction_types.h"
+#include "vertexnova/interaction/input_mapper.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
 
@@ -197,7 +196,7 @@ int runCustomInputBindingsExample() {
         VNE_LOG_INFO << "  Custom orbit rules from scratch: count=" << mapper.rules().size();
 
         // Wire to a CameraRig and drive with simulated events
-        auto rig = vne::interaction::CameraRig::makeOrbit();
+        auto rig = vne::interaction::CameraRig::makeTrackball();
         rig.setCamera(camera);
         rig.onResize(kVpW, kVpH);
 
@@ -231,7 +230,7 @@ int runCustomInputBindingsExample() {
         vne::interaction::InputMapper mapper;
         mapper.setRules(vne::interaction::InputMapper::orbitPreset());
 
-        auto rig = vne::interaction::CameraRig::makeOrbit();
+        auto rig = vne::interaction::CameraRig::makeTrackball();
         rig.setCamera(camera);
         rig.onResize(kVpW, kVpH);
         mapper.setActionCallback([&rig](vne::interaction::CameraActionType action,
@@ -248,7 +247,7 @@ int runCustomInputBindingsExample() {
         }
         VNE_LOG_INFO << "  Touch pan applied";
 
-        // Touch pinch (two-finger pinch-to-zoom)
+        // Touch pinch (two-finger pinch-to-zoom): scale is the same multiplicative sense as scroll zoom_factor.
         vne::interaction::TouchPinch pinch_gesture;
         pinch_gesture.scale = 0.9f;  // < 1 = zoom in
         pinch_gesture.center_x_px = kCx;

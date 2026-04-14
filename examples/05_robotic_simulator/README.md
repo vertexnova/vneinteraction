@@ -1,15 +1,15 @@
 # 05 — Robotic Simulator
 
-Multi-controller runtime switching with all three primary controller types on a shared camera.
+Multi-controller runtime switching with `Inspect3DController` and `Navigation3DController` on a shared camera.
 
 ## Use case
 
-Robotic simulation, game engines, editors — any application that needs multiple camera modes (inspect, navigate, follow) selectable at runtime without recreating the camera or reloading the scene.
+Robotic simulation, game engines, editors — any application that needs multiple camera modes (inspect, navigate) selectable at runtime without recreating the camera or reloading the scene.
 
 ## What it covers
 
-### Setup — three controllers on one camera
-- `Inspect3DController`, `Navigation3DController`, `FollowController` all share the same `ICamera`
+### Setup — two controllers on one camera
+- `Inspect3DController` and `Navigation3DController` share the same `ICamera`
 - Each calls `setCamera(camera)` and `onResize(w, h)` — no camera duplication
 
 ### A — Inspect mode (orbit robot arm)
@@ -22,23 +22,18 @@ Robotic simulation, game engines, editors — any application that needs multipl
 - `navigate.reset()` — syncs FreeLookManipulator yaw/pitch from current camera pose
 - FPS walk: RMB look + W forward
 
-### C — Switch to Follow (end-effector chase cam)
-- `navigate.reset()` before activating follow
-- `followManipulator().setTargetProvider(callback)` — dynamic `Vec3f` callback updated each frame
-- Simulates 120 frames (~2 s) of circular end-effector motion
-- Logs effector position vs camera eye to show the lag
+### C — Inspect with moving pivot (effector path)
+- `navigate.reset()` + `inspect.reset()` before resuming inspect
+- Each frame: `inspect.setPivot(simulatedEndEffector(t))` then `onUpdate` — orbit around a moving point without a dedicated follow controller
 
-### D — Damping comparison
-- `followManipulator().setDamping(20.0f)` — responsive, fast catch-up
-- `followManipulator().setDamping(1.5f)` — cinematic, slow floaty feel
+### D — Orbit rotation damping
+- High vs low `orbitalCameraManipulator().setRotationDamping` after LMB drags — snappy vs floaty inertia decay
 
-### E — Static world-space target
-- `followManipulator().setTargetWorld(pos)` — clears provider, uses fixed point
-- Useful when the target doesn't move every frame (e.g. a building overview)
+### E — Static pivot (robot base)
+- `setPivot` at a fixed world point and run updates — stable orbit centre
 
-### F — Switch back to inspect
-- `follow.reset()` + `inspect.reset()` before resuming orbit
-- Confirms orbit still works cleanly after all the mode switches
+### F — More inspect orbit
+- `inspect.reset()` then another LMB drag — confirms orbit after mode switches
 
 ## Reset-on-switch pattern
 

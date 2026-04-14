@@ -1,7 +1,17 @@
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
- * --------------------------------------------------------------------- */
+ *
+ * Author:    Ajeet Singh Yadav
+ * Created:   March 2026
+ *
+ * Autodoc:   yes
+ * ----------------------------------------------------------------------
+ */
+
+/**
+ * Ortho2DController tests: rotation enabled, fitToAABB, modifier pan binding, and move safety.
+ */
 
 #include "vertexnova/interaction/ortho_2d_controller.h"
 #include "vertexnova/events/key_event.h"

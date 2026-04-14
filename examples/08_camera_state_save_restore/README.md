@@ -1,6 +1,6 @@
 # 08 — Camera State Save / Restore
 
-Shows all state structs from `camera_state.h` and demonstrates bookmark/undo patterns.
+Shows all state structs from `interaction_types.h` and demonstrates bookmark/undo patterns.
 
 ## What it covers
 

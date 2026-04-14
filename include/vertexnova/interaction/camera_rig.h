@@ -5,6 +5,7 @@
  *
  * Author:    Ajeet Singh Yadav
  * Created:   March 2026
+ *
  * Autodoc:   yes
  * ----------------------------------------------------------------------
  */
@@ -42,7 +43,7 @@ namespace vne::interaction {
  * ### Usage
  * ```cpp
  * // Built-in presets:
- * auto rig = CameraRig::makeOrbit();
+ * auto rig = CameraRig::makeTrackball();
  *
  * // Custom composition (game camera):
  * CameraRig rig;
@@ -124,10 +125,7 @@ class VNE_INTERACTION_API CameraRig {
     // Convenience factory methods
     // -------------------------------------------------------------------------
 
-    /** Orbit rig: OrbitalCameraManipulator with Euler rotation. Default for 3D model viewers. */
-    static CameraRig makeOrbit();
-
-    /** Trackball rig: OrbitalCameraManipulator with quaternion rotation. Smoother, no gimbal lock. */
+    /** Trackball rig: OrbitalCameraManipulator with quaternion virtual-trackball rotation. */
     static CameraRig makeTrackball();
 
     /** FPS rig: FreeLookManipulator with world-up constraint. */
@@ -136,11 +134,11 @@ class VNE_INTERACTION_API CameraRig {
     /** Fly rig: FreeLookManipulator unconstrained (no world-up, allows barrel roll). */
     static CameraRig makeFly();
 
+    /** Navigation rig: FreeLookManipulator with virtual-trackball mouse look. */
+    static CameraRig makeNavTrackball();
+
     /** 2D orthographic rig: Ortho2DManipulator (pan, zoom, optional in-plane rotation). */
     static CameraRig makeOrtho2D();
-
-    /** Follow rig: FollowManipulator (autonomous smooth target following). */
-    static CameraRig makeFollow();
 
    private:
     std::vector<std::shared_ptr<ICameraManipulator>> manipulators_;

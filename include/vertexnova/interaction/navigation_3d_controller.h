@@ -5,6 +5,7 @@
  *
  * Author:    Ajeet Singh Yadav
  * Created:   March 2026
+ *
  * Autodoc:   yes
  * ----------------------------------------------------------------------
  */
@@ -102,6 +103,10 @@ class VNE_INTERACTION_API Navigation3DController : public ICameraController {
     /** Switch navigation mode. Rebuilds rig and input rules. */
     void setMode(FreeLookMode mode) noexcept;
     [[nodiscard]] FreeLookMode getMode() const noexcept;
+
+    /** Mouse look: yaw/pitch or virtual trackball (see @ref FreeLookManipulator). */
+    void setRotationMode(FreeLookRotationMode mode) noexcept;
+    [[nodiscard]] FreeLookRotationMode getRotationMode() const noexcept;
 
     // -------------------------------------------------------------------------
     // Speed / sensitivity

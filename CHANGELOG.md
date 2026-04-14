@@ -28,12 +28,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+* **Type headers consolidated**: `CameraActionType`, `CameraCommandPayload`, gesture and behavioral enums, camera state PODs, and `InputRule` / binding types live in a single [`interaction_types.h`](include/vertexnova/interaction/interaction_types.h). The former shim headers `camera_action.h`, `camera_state.h`, and `input_binding.h` are **removed** — include `interaction_types.h` or [`interaction.h`](include/vertexnova/interaction/interaction.h) instead.
+* **Internal math merged**: `camera_math` and `view_math` are replaced by [`interaction_utils.h`](src/vertexnova/interaction/interaction_utils.h) / [`interaction_utils.cpp`](src/vertexnova/interaction/interaction_utils.cpp) (still internal, not part of the installed public header set).
+
 ### Removed
 
 * **`Navigation3DController::freeLookBehavior()`** — use **`freeLookManipulator()`** only (temporary compatibility shim removed).
 
 ### Breaking
 
+* **Type includes**: `vertexnova/interaction/camera_action.h`, `camera_state.h`, and `input_binding.h` are removed; use `vertexnova/interaction/interaction_types.h` (or the umbrella `interaction.h`).
 * **Manipulator naming (Trackball / Orbit stay `*Behavior`)**: Composable camera types are renamed from `*Behavior` to `*Manipulator`; `ICameraBehavior` → `ICameraManipulator`; `CameraBehaviorBase` → `CameraManipulatorBase`. Headers: `camera_manipulator.h`, `camera_manipulator_base.h`, `orbital_camera_manipulator.h`, `free_look_manipulator.h`, `ortho_2d_manipulator.h`, `follow_manipulator.h`. Internal helpers: `manipulator_utils.*` (was `behavior_utils.*`). **`TrackballBehavior`** / **`OrbitBehavior`** and headers `trackball_behavior.h` / `orbit_behavior.h` are unchanged.
 * **`CameraRig`**: `addBehavior` / `removeBehavior` / `clearBehaviors` / `behaviors()` → `addManipulator` / `removeManipulator` / `clearManipulators` / `manipulators()`.
 * **Controllers**: `Inspect3DController::orbitalCameraBehavior()` → `orbitalCameraManipulator()`; `Navigation3DController::freeLookBehavior()` → `freeLookManipulator()`; `orbitalCameraBehavior()` → `orbitalCameraManipulator()`; `Ortho2DController::ortho2DBehavior()` → `ortho2DManipulator()`; `FollowController::followBehavior()` → `followManipulator()`.

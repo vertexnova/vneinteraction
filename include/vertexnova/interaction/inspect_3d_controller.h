@@ -5,6 +5,7 @@
  *
  * Author:    Ajeet Singh Yadav
  * Created:   March 2026
+ *
  * Autodoc:   yes
  * ----------------------------------------------------------------------
  */
@@ -26,9 +27,8 @@
  * @endcode
  *
  * ### Defaults
- * - Rotation: **on** by default; algorithm is **Euler orbit** (`OrbitalRotationMode::eOrbit`).
- *   Use `setRotationMode(OrbitalRotationMode::eTrackball)` for quaternion trackball; use `setRotationEnabled(false)` to
- * disable LMB orbit.
+ * - Rotation: **on** by default; uses quaternion virtual trackball.
+ *   Use `setRotationEnabled(false)` to disable LMB orbit.
  * - LMB drag = rotate (when rotation enabled), RMB/MMB drag = pan, scroll = zoom
  * - Double-click LMB = move pivot to current center-of-interest along the view direction (auto-pivot; **on** by
  *   default, independent of rotation). Does not use the double-click screen position; see `eSetPivotAtCursor`.
@@ -43,6 +43,16 @@
  * ### Disable rotation
  * @code
  * ctrl.setRotationEnabled(false);   // no LMB orbit; pan/zoom/double-click pivot unchanged
+ * @endcode
+ *
+ * ### Turn off fit / view-preset animation only
+ * @ref setOrbitAnimationEnabled(false) makes @ref fitToAABB snap (perspective) and makes the manipulator's
+ * `animateToViewDirection` use the instant path, without changing @ref
+ * OrbitalCameraManipulator::getFitAnimationDuration on @ref orbitalCameraManipulator — re-enable when you want easing
+ * again.
+ * @code
+ * ctrl.setOrbitAnimationEnabled(false);
+ * ctrl.setOrbitAnimationEnabled(true);
  * @endcode
  *
  * ### Rebind inputs
@@ -114,14 +124,6 @@ class VNE_INTERACTION_API Inspect3DController : public ICameraController {
     void onUpdate(double delta_time) noexcept override;
 
     // -------------------------------------------------------------------------
-    // Rotation
-    // -------------------------------------------------------------------------
-
-    /** Switch rotation algorithm (default: OrbitalRotationMode::eOrbit). */
-    void setRotationMode(OrbitalRotationMode mode) noexcept;
-    [[nodiscard]] OrbitalRotationMode getRotationMode() const noexcept;
-
-    // -------------------------------------------------------------------------
     // Pivot / anchor
     // -------------------------------------------------------------------------
 
@@ -158,6 +160,14 @@ class VNE_INTERACTION_API Inspect3DController : public ICameraController {
     void setPanEnabled(bool enabled) noexcept;
     /** Enable or disable zoom (removes/restores zoom rules). */
     void setZoomEnabled(bool enabled) noexcept;
+
+    /**
+     * @brief Enable or disable time-based orbit fit and view-direction animation (delegates to @ref
+     * OrbitalCameraManipulator).
+     * @see OrbitalCameraManipulator::setOrbitAnimationEnabled
+     */
+    void setOrbitAnimationEnabled(bool enabled) noexcept;
+    [[nodiscard]] bool isOrbitAnimationEnabled() const noexcept;
 
     // -------------------------------------------------------------------------
     // Bindings (primary API — avoids manual InputRule setup)

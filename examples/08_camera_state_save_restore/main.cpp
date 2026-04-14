@@ -14,7 +14,7 @@
  *   - FreeLookInputState — querying held-key snapshot (diagnostic use)
  *   - OrbitalInteractionState — not exported as snapshot; shown via manipulator API
  *
- * Note: camera_state.h structs are plain data — no serialize/deserialize helpers
+ * Note: camera state structs in interaction_types.h are plain data — no serialize/deserialize helpers
  * are provided by the library. Persistence to disk is the application's job.
  * ----------------------------------------------------------------------
  */

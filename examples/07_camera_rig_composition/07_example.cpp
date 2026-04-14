@@ -57,40 +57,36 @@ int runCameraRigCompositionExample() {
     // ─────────────────────────────────────────────────────────────────────────
     VNE_LOG_INFO << "--- A: CameraRig factory methods ---";
     {
-        auto r_orbit = vne::interaction::CameraRig::makeOrbit();
         auto r_tb = vne::interaction::CameraRig::makeTrackball();
         auto r_fps = vne::interaction::CameraRig::makeFps();
         auto r_fly = vne::interaction::CameraRig::makeFly();
         auto r_ortho = vne::interaction::CameraRig::makeOrtho2D();
-        auto r_follow = vne::interaction::CameraRig::makeFollow();
 
-        VNE_LOG_INFO << "  orbit=" << r_orbit.manipulators().size() << "  tb=" << r_tb.manipulators().size()
-                     << "  fps=" << r_fps.manipulators().size() << "  fly=" << r_fly.manipulators().size()
-                     << "  ortho2d=" << r_ortho.manipulators().size() << "  follow=" << r_follow.manipulators().size();
+        VNE_LOG_INFO << "  trackball=" << r_tb.manipulators().size() << "  fps=" << r_fps.manipulators().size()
+                     << "  fly=" << r_fly.manipulators().size() << "  ortho2d=" << r_ortho.manipulators().size();
 
-        // Simple orbit factory drive via direct actions
-        r_orbit.setCamera(camera);
-        r_orbit.onResize(kVpW, kVpH);
-        directOrbitDrag(r_orbit, 60.0f, 20.0f);
-        r_orbit.onUpdate(kDt);
-        directZoom(r_orbit, 0.9f);  // 0.9 < 1 = zoom in
-        r_orbit.onUpdate(kDt);
+        // Simple trackball factory drive via direct actions
+        r_tb.setCamera(camera);
+        r_tb.onResize(kVpW, kVpH);
+        directOrbitDrag(r_tb, 60.0f, 20.0f);
+        r_tb.onUpdate(kDt);
+        directZoom(r_tb, 0.9f);  // 0.9 < 1 = zoom in
+        r_tb.onUpdate(kDt);
         const auto pos = camera->getPosition();
-        VNE_LOG_INFO << "  makeOrbit direct drive — eye=(" << pos.x() << "," << pos.y() << "," << pos.z() << ")";
+        VNE_LOG_INFO << "  makeTrackball direct drive — eye=(" << pos.x() << "," << pos.y() << "," << pos.z() << ")";
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Section B: Hybrid rig — orbit + fly in the same rig
+    // Section B: Hybrid rig — trackball orbit + fly in the same rig
     //   Both manipulators receive every action.
     //   OrbitalCameraManipulator handles eBeginRotate/eRotateDelta/eZoomAtCursor.
     //   FreeLookManipulator handles eMoveForward/eLookDelta/eZoomAtCursor.
     //   setHandleZoom(false) on FreeLook prevents double-zoom per scroll tick.
     // ─────────────────────────────────────────────────────────────────────────
-    VNE_LOG_INFO << "--- B: Hybrid orbit + fly rig ---";
+    VNE_LOG_INFO << "--- B: Hybrid trackball + fly rig ---";
     {
-        // Build orbit base manipulator
+        // Build trackball orbit base manipulator
         auto orbit_manip = std::make_shared<vne::interaction::OrbitalCameraManipulator>();
-        orbit_manip->setRotationMode(vne::interaction::OrbitalRotationMode::eOrbit);
         orbit_manip->setRotationInertiaEnabled(true);
         orbit_manip->setRotationDamping(5.0f);
 
@@ -98,7 +94,7 @@ int runCameraRigCompositionExample() {
         auto fly_manip = std::make_shared<vne::interaction::FreeLookManipulator>();
         fly_manip->setMode(vne::interaction::FreeLookMode::eFly);
         fly_manip->setMoveSpeed(5.0f);
-        fly_manip->setHandleZoom(false);  // orbit owns eZoomAtCursor
+        fly_manip->setHandleZoom(false);  // trackball owns eZoomAtCursor
 
         // Compose rig
         vne::interaction::CameraRig rig;
@@ -109,7 +105,7 @@ int runCameraRigCompositionExample() {
 
         VNE_LOG_INFO << "  manipulators=" << rig.manipulators().size();
 
-        // Wire InputMapper with gamePreset (LMB=orbit, RMB=look, WASD=move, scroll=zoom)
+        // Wire InputMapper with gamePreset (LMB=trackball orbit, RMB=look, WASD=move, scroll=zoom)
         vne::interaction::InputMapper mapper;
         mapper.setRules(vne::interaction::InputMapper::gamePreset());
         mapper.setActionCallback([&rig](vne::interaction::CameraActionType action,
@@ -178,7 +174,7 @@ int runCameraRigCompositionExample() {
             }
         };
 
-        // LMB orbit
+        // LMB trackball orbit
         vne::interaction::examples::simulateMouseDrag(on_event,
                                                       vne::events::MouseButton::eLeft,
                                                       kCx,
@@ -190,7 +186,7 @@ int runCameraRigCompositionExample() {
         for (int i = 0; i < 15; ++i)
             rig.onUpdate(kDt);
 
-        // WASD fly while orbit is also active (fly takes effect; orbit ignores move actions)
+        // WASD fly while trackball is also active (fly takes effect; orbit ignores move actions)
         vne::events::MouseButtonPressedEvent rmb(vne::events::MouseButton::eRight,
                                                  0,
                                                  static_cast<double>(kCx),
@@ -206,14 +202,14 @@ int runCameraRigCompositionExample() {
         on_event(rmb_rel, kDt);
 
         const auto pos = camera->getPosition();
-        VNE_LOG_INFO << "  Hybrid rig (orbit+fly): eye=(" << pos.x() << "," << pos.y() << "," << pos.z() << ")";
+        VNE_LOG_INFO << "  Hybrid rig (trackball+fly): eye=(" << pos.x() << "," << pos.y() << "," << pos.z() << ")";
 
         // ── removeManipulator: hot-remove fly at runtime ───────────────────
         rig.removeManipulator(fly_manip);
         VNE_LOG_INFO << "  After removeManipulator(fly): count=" << rig.manipulators().size();
         directOrbitDrag(rig, 30.0f, 0.0f);
         rig.onUpdate(kDt);
-        VNE_LOG_INFO << "  Orbit still works after fly removed";
+        VNE_LOG_INFO << "  Trackball orbit still works after fly removed";
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -231,15 +227,16 @@ int runCameraRigCompositionExample() {
         rig.setCamera(camera);
         rig.onResize(kVpW, kVpH);
 
-        // Disable fly — only orbit responds
+        // Disable fly — only trackball responds
         fly_manip->setEnabled(false);
-        VNE_LOG_INFO << "  fly enabled=" << fly_manip->isEnabled() << "  orbit enabled=" << orbit_manip->isEnabled();
+        VNE_LOG_INFO << "  fly enabled=" << fly_manip->isEnabled()
+                     << "  trackball enabled=" << orbit_manip->isEnabled();
 
         directOrbitDrag(rig, 50.0f, 10.0f);
         rig.onUpdate(kDt);
-        VNE_LOG_INFO << "  Orbit active with fly muted";
+        VNE_LOG_INFO << "  Trackball active with fly muted";
 
-        // Re-enable fly, disable orbit
+        // Re-enable fly, disable trackball
         fly_manip->setEnabled(true);
         orbit_manip->setEnabled(false);
 
@@ -253,7 +250,7 @@ int runCameraRigCompositionExample() {
         p.pressed = false;
         rig.onAction(A::eEndLook, p, kDt);
         rig.onUpdate(kDt);
-        VNE_LOG_INFO << "  Fly active with orbit muted";
+        VNE_LOG_INFO << "  Fly active with trackball muted";
 
         orbit_manip->setEnabled(true);  // restore
     }
@@ -267,21 +264,21 @@ int runCameraRigCompositionExample() {
         rig.setCamera(camera);
         rig.onResize(kVpW, kVpH);
 
-        // Start with orbit
+        // Start with trackball
         auto m1 = std::make_shared<vne::interaction::OrbitalCameraManipulator>();
         rig.addManipulator(m1);
-        VNE_LOG_INFO << "  After addManipulator(orbit): count=" << rig.manipulators().size();
+        VNE_LOG_INFO << "  After addManipulator(trackball): count=" << rig.manipulators().size();
 
         // Clear and rebuild with trackball
         rig.clearManipulators();
         VNE_LOG_INFO << "  After clearManipulators(): count=" << rig.manipulators().size();
 
         auto m2 = std::make_shared<vne::interaction::OrbitalCameraManipulator>();
-        m2->setRotationMode(vne::interaction::OrbitalRotationMode::eTrackball);
+        m2->setTrackballProjectionMode(vne::interaction::TrackballProjectionMode::eRim);
         rig.addManipulator(m2);
         rig.setCamera(camera);  // re-attach camera after rebuild
         rig.onResize(kVpW, kVpH);
-        VNE_LOG_INFO << "  Rebuilt with trackball: count=" << rig.manipulators().size();
+        VNE_LOG_INFO << "  Rebuilt with eRim projection: count=" << rig.manipulators().size();
 
         directOrbitDrag(rig, 40.0f, -20.0f);
         rig.onUpdate(kDt);
@@ -293,7 +290,7 @@ int runCameraRigCompositionExample() {
     // ─────────────────────────────────────────────────────────────────────────
     VNE_LOG_INFO << "--- E: rig.resetState() ---";
     {
-        auto rig = vne::interaction::CameraRig::makeOrbit();
+        auto rig = vne::interaction::CameraRig::makeTrackball();
         rig.setCamera(camera);
         rig.onResize(kVpW, kVpH);
 
@@ -310,7 +307,7 @@ int runCameraRigCompositionExample() {
 
         directOrbitDrag(rig, 30.0f, 10.0f);
         rig.onUpdate(kDt);
-        VNE_LOG_INFO << "  Orbit works cleanly after resetState";
+        VNE_LOG_INFO << "  Trackball orbit works cleanly after resetState";
     }
 
     VNE_LOG_INFO << "07_camera_rig_composition: done.";

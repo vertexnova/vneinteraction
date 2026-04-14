@@ -4,7 +4,8 @@
  * Licensed under the Apache License, Version 2.0 (the "License")
  *
  * Author:    Ajeet Singh Yadav
- * Created:   April 2026
+ * Created:   March 2026
+ *
  * Autodoc:   yes
  * ----------------------------------------------------------------------
  */
@@ -14,7 +15,7 @@
  * @brief ICameraController — polymorphic base for high-level viewport camera facades.
  *
  * Concrete implementations: @ref Inspect3DController, @ref Navigation3DController,
- * @ref Ortho2DController, @ref FollowController. Each composes @ref CameraRig, @ref InputMapper,
+ * @ref Ortho2DController. Each composes @ref CameraRig, @ref InputMapper,
  * and camera/viewport lifecycle; this interface exposes only the uniform setup and per-frame API.
  *
  * @par When to use

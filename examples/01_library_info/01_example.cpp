@@ -20,8 +20,11 @@ int runLibraryInfoExample() {
     // Instantiate each controller to confirm linkage and default construction.
     {
         vne::interaction::Inspect3DController c;
-        VNE_LOG_INFO << "Inspect3DController: rotation_mode="
-                     << (c.getRotationMode() == vne::interaction::OrbitalRotationMode::eOrbit ? "eOrbit" : "eTrackball")
+        VNE_LOG_INFO << "Inspect3DController: trackball_projection="
+                     << (c.orbitalCameraManipulator().getTrackballProjectionMode()
+                                 == vne::interaction::TrackballProjectionMode::eHyperbolic
+                             ? "eHyperbolic"
+                             : "eRim")
                      << "  pivot_mode="
                      << (c.getPivotMode() == vne::interaction::OrbitPivotMode::eCoi     ? "eCoi"
                          : c.getPivotMode() == vne::interaction::OrbitPivotMode::eFixed ? "eFixed"
@@ -42,12 +45,6 @@ int runLibraryInfoExample() {
         vne::interaction::Ortho2DController c;
         VNE_LOG_INFO << "Ortho2DController: rotation_enabled=" << c.isRotationEnabled();
     }
-    {
-        vne::interaction::FollowController c;
-        VNE_LOG_INFO << "FollowController: lag=" << c.getLag() << "  offset=(" << c.getOffset().x() << ","
-                     << c.getOffset().y() << "," << c.getOffset().z() << ")";
-    }
-
     // ── ZoomMethod enum ───────────────────────────────────────────────────────
     // All three methods are valid on every manipulator (via CameraManipulatorBase).
     VNE_LOG_INFO << "ZoomMethod values: eSceneScale=" << static_cast<int>(vne::interaction::ZoomMethod::eSceneScale)
@@ -67,21 +64,16 @@ int runLibraryInfoExample() {
                  << "  cad=" << cad.size() << "  ortho=" << ortho.size();
 
     // ── CameraRig factory methods ─────────────────────────────────────────────
-    auto rig_orbit = vne::interaction::CameraRig::makeOrbit();
-    auto rig_tb = vne::interaction::CameraRig::makeTrackball();
+    auto rig_trackball = vne::interaction::CameraRig::makeTrackball();
     auto rig_fps = vne::interaction::CameraRig::makeFps();
     auto rig_fly = vne::interaction::CameraRig::makeFly();
     auto rig_ortho = vne::interaction::CameraRig::makeOrtho2D();
-    auto rig_follow = vne::interaction::CameraRig::makeFollow();
 
     VNE_LOG_INFO << "CameraRig factories — manipulator counts:"
-                 << "  orbit=" << rig_orbit.manipulators().size() << "  trackball=" << rig_tb.manipulators().size()
-                 << "  fps=" << rig_fps.manipulators().size() << "  fly=" << rig_fly.manipulators().size()
-                 << "  ortho2d=" << rig_ortho.manipulators().size() << "  follow=" << rig_follow.manipulators().size();
+                 << "  trackball=" << rig_trackball.manipulators().size() << "  fps=" << rig_fps.manipulators().size()
+                 << "  fly=" << rig_fly.manipulators().size() << "  ortho2d=" << rig_ortho.manipulators().size();
 
     // ── Rotation / pivot mode enums ───────────────────────────────────────────
-    VNE_LOG_INFO << "OrbitalRotationMode:  eOrbit=" << static_cast<int>(vne::interaction::OrbitalRotationMode::eOrbit)
-                 << "  eTrackball=" << static_cast<int>(vne::interaction::OrbitalRotationMode::eTrackball);
     VNE_LOG_INFO << "TrackballProjectionMode:  eHyperbolic="
                  << static_cast<int>(vne::interaction::TrackballProjectionMode::eHyperbolic)
                  << "  eRim=" << static_cast<int>(vne::interaction::TrackballProjectionMode::eRim);

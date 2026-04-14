@@ -5,6 +5,7 @@
  *
  * Author:    Ajeet Singh Yadav
  * Created:   March 2026
+ *
  * Autodoc:   yes
  * ----------------------------------------------------------------------
  */
@@ -13,9 +14,9 @@
  * @file free_look_manipulator.h
  * @brief FreeLookManipulator — FPS / Fly camera (ICameraManipulator implementation).
  *
- * Orientation is stored as **Euler yaw/pitch** (degrees) and converted to a view via @c lookAt;
- * there is no quaternion look mode (unlike @ref OrbitalCameraManipulator, which offers Euler orbit or
- * trackball quaternion rotation).
+ * Orientation is stored as a **camera-to-world quaternion** and applied via
+ * @c ICamera::setOrientationView (vnescene quaternion-primary camera). Yaw/pitch accessors are
+ * derived for compatibility and bookmarks.
  *
  * @par Movement model
  * WASD movement + mouse look. Two modes (see @ref FreeLookMode in interaction_types.h):
@@ -44,6 +45,8 @@ class ICamera;
 
 namespace vne::interaction {
 
+class TrackballBehavior;
+
 /**
  * @brief Free-look camera manipulator supporting FPS and Fly movement modes.
  *
@@ -63,13 +66,13 @@ namespace vne::interaction {
 class VNE_INTERACTION_API FreeLookManipulator final : public CameraManipulatorBase {
    public:
     /** Construct with default FPS settings (FreeLookMode::eFps, Y-up). */
-    FreeLookManipulator() noexcept = default;
-    ~FreeLookManipulator() noexcept override = default;
+    FreeLookManipulator() noexcept;
+    ~FreeLookManipulator() noexcept override;
 
     FreeLookManipulator(const FreeLookManipulator&) = delete;
     FreeLookManipulator& operator=(const FreeLookManipulator&) = delete;
-    FreeLookManipulator(FreeLookManipulator&&) noexcept = default;
-    FreeLookManipulator& operator=(FreeLookManipulator&&) noexcept = default;
+    FreeLookManipulator(FreeLookManipulator&&) noexcept;
+    FreeLookManipulator& operator=(FreeLookManipulator&&) noexcept;
 
     // -------------------------------------------------------------------------
     // ICameraManipulator
@@ -85,13 +88,13 @@ class VNE_INTERACTION_API FreeLookManipulator final : public CameraManipulatorBa
     /** Advance WASD movement for one frame. */
     void onUpdate(double delta_time) noexcept override;
 
-    /** Attach camera; syncs yaw/pitch from current camera orientation. */
+    /** Attach camera; syncs internal quaternion from @c ICamera::getOrientation(). */
     void setCamera(std::shared_ptr<vne::scene::ICamera> camera) noexcept override;
 
     /** Set viewport size in pixels. */
     void onResize(float width_px, float height_px) noexcept override;
 
-    /** Reset all input state (keys, looking flag) and re-sync yaw/pitch from the camera if attached. */
+    /** Reset all input state (keys, looking flag) and re-sync orientation from the camera if attached. */
     void resetState() noexcept override;
 
     // isEnabled / setEnabled inherited from CameraManipulatorBase
@@ -104,6 +107,14 @@ class VNE_INTERACTION_API FreeLookManipulator final : public CameraManipulatorBa
     void setMode(FreeLookMode mode) noexcept { mode_ = mode; }
     [[nodiscard]] FreeLookMode getMode() const noexcept { return mode_; }
 
+    /** Mouse-look style: yaw/pitch deltas or virtual trackball quaternion. */
+    void setRotationMode(FreeLookRotationMode mode) noexcept;
+    [[nodiscard]] FreeLookRotationMode getRotationMode() const noexcept { return rotation_mode_; }
+
+    /** Trackball sphere mapping when @ref getRotationMode is @c eTrackball. */
+    void setTrackballProjectionMode(TrackballProjectionMode mode) noexcept;
+    [[nodiscard]] TrackballProjectionMode getTrackballProjectionMode() const noexcept;
+
     /**
      * @brief Convenience: set mode from bool (true = eFps, false = eFly).
      * @param constrain true = FPS; false = Fly
@@ -115,15 +126,21 @@ class VNE_INTERACTION_API FreeLookManipulator final : public CameraManipulatorBa
     void setWorldUp(const vne::math::Vec3f& up) noexcept;
     [[nodiscard]] vne::math::Vec3f getWorldUp() const noexcept { return world_up_; }
 
-    /** Euler yaw in degrees (horizontal turn about world up in FPS; fly uses same storage). */
-    [[nodiscard]] float getYawDegrees() const noexcept { return yaw_deg_; }
-    /** Euler pitch in degrees (elevation; FPS clamps when applied via @ref setYawPitchDegrees or mouse look). */
-    [[nodiscard]] float getPitchDegrees() const noexcept { return pitch_deg_; }
+    /** Yaw in degrees derived from the stored quaternion (FPS: about @c world_up_; fly: camera-up plane). */
+    [[nodiscard]] float getYawDegrees() const noexcept;
+    /** Pitch in degrees derived from the stored quaternion. */
+    [[nodiscard]] float getPitchDegrees() const noexcept;
     /**
-     * Set yaw/pitch in degrees and refresh the camera look direction via @ref applyAnglesToCamera.
-     * No parameters beyond angles; returns @c void. FPS mode clamps pitch to [-89°, 89°].
+     * Set yaw/pitch in degrees and refresh the camera via @c lookAt (FPS clamps pitch to [-89°, 89°]).
      */
     void setYawPitchDegrees(float yaw_deg, float pitch_deg) noexcept;
+
+    /**
+     * @brief Camera-to-world orientation used for mouse look and movement (normalised on set).
+     * @details If @ref markAnglesDirty was used (e.g. external camera pose), re-reads the camera before returning.
+     */
+    [[nodiscard]] vne::math::Quatf getOrientation() const noexcept;
+    void setOrientation(const vne::math::Quatf& q) noexcept;
 
     /** Set movement speed in world units per second (default: 3.0). */
     void setMoveSpeed(float speed) noexcept { move_speed_ = std::max(0.0f, speed); }
@@ -170,8 +187,8 @@ class VNE_INTERACTION_API FreeLookManipulator final : public CameraManipulatorBa
      */
     void fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept;
 
-    /** Mark angles as stale (e.g. external camera move). @ref ensureAnglesSynced runs before look/zoom/fit paths. */
-    void markAnglesDirty() noexcept { angles_dirty_ = true; }
+    /** Mark orientation as stale (e.g. external camera move). Next @ref ensureAnglesSynced re-reads the camera. */
+    void markAnglesDirty() noexcept { orientation_dirty_ = true; }
 
    private:
     // ---- up-vector policy (FPS vs Fly) --------------------------------------
@@ -196,10 +213,12 @@ class VNE_INTERACTION_API FreeLookManipulator final : public CameraManipulatorBa
     [[nodiscard]] vne::math::Vec3f orthoPanUp(const vne::scene::OrthographicCamera& ortho,
                                               const vne::math::Vec3f& vertical_hint) const noexcept;
 
-    void syncAnglesFromCamera() noexcept;
-    /** If @ref angles_dirty_ and a camera is set, sync yaw/pitch from the camera pose and clear the flag. */
+    void syncOrientationFromCamera() noexcept;
+    /** If @ref orientation_dirty_ and a camera is set, sync quaternion from the camera and clear the flag. */
     void ensureAnglesSynced() noexcept;
-    void applyAnglesToCamera() noexcept;
+    void applyOrientationToCamera() noexcept;
+    void yawPitchFromOrientation(float& yaw_deg_out, float& pitch_deg_out) const noexcept;
+    void clampFpsPitch() noexcept;
     void applyDolly(float factor, float mx, float my) noexcept override;
 
     // perspCamera() / orthoCamera() inherited from CameraManipulatorBase
@@ -209,17 +228,22 @@ class VNE_INTERACTION_API FreeLookManipulator final : public CameraManipulatorBa
     // zoom_method_, zoom_scale_, fov_zoom_speed_ inherited from CameraManipulatorBase
 
     FreeLookMode mode_ = FreeLookMode::eFps;
+    FreeLookRotationMode rotation_mode_ = FreeLookRotationMode::eYawPitch;
+    TrackballProjectionMode trackball_projection_mode_ = TrackballProjectionMode::eHyperbolic;
     vne::math::Vec3f world_up_{0.0f, 1.0f, 0.0f};
 
-    float yaw_deg_ = 0.0f;
-    float pitch_deg_ = 0.0f;
+    vne::math::Quatf orientation_{0.0f, 0.0f, 0.0f, 1.0f};
+    vne::math::Quatf orientation_at_drag_start_{0.0f, 0.0f, 0.0f, 1.0f};
+
+    // TrackballBehavior is non-copyable; stored by pointer so FreeLookManipulator stays movable.
+    std::unique_ptr<TrackballBehavior> trackball_;
     float move_speed_ = 3.0f;
     float mouse_sensitivity_ = 0.15f;
     float sprint_mult_ = 4.0f;
     float slow_mult_ = 0.2f;
     float zoom_speed_ = 1.1f;
     bool handle_zoom_ = true;
-    bool angles_dirty_ = true;
+    bool orientation_dirty_ = true;
 
     FreeLookInputState input_state_;
 };

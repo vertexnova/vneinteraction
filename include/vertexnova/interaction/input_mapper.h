@@ -144,7 +144,7 @@ class VNE_INTERACTION_API InputMapper {
 
     /**
      * @brief Touch pinch (zoom) gesture.
-     * @param pinch Scale and center in pixels.
+     * @param pinch @c pinch.scale and center in pixels; @c scale is forwarded as @c zoom_factor (see @ref TouchPinch).
      * @param dt    Time delta in seconds.
      */
     void onTouchPinch(const TouchPinch& pinch, double dt) noexcept;

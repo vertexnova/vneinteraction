@@ -45,10 +45,9 @@ int runMedical3dInspectExample() {
     auto on_event = [&](const vne::events::Event& e, double dt) { ctrl.onEvent(e, dt); };
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Section A: Euler orbit (default) with inertia
+    // Section A: Virtual trackball orbit, eCoi pivot, inertia on
     // ─────────────────────────────────────────────────────────────────────────
-    VNE_LOG_INFO << "--- A: Euler orbit, eCoi pivot, inertia on ---";
-    ctrl.setRotationMode(vne::interaction::OrbitalRotationMode::eOrbit);
+    VNE_LOG_INFO << "--- A: Trackball orbit, eCoi pivot, inertia on ---";
     ctrl.setPivotMode(vne::interaction::OrbitPivotMode::eCoi);
 
     // Sensitivity
@@ -76,7 +75,7 @@ int runMedical3dInspectExample() {
                                                   50.0f,
                                                   30,
                                                   kDt);
-    runUpdate(ctrl, camera, 60, "Euler orbit after LMB drag + inertia decay");
+    runUpdate(ctrl, camera, 60, "Trackball orbit after LMB drag + inertia decay");
 
     // RMB drag — pan
     vne::interaction::examples::simulateMouseDrag(on_event,
@@ -94,10 +93,9 @@ int runMedical3dInspectExample() {
     runUpdate(ctrl, camera, 10, "After scroll zoom-in");
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Section B: Trackball mode with projection variants
+    // Section B: Trackball projection variants
     // ─────────────────────────────────────────────────────────────────────────
     VNE_LOG_INFO << "--- B: Trackball (eHyperbolic) ---";
-    ctrl.setRotationMode(vne::interaction::OrbitalRotationMode::eTrackball);
     manip.setTrackballProjectionMode(vne::interaction::TrackballProjectionMode::eHyperbolic);
     manip.setTrackballRotationScale(2.5f);
 
@@ -123,8 +121,7 @@ int runMedical3dInspectExample() {
                                                   kDt);
     runUpdate(ctrl, camera, 15, "Trackball eRim edge drag");
 
-    // Switch back to orbit for remaining sections
-    ctrl.setRotationMode(vne::interaction::OrbitalRotationMode::eOrbit);
+    manip.setTrackballProjectionMode(vne::interaction::TrackballProjectionMode::eHyperbolic);
 
     // ─────────────────────────────────────────────────────────────────────────
     // Section C: Anatomy landmark — fixed pivot
@@ -212,6 +209,9 @@ int runMedical3dInspectExample() {
 
     manip.setViewDirection(vne::interaction::ViewDirection::eIso);
     runUpdate(ctrl, camera, 10, "View preset: eIso");
+
+    manip.animateToViewDirection(vne::interaction::ViewDirection::eBack, 0.3f);
+    runUpdate(ctrl, camera, 25, "Animated view preset: eBack (0.3s ease)");
 
     // ─────────────────────────────────────────────────────────────────────────
     // Section G: Interaction speed step keys (optional runtime rebind)

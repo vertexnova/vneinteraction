@@ -1,7 +1,17 @@
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
- * --------------------------------------------------------------------- */
+ *
+ * Author:    Ajeet Singh Yadav
+ * Created:   March 2026
+ *
+ * Autodoc:   yes
+ * ----------------------------------------------------------------------
+ */
+
+/**
+ * InputMapper tests: rule matching, callback firing, scroll zoom, and modifier precedence.
+ */
 
 #include "vertexnova/interaction/input_mapper.h"
 #include "vertexnova/interaction/interaction_types.h"

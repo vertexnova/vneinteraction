@@ -12,10 +12,10 @@
 
 /**
  * @file 05_example.h
- * @brief Example 05 — robotic simulator: Inspect3D, Navigation3D, and Follow on one camera.
+ * @brief Example 05 — robotic simulator: Inspect3D and Navigation3D on one camera.
  *
- * Demonstrates runtime controller switching, FollowController with dynamic and static targets,
- * damping comparison, shared camera state, and reset() when switching modes.
+ * Demonstrates runtime controller switching, moving pivot via Inspect3D (effector path),
+ * orbit rotation damping, shared camera state, and reset() when switching modes.
  */
 
 namespace vne::interaction::examples {

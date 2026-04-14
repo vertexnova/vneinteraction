@@ -1,7 +1,17 @@
 /* ---------------------------------------------------------------------
  * Copyright (c) 2026 Ajeet Singh Yadav. All rights reserved.
  * Licensed under the Apache License, Version 2.0 (the "License")
- * --------------------------------------------------------------------- */
+ *
+ * Author:    Ajeet Singh Yadav
+ * Created:   March 2026
+ *
+ * Autodoc:   yes
+ * ----------------------------------------------------------------------
+ */
+
+/**
+ * Ortho2DManipulator tests: rotation, inertia, pan direction, and zoom-to-cursor.
+ */
 
 #include "vertexnova/interaction/ortho_2d_manipulator.h"
 #include "vertexnova/scene/camera/camera_factory.h"
