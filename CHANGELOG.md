@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0](https://github.com/vertexnova/vneinteraction/compare/v1.6.0...v1.7.0) (2026-04-14)
+
+
+### Features
+
+* Refactored the vneinteraction to use quaternion based implementation. Remove Follow manipulator and Eular Orbit Behavior. Also, minor refactoring to organize the code. ([#37](https://github.com/vertexnova/vneinteraction/issues/37)) ([6c5b484](https://github.com/vertexnova/vneinteraction/commit/6c5b48496a7ac86ecac4642e5f03caf778fdc0e3))
+
 ## [1.6.0](https://github.com/vertexnova/vneinteraction/compare/v1.5.5...v1.6.0) (2026-04-03)
 
 
