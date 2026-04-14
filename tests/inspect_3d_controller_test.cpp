@@ -67,6 +67,13 @@ TEST(Inspect3DController, SetOrbitAnimationEnabledFalseSnapFitWithoutSteppingUpd
     ctrl.fitToAABB(vne::math::Vec3f(9.0f, -1.0f, -1.0f), vne::math::Vec3f(11.0f, 1.0f, 1.0f));
     const auto coi = ctrl.orbitalCameraManipulator().getCenterOfInterestWorld();
     EXPECT_NEAR(coi.x(), 10.0f, 0.02f);
+    // Instant snap applies to the attached camera immediately (no onUpdate required).
+    const vne::math::Vec3f snap_target = cam->getTarget();
+    EXPECT_NEAR(snap_target.x(), coi.x(), 1e-2f);
+    EXPECT_NEAR(snap_target.y(), coi.y(), 1e-2f);
+    EXPECT_NEAR(snap_target.z(), coi.z(), 1e-2f);
+    const float snap_orbit = (cam->getPosition() - snap_target).length();
+    EXPECT_NEAR(snap_orbit, ctrl.orbitalCameraManipulator().getOrbitDistance(), 1e-2f);
     EXPECT_FLOAT_EQ(ctrl.orbitalCameraManipulator().getFitAnimationDuration(), 0.5f);
 
     ctrl.setOrbitAnimationEnabled(true);

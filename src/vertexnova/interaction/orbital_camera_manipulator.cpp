@@ -180,12 +180,31 @@ struct OrbitalTrackballRotation {
                                  + up * vne::math::sin(pitch_rad);
         const float front_len = front.length();
         front = (front_len < kVectorEpsilon) ? ref_fwd : (front / front_len);
+        const bool polar_pitch = std::abs(std::abs(pitch_rad) - vne::math::kHalfPi) <= 1e-3f;
         vne::math::Vec3f r = front.cross(up);
-        const float rlen = r.length();
-        if (rlen >= kVectorEpsilon) {
-            r /= rlen;
+        float rlen = r.length();
+        if (polar_pitch || rlen < kVectorEpsilon) {
+            // View along ±world up: front ∥ up — pick stable right from world +X, then +Z, then Gram–Schmidt.
+            const vne::math::Vec3f ref_axes[2] = {vne::math::Vec3f(1.0f, 0.0f, 0.0f),
+                                                  vne::math::Vec3f(0.0f, 0.0f, 1.0f)};
+            r = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
+            for (const auto& ref_axis : ref_axes) {
+                const vne::math::Vec3f cand = ref_axis.cross(front);
+                const float cl = cand.length();
+                if (cl >= kVectorEpsilon) {
+                    r = cand / cl;
+                    break;
+                }
+            }
+            if (r.length() < kVectorEpsilon) {
+                vne::math::Vec3f fallback(1.0f, 0.0f, 0.0f);
+                if (std::abs(fallback.dot(front)) > 1.0f - kVectorEpsilon) {
+                    fallback = vne::math::Vec3f(0.0f, 1.0f, 0.0f);
+                }
+                r = (fallback - front * fallback.dot(front)).normalized();
+            }
         } else {
-            r = vne::math::Vec3f(1.0f, 0.0f, 0.0f);
+            r /= rlen;
         }
         const vne::math::Vec3f u_raw = r.cross(front);
         const float ulen = u_raw.length();
@@ -295,8 +314,8 @@ constexpr float kYawDegRight = 90.0f;
 constexpr float kYawDegIso = 45.0f;
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-magic-numbers) — classic iso view pitch (degrees)
 constexpr float kPitchDegIso = -35.2643897f;
-/** Top/bottom view presets: magnitude below 90° to stay off the polar singularity with world up. */
-constexpr float kViewDirPitchLimitDeg = 89.0f;
+constexpr float kPitchDegTop = -90.0f;
+constexpr float kPitchDegBottom = 90.0f;
 
 void viewDirectionYawPitch(ViewDirection dir, float& yaw, float& pitch) noexcept {
     switch (dir) {
@@ -318,11 +337,11 @@ void viewDirectionYawPitch(ViewDirection dir, float& yaw, float& pitch) noexcept
             break;
         case ViewDirection::eTop:
             yaw = 0.0f;
-            pitch = -kViewDirPitchLimitDeg;
+            pitch = kPitchDegTop;
             break;
         case ViewDirection::eBottom:
             yaw = 0.0f;
-            pitch = kViewDirPitchLimitDeg;
+            pitch = kPitchDegBottom;
             break;
         case ViewDirection::eIso:
             yaw = kYawDegIso;
