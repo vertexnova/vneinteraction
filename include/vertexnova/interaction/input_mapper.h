@@ -137,7 +137,7 @@ class VNE_INTERACTION_API InputMapper {
 
     /**
      * @brief Touch pan gesture delta (ongoing move).
-     * @param pan Pan deltas in pixels.
+     * @param pan Deltas and current position in viewport pixels (position is required for trackball rotate/look).
      * @param dt  Time delta in seconds.
      */
     void onTouchPan(const TouchPan& pan, double dt) noexcept;
@@ -246,6 +246,10 @@ class VNE_INTERACTION_API InputMapper {
 
     int modifiers_ = 0;  //!< Current modifier bitmask (kModShift | kModCtrl | kModAlt); updated in @ref onKey.
     int active_touch_pan_rule_ = -1;  //!< Rule index for the active touch-pan gesture; -1 when idle.
+    /** Absolute touch position for @c eTouchPan deltas (trackball uses @c x_px/@c y_px on each move). */
+    float active_touch_pan_x_ = 0.0f;
+    float active_touch_pan_y_ = 0.0f;
+    bool active_touch_pan_pos_valid_ = false;  //!< Seeded by @ref onTouchPanBegin or first @ref onTouchPan (orphan).
 };
 
 }  // namespace vne::interaction

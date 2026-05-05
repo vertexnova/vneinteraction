@@ -304,6 +304,9 @@ void InputMapper::resetState() noexcept {
     std::fill(std::begin(active_key_rule_), std::end(active_key_rule_), -1);
     modifiers_ = 0;
     active_touch_pan_rule_ = -1;
+    active_touch_pan_x_ = 0.0f;
+    active_touch_pan_y_ = 0.0f;
+    active_touch_pan_pos_valid_ = false;
 }
 
 void InputMapper::emit(CameraActionType action, const CameraCommandPayload& payload, double dt) noexcept {
@@ -457,6 +460,9 @@ void InputMapper::onTouchPanBegin(float x, float y, double dt) noexcept {
     });
     if (i >= 0) {
         active_touch_pan_rule_ = i;
+        active_touch_pan_x_ = x;
+        active_touch_pan_y_ = y;
+        active_touch_pan_pos_valid_ = true;
         CameraCommandPayload payload;
         payload.x_px = x;
         payload.y_px = y;
@@ -473,10 +479,13 @@ void InputMapper::onTouchPanEnd(float x, float y, double dt) noexcept {
         emit(rules_[static_cast<std::size_t>(active_touch_pan_rule_)].on_release, payload, dt);
     }
     active_touch_pan_rule_ = -1;
+    active_touch_pan_pos_valid_ = false;
 }
 
 void InputMapper::onTouchPan(const TouchPan& pan, double dt) noexcept {
     CameraCommandPayload payload;
+    payload.x_px = pan.x_px;
+    payload.y_px = pan.y_px;
     payload.delta_x_px = pan.delta_x_px;
     payload.delta_y_px = pan.delta_y_px;
 

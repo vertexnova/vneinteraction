@@ -301,6 +301,30 @@ TEST(InputMapper, OnMouseScroll_UnclampedMidRangeMatchesPow) {
     EXPECT_FLOAT_EQ(*zoom, referenceScrollToZoomFactor(2.0f));
 }
 
+TEST(InputMapper, OnTouchPan_ForwardsAbsolutePositionForTrackballPayload) {
+    vne::interaction::InputMapper m;
+    m.setRules(vne::interaction::InputMapper::orbitPreset());
+    vne::interaction::CameraCommandPayload captured{};
+    m.setActionCallback([&captured](vne::interaction::CameraActionType a,
+                                    const vne::interaction::CameraCommandPayload& p,
+                                    double) {
+        if (a == vne::interaction::CameraActionType::eRotateDelta) {
+            captured = p;
+        }
+    });
+    m.onTouchPanBegin(100.0f, 200.0f, 0.016);
+    vne::interaction::TouchPan pan;
+    pan.delta_x_px = 5.0f;
+    pan.delta_y_px = -3.0f;
+    pan.x_px = 105.0f;
+    pan.y_px = 197.0f;
+    m.onTouchPan(pan, 0.016);
+    EXPECT_FLOAT_EQ(captured.x_px, 105.0f);
+    EXPECT_FLOAT_EQ(captured.y_px, 197.0f);
+    EXPECT_FLOAT_EQ(captured.delta_x_px, 5.0f);
+    EXPECT_FLOAT_EQ(captured.delta_y_px, -3.0f);
+}
+
 TEST(InputMapper, OnTouchPinch_InvertsScaleToMatchWheelZoomConvention) {
     vne::interaction::InputMapper m;
     vne::interaction::InputRule r;

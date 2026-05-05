@@ -215,10 +215,24 @@ struct VNE_INTERACTION_API KeyBinding {
         vne::events::ModifierKey::eModNone;  //!< Required modifiers; @c eModNone = none.
 };
 
-/** Touch pan gesture data with screen pixel deltas. */
+/**
+ * @brief Touch pan gesture: per-move deltas plus current finger position.
+ *
+ * @par Deltas
+ * Used by pan and yaw/pitch look (@c ePanDelta, yaw/pitch @c eLookDelta).
+ *
+ * @par Position
+ * @c x_px / @c y_px must be the current touch location in viewport pixels on each move. They are forwarded in
+ * @ref CameraCommandPayload for trackball rotation (@c eRotateDelta) and trackball free-look (@c eLookDelta), which
+ * project the cursor onto the virtual ball. The bundled @c dispatchMouseEvents path sets them from each @c eTouchMove;
+ * if you call @ref InputMapper::onTouchPan manually for trackball actions, set them too (defaults @c 0,0 are wrong for
+ * ball math).
+ */
 struct VNE_INTERACTION_API TouchPan final {
-    float delta_x_px = 0.0f;  //!< Horizontal pan delta in screen pixels
-    float delta_y_px = 0.0f;  //!< Vertical pan delta in screen pixels
+    float delta_x_px = 0.0f;  //!< Horizontal delta in screen pixels since last move
+    float delta_y_px = 0.0f;  //!< Vertical delta in screen pixels since last move
+    float x_px = 0.0f;        //!< Current touch X in viewport pixels (required for trackball rotate / look)
+    float y_px = 0.0f;        //!< Current touch Y in viewport pixels
 };
 
 /**

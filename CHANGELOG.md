@@ -48,6 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * **Trackball ortho dolly:** sync COI / orbit distance after `applyOrthoZoomToCursor`.
 * **`scaleTrackballQuaternion`:** tiny-angle path when `scale > 1` to reduce noise amplification.
 * **`interaction_utils`:** validate finite inverse of view-projection before unproject / ray (singular matrix fallback).
+* **Touch move:** `TouchPan` and `InputMapper::onTouchPan` now carry current `x_px`/`y_px` (from `eTouchMove`) so virtual-trackball rotate/look matches finger position instead of defaulting to `(0,0)`.
 
 ### Removed
 

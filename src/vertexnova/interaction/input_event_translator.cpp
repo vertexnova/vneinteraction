@@ -95,10 +95,14 @@ void dispatchMouseEvents(InputMapper& mapper,
             const auto& e = static_cast<const events::TouchMoveEvent&>(event);
             const float dx = cursor.first ? 0.0f : static_cast<float>(e.x() - cursor.last_x);
             const float dy = cursor.first ? 0.0f : static_cast<float>(e.y() - cursor.last_y);
+            const float x = static_cast<float>(e.x());
+            const float y = static_cast<float>(e.y());
             cursor.last_x = e.x();
             cursor.last_y = e.y();
             cursor.first = false;
-            mapper.onTouchPan(TouchPan{dx, dy}, dt);
+            // Absolute position required for virtual-trackball (eRotateDelta / trackball eLookDelta); deltas alone are
+            // enough for pan and yaw/pitch look.
+            mapper.onTouchPan(TouchPan{dx, dy, x, y}, dt);
             break;
         }
         case events::EventType::eTouchRelease: {
