@@ -129,7 +129,11 @@ class VNE_INTERACTION_API Ortho2DManipulator final : public CameraManipulatorBas
     }
     [[nodiscard]] float getRotationSensitivityDegreesPerPixel() const noexcept { return rotation_deg_per_px_; }
 
-    /** Get world units per pixel. */
+    /**
+     * @brief World units per pixel along the vertical axis (ortho height / viewport height).
+     * @note For non-square viewports, horizontal scale differs by aspect ratio; use viewport width/height
+     *       with ortho width if you need X scale.
+     */
     [[nodiscard]] float getWorldUnitsPerPixel() const noexcept;
 
     /**
