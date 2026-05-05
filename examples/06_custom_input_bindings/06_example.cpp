@@ -237,14 +237,22 @@ int runCustomInputBindingsExample() {
                                         const vne::interaction::CameraCommandPayload& payload,
                                         double dt) { rig.onAction(action, payload, dt); });
 
-        // Touch pan (two-finger drag)
-        vne::interaction::TouchPan pan_gesture;
-        pan_gesture.delta_x_px = 15.0f;
-        pan_gesture.delta_y_px = -8.0f;
+        // Touch pan → orbit preset maps to rotate; trackball needs absolute finger position each move, not just deltas.
+        mapper.onTouchPanBegin(kCx, kCy, kDt);
+        float tx = kCx;
+        float ty = kCy;
         for (int i = 0; i < 10; ++i) {
+            tx += 15.0f;
+            ty += -8.0f;
+            vne::interaction::TouchPan pan_gesture;
+            pan_gesture.delta_x_px = 15.0f;
+            pan_gesture.delta_y_px = -8.0f;
+            pan_gesture.x_px = tx;
+            pan_gesture.y_px = ty;
             mapper.onTouchPan(pan_gesture, kDt);
             rig.onUpdate(kDt);
         }
+        mapper.onTouchPanEnd(tx, ty, kDt);
         VNE_LOG_INFO << "  Touch pan applied";
 
         // Touch pinch (two-finger pinch-to-zoom): scale is the same multiplicative sense as scroll zoom_factor.

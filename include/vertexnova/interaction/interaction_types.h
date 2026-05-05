@@ -54,7 +54,7 @@ enum class GestureAction : std::uint8_t {
     ePan = 1,       //!< Pan (button + drag)
     eZoom = 2,      //!< Zoom (scroll wheel)
     eLook = 3,      //!< FPS-style look (button + drag)
-    eSetPivot = 4,  //!< Set orbit pivot via double-click (maps to orbit COI; see OrbitalCameraManipulator)
+    eSetPivot = 4,  //!< Set orbit pivot via double-click (maps to orbit COI; see TrackballManipulator)
 };
 
 /**
@@ -128,14 +128,13 @@ struct VNE_INTERACTION_API FreeLookInputState {
 };
 
 /**
- * @brief Drag/pan interaction state for OrbitalCameraManipulator.
+ * @brief Drag/pan interaction state for TrackballManipulator.
  */
 struct VNE_INTERACTION_API OrbitalInteractionState {
-    bool rotating = false;        //!< Rotating the camera by like Left mouse button or touch rotate
-    bool panning = false;         //!< Panning the camera by like Middle mouse button or touch pan
-    bool modifier_shift = false;  //!< Modifier shift key by like Shift key or touch modifier shift
-    float last_x_px = 0.0f;       //!< Last x position in pixels
-    float last_y_px = 0.0f;       //!< Last y position in pixels
+    bool rotating = false;   //!< Rotating the camera by like Left mouse button or touch rotate
+    bool panning = false;    //!< Panning the camera by like Middle mouse button or touch pan
+    float last_x_px = 0.0f;  //!< Last x position in pixels
+    float last_y_px = 0.0f;  //!< Last y position in pixels
 };
 
 // =============================================================================
@@ -143,7 +142,7 @@ struct VNE_INTERACTION_API OrbitalInteractionState {
 // =============================================================================
 
 /**
- * @brief Serializable state snapshot for @ref OrbitalCameraManipulator — orbit pivot (COI), camera–pivot
+ * @brief Serializable state snapshot for @ref TrackballManipulator — orbit pivot (COI), camera–pivot
  *        distance, virtual-trackball orientation quaternion, and world up.
  */
 struct VNE_INTERACTION_API TrackballCameraState {
@@ -216,17 +215,32 @@ struct VNE_INTERACTION_API KeyBinding {
         vne::events::ModifierKey::eModNone;  //!< Required modifiers; @c eModNone = none.
 };
 
-/** Touch pan gesture data with screen pixel deltas. */
+/**
+ * @brief Touch pan gesture: per-move deltas plus current finger position.
+ *
+ * @par Deltas
+ * Used by pan and yaw/pitch look (@c ePanDelta, yaw/pitch @c eLookDelta).
+ *
+ * @par Position
+ * @c x_px / @c y_px must be the current touch location in viewport pixels on each move. They are forwarded in
+ * @ref CameraCommandPayload for trackball rotation (@c eRotateDelta) and trackball free-look (@c eLookDelta), which
+ * project the cursor onto the virtual ball. The bundled @c dispatchMouseEvents path sets them from each @c eTouchMove;
+ * if you call @ref InputMapper::onTouchPan manually for trackball actions, set them too (defaults @c 0,0 are wrong for
+ * ball math).
+ */
 struct VNE_INTERACTION_API TouchPan final {
-    float delta_x_px = 0.0f;  //!< Horizontal pan delta in screen pixels
-    float delta_y_px = 0.0f;  //!< Vertical pan delta in screen pixels
+    float delta_x_px = 0.0f;  //!< Horizontal delta in screen pixels since last move
+    float delta_y_px = 0.0f;  //!< Vertical delta in screen pixels since last move
+    float x_px = 0.0f;        //!< Current touch X in viewport pixels (required for trackball rotate / look)
+    float y_px = 0.0f;        //!< Current touch Y in viewport pixels
 };
 
 /**
  * @brief Touch pinch (zoom) gesture data with scale and center position.
  *
- * @note @ref InputMapper::onTouchPinch passes @c scale through as @c zoom_factor for @c eZoomAtCursor
- *       (same wheel/dolly convention as scroll).
+ * @note @ref InputMapper::onTouchPinch maps @c scale to @c zoom_factor as @c 1/scale so pinch-out
+ *       (typically @c scale > 1) matches scroll-up / wheel zoom-in (factor &lt; 1), consistent with
+ *       @ref InputMapper::onMouseScroll.
  */
 struct VNE_INTERACTION_API TouchPinch final {
     float scale = 1.0f;        //!< Zoom scale factor (<1 zooms in, >1 zooms out)
@@ -309,7 +323,7 @@ enum class FreeLookRotationMode : std::uint8_t {
 
 /**
  * @brief Screen-to-sphere projection mode for virtual trackball rotation.
- * @see OrbitalCameraManipulator::setTrackballProjectionMode
+ * @see TrackballManipulator::setTrackballProjectionMode
  */
 enum class TrackballProjectionMode : std::uint8_t {
     eHyperbolic = 0,  //!< Spherical cap + hyperbolic continuation (default; isotropic feel)
@@ -320,7 +334,7 @@ enum class TrackballProjectionMode : std::uint8_t {
  * @brief Pivot control mode for orbit-style camera behaviors.
  *
  * Determines which point in world space the camera orbits around.
- * Used by OrbitalCameraManipulator and Inspect3DController.
+ * Used by TrackballManipulator and Inspect3DController.
  */
 enum class OrbitPivotMode : std::uint8_t {
     eCoi = 0,         //!< Pan moves COI in the view plane; camera looks at COI (default).

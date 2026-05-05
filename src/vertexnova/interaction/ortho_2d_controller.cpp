@@ -24,6 +24,8 @@
 namespace {
 CREATE_VNE_LOGGER_CATEGORY("vne.interaction.ortho_2d");
 
+constexpr float kEyeTargetDistanceEpsilon = 1e-6f;  //!< Degenerate eye–target distance guard in setViewDirection
+
 [[nodiscard]] bool hasMouseButtonChord(const std::vector<vne::interaction::InputRule>& rules,
                                        int button,
                                        int modifier_mask) noexcept {
@@ -51,6 +53,14 @@ class Ortho2DController::Impl {
    private:
     CameraControllerContext core_;
     std::shared_ptr<Ortho2DManipulator> ortho2d_behavior_;
+
+    // DOF and binding state — lives here so the ABI-stable header has no data members.
+    bool rotation_enabled_ = false;
+    bool pan_enabled_ = true;
+    bool zoom_enabled_ = true;
+    MouseBinding pan_binding_{MouseButton::eLeft, vne::events::ModifierKey::eModNone};
+    MouseBinding rotate_binding_{MouseButton::eRight, vne::events::ModifierKey::eModNone};
+    vne::events::ModifierKey zoom_scroll_modifier_ = vne::events::ModifierKey::eModNone;
 };
 
 // ---------------------------------------------------------------------------
@@ -120,14 +130,18 @@ void Ortho2DController::onUpdate(double dt) noexcept {
 // DOF
 // ---------------------------------------------------------------------------
 
+bool Ortho2DController::isRotationEnabled() const noexcept {
+    return impl_->rotation_enabled_;
+}
+
 void Ortho2DController::setRotationEnabled(bool enabled) noexcept {
     // End in-flight rotate before clearing rules / manipulator flags. Ortho2DManipulator always clears
     // rotating_ on eEndRotate; eBeginRotate / eRotateDelta remain gated by rotate_enabled_.
-    if (!enabled && rotation_enabled_ && impl_->ortho2d_behavior_) {
+    if (!enabled && impl_->rotation_enabled_ && impl_->ortho2d_behavior_) {
         const CameraCommandPayload p{};
         impl_->core_.rig.onAction(CameraActionType::eEndRotate, p, 0.0);
     }
-    rotation_enabled_ = enabled;
+    impl_->rotation_enabled_ = enabled;
     if (impl_->ortho2d_behavior_) {
         impl_->ortho2d_behavior_->setRotateEnabled(enabled);
     }
@@ -135,11 +149,11 @@ void Ortho2DController::setRotationEnabled(bool enabled) noexcept {
 }
 
 void Ortho2DController::setPanEnabled(bool enabled) noexcept {
-    if (!enabled && pan_enabled_ && impl_->ortho2d_behavior_) {
+    if (!enabled && impl_->pan_enabled_ && impl_->ortho2d_behavior_) {
         const CameraCommandPayload p{};
         impl_->core_.rig.onAction(CameraActionType::eEndPan, p, 0.0);
     }
-    pan_enabled_ = enabled;
+    impl_->pan_enabled_ = enabled;
     if (impl_->ortho2d_behavior_) {
         impl_->ortho2d_behavior_->setPanEnabled(enabled);
     }
@@ -147,22 +161,22 @@ void Ortho2DController::setPanEnabled(bool enabled) noexcept {
 }
 
 void Ortho2DController::setZoomEnabled(bool enabled) noexcept {
-    zoom_enabled_ = enabled;
+    impl_->zoom_enabled_ = enabled;
     rebuildRules();
 }
 
 void Ortho2DController::setPanButton(MouseButton btn, events::ModifierKey modifier) noexcept {
-    pan_binding_ = MouseBinding{btn, modifier};
+    impl_->pan_binding_ = MouseBinding{btn, modifier};
     rebuildRules();
 }
 
 void Ortho2DController::setRotateButton(MouseButton btn, events::ModifierKey modifier) noexcept {
-    rotate_binding_ = MouseBinding{btn, modifier};
+    impl_->rotate_binding_ = MouseBinding{btn, modifier};
     rebuildRules();
 }
 
 void Ortho2DController::setZoomScrollModifier(events::ModifierKey modifier) noexcept {
-    zoom_scroll_modifier_ = modifier;
+    impl_->zoom_scroll_modifier_ = modifier;
     rebuildRules();
 }
 
@@ -184,7 +198,7 @@ void Ortho2DController::setZoomSensitivity(float multiplier) noexcept {
     }
 }
 
-void Ortho2DController::setPanSensitivity(float damping) noexcept {
+void Ortho2DController::setPanDamping(float damping) noexcept {
     if (impl_->ortho2d_behavior_) {
         impl_->ortho2d_behavior_->setPanDamping(damping);
     }
@@ -193,6 +207,66 @@ void Ortho2DController::setPanSensitivity(float damping) noexcept {
 // ---------------------------------------------------------------------------
 // Convenience
 // ---------------------------------------------------------------------------
+
+void Ortho2DController::setViewDirection(ViewDirection dir) noexcept {
+    auto camera = impl_->core_.camera;
+    if (!camera) {
+        VNE_LOG_WARN << "Ortho2DController::setViewDirection: no camera attached";
+        return;
+    }
+
+    using vne::math::Vec3f;
+    const Vec3f target = camera->getTarget();
+    Vec3f eye = camera->getPosition();
+    float dist = (eye - target).length();
+    if (dist < kEyeTargetDistanceEpsilon) {
+        dist = 1.0f;
+    }
+
+    Vec3f new_pos;
+    Vec3f up;
+    switch (dir) {
+        case ViewDirection::eFront:
+            new_pos = target + Vec3f(0.0f, 0.0f, dist);
+            up = Vec3f(0.0f, 1.0f, 0.0f);
+            break;
+        case ViewDirection::eBack:
+            new_pos = target + Vec3f(0.0f, 0.0f, -dist);
+            up = Vec3f(0.0f, 1.0f, 0.0f);
+            break;
+        case ViewDirection::eLeft:
+            new_pos = target + Vec3f(-dist, 0.0f, 0.0f);
+            up = Vec3f(0.0f, 1.0f, 0.0f);
+            break;
+        case ViewDirection::eRight:
+            new_pos = target + Vec3f(dist, 0.0f, 0.0f);
+            up = Vec3f(0.0f, 1.0f, 0.0f);
+            break;
+        case ViewDirection::eTop:
+            new_pos = target + Vec3f(0.0f, dist, 0.0f);
+            up = Vec3f(0.0f, 0.0f, -1.0f);
+            break;
+        case ViewDirection::eBottom:
+            new_pos = target + Vec3f(0.0f, -dist, 0.0f);
+            up = Vec3f(0.0f, 0.0f, 1.0f);
+            break;
+        case ViewDirection::eIso: {
+            constexpr float kInvSqrt3 = 0.57735027f;
+            new_pos = target + Vec3f(dist * kInvSqrt3, dist * kInvSqrt3, dist * kInvSqrt3);
+            up = Vec3f(0.0f, 1.0f, 0.0f);
+            break;
+        }
+    }
+    camera->lookAt(new_pos, target, up);
+    camera->updateMatrices();
+    if (impl_->ortho2d_behavior_) {
+        impl_->ortho2d_behavior_->resetState();
+    }
+}
+
+float Ortho2DController::getWorldUnitsPerPixel() const noexcept {
+    return impl_->ortho2d_behavior_ ? impl_->ortho2d_behavior_->getWorldUnitsPerPixel() : 0.0f;
+}
 
 void Ortho2DController::fitToAABB(const vne::math::Vec3f& mn, const vne::math::Vec3f& mx) noexcept {
     if (impl_->ortho2d_behavior_) {
@@ -222,58 +296,57 @@ Ortho2DManipulator& Ortho2DController::ortho2DManipulator() noexcept {
 void Ortho2DController::rebuildRules() noexcept {
     std::vector<InputRule> rules;
 
-    if (pan_enabled_) {
-        const int pan_btn = static_cast<int>(pan_binding_.button);
-        const int pan_mod = static_cast<int>(pan_binding_.modifier_mask);
-        rules.push_back({
-            .trigger = InputRule::Trigger::eMouseButton,
-            .code = pan_btn,
-            .modifier_mask = pan_mod,
-            .on_press = CameraActionType::eBeginPan,
-            .on_release = CameraActionType::eEndPan,
-            .on_delta = CameraActionType::ePanDelta,
-        });
+    if (impl_->pan_enabled_) {
+        const int pan_btn = static_cast<int>(impl_->pan_binding_.button);
+        const int pan_mod = static_cast<int>(impl_->pan_binding_.modifier_mask);
+        rules.push_back(InputRule{InputRule::Trigger::eMouseButton,
+                                  pan_btn,
+                                  pan_mod,
+                                  CameraActionType::eBeginPan,
+                                  CameraActionType::eEndPan,
+                                  CameraActionType::ePanDelta});
         const int mid_btn = static_cast<int>(MouseButton::eMiddle);
         if (!hasMouseButtonChord(rules, mid_btn, kModNone)) {
-            rules.push_back({
-                .trigger = InputRule::Trigger::eMouseButton,
-                .code = mid_btn,
-                .modifier_mask = kModNone,
-                .on_press = CameraActionType::eBeginPan,
-                .on_release = CameraActionType::eEndPan,
-                .on_delta = CameraActionType::ePanDelta,
-            });
+            rules.push_back(InputRule{InputRule::Trigger::eMouseButton,
+                                      mid_btn,
+                                      kModNone,
+                                      CameraActionType::eBeginPan,
+                                      CameraActionType::eEndPan,
+                                      CameraActionType::ePanDelta});
         }
-        rules.push_back({
-            .trigger = InputRule::Trigger::eTouchPan,
-            .on_delta = CameraActionType::ePanDelta,
-        });
+        rules.push_back(InputRule{InputRule::Trigger::eTouchPan,
+                                  0,
+                                  kModNone,
+                                  CameraActionType::eBeginPan,
+                                  CameraActionType::eEndPan,
+                                  CameraActionType::ePanDelta});
     }
 
-    if (zoom_enabled_) {
-        rules.push_back({
-            .trigger = InputRule::Trigger::eScroll,
-            .modifier_mask = static_cast<int>(zoom_scroll_modifier_),
-            .on_delta = CameraActionType::eZoomAtCursor,
-        });
-        rules.push_back({
-            .trigger = InputRule::Trigger::eTouchPinch,
-            .on_delta = CameraActionType::eZoomAtCursor,
-        });
+    if (impl_->zoom_enabled_) {
+        rules.push_back(InputRule{InputRule::Trigger::eScroll,
+                                  0,
+                                  static_cast<int>(impl_->zoom_scroll_modifier_),
+                                  CameraActionType::eNone,
+                                  CameraActionType::eNone,
+                                  CameraActionType::eZoomAtCursor});
+        rules.push_back(InputRule{InputRule::Trigger::eTouchPinch,
+                                  0,
+                                  kModNone,
+                                  CameraActionType::eNone,
+                                  CameraActionType::eNone,
+                                  CameraActionType::eZoomAtCursor});
     }
 
-    if (rotation_enabled_) {
-        const int rot_btn = static_cast<int>(rotate_binding_.button);
-        const int rot_mod = static_cast<int>(rotate_binding_.modifier_mask);
+    if (impl_->rotation_enabled_) {
+        const int rot_btn = static_cast<int>(impl_->rotate_binding_.button);
+        const int rot_mod = static_cast<int>(impl_->rotate_binding_.modifier_mask);
         if (!hasMouseButtonChord(rules, rot_btn, rot_mod)) {
-            rules.push_back({
-                .trigger = InputRule::Trigger::eMouseButton,
-                .code = rot_btn,
-                .modifier_mask = rot_mod,
-                .on_press = CameraActionType::eBeginRotate,
-                .on_release = CameraActionType::eEndRotate,
-                .on_delta = CameraActionType::eRotateDelta,
-            });
+            rules.push_back(InputRule{InputRule::Trigger::eMouseButton,
+                                      rot_btn,
+                                      rot_mod,
+                                      CameraActionType::eBeginRotate,
+                                      CameraActionType::eEndRotate,
+                                      CameraActionType::eRotateDelta});
         }
     }
 

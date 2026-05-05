@@ -75,6 +75,15 @@ else()
 endif()
 message(STATUS "Detected platform: ${VNE_TARGET_PLATFORM}")
 
+# Xcode + embedded Apple OS: dependency dylibs (vnemath, vnescene, …) must not require a
+# DEVELOPMENT_TEAM. CI and library-only builds often have no signing identity.
+if(CMAKE_GENERATOR STREQUAL "Xcode")
+    if(VNE_TARGET_PLATFORM STREQUAL "iOS" OR VNE_TARGET_PLATFORM STREQUAL "visionOS")
+        set(CMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_ALLOWED "NO")
+        set(CMAKE_XCODE_ATTRIBUTE_CODE_SIGNING_REQUIRED "NO")
+    endif()
+endif()
+
 #==============================================================================
 # Platform-specific compile definitions
 #==============================================================================

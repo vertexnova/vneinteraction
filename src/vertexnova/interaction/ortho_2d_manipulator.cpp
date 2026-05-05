@@ -273,7 +273,15 @@ void Ortho2DManipulator::onUpdate(double delta_time) noexcept {
 bool Ortho2DManipulator::onAction(CameraActionType action,
                                   const CameraCommandPayload& payload,
                                   double delta_time) noexcept {
-    if (!enabled_ || !camera_) {
+    if (!enabled_) {
+        return false;
+    }
+    if (!camera_) {
+        if (!warned_no_camera_) {
+            warned_no_camera_ = true;
+            VNE_LOG_WARN << "Ortho2DManipulator: onAction called without a camera. "
+                            "Call setCamera() with an OrthographicCamera before processing input.";
+        }
         return false;
     }
     switch (action) {

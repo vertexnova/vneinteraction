@@ -27,7 +27,7 @@ It sits above **vnescene** / **vnemath** (cameras and math) and **vneevents** (e
 
 ## Features
 
-- **Manipulators**: `OrbitalCameraManipulator`, `FreeLookManipulator`, `Ortho2DManipulator`, `FollowManipulator` — each implements `ICameraManipulator`; orbit math is composed from `OrbitBehavior` / `TrackballBehavior` (Euler and virtual trackball).
+- **Manipulators**: `TrackballManipulator` (quaternion virtual-trackball orbit), `FreeLookManipulator`, `Ortho2DManipulator`, `FollowManipulator` — each implements `ICameraManipulator`; orbit math is composed from `OrbitBehavior` / `TrackballBehavior` (Euler and virtual trackball). `Inspect3DController::orbitalCameraManipulator()` is deprecated; prefer `trackballManipulator()`.
 - **Controllers**: `Inspect3DController`, `Navigation3DController`, `Ortho2DController`, `FollowController` — combine `InputMapper`, `CameraRig`, and manipulators with `onEvent` / `onUpdate`.
 - **InputMapper**: Presets (`orbitPreset`, `fpsPreset`, `gamePreset`, `cadPreset`, `orthoPreset`) and custom `InputRule` rows mapping to `CameraActionType` / `CameraCommandPayload`.
 - **CameraRig**: Multicast lifecycle and actions across multiple manipulators.

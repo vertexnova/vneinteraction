@@ -12,7 +12,7 @@
 #include "vertexnova/interaction/inspect_3d_controller.h"
 
 #include "vertexnova/interaction/input_mapper.h"
-#include "vertexnova/interaction/orbital_camera_manipulator.h"
+#include "vertexnova/interaction/trackball_manipulator.h"
 
 #include "camera_controller_impl.h"
 
@@ -46,7 +46,7 @@ class Inspect3DController::Impl {
 
    private:
     CameraControllerContext core_;
-    std::shared_ptr<OrbitalCameraManipulator> orbit_;
+    std::shared_ptr<TrackballManipulator> orbit_;
 
     bool rotation_enabled_ = true;
     bool pivot_on_double_click_enabled_ = true;
@@ -193,18 +193,22 @@ static std::vector<InputRule> buildInspectRules(const InspectRuleConfig& cfg) {
                                                 CameraActionType::eEndPan,
                                                 CameraActionType::ePanDelta));
         }
-        rules.push_back({
-            .trigger = InputRule::Trigger::eTouchPan,
-            .on_delta = CameraActionType::ePanDelta,
-        });
+        rules.push_back(InputRule{InputRule::Trigger::eTouchPan,
+                                  0,
+                                  kModNone,
+                                  CameraActionType::eBeginPan,
+                                  CameraActionType::eEndPan,
+                                  CameraActionType::ePanDelta});
     }
 
     if (cfg.zoom_enabled) {
         rules.push_back(makeScrollRule(static_cast<int>(cfg.zoom_scroll_modifier)));
-        rules.push_back({
-            .trigger = InputRule::Trigger::eTouchPinch,
-            .on_delta = CameraActionType::eZoomAtCursor,
-        });
+        rules.push_back(InputRule{InputRule::Trigger::eTouchPinch,
+                                  0,
+                                  kModNone,
+                                  CameraActionType::eNone,
+                                  CameraActionType::eNone,
+                                  CameraActionType::eZoomAtCursor});
     }
 
     if (cfg.increase_interaction_key != events::KeyCode::eUnknown) {
@@ -229,7 +233,7 @@ static std::vector<InputRule> buildInspectRules(const InspectRuleConfig& cfg) {
 
 Inspect3DController::Inspect3DController()
     : impl_(std::make_unique<Impl>()) {
-    impl_->orbit_ = std::make_shared<OrbitalCameraManipulator>();
+    impl_->orbit_ = std::make_shared<TrackballManipulator>();
     impl_->core_.rig.addManipulator(impl_->orbit_);
 
     impl_->user_rotation_speed_ = impl_->orbit_->getRotationSpeed();
@@ -493,7 +497,11 @@ InputMapper& Inspect3DController::inputMapper() noexcept {
     return impl_->core_.mapper;
 }
 
-OrbitalCameraManipulator& Inspect3DController::orbitalCameraManipulator() noexcept {
+TrackballManipulator& Inspect3DController::trackballManipulator() noexcept {
+    return *impl_->orbit_;
+}
+
+TrackballManipulator& Inspect3DController::orbitalCameraManipulator() noexcept {
     return *impl_->orbit_;
 }
 

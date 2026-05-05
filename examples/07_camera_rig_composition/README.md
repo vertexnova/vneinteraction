@@ -18,7 +18,7 @@ Demonstrates using `CameraRig` directly to build single and hybrid manipulator s
 
 ```text
 CameraRig
-  ├── OrbitalCameraManipulator   handles: eBeginRotate, eRotateDelta, eZoomAtCursor
+  ├── TrackballManipulator   handles: eBeginRotate, eRotateDelta, eZoomAtCursor
   └── FreeLookManipulator        handles: eMoveForward, eLookDelta
       setHandleZoom(false)       ← trackball owns eZoomAtCursor; fly ignores it
 ```

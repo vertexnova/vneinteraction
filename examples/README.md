@@ -31,7 +31,7 @@ Executables land in `build/bin/examples/`.
 | # | Directory | Controller(s) | What it covers |
 |---|-----------|---------------|----------------|
 | 01 | `01_library_info` | All | Version, all preset rule counts, controller defaults (Inspect / Navigate / Ortho2D), ZoomMethod and trackball-projection enums, CameraRig factory methods |
-| 02 | `02_medical_3d_inspect` | `Inspect3DController` | Virtual trackball orbit, projection modes (eHyperbolic / eRim), inertia damping, fixed landmark pivot, DOF toggles, all three ZoomMethod variants, fitToAABB, view presets, interaction speed step keys, `orbitalCameraManipulator()` escape hatch |
+| 02 | `02_medical_3d_inspect` | `Inspect3DController` | Virtual trackball orbit, projection modes (eHyperbolic / eRim), inertia damping, fixed landmark pivot, DOF toggles, all three ZoomMethod variants, fitToAABB, view presets, interaction speed step keys, `trackballManipulator()` escape hatch |
 | 03 | `03_medical_2d_slices` | `Ortho2DController` | Pan + scroll zoom, in-plane rotation, pan inertia, zoom sensitivity, button rebinding, ZoomMethod variants via `ortho2DManipulator()`, fitToAABB, DOF gating |
 | 04 | `04_game_editor_camera` | `Navigation3DController` | FPS and Fly modes, WASD + mouse look, sprint/slow, full 6-DoF key bindings (up/down), key rebinding to arrow keys, DOF gating, discrete speed-step keys, `freeLookManipulator()` escape hatch, ZoomMethod variants |
 | 05 | `05_robotic_simulator` | `Inspect3DController` + `Navigation3DController` | Runtime controller switching, moving pivot to track a simulated end-effector, orbit rotation damping comparison, reset-on-switch pattern |

@@ -27,7 +27,7 @@ Robotic simulation, game engines, editors — any application that needs multipl
 - Each frame: `inspect.setPivot(simulatedEndEffector(t))` then `onUpdate` — orbit around a moving point without a dedicated follow controller
 
 ### D — Orbit rotation damping
-- High vs low `orbitalCameraManipulator().setRotationDamping` after LMB drags — snappy vs floaty inertia decay
+- High vs low `trackballManipulator().setRotationDamping` after LMB drags — snappy vs floaty inertia decay
 
 ### E — Static pivot (robot base)
 - `setPivot` at a fixed world point and run updates — stable orbit centre

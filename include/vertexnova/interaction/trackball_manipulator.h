@@ -11,8 +11,8 @@
  */
 
 /**
- * @file orbital_camera_manipulator.h
- * @brief OrbitalCameraManipulator — quaternion virtual-trackball orbit camera manipulator.
+ * @file trackball_manipulator.h
+ * @brief TrackballManipulator — quaternion virtual-trackball orbit camera manipulator.
  *
  * Public orbit manipulator used by inspect-style controllers. Trackball sphere mapping is
  * implemented by internal helpers (\c src/vertexnova/interaction/detail/trackball_behavior.h);
@@ -46,10 +46,10 @@ class ICamera;
 
 namespace vne::interaction {
 
-/** Internal trackball rotation state (defined in orbital_camera_manipulator.cpp). */
+/** Internal trackball rotation state (defined in trackball_manipulator.cpp). */
 struct OrbitalTrackballRotation;
 
-/** Unified fit + view-direction animation state (defined in orbital_camera_manipulator.cpp). */
+/** Unified fit + view-direction animation state (defined in trackball_manipulator.cpp). */
 struct OrbitalAnimation;
 
 /**
@@ -78,16 +78,16 @@ struct OrbitalAnimation;
  *
  * @threadsafe Not thread-safe. All methods must be called from a single thread.
  */
-class VNE_INTERACTION_API OrbitalCameraManipulator final : public CameraManipulatorBase {
+class VNE_INTERACTION_API TrackballManipulator final : public CameraManipulatorBase {
    public:
     /** Construct with default settings (trackball rotation, eCoi pivot, Y-up). */
-    OrbitalCameraManipulator() noexcept;
-    ~OrbitalCameraManipulator() noexcept override;
+    TrackballManipulator() noexcept;
+    ~TrackballManipulator() noexcept override;
 
-    OrbitalCameraManipulator(const OrbitalCameraManipulator&) = delete;
-    OrbitalCameraManipulator& operator=(const OrbitalCameraManipulator&) = delete;
-    OrbitalCameraManipulator(OrbitalCameraManipulator&&) noexcept;
-    OrbitalCameraManipulator& operator=(OrbitalCameraManipulator&&) noexcept;
+    TrackballManipulator(const TrackballManipulator&) = delete;
+    TrackballManipulator& operator=(const TrackballManipulator&) = delete;
+    TrackballManipulator(TrackballManipulator&&) noexcept;
+    TrackballManipulator& operator=(TrackballManipulator&&) noexcept;
 
     // -------------------------------------------------------------------------
     // ICameraManipulator

@@ -37,7 +37,7 @@ namespace vne::interaction {
  *
  * All registered manipulators receive every CameraAction. Each manipulator silently
  * ignores actions it doesn't handle. This enables composition: e.g. adding
- * both OrbitalCameraManipulator and FreeLookManipulator creates a "game camera" that
+ * both TrackballManipulator and FreeLookManipulator creates a "game camera" that
  * supports both orbiting and WASD flight simultaneously.
  *
  * ### Usage
@@ -47,7 +47,7 @@ namespace vne::interaction {
  *
  * // Custom composition (game camera):
  * CameraRig rig;
- * rig.addManipulator(std::make_shared<OrbitalCameraManipulator>());
+ * rig.addManipulator(std::make_shared<TrackballManipulator>());
  * rig.addManipulator(std::make_shared<FreeLookManipulator>());
  * ```
  *
@@ -125,7 +125,7 @@ class VNE_INTERACTION_API CameraRig {
     // Convenience factory methods
     // -------------------------------------------------------------------------
 
-    /** Trackball rig: OrbitalCameraManipulator with quaternion virtual-trackball rotation. */
+    /** Trackball rig: TrackballManipulator with quaternion virtual-trackball rotation. */
     static CameraRig makeTrackball();
 
     /** FPS rig: FreeLookManipulator with world-up constraint. */

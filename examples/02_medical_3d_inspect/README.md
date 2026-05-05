@@ -1,6 +1,6 @@
 # 02 — Medical 3D Inspect
 
-Full coverage of `Inspect3DController` and `OrbitalCameraManipulator`.
+Full coverage of `Inspect3DController` and `TrackballManipulator`.
 
 ## Use case
 
@@ -12,7 +12,7 @@ Full coverage of `Inspect3DController` and `OrbitalCameraManipulator`.
 - `setPivotMode(eCoi)`
 - `setRotateSensitivity`, `setPanSensitivity`, `setZoomSensitivity`
 - `setRotationInertiaEnabled(true)`, `setPanInertiaEnabled(true)`
-- Fine-tune damping via escape hatch: `orbitalCameraManipulator().setRotationDamping / setPanDamping`
+- Fine-tune damping via escape hatch: `trackballManipulator().setRotationDamping / setPanDamping`
 - LMB drag → orbit, RMB drag → pan, scroll → zoom
 
 ### B — Trackball projection modes
@@ -37,7 +37,7 @@ Full coverage of `Inspect3DController` and `OrbitalCameraManipulator`.
 - `ZoomMethod::eDollyToCoi` — moves camera along view ray
 
 ### F — fitToAABB + view direction presets
-- `fitToAABB` with 60-frame smooth animation (call `orbitalCameraManipulator().setFitAnimationDuration(0.f)` before `fitToAABB` if you want an instant snap)
+- `fitToAABB` with 60-frame smooth animation (call `trackballManipulator().setFitAnimationDuration(0.f)` before `fitToAABB` if you want an instant snap)
 - `setViewDirection(eTop / eFront / eIso)` — instant
 - `animateToViewDirection(..., 0.3f)` — eased rotation to a preset (same escape hatch as damping)
 

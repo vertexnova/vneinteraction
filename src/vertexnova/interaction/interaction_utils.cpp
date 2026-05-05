@@ -16,6 +16,32 @@
 
 namespace vne::interaction {
 
+namespace {
+
+[[nodiscard]] bool mat4AllFinite(const vne::math::Mat4f& m) noexcept {
+    static constexpr std::size_t kCols = 4;
+    static constexpr std::size_t kRows = 4;
+    for (std::size_t c = 0; c < kCols; ++c) {
+        for (std::size_t r = 0; r < kRows; ++r) {
+            const float x = m[c][r];
+            if (!std::isfinite(x)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+[[nodiscard]] vne::math::Mat4f safeInverseViewProjection(const vne::math::Mat4f& vp) noexcept {
+    const vne::math::Mat4f inv = vp.inverse();
+    if (!mat4AllFinite(inv)) {
+        return vne::math::Mat4f::identity();
+    }
+    return inv;
+}
+
+}  // namespace
+
 vne::math::Quatf scaleTrackballQuaternion(vne::math::Quatf q, float scale) noexcept {
     if (scale <= 0.0f) {
         return vne::math::Quatf::identity();
@@ -24,6 +50,16 @@ vne::math::Quatf scaleTrackballQuaternion(vne::math::Quatf q, float scale) noexc
         q = vne::math::Quatf(-q.x, -q.y, -q.z, -q.w);
     }
     const float imag_sq = q.x * q.x + q.y * q.y + q.z * q.z;
+    constexpr float kTinyAngleRad = 1e-6f;
+    if (scale > 1.0f && imag_sq > 0.0f) {
+        const float ang = 2.0f * std::acos(std::clamp(q.w, -1.0f, 1.0f));
+        const float ang_scaled = ang * scale;
+        // Identity only if the scaled rotation (same as passed to fromAxisAngle below) is still negligible;
+        // a tiny raw ang can become meaningful when scale > 1.
+        if (ang_scaled < kTinyAngleRad) {
+            return vne::math::Quatf::identity();
+        }
+    }
     constexpr float kImagEpsSq = 1e-12f;
     if (imag_sq < kImagEpsSq) {
         if (scale <= 1.0f) {
@@ -76,7 +112,7 @@ vne::math::Vec3f mouseUnproject(
     const vne::scene::ICamera& camera, float mx, float my, float depth, const vne::math::Viewport& vp) noexcept {
     const vne::math::GraphicsApi api = camera.getGraphicsApi();
     const vne::math::Vec2f screen = mouseToApiScreen(mx, my, vp, api);
-    const vne::math::Mat4f inv_vp = camera.getViewProjectionMatrix().inverse();
+    const vne::math::Mat4f inv_vp = safeInverseViewProjection(camera.getViewProjectionMatrix());
     return vne::math::unproject(vne::math::Vec3f(screen.x(), screen.y(), depth), inv_vp, vp, api);
 }
 
@@ -86,7 +122,7 @@ vne::math::Ray mouseToWorldRay(const vne::scene::ICamera& camera,
                                const vne::math::Viewport& vp) noexcept {
     const vne::math::GraphicsApi api = camera.getGraphicsApi();
     const vne::math::Vec2f screen = mouseToApiScreen(mx, my, vp, api);
-    const vne::math::Mat4f inv_vp = camera.getViewProjectionMatrix().inverse();
+    const vne::math::Mat4f inv_vp = safeInverseViewProjection(camera.getViewProjectionMatrix());
     return vne::math::screenToWorldRay(screen, inv_vp, vp, camera.getPosition(), api);
 }
 

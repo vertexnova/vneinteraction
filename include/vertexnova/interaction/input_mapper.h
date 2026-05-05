@@ -34,7 +34,7 @@
  *
  * @par Separation from orbit math
  * @ref InputMapper decides which gestures produce @c eBeginRotate, @c ePanDelta, @c eZoomAtCursor,
- * etc. Orbit/trackball geometry lives inside @ref OrbitalCameraManipulator via internal helpers
+ * etc. Orbit/trackball geometry lives inside @ref TrackballManipulator via internal helpers
  * (\c src/vertexnova/interaction/detail/ in sources), not as separate public types.
  */
 
@@ -136,11 +136,23 @@ class VNE_INTERACTION_API InputMapper {
     void onKey(int key, bool pressed, double dt) noexcept;
 
     /**
-     * @brief Touch pan gesture.
-     * @param pan Pan deltas in pixels.
+     * @brief Touch pan gesture delta (ongoing move).
+     * @param pan Deltas and current position in viewport pixels (position is required for trackball rotate/look).
      * @param dt  Time delta in seconds.
      */
     void onTouchPan(const TouchPan& pan, double dt) noexcept;
+
+    /**
+     * @brief Touch pan gesture begin (first finger contact).
+     * Emits the @c on_press action of the active touch-pan rule (e.g. @c eBeginRotate for orbit).
+     */
+    void onTouchPanBegin(float x, float y, double dt) noexcept;
+
+    /**
+     * @brief Touch pan gesture end (finger lifted).
+     * Emits the @c on_release action of the active touch-pan rule (e.g. @c eEndRotate for orbit).
+     */
+    void onTouchPanEnd(float x, float y, double dt) noexcept;
 
     /**
      * @brief Touch pinch (zoom) gesture.
@@ -194,7 +206,7 @@ class VNE_INTERACTION_API InputMapper {
     void bindScroll(GestureAction action, vne::events::ModifierKey modifier = vne::events::ModifierKey::eModNone);
 
     /**
-     * @brief Bind double-click to `eSetPivotAtCursor` (orbit COI along view direction; see OrbitalCameraManipulator).
+     * @brief Bind double-click to `eSetPivotAtCursor` (orbit COI along view direction; see TrackballManipulator).
      * Replaces existing double-click rule for this action.
      */
     void bindDoubleClick(GestureAction action,
@@ -233,6 +245,11 @@ class VNE_INTERACTION_API InputMapper {
         {};  //!< Filled with @c -1 in @ref resetState; rule index for key press/release pairing.
 
     int modifiers_ = 0;  //!< Current modifier bitmask (kModShift | kModCtrl | kModAlt); updated in @ref onKey.
+    int active_touch_pan_rule_ = -1;  //!< Rule index for the active touch-pan gesture; -1 when idle.
+    /** Absolute touch position for @c eTouchPan deltas (trackball uses @c x_px/@c y_px on each move). */
+    float active_touch_pan_x_ = 0.0f;
+    float active_touch_pan_y_ = 0.0f;
+    bool active_touch_pan_pos_valid_ = false;  //!< Seeded by @ref onTouchPanBegin or first @ref onTouchPan (orphan).
 };
 
 }  // namespace vne::interaction

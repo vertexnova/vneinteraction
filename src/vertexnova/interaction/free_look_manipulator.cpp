@@ -37,7 +37,7 @@ constexpr float kFitToAabbDistFactor = 2.5f;
 constexpr float kFitToAabbMargin = 1.1f;
 constexpr float kPerspWorldUnitsScale = 2.0f;
 constexpr float kHalf = 0.5f;
-// Matches OrbitalCameraManipulator default rotation_speed × trackball_rotation_scale (0.2 × 2.5) tuning.
+// Matches TrackballManipulator default rotation_speed × trackball_rotation_scale (0.2 × 2.5) tuning.
 constexpr float kFreeLookTrackballScale = 2.5f;
 /** Largest @c float strictly below 1.0 (IEEE-754; same bits as @c std::nextafter(1.0f, 0.0f)) for stable @c asin while
  * honoring the ±89° pitch guard in @ref FreeLookManipulator::clampFpsPitch. */

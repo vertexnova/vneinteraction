@@ -14,11 +14,11 @@ Shows all state structs from `interaction_types.h` and demonstrates bookmark/und
 
 | Struct | Manipulator | Fields |
 |--------|-------------|--------|
-| `OrbitCameraState` | `OrbitalCameraManipulator` (eOrbit) | coi_world, distance, world_up, yaw_deg, pitch_deg |
-| `TrackballCameraState` | `OrbitalCameraManipulator` (eTrackball) | coi_world, distance, rotation (Quatf), world_up |
+| `OrbitCameraState` | `TrackballManipulator` (eOrbit) | coi_world, distance, world_up, yaw_deg, pitch_deg |
+| `TrackballCameraState` | `TrackballManipulator` (eTrackball) | coi_world, distance, rotation (Quatf), world_up |
 | `FreeCameraState` | `FreeLookManipulator` | position, yaw_deg, pitch_deg, up_hint |
 | `FreeLookInputState` | `FreeLookManipulator` | per-frame held-key flags |
-| `OrbitalInteractionState` | `OrbitalCameraManipulator` | per-frame drag-tracking flags |
+| `OrbitalInteractionState` | `TrackballManipulator` | per-frame drag-tracking flags |
 
 ## Restore pattern
 

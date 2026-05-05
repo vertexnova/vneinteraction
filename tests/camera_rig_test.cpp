@@ -11,7 +11,7 @@
 
 #include "vertexnova/interaction/camera_rig.h"
 #include "vertexnova/interaction/free_look_manipulator.h"
-#include "vertexnova/interaction/orbital_camera_manipulator.h"
+#include "vertexnova/interaction/trackball_manipulator.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
 
@@ -44,7 +44,7 @@ TEST(CameraRig, MakeOrtho2D) {
 
 TEST(CameraRig, AddRemoveManipulator) {
     vne::interaction::CameraRig rig;
-    auto b = std::make_shared<vne::interaction::OrbitalCameraManipulator>();
+    auto b = std::make_shared<vne::interaction::TrackballManipulator>();
     rig.addManipulator(b);
     EXPECT_EQ(rig.manipulators().size(), 1u);
     rig.clearManipulators();

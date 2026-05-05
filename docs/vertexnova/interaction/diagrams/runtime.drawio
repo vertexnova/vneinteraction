@@ -96,7 +96,7 @@
         <mxCell id="o3" value="3 · InputMapper&#10;eBeginRotate → eRotateDelta* → eEndRotate" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2E1A07;strokeColor=#F28C5E;strokeWidth=2;fontSize=11;fontColor=#EBEBF0;" parent="1" vertex="1">
           <mxGeometry x="385" y="240" width="350" height="52" as="geometry"/>
         </mxCell>
-        <mxCell id="o4" value="4 · OrbitalCameraManipulator&#10;onAction → beginRotate / dragRotate / endRotate" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3A3A3C;strokeColor=#F28C5E;strokeWidth=2;fontSize=11;fontColor=#EBEBF0;" parent="1" vertex="1">
+        <mxCell id="o4" value="4 · TrackballManipulator&#10;onAction → beginRotate / dragRotate / endRotate" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3A3A3C;strokeColor=#F28C5E;strokeWidth=2;fontSize=11;fontColor=#EBEBF0;" parent="1" vertex="1">
           <mxGeometry x="385" y="320" width="350" height="52" as="geometry"/>
         </mxCell>
         <mxCell id="o5" value="5 · IRotationStrategy (e.g. EulerOrbitStrategy)&#10;OrbitBehavior::applyDrag · inertia stepInertia" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2C2C2E;strokeColor=#48484A;strokeWidth=2;fontSize=11;fontColor=#EBEBF0;" parent="1" vertex="1">

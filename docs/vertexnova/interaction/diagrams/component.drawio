@@ -23,7 +23,7 @@
                 <mxCell id="rig_pub" value="CameraRig&#10;InputMapper&#10;ICameraController" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2E1A07;strokeColor=#E8622A;fontSize=11;fontColor=#EBEBF0;" parent="bg_pub" vertex="1">
                     <mxGeometry x="640" y="60" width="160" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="manipulators_pub" value="OrbitalCameraManipulator&#10;FreeLookManipulator&#10;Ortho2DManipulator&#10;FollowManipulator&#10;CameraManipulatorBase" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3A3A3C;strokeColor=#48484A;fontSize=11;fontColor=#EBEBF0;" parent="bg_pub" vertex="1">
+                <mxCell id="manipulators_pub" value="TrackballManipulator&#10;FreeLookManipulator&#10;Ortho2DManipulator&#10;FollowManipulator&#10;CameraManipulatorBase" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3A3A3C;strokeColor=#48484A;fontSize=11;fontColor=#EBEBF0;" parent="bg_pub" vertex="1">
                     <mxGeometry x="840" y="45" width="220" height="90" as="geometry"/>
                 </mxCell>
                 <mxCell id="iface_pub" value="ICameraManipulator&#10;ICameraController" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3A3A3C;strokeColor=#48484A;fontSize=11;fontColor=#EBEBF0;" parent="bg_pub" vertex="1">
@@ -40,7 +40,7 @@
                 <mxCell id="ctrl_impl" value="camera_controller_impl&#10;(CameraControllerContext)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3A3A3C;strokeColor=#48484A;fontSize=11;fontColor=#EBEBF0;" parent="bg_impl" vertex="1">
                     <mxGeometry x="260" y="60" width="200" height="60" as="geometry"/>
                 </mxCell>
-                <mxCell id="strategies" value="orbital_camera_manipulator.cpp&#10;quaternion orbit · inertia · easing" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3A3A3C;strokeColor=#F28C5E;fontSize=11;fontColor=#EBEBF0;" parent="bg_impl" vertex="1">
+                <mxCell id="strategies" value="trackball_manipulator.cpp&#10;quaternion orbit · inertia · easing" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3A3A3C;strokeColor=#F28C5E;fontSize=11;fontColor=#EBEBF0;" parent="bg_impl" vertex="1">
                     <mxGeometry x="500" y="50" width="220" height="80" as="geometry"/>
                 </mxCell>
                 <mxCell id="behaviors" value="detail/trackball_behavior.*&#10;screen-to-sphere mapping" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3A3A3C;strokeColor=#48484A;fontSize=11;fontColor=#EBEBF0;" parent="bg_impl" vertex="1">

@@ -35,19 +35,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+* **`TrackballManipulator`** — orbit manipulator API (`trackball_manipulator.h`). `Inspect3DController::trackballManipulator()`; `orbitalCameraManipulator()` is deprecated.
+* **Docs:** [`docs/vnetestbed_interaction_debug.md`](docs/vnetestbed_interaction_debug.md) for troubleshooting reversed pan/look in app integration.
+* **Tests:** touch pinch factor `1/scale`, ortho dolly COI sync, `setPivot` → `eCoi`, edge cases (extreme aspect pan, near-polar FreeLook).
+
+### Fixed
+
+* **Inspect3D** touch pan: `eBeginPan` / `eEndPan` for correct pan state and inertia.
+* **Navigation3D** touch pan: `eBeginLook` / `eLookDelta` / `eEndLook` when look is enabled.
+* **Trackball ortho dolly:** sync COI / orbit distance after `applyOrthoZoomToCursor`.
+* **`scaleTrackballQuaternion`:** tiny-angle path when `scale > 1` to reduce noise amplification.
+* **`interaction_utils`:** validate finite inverse of view-projection before unproject / ray (singular matrix fallback).
+* **Touch move:** `TouchPan` and `InputMapper::onTouchPan` now carry current `x_px`/`y_px` (from `eTouchMove`) so virtual-trackball rotate/look matches finger position instead of defaulting to `(0,0)`.
+
+### Removed
+
+* **`orbital_camera_manipulator.h`** — deprecated compatibility shim removed. Include `trackball_manipulator.h` and use `TrackballManipulator` (replace former `OrbitalCameraManipulator` uses).
+* **`Navigation3DController::freeLookBehavior()`** — use **`freeLookManipulator()`** only (temporary compatibility shim removed).
+
 ### Changed
 
 * **Type headers consolidated**: `CameraActionType`, `CameraCommandPayload`, gesture and behavioral enums, camera state PODs, and `InputRule` / binding types live in a single [`interaction_types.h`](include/vertexnova/interaction/interaction_types.h). The former shim headers `camera_action.h`, `camera_state.h`, and `input_binding.h` are **removed** — include `interaction_types.h` or [`interaction.h`](include/vertexnova/interaction/interaction.h) instead.
 * **Internal math merged**: `camera_math` and `view_math` are replaced by [`interaction_utils.h`](src/vertexnova/interaction/interaction_utils.h) / [`interaction_utils.cpp`](src/vertexnova/interaction/interaction_utils.cpp) (still internal, not part of the installed public header set).
 
-### Removed
-
-* **`Navigation3DController::freeLookBehavior()`** — use **`freeLookManipulator()`** only (temporary compatibility shim removed).
-
 ### Breaking
 
 * **Type includes**: `vertexnova/interaction/camera_action.h`, `camera_state.h`, and `input_binding.h` are removed; use `vertexnova/interaction/interaction_types.h` (or the umbrella `interaction.h`).
-* **Manipulator naming (Trackball / Orbit stay `*Behavior`)**: Composable camera types are renamed from `*Behavior` to `*Manipulator`; `ICameraBehavior` → `ICameraManipulator`; `CameraBehaviorBase` → `CameraManipulatorBase`. Headers: `camera_manipulator.h`, `camera_manipulator_base.h`, `orbital_camera_manipulator.h`, `free_look_manipulator.h`, `ortho_2d_manipulator.h`, `follow_manipulator.h`. Internal helpers: `manipulator_utils.*` (was `behavior_utils.*`). **`TrackballBehavior`** / **`OrbitBehavior`** and headers `trackball_behavior.h` / `orbit_behavior.h` are unchanged.
+* **Manipulator naming (Trackball / Orbit stay `*Behavior`)**: Composable camera types are renamed from `*Behavior` to `*Manipulator`; `ICameraBehavior` → `ICameraManipulator`; `CameraBehaviorBase` → `CameraManipulatorBase`. Headers: `camera_manipulator.h`, `camera_manipulator_base.h`, `trackball_manipulator.h`, `free_look_manipulator.h`, `ortho_2d_manipulator.h`, `follow_manipulator.h`. Internal helpers: `manipulator_utils.*` (was `behavior_utils.*`). **`TrackballBehavior`** / **`OrbitBehavior`** and headers `trackball_behavior.h` / `orbit_behavior.h` are unchanged.
 * **`CameraRig`**: `addBehavior` / `removeBehavior` / `clearBehaviors` / `behaviors()` → `addManipulator` / `removeManipulator` / `clearManipulators` / `manipulators()`.
 * **Controllers**: `Inspect3DController::orbitalCameraBehavior()` → `orbitalCameraManipulator()`; `Navigation3DController::freeLookBehavior()` → `freeLookManipulator()`; `orbitalCameraBehavior()` → `orbitalCameraManipulator()`; `Ortho2DController::ortho2DBehavior()` → `ortho2DManipulator()`; `FollowController::followBehavior()` → `followManipulator()`.
 
@@ -58,7 +74,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Removed
 
 * **`CameraRig::makeOrthoPanZoom()`** — use **`CameraRig::makeOrtho2D()`** instead.
-* **`CameraRig::makeGameCamera()`** — compose **`OrbitalCameraManipulator`** + **`FreeLookManipulator`** on **`CameraRig`** (see `camera_rig.h` usage example), or use **`Inspect3DController`** / **`Navigation3DController`** as appropriate.
+* **`CameraRig::makeGameCamera()`** — compose **`TrackballManipulator`** + **`FreeLookManipulator`** on **`CameraRig`** (see `camera_rig.h` usage example), or use **`Inspect3DController`** / **`Navigation3DController`** as appropriate.
 
 ### Changed
 

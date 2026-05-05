@@ -15,7 +15,7 @@
  * @brief Example 08 — save and restore camera state (orbit, trackball, free-look) and related snapshots.
  *
  * Covers OrbitCameraState, TrackballCameraState, FreeCameraState bookmark/undo patterns, reading
- * live fields from OrbitalCameraManipulator and FreeLookManipulator, FreeLookInputState diagnostics,
+ * live fields from TrackballManipulator and FreeLookManipulator, FreeLookInputState diagnostics,
  * and OrbitalInteractionState via the manipulator API. Library structs are plain data; persistence
  * is application-defined.
  */

@@ -19,7 +19,7 @@
                     <mxGeometry x="360" y="40" width="240" height="190" as="geometry"/>
                 </mxCell>
 
-                <mxCell id="Orbital" value="OrbitalCameraManipulator&#10;────────────────&#10;-rotation_mode_&#10;-pivot_mode_&#10;-coi_world_&#10;-orbit_distance_&#10;-rotation_strategy_ «unique_ptr»&#10;────────────────&#10;+setRotationMode(OrbitalRotationMode)&#10;+setTrackballProjectionMode(...)&#10;+setPivotMode(OrbitPivotMode)&#10;+fitToAABB(min,max)&#10;+setViewDirection(ViewDirection)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#3A3A3C;strokeColor=#F28C5E;strokeWidth=2;fontSize=11;align=left;spacingLeft=6;fontColor=#EBEBF0;" parent="1" vertex="1">
+                <mxCell id="Orbital" value="TrackballManipulator&#10;────────────────&#10;-rotation_mode_&#10;-pivot_mode_&#10;-coi_world_&#10;-orbit_distance_&#10;-rotation_strategy_ «unique_ptr»&#10;────────────────&#10;+setRotationMode(OrbitalRotationMode)&#10;+setTrackballProjectionMode(...)&#10;+setPivotMode(OrbitPivotMode)&#10;+fitToAABB(min,max)&#10;+setViewDirection(ViewDirection)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#3A3A3C;strokeColor=#F28C5E;strokeWidth=2;fontSize=11;align=left;spacingLeft=6;fontColor=#EBEBF0;" parent="1" vertex="1">
                     <mxGeometry x="680" y="20" width="280" height="200" as="geometry"/>
                 </mxCell>
 
@@ -51,7 +51,7 @@
                     <mxGeometry x="40" y="240" width="240" height="150" as="geometry"/>
                 </mxCell>
 
-                <mxCell id="Inspect" value="Inspect3DController&#10;────────────────&#10;-impl_ «Pimpl»&#10;  rig, mapper, orbital_manip&#10;────────────────&#10;+orbitalCameraManipulator()&#10;+setPivot(Vec3f,space)&#10;+fitToAABB(min,max)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2E1A07;strokeColor=#E8622A;strokeWidth=2;fontSize=11;align=left;spacingLeft=6;fontColor=#EBEBF0;" parent="1" vertex="1">
+                <mxCell id="Inspect" value="Inspect3DController&#10;────────────────&#10;-impl_ «Pimpl»&#10;  rig, mapper, trackball_manip&#10;────────────────&#10;+trackballManipulator()&#10;+setPivot(Vec3f,space)&#10;+fitToAABB(min,max)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#2E1A07;strokeColor=#E8622A;strokeWidth=2;fontSize=11;align=left;spacingLeft=6;fontColor=#EBEBF0;" parent="1" vertex="1">
                     <mxGeometry x="360" y="500" width="260" height="150" as="geometry"/>
                 </mxCell>
 

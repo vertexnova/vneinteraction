@@ -159,7 +159,7 @@ class VNE_INTERACTION_API FreeLookManipulator final : public CameraManipulatorBa
     [[nodiscard]] float getSlowMultiplier() const noexcept { return slow_mult_; }
 
     /**
-     * Zoom exponent (>= 0.01), same semantics as OrbitalCameraManipulator::setZoomSpeed: effective =
+     * Zoom exponent (>= 0.01), same semantics as TrackballManipulator::setZoomSpeed: effective =
      * pow(scroll_factor, zoom_speed_) from the mapper’s multiplicative factor. Perspective dolly moves along
      * view by (1 − effective) × eye–target distance per step. Values > 1 amplify wheel zoom; < 1 attenuate.
      */
@@ -171,7 +171,7 @@ class VNE_INTERACTION_API FreeLookManipulator final : public CameraManipulatorBa
 
     /**
      * @brief Enable or disable zoom handling for this manipulator (default: true).
-     * Disable when another manipulator in the same rig (e.g. OrbitalCameraManipulator)
+     * Disable when another manipulator in the same rig (e.g. TrackballManipulator)
      * should own eZoomAtCursor to avoid double-zoom per scroll tick.
      */
     void setHandleZoom(bool enable) noexcept { handle_zoom_ = enable; }

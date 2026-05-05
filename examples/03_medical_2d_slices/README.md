@@ -16,7 +16,7 @@ DICOM slice viewers, 2D maps, sprite editors, any orthographic viewport where th
 
 ### B — Pan inertia and damping
 - `setPanInertiaEnabled(true)` — pan coasts after release
-- `setPanSensitivity(damping)` — delegates to `Ortho2DManipulator::setPanDamping`; higher = faster stop
+- `setPanDamping(damping)` — delegates to `Ortho2DManipulator::setPanDamping`; higher = faster stop
 - `setPanInertiaEnabled(false)` — immediate stop comparison
 
 ### C — Zoom sensitivity

@@ -359,6 +359,12 @@ void Navigation3DController::rebuild() noexcept {
                                        CameraActionType::eBeginLook,
                                        CameraActionType::eEndLook,
                                        CameraActionType::eLookDelta));
+        rules.push_back(InputRule{InputRule::Trigger::eTouchPan,
+                                  0,
+                                  kModNone,
+                                  CameraActionType::eBeginLook,
+                                  CameraActionType::eEndLook,
+                                  CameraActionType::eLookDelta});
     }
     if (impl_->move_enabled_) {
         if (impl_->move_forward_.key != events::KeyCode::eUnknown) {
@@ -434,7 +440,12 @@ void Navigation3DController::rebuild() noexcept {
         z.modifier_mask = static_cast<int>(impl_->zoom_scroll_modifier_);
         z.on_delta = CameraActionType::eZoomAtCursor;
         rules.push_back(z);
-        rules.push_back({.trigger = InputRule::Trigger::eTouchPinch, .on_delta = CameraActionType::eZoomAtCursor});
+        rules.push_back(InputRule{InputRule::Trigger::eTouchPinch,
+                                  0,
+                                  kModNone,
+                                  CameraActionType::eNone,
+                                  CameraActionType::eNone,
+                                  CameraActionType::eZoomAtCursor});
     }
     if (impl_->increase_move_speed_key_ != events::KeyCode::eUnknown) {
         rules.push_back(makeKeyRule(static_cast<int>(impl_->increase_move_speed_key_),

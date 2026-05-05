@@ -4,7 +4,7 @@
 #include "vertexnova/interaction/free_look_manipulator.h"
 #include "vertexnova/interaction/inspect_3d_controller.h"
 #include "vertexnova/interaction/navigation_3d_controller.h"
-#include "vertexnova/interaction/orbital_camera_manipulator.h"
+#include "vertexnova/interaction/trackball_manipulator.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
 
@@ -20,7 +20,7 @@ static constexpr float kCy = kVpH / 2.0f;
 // ── Helpers: trackball bookmark + free-look state logging ───────────────────
 
 static vne::interaction::TrackballCameraState captureTrackballState(
-    const vne::interaction::OrbitalCameraManipulator& manip) {
+    const vne::interaction::TrackballManipulator& manip) {
     vne::interaction::TrackballCameraState s;
     s.coi_world = manip.getCenterOfInterestWorld();
     s.distance = manip.getOrbitDistance();
@@ -60,7 +60,7 @@ int runCameraStateSaveRestoreExample() {
         ctrl.setCamera(camera);
         ctrl.onResize(kVpW, kVpH);
 
-        auto& manip = ctrl.orbitalCameraManipulator();
+        auto& manip = ctrl.trackballManipulator();
         auto on_event = [&](const vne::events::Event& e, double dt) { ctrl.onEvent(e, dt); };
 
         const vne::interaction::TrackballCameraState bookmark_a = captureTrackballState(manip);
@@ -125,7 +125,7 @@ int runCameraStateSaveRestoreExample() {
         vne::interaction::Inspect3DController ctrl;
         ctrl.setCamera(camera);
         ctrl.onResize(kVpW, kVpH);
-        auto& manip = ctrl.orbitalCameraManipulator();
+        auto& manip = ctrl.trackballManipulator();
         auto on_event = [&](const vne::events::Event& e, double dt) { ctrl.onEvent(e, dt); };
 
         // Interact
@@ -259,11 +259,10 @@ int runCameraStateSaveRestoreExample() {
         vne::interaction::OrbitalInteractionState state;
         state.rotating = false;
         state.panning = false;
-        state.modifier_shift = false;
         state.last_x_px = 0.0f;
         state.last_y_px = 0.0f;
         VNE_LOG_INFO << "  OrbitalInteractionState: rotating=" << state.rotating << " panning=" << state.panning
-                     << " (used by OrbitalCameraManipulator internally;"
+                     << " (used by TrackballManipulator internally;"
                      << " shown here as documentation of the per-frame drag model)";
     }
 

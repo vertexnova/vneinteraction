@@ -44,7 +44,8 @@ namespace vne::interaction {
  * simultaneously on a CameraRig — they each receive every action independently.
  *
  * Concrete implementations:
- *  - OrbitalCameraManipulator — rotate/pan/zoom around a pivot (quaternion virtual trackball)
+ *  - TrackballManipulator — rotate/pan/zoom around a pivot (quaternion virtual trackball; header
+ *    @c trackball_manipulator.h)
  *  - FreeLookManipulator — WASD movement + mouse look (FPS or unconstrained Fly mode)
  *  - Ortho2DManipulator — orthographic 2D pan, zoom, optional in-plane rotation
  *
@@ -98,11 +99,5 @@ class VNE_INTERACTION_API ICameraManipulator {
      */
     virtual void setEnabled(bool enabled) noexcept = 0;
 };
-
-/**
- * @brief Deprecated alias for @ref ICameraManipulator.
- * @deprecated Use @ref ICameraManipulator. Will be removed in a future release.
- */
-using ICameraBehavior [[deprecated("Use ICameraManipulator instead")]] = ICameraManipulator;
 
 }  // namespace vne::interaction

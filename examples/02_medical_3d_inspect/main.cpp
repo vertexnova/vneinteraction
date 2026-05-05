@@ -13,7 +13,7 @@
  *   - fitToAABB with smooth animation frames
  *   - View direction presets (top, front, iso)
  *   - Interaction speed step keys (optional)
- *   - orbitalCameraManipulator() escape hatch for fine-grained tuning
+ *   - trackballManipulator() escape hatch for fine-grained tuning
  * ----------------------------------------------------------------------
  */
 

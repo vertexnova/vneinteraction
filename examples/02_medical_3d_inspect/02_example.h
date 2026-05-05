@@ -16,7 +16,7 @@
  *
  * Demonstrates Euler orbit vs trackball, DOF toggles, fixed landmark pivot, inertia and damping,
  * all ZoomMethod variants, fitToAABB, view presets, interaction speed-step keys, and
- * orbitalCameraManipulator() for fine-grained tuning.
+ * trackballManipulator() for fine-grained tuning.
  */
 
 namespace vne::interaction::examples {

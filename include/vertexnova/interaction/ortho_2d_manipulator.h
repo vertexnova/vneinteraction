@@ -119,14 +119,21 @@ class VNE_INTERACTION_API Ortho2DManipulator final : public CameraManipulatorBas
 
     /**
      * @brief In-plane rotation sensitivity in degrees per horizontal pixel (>= 0).
-     * Matches the default feel of OrbitalCameraManipulator::rotation_speed_ (0.2 deg/px).
+     * Matches the default feel of TrackballManipulator::rotation_speed_ (0.2 deg/px).
+     *
+     * @note In-plane rotation uses @em horizontal pointer delta only (@c delta_x_px); vertical delta is ignored.
+     *       For two-finger rotate gestures, map touch twist to a single angular delta at the app layer if needed.
      */
     void setRotationSensitivityDegreesPerPixel(float deg_per_px) noexcept {
         rotation_deg_per_px_ = std::max(0.0f, deg_per_px);
     }
     [[nodiscard]] float getRotationSensitivityDegreesPerPixel() const noexcept { return rotation_deg_per_px_; }
 
-    /** Get world units per pixel. */
+    /**
+     * @brief World units per pixel along the vertical axis (ortho height / viewport height).
+     * @note For non-square viewports, horizontal scale differs by aspect ratio; use viewport width/height
+     *       with ortho width if you need X scale.
+     */
     [[nodiscard]] float getWorldUnitsPerPixel() const noexcept;
 
     /**
@@ -155,6 +162,8 @@ class VNE_INTERACTION_API Ortho2DManipulator final : public CameraManipulatorBas
     bool panning_ = false;
     bool rotating_ = false;
     vne::math::Vec3f pan_velocity_{0.0f, 0.0f, 0.0f};
+
+    bool warned_no_camera_ = false;  //!< Log at most once per instance if @c onAction runs with no camera
 };
 
 }  // namespace vne::interaction

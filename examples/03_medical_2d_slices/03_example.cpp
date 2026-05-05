@@ -70,8 +70,8 @@ int runMedical2dSlicesExample() {
     // ─────────────────────────────────────────────────────────────────────────
     VNE_LOG_INFO << "--- B: Pan inertia + damping ---";
     ctrl.setPanInertiaEnabled(true);
-    // setPanSensitivity delegates to Ortho2DManipulator::setPanDamping (higher = faster stop)
-    ctrl.setPanSensitivity(12.0f);
+    // Higher damping = pan inertia stops faster (delegates to Ortho2DManipulator::setPanDamping)
+    ctrl.setPanDamping(12.0f);
 
     vne::interaction::examples::simulateMouseDrag(on_event,
                                                   vne::events::MouseButton::eLeft,

@@ -1,7 +1,7 @@
 #include "02_example.h"
 
 #include "vertexnova/interaction/inspect_3d_controller.h"
-#include "vertexnova/interaction/orbital_camera_manipulator.h"
+#include "vertexnova/interaction/trackball_manipulator.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
 
@@ -59,7 +59,7 @@ int runMedical3dInspectExample() {
     ctrl.setRotationInertiaEnabled(true);
     ctrl.setPanInertiaEnabled(true);
     // Fine-tune damping via escape hatch (higher = quicker stop)
-    auto& manip = ctrl.orbitalCameraManipulator();
+    auto& manip = ctrl.trackballManipulator();
     manip.setRotationDamping(6.0f);
     manip.setPanDamping(8.0f);
 

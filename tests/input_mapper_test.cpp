@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <cmath>
 #include <optional>
+#include <vector>
 
 namespace vne_interaction_test {
 
@@ -298,6 +299,73 @@ TEST(InputMapper, OnMouseScroll_UnclampedMidRangeMatchesPow) {
     const float expected = std::pow(kWheelZoomFactorPerLine, 2.0f);
     EXPECT_FLOAT_EQ(*zoom, expected);
     EXPECT_FLOAT_EQ(*zoom, referenceScrollToZoomFactor(2.0f));
+}
+
+TEST(InputMapper, OnTouchPan_ForwardsAbsolutePositionForTrackballPayload) {
+    vne::interaction::InputMapper m;
+    m.setRules(vne::interaction::InputMapper::orbitPreset());
+    vne::interaction::CameraCommandPayload captured{};
+    m.setActionCallback(
+        [&captured](vne::interaction::CameraActionType a, const vne::interaction::CameraCommandPayload& p, double) {
+            if (a == vne::interaction::CameraActionType::eRotateDelta) {
+                captured = p;
+            }
+        });
+    m.onTouchPanBegin(100.0f, 200.0f, 0.016);
+    vne::interaction::TouchPan pan;
+    pan.delta_x_px = 5.0f;
+    pan.delta_y_px = -3.0f;
+    // Absolute x/y on TouchPan are optional: mapper accumulates from onTouchPanBegin.
+    m.onTouchPan(pan, 0.016);
+    EXPECT_FLOAT_EQ(captured.x_px, 105.0f);
+    EXPECT_FLOAT_EQ(captured.y_px, 197.0f);
+    EXPECT_FLOAT_EQ(captured.delta_x_px, 5.0f);
+    EXPECT_FLOAT_EQ(captured.delta_y_px, -3.0f);
+}
+
+TEST(InputMapper, OnTouchPan_OrphanMoveSeedsPositionFromTouchPan) {
+    vne::interaction::InputMapper m;
+    m.setRules(vne::interaction::InputMapper::orbitPreset());
+    vne::interaction::CameraCommandPayload captured{};
+    m.setActionCallback(
+        [&captured](vne::interaction::CameraActionType a, const vne::interaction::CameraCommandPayload& p, double) {
+            if (a == vne::interaction::CameraActionType::eRotateDelta) {
+                captured = p;
+            }
+        });
+    vne::interaction::TouchPan pan;
+    pan.delta_x_px = 2.0f;
+    pan.delta_y_px = 1.0f;
+    pan.x_px = 40.0f;
+    pan.y_px = 50.0f;
+    m.onTouchPan(pan, 0.016);
+    EXPECT_FLOAT_EQ(captured.x_px, 40.0f);
+    EXPECT_FLOAT_EQ(captured.y_px, 50.0f);
+    pan.delta_x_px = 3.0f;
+    pan.delta_y_px = -2.0f;
+    pan.x_px = 99.0f;  // ignored after anchor; must accumulate
+    pan.y_px = 99.0f;
+    m.onTouchPan(pan, 0.016);
+    EXPECT_FLOAT_EQ(captured.x_px, 43.0f);
+    EXPECT_FLOAT_EQ(captured.y_px, 48.0f);
+}
+
+TEST(InputMapper, OnTouchPinch_InvertsScaleToMatchWheelZoomConvention) {
+    vne::interaction::InputMapper m;
+    vne::interaction::InputRule r;
+    r.trigger = vne::interaction::InputRule::Trigger::eTouchPinch;
+    r.on_delta = vne::interaction::CameraActionType::eZoomAtCursor;
+    const std::vector<vne::interaction::InputRule> rules{r};
+    m.setRules(rules);
+    std::optional<float> zoom;
+    m.setActionCallback([&zoom](vne::interaction::CameraActionType,
+                                const vne::interaction::CameraCommandPayload& p,
+                                double) { zoom = p.zoom_factor; });
+    vne::interaction::TouchPinch pinch;
+    pinch.scale = 2.0f;
+    m.onTouchPinch(pinch, 0.016);
+    ASSERT_TRUE(zoom.has_value());
+    EXPECT_FLOAT_EQ(*zoom, 0.5f) << "pinch scale 2 -> zoom_factor 0.5 (zoom in, same sense as scroll up)";
 }
 
 }  // namespace vne_interaction_test

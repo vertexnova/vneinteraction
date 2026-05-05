@@ -11,13 +11,14 @@
 #include "vertexnova/interaction/interaction_utils.h"
 #include "vertexnova/interaction/free_look_manipulator.h"
 #include "vertexnova/interaction/ortho_2d_manipulator.h"
-#include "vertexnova/interaction/orbital_camera_manipulator.h"
+#include "vertexnova/interaction/trackball_manipulator.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
 #include "vertexnova/scene/camera/orthographic_camera.h"
 #include "vertexnova/scene/camera/perspective_camera.h"
 
 #include <gtest/gtest.h>
+#include <cmath>
 #include <memory>
 
 namespace vne_interaction_regression_test {
@@ -136,7 +137,7 @@ TEST(ManipulatorRegression, OrbitPan_Perspective_DragDownMovesCoiAlongUp) {
                   vne::math::Vec3f(0.0f, 1.0f, 0.0f));
     persp->updateMatrices();
 
-    vne::interaction::OrbitalCameraManipulator b;
+    vne::interaction::TrackballManipulator b;
     b.setCamera(persp);
     b.onResize(200.0f, 200.0f);
 
@@ -164,7 +165,7 @@ TEST(ManipulatorRegression, OrbitPan_Orthographic_DragDownMovesCoiAlongUp) {
                   vne::math::Vec3f(0.0f, 1.0f, 0.0f));
     ortho->updateMatrices();
 
-    vne::interaction::OrbitalCameraManipulator b;
+    vne::interaction::TrackballManipulator b;
     b.setCamera(ortho);
     b.onResize(200.0f, 200.0f);
 
@@ -304,7 +305,7 @@ TEST(ManipulatorRegression, OrbitalCamera_HorizontalDragMatchesEulerSign) {
     persp->setPosition(vne::math::Vec3f(0.0f, 0.0f, 5.0f));
     persp->lookAt(vne::math::Vec3f(0.0f, 0.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
 
-    vne::interaction::OrbitalCameraManipulator b;
+    vne::interaction::TrackballManipulator b;
     b.setCamera(persp);
     b.onResize(800.0f, 600.0f);
 
@@ -323,6 +324,55 @@ TEST(ManipulatorRegression, OrbitalCamera_HorizontalDragMatchesEulerSign) {
 
     const vne::math::Vec3f pos_after = persp->getPosition();
     EXPECT_LT(pos_after.x(), pos_before.x()) << "Trackball drag right should match Euler: camera X decreases";
+}
+
+// Extreme aspect: very wide viewport; pan must stay finite (no NaNs from NDC / pan scale).
+TEST(ManipulatorRegression, Trackball_ExtremeAspectPanStaysFinite) {
+    auto persp = vne::scene::CameraFactory::createPerspective(
+        vne::scene::PerspectiveCameraParameters(45.0f, 16.0f / 9.0f, 0.1f, 1000.0f));
+    persp->lookAt(vne::math::Vec3f(0.0f, 0.0f, 10.0f),
+                  vne::math::Vec3f(0.0f, 0.0f, 0.0f),
+                  vne::math::Vec3f(0.0f, 1.0f, 0.0f));
+    persp->updateMatrices();
+
+    vne::interaction::TrackballManipulator b;
+    b.setCamera(persp);
+    b.onResize(1.0f, 1000.0f);
+
+    vne::interaction::CameraCommandPayload p;
+    p.x_px = 0.5f;
+    p.y_px = 500.0f;
+    p.delta_x_px = 0.0f;
+    p.delta_y_px = 2.0f;
+    b.onAction(vne::interaction::CameraActionType::eBeginPan, p, 0.0);
+    b.onAction(vne::interaction::CameraActionType::ePanDelta, p, 0.016);
+    b.onAction(vne::interaction::CameraActionType::eEndPan, p, 0.0);
+
+    const auto t = persp->getTarget();
+    EXPECT_TRUE(std::isfinite(t.x()) && std::isfinite(t.y()) && std::isfinite(t.z()));
+}
+
+// Near-polar gaze: FreeLook still produces finite pose after small look delta (quaternion path).
+TEST(ManipulatorRegression, FreeLook_NearPolarLookDeltaFinite) {
+    auto persp = vne::scene::CameraFactory::createPerspective(
+        vne::scene::PerspectiveCameraParameters(60.0f, 16.0f / 9.0f, 0.1f, 1000.0f));
+    persp->setPosition(vne::math::Vec3f(0.0f, 1.0f, 0.01f));
+    persp->lookAt(vne::math::Vec3f(0.0f, 2.0f, 0.0f), vne::math::Vec3f(0.0f, 1.0f, 0.0f));
+
+    vne::interaction::FreeLookManipulator b;
+    b.setCamera(persp);
+    b.onResize(800.0f, 600.0f);
+
+    b.onAction(vne::interaction::CameraActionType::eBeginLook, vne::interaction::CameraCommandPayload{}, 0.0);
+    vne::interaction::CameraCommandPayload p;
+    p.delta_x_px = 1.0f;
+    p.delta_y_px = 1.0f;
+    b.onAction(vne::interaction::CameraActionType::eLookDelta, p, 0.016);
+
+    const auto pos = persp->getPosition();
+    const auto tgt = persp->getTarget();
+    EXPECT_TRUE(std::isfinite(pos.x()) && std::isfinite(pos.y()) && std::isfinite(pos.z()));
+    EXPECT_TRUE(std::isfinite(tgt.x()) && std::isfinite(tgt.y()) && std::isfinite(tgt.z()));
 }
 
 }  // namespace vne_interaction_regression_test

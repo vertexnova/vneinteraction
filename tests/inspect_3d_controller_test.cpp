@@ -14,7 +14,7 @@
  */
 
 #include "vertexnova/interaction/inspect_3d_controller.h"
-#include "vertexnova/interaction/orbital_camera_manipulator.h"
+#include "vertexnova/interaction/trackball_manipulator.h"
 #include "vertexnova/events/mouse_event.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
@@ -46,7 +46,7 @@ static std::shared_ptr<vne::scene::PerspectiveCamera> makePerspCamera() {
 
 TEST(Inspect3DController, DefaultTrackballProjection) {
     vne::interaction::Inspect3DController ctrl;
-    EXPECT_EQ(ctrl.orbitalCameraManipulator().getTrackballProjectionMode(),
+    EXPECT_EQ(ctrl.trackballManipulator().getTrackballProjectionMode(),
               vne::interaction::TrackballProjectionMode::eHyperbolic);
     EXPECT_TRUE(ctrl.isRotationEnabled());
     EXPECT_TRUE(ctrl.isOrbitAnimationEnabled());
@@ -60,12 +60,12 @@ TEST(Inspect3DController, SetOrbitAnimationEnabledFalseSnapFitWithoutSteppingUpd
     ctrl.setCamera(cam);
     ctrl.onResize(1280.0f, 720.0f);
 
-    ctrl.orbitalCameraManipulator().setFitAnimationDuration(0.5f);
+    ctrl.trackballManipulator().setFitAnimationDuration(0.5f);
     ctrl.setOrbitAnimationEnabled(false);
     EXPECT_FALSE(ctrl.isOrbitAnimationEnabled());
 
     ctrl.fitToAABB(vne::math::Vec3f(9.0f, -1.0f, -1.0f), vne::math::Vec3f(11.0f, 1.0f, 1.0f));
-    const auto coi = ctrl.orbitalCameraManipulator().getCenterOfInterestWorld();
+    const auto coi = ctrl.trackballManipulator().getCenterOfInterestWorld();
     EXPECT_NEAR(coi.x(), 10.0f, 0.02f);
     // Instant snap applies to the attached camera immediately (no onUpdate required).
     const vne::math::Vec3f snap_target = cam->getTarget();
@@ -73,8 +73,8 @@ TEST(Inspect3DController, SetOrbitAnimationEnabledFalseSnapFitWithoutSteppingUpd
     EXPECT_NEAR(snap_target.y(), coi.y(), 1e-2f);
     EXPECT_NEAR(snap_target.z(), coi.z(), 1e-2f);
     const float snap_orbit = (cam->getPosition() - snap_target).length();
-    EXPECT_NEAR(snap_orbit, ctrl.orbitalCameraManipulator().getOrbitDistance(), 1e-2f);
-    EXPECT_FLOAT_EQ(ctrl.orbitalCameraManipulator().getFitAnimationDuration(), 0.5f);
+    EXPECT_NEAR(snap_orbit, ctrl.trackballManipulator().getOrbitDistance(), 1e-2f);
+    EXPECT_FLOAT_EQ(ctrl.trackballManipulator().getFitAnimationDuration(), 0.5f);
 
     ctrl.setOrbitAnimationEnabled(true);
     EXPECT_TRUE(ctrl.isOrbitAnimationEnabled());
