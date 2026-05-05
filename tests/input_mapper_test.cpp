@@ -305,13 +305,12 @@ TEST(InputMapper, OnTouchPan_ForwardsAbsolutePositionForTrackballPayload) {
     vne::interaction::InputMapper m;
     m.setRules(vne::interaction::InputMapper::orbitPreset());
     vne::interaction::CameraCommandPayload captured{};
-    m.setActionCallback([&captured](vne::interaction::CameraActionType a,
-                                    const vne::interaction::CameraCommandPayload& p,
-                                    double) {
-        if (a == vne::interaction::CameraActionType::eRotateDelta) {
-            captured = p;
-        }
-    });
+    m.setActionCallback(
+        [&captured](vne::interaction::CameraActionType a, const vne::interaction::CameraCommandPayload& p, double) {
+            if (a == vne::interaction::CameraActionType::eRotateDelta) {
+                captured = p;
+            }
+        });
     m.onTouchPanBegin(100.0f, 200.0f, 0.016);
     vne::interaction::TouchPan pan;
     pan.delta_x_px = 5.0f;
@@ -328,13 +327,12 @@ TEST(InputMapper, OnTouchPan_OrphanMoveSeedsPositionFromTouchPan) {
     vne::interaction::InputMapper m;
     m.setRules(vne::interaction::InputMapper::orbitPreset());
     vne::interaction::CameraCommandPayload captured{};
-    m.setActionCallback([&captured](vne::interaction::CameraActionType a,
-                                    const vne::interaction::CameraCommandPayload& p,
-                                    double) {
-        if (a == vne::interaction::CameraActionType::eRotateDelta) {
-            captured = p;
-        }
-    });
+    m.setActionCallback(
+        [&captured](vne::interaction::CameraActionType a, const vne::interaction::CameraCommandPayload& p, double) {
+            if (a == vne::interaction::CameraActionType::eRotateDelta) {
+                captured = p;
+            }
+        });
     vne::interaction::TouchPan pan;
     pan.delta_x_px = 2.0f;
     pan.delta_y_px = 1.0f;

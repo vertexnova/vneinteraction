@@ -629,8 +629,7 @@ std::vector<InputRule> InputMapper::fpsPreset() {
         // Scroll: zoom
         makeScrollRule(CameraActionType::eZoomAtCursor),
         // Touch pan: look (begin/end for correct FreeLookManipulator state)
-        makeTouchPanChordRule(
-            CameraActionType::eBeginLook, CameraActionType::eEndLook, CameraActionType::eLookDelta),
+        makeTouchPanChordRule(CameraActionType::eBeginLook, CameraActionType::eEndLook, CameraActionType::eLookDelta),
         // Touch pinch: zoom
         makeTouchPinchRule(CameraActionType::eZoomAtCursor),
     };
@@ -703,8 +702,7 @@ std::vector<InputRule> InputMapper::cadPreset() {
         // Scroll: zoom
         makeScrollRule(CameraActionType::eZoomAtCursor),
         // Touch pan: pan (begin/end for correct state tracking)
-        makeTouchPanChordRule(
-            CameraActionType::eBeginPan, CameraActionType::eEndPan, CameraActionType::ePanDelta),
+        makeTouchPanChordRule(CameraActionType::eBeginPan, CameraActionType::eEndPan, CameraActionType::ePanDelta),
         // Touch pinch: zoom
         makeTouchPinchRule(CameraActionType::eZoomAtCursor),
         // Double-click MMB: eSetPivotAtCursor (COI along view direction)

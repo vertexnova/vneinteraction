@@ -298,41 +298,41 @@ void Ortho2DController::rebuildRules() noexcept {
         const int pan_btn = static_cast<int>(impl_->pan_binding_.button);
         const int pan_mod = static_cast<int>(impl_->pan_binding_.modifier_mask);
         rules.push_back(InputRule{InputRule::Trigger::eMouseButton,
-                                   pan_btn,
-                                   pan_mod,
-                                   CameraActionType::eBeginPan,
-                                   CameraActionType::eEndPan,
-                                   CameraActionType::ePanDelta});
+                                  pan_btn,
+                                  pan_mod,
+                                  CameraActionType::eBeginPan,
+                                  CameraActionType::eEndPan,
+                                  CameraActionType::ePanDelta});
         const int mid_btn = static_cast<int>(MouseButton::eMiddle);
         if (!hasMouseButtonChord(rules, mid_btn, kModNone)) {
             rules.push_back(InputRule{InputRule::Trigger::eMouseButton,
-                                       mid_btn,
-                                       kModNone,
-                                       CameraActionType::eBeginPan,
-                                       CameraActionType::eEndPan,
-                                       CameraActionType::ePanDelta});
+                                      mid_btn,
+                                      kModNone,
+                                      CameraActionType::eBeginPan,
+                                      CameraActionType::eEndPan,
+                                      CameraActionType::ePanDelta});
         }
         rules.push_back(InputRule{InputRule::Trigger::eTouchPan,
-                                   0,
-                                   kModNone,
-                                   CameraActionType::eBeginPan,
-                                   CameraActionType::eEndPan,
-                                   CameraActionType::ePanDelta});
+                                  0,
+                                  kModNone,
+                                  CameraActionType::eBeginPan,
+                                  CameraActionType::eEndPan,
+                                  CameraActionType::ePanDelta});
     }
 
     if (impl_->zoom_enabled_) {
         rules.push_back(InputRule{InputRule::Trigger::eScroll,
-                                   0,
-                                   static_cast<int>(impl_->zoom_scroll_modifier_),
-                                   CameraActionType::eNone,
-                                   CameraActionType::eNone,
-                                   CameraActionType::eZoomAtCursor});
+                                  0,
+                                  static_cast<int>(impl_->zoom_scroll_modifier_),
+                                  CameraActionType::eNone,
+                                  CameraActionType::eNone,
+                                  CameraActionType::eZoomAtCursor});
         rules.push_back(InputRule{InputRule::Trigger::eTouchPinch,
-                                   0,
-                                   kModNone,
-                                   CameraActionType::eNone,
-                                   CameraActionType::eNone,
-                                   CameraActionType::eZoomAtCursor});
+                                  0,
+                                  kModNone,
+                                  CameraActionType::eNone,
+                                  CameraActionType::eNone,
+                                  CameraActionType::eZoomAtCursor});
     }
 
     if (impl_->rotation_enabled_) {
@@ -340,11 +340,11 @@ void Ortho2DController::rebuildRules() noexcept {
         const int rot_mod = static_cast<int>(impl_->rotate_binding_.modifier_mask);
         if (!hasMouseButtonChord(rules, rot_btn, rot_mod)) {
             rules.push_back(InputRule{InputRule::Trigger::eMouseButton,
-                                       rot_btn,
-                                       rot_mod,
-                                       CameraActionType::eBeginRotate,
-                                       CameraActionType::eEndRotate,
-                                       CameraActionType::eRotateDelta});
+                                      rot_btn,
+                                      rot_mod,
+                                      CameraActionType::eBeginRotate,
+                                      CameraActionType::eEndRotate,
+                                      CameraActionType::eRotateDelta});
         }
     }
 
