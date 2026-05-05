@@ -131,11 +131,10 @@ struct VNE_INTERACTION_API FreeLookInputState {
  * @brief Drag/pan interaction state for OrbitalCameraManipulator.
  */
 struct VNE_INTERACTION_API OrbitalInteractionState {
-    bool rotating = false;        //!< Rotating the camera by like Left mouse button or touch rotate
-    bool panning = false;         //!< Panning the camera by like Middle mouse button or touch pan
-    bool modifier_shift = false;  //!< Modifier shift key by like Shift key or touch modifier shift
-    float last_x_px = 0.0f;       //!< Last x position in pixels
-    float last_y_px = 0.0f;       //!< Last y position in pixels
+    bool rotating = false;   //!< Rotating the camera by like Left mouse button or touch rotate
+    bool panning = false;    //!< Panning the camera by like Middle mouse button or touch pan
+    float last_x_px = 0.0f;  //!< Last x position in pixels
+    float last_y_px = 0.0f;  //!< Last y position in pixels
 };
 
 // =============================================================================

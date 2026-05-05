@@ -303,6 +303,7 @@ void InputMapper::resetState() noexcept {
     std::fill(std::begin(active_key_), std::end(active_key_), false);
     std::fill(std::begin(active_key_rule_), std::end(active_key_rule_), -1);
     modifiers_ = 0;
+    active_touch_pan_rule_ = -1;
 }
 
 void InputMapper::emit(CameraActionType action, const CameraCommandPayload& payload, double dt) noexcept {
@@ -450,14 +451,41 @@ void InputMapper::onKey(int key, bool pressed, double dt) noexcept {
     }
 }
 
+void InputMapper::onTouchPanBegin(float x, float y, double dt) noexcept {
+    const int i = pickBestRuleIndexByModifierSpecificity(rules_, [this](const InputRule& r, int) {
+        return r.trigger == InputRule::Trigger::eTouchPan && modifiersMatch(r.modifier_mask);
+    });
+    if (i >= 0) {
+        active_touch_pan_rule_ = i;
+        CameraCommandPayload payload;
+        payload.x_px = x;
+        payload.y_px = y;
+        payload.pressed = true;
+        emit(rules_[static_cast<std::size_t>(i)].on_press, payload, dt);
+    }
+}
+
+void InputMapper::onTouchPanEnd(float x, float y, double dt) noexcept {
+    if (active_touch_pan_rule_ >= 0 && active_touch_pan_rule_ < static_cast<int>(rules_.size())) {
+        CameraCommandPayload payload;
+        payload.x_px = x;
+        payload.y_px = y;
+        emit(rules_[static_cast<std::size_t>(active_touch_pan_rule_)].on_release, payload, dt);
+    }
+    active_touch_pan_rule_ = -1;
+}
+
 void InputMapper::onTouchPan(const TouchPan& pan, double dt) noexcept {
     CameraCommandPayload payload;
     payload.delta_x_px = pan.delta_x_px;
     payload.delta_y_px = pan.delta_y_px;
 
-    const int i = pickBestRuleIndexByModifierSpecificity(rules_, [this](const InputRule& r, int) {
-        return r.trigger == InputRule::Trigger::eTouchPan && modifiersMatch(r.modifier_mask);
-    });
+    // If a gesture began via onTouchPanBegin, use its rule; otherwise fall back to best match.
+    const int i = (active_touch_pan_rule_ >= 0)
+                      ? active_touch_pan_rule_
+                      : pickBestRuleIndexByModifierSpecificity(rules_, [this](const InputRule& r, int) {
+                            return r.trigger == InputRule::Trigger::eTouchPan && modifiersMatch(r.modifier_mask);
+                        });
     if (i >= 0) {
         emit(rules_[static_cast<std::size_t>(i)].on_delta, payload, dt);
     }
@@ -516,8 +544,11 @@ std::vector<InputRule> InputMapper::orbitPreset() {
                        CameraActionType::ePanDelta),
         // Scroll: zoom
         makeScrollRule(CameraActionType::eZoomAtCursor),
-        // Touch pan: rotate
-        makeTouchPanRule(CameraActionType::eRotateDelta),
+        // Touch pan: rotate (on_press/on_release so eBeginRotate/eEndRotate fire via onTouchPanBegin/End)
+        {.trigger = InputRule::Trigger::eTouchPan,
+         .on_press = CameraActionType::eBeginRotate,
+         .on_release = CameraActionType::eEndRotate,
+         .on_delta = CameraActionType::eRotateDelta},
         // Touch pinch: zoom
         makeTouchPinchRule(CameraActionType::eZoomAtCursor),
         // Double-click LMB: eSetPivotAtCursor (COI along view direction in OrbitalCameraManipulator)
@@ -561,8 +592,11 @@ std::vector<InputRule> InputMapper::fpsPreset() {
                     CameraActionType::eSlowModifier),
         // Scroll: zoom
         makeScrollRule(CameraActionType::eZoomAtCursor),
-        // Touch pan: look
-        makeTouchPanRule(CameraActionType::eLookDelta),
+        // Touch pan: look (begin/end for correct FreeLookManipulator state)
+        {.trigger = InputRule::Trigger::eTouchPan,
+         .on_press = CameraActionType::eBeginLook,
+         .on_release = CameraActionType::eEndLook,
+         .on_delta = CameraActionType::eLookDelta},
         // Touch pinch: zoom
         makeTouchPinchRule(CameraActionType::eZoomAtCursor),
     };
@@ -605,8 +639,11 @@ std::vector<InputRule> InputMapper::gamePreset() {
                     CameraActionType::eSprintModifier),
         // Scroll: zoom
         makeScrollRule(CameraActionType::eZoomAtCursor),
-        // Touch pan: rotate
-        makeTouchPanRule(CameraActionType::eRotateDelta),
+        // Touch pan: rotate (begin/end for correct OrbitalCameraManipulator state)
+        {.trigger = InputRule::Trigger::eTouchPan,
+         .on_press = CameraActionType::eBeginRotate,
+         .on_release = CameraActionType::eEndRotate,
+         .on_delta = CameraActionType::eRotateDelta},
         // Touch pinch: zoom
         makeTouchPinchRule(CameraActionType::eZoomAtCursor),
         // Double-click LMB: eSetPivotAtCursor (COI along view direction)
@@ -632,8 +669,11 @@ std::vector<InputRule> InputMapper::cadPreset() {
                        CameraActionType::ePanDelta),
         // Scroll: zoom
         makeScrollRule(CameraActionType::eZoomAtCursor),
-        // Touch pan: pan
-        makeTouchPanRule(CameraActionType::ePanDelta),
+        // Touch pan: pan (begin/end for correct state tracking)
+        {.trigger = InputRule::Trigger::eTouchPan,
+         .on_press = CameraActionType::eBeginPan,
+         .on_release = CameraActionType::eEndPan,
+         .on_delta = CameraActionType::ePanDelta},
         // Touch pinch: zoom
         makeTouchPinchRule(CameraActionType::eZoomAtCursor),
         // Double-click MMB: eSetPivotAtCursor (COI along view direction)

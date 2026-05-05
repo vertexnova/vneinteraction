@@ -773,7 +773,6 @@ float OrbitalCameraManipulator::getWorldUnitsPerPixel() const noexcept {
 void OrbitalCameraManipulator::resetState() noexcept {
     interaction_.rotating = false;
     interaction_.panning = false;
-    interaction_.modifier_shift = false;
     inertia_pan_velocity_ = vne::math::Vec3f(0.0f, 0.0f, 0.0f);
     anim_->stop();
     orbital_rot_->reset(camera_, coi_world_, world_up_);
@@ -982,7 +981,6 @@ bool OrbitalCameraManipulator::onAction(CameraActionType action,
             return false;
 
         case CameraActionType::eOrbitPanModifier:
-            interaction_.modifier_shift = payload.pressed;
             return true;
 
         case CameraActionType::eResetView:

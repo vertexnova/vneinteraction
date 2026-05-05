@@ -20,6 +20,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <mutex>
 
 namespace vne::interaction {
 
@@ -273,7 +274,15 @@ void Ortho2DManipulator::onUpdate(double delta_time) noexcept {
 bool Ortho2DManipulator::onAction(CameraActionType action,
                                   const CameraCommandPayload& payload,
                                   double delta_time) noexcept {
-    if (!enabled_ || !camera_) {
+    if (!enabled_) {
+        return false;
+    }
+    if (!camera_) {
+        static std::once_flag s_warned;
+        std::call_once(s_warned, [] {
+            VNE_LOG_WARN << "Ortho2DManipulator: onAction called without a camera. "
+                            "Call setCamera() with an OrthographicCamera before processing input.";
+        });
         return false;
     }
     switch (action) {

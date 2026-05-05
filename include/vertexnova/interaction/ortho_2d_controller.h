@@ -94,7 +94,7 @@ class VNE_INTERACTION_API Ortho2DController : public ICameraController {
      * When enabled, RMB drag rotates the view around the screen center.
      */
     void setRotationEnabled(bool enabled) noexcept;
-    [[nodiscard]] bool isRotationEnabled() const noexcept { return rotation_enabled_; }
+    [[nodiscard]] bool isRotationEnabled() const noexcept;
 
     /** Enable or disable panning (default: enabled). */
     void setPanEnabled(bool enabled) noexcept;
@@ -116,14 +116,25 @@ class VNE_INTERACTION_API Ortho2DController : public ICameraController {
     void setRotateSensitivity(float degrees_per_pixel) noexcept;
     /** Delegate to Ortho2DManipulator::setZoomSpeed. */
     void setZoomSensitivity(float multiplier) noexcept;
-    /** Delegate to Ortho2DManipulator::setPanDamping. */
-    void setPanSensitivity(float damping) noexcept;
+    /** Delegate to Ortho2DManipulator::setPanDamping (higher = faster stop). */
+    void setPanDamping(float damping) noexcept;
+    /** @deprecated Use setPanDamping(). */
+    [[deprecated("Use setPanDamping()")]] void setPanSensitivity(float damping) noexcept;
 
     // -------------------------------------------------------------------------
     // Convenience
     // -------------------------------------------------------------------------
 
     void fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept;
+
+    /**
+     * @brief Orient the camera to a canonical axis-aligned view (axial/coronal/sagittal).
+     * Preserves the current target; resets pan inertia state.
+     */
+    void setViewDirection(ViewDirection dir) noexcept;
+
+    /** World units per screen pixel (delegates to Ortho2DManipulator). Useful for hit testing. */
+    [[nodiscard]] float getWorldUnitsPerPixel() const noexcept;
 
     void reset() noexcept;
 
@@ -139,13 +150,6 @@ class VNE_INTERACTION_API Ortho2DController : public ICameraController {
 
     class Impl;
     std::unique_ptr<Impl> impl_;
-
-    bool rotation_enabled_ = false;
-    bool pan_enabled_ = true;
-    bool zoom_enabled_ = true;
-    MouseBinding pan_binding_{MouseButton::eLeft, vne::events::ModifierKey::eModNone};
-    MouseBinding rotate_binding_{MouseButton::eRight, vne::events::ModifierKey::eModNone};
-    vne::events::ModifierKey zoom_scroll_modifier_ = vne::events::ModifierKey::eModNone;
 };
 
 }  // namespace vne::interaction

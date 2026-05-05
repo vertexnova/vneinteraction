@@ -259,7 +259,6 @@ int runCameraStateSaveRestoreExample() {
         vne::interaction::OrbitalInteractionState state;
         state.rotating = false;
         state.panning = false;
-        state.modifier_shift = false;
         state.last_x_px = 0.0f;
         state.last_y_px = 0.0f;
         VNE_LOG_INFO << "  OrbitalInteractionState: rotating=" << state.rotating << " panning=" << state.panning

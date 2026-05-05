@@ -136,11 +136,23 @@ class VNE_INTERACTION_API InputMapper {
     void onKey(int key, bool pressed, double dt) noexcept;
 
     /**
-     * @brief Touch pan gesture.
+     * @brief Touch pan gesture delta (ongoing move).
      * @param pan Pan deltas in pixels.
      * @param dt  Time delta in seconds.
      */
     void onTouchPan(const TouchPan& pan, double dt) noexcept;
+
+    /**
+     * @brief Touch pan gesture begin (first finger contact).
+     * Emits the @c on_press action of the active touch-pan rule (e.g. @c eBeginRotate for orbit).
+     */
+    void onTouchPanBegin(float x, float y, double dt) noexcept;
+
+    /**
+     * @brief Touch pan gesture end (finger lifted).
+     * Emits the @c on_release action of the active touch-pan rule (e.g. @c eEndRotate for orbit).
+     */
+    void onTouchPanEnd(float x, float y, double dt) noexcept;
 
     /**
      * @brief Touch pinch (zoom) gesture.
@@ -232,7 +244,8 @@ class VNE_INTERACTION_API InputMapper {
     int active_key_rule_[kMaxKeys] =
         {};  //!< Filled with @c -1 in @ref resetState; rule index for key press/release pairing.
 
-    int modifiers_ = 0;  //!< Current modifier bitmask (kModShift | kModCtrl | kModAlt); updated in @ref onKey.
+    int modifiers_ = 0;              //!< Current modifier bitmask (kModShift | kModCtrl | kModAlt); updated in @ref onKey.
+    int active_touch_pan_rule_ = -1;  //!< Rule index for the active touch-pan gesture; -1 when idle.
 };
 
 }  // namespace vne::interaction
