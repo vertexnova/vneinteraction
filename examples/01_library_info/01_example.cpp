@@ -21,7 +21,7 @@ int runLibraryInfoExample() {
     {
         vne::interaction::Inspect3DController c;
         VNE_LOG_INFO << "Inspect3DController: trackball_projection="
-                     << (c.orbitalCameraManipulator().getTrackballProjectionMode()
+                     << (c.trackballManipulator().getTrackballProjectionMode()
                                  == vne::interaction::TrackballProjectionMode::eHyperbolic
                              ? "eHyperbolic"
                              : "eRim")

@@ -11,7 +11,7 @@
 
 #include "vertexnova/interaction/camera_rig.h"
 
-#include "vertexnova/interaction/orbital_camera_manipulator.h"
+#include "vertexnova/interaction/trackball_manipulator.h"
 #include "vertexnova/interaction/free_look_manipulator.h"
 #include "vertexnova/interaction/ortho_2d_manipulator.h"
 
@@ -87,7 +87,7 @@ void CameraRig::resetState() noexcept {
 
 CameraRig CameraRig::makeTrackball() {
     CameraRig rig;
-    rig.addManipulator(std::make_shared<OrbitalCameraManipulator>());
+    rig.addManipulator(std::make_shared<TrackballManipulator>());
     return rig;
 }
 

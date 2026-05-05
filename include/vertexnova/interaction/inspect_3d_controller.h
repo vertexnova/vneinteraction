@@ -48,7 +48,7 @@
  * ### Turn off fit / view-preset animation only
  * @ref setOrbitAnimationEnabled(false) makes @ref fitToAABB snap (perspective) and makes the manipulator's
  * `animateToViewDirection` use the instant path, without changing @ref
- * OrbitalCameraManipulator::getFitAnimationDuration on @ref orbitalCameraManipulator — re-enable when you want easing
+ * TrackballManipulator::getFitAnimationDuration on @ref trackballManipulator — re-enable when you want easing
  * again.
  * @code
  * ctrl.setOrbitAnimationEnabled(false);
@@ -66,6 +66,7 @@
 #include "vertexnova/interaction/interaction_types.h"
 #include "vertexnova/interaction/camera_controller.h"
 #include "vertexnova/interaction/camera_rig.h"
+#include "vertexnova/interaction/trackball_manipulator.h"
 
 #include <vertexnova/events/types.h>
 #include <vertexnova/math/core/core.h>
@@ -83,12 +84,11 @@ class ICamera;
 namespace vne::interaction {
 
 class InputMapper;
-class OrbitalCameraManipulator;
 
 /**
  * @brief High-level camera controller for object inspection.
  *
- * Wraps a CameraRig (OrbitalCameraManipulator) and an InputMapper with a sensible preset.
+ * Wraps a CameraRig (@ref TrackballManipulator) and an InputMapper with a sensible preset.
  * Covers: 3D model viewers, CAD, scientific visualization, medical 3D.
  *
  * @threadsafe Not thread-safe. Call all methods from the same thread.
@@ -163,8 +163,8 @@ class VNE_INTERACTION_API Inspect3DController : public ICameraController {
 
     /**
      * @brief Enable or disable time-based orbit fit and view-direction animation (delegates to @ref
-     * OrbitalCameraManipulator).
-     * @see OrbitalCameraManipulator::setOrbitAnimationEnabled
+     * TrackballManipulator).
+     * @see TrackballManipulator::setOrbitAnimationEnabled
      */
     void setOrbitAnimationEnabled(bool enabled) noexcept;
     [[nodiscard]] bool isOrbitAnimationEnabled() const noexcept;
@@ -198,18 +198,18 @@ class VNE_INTERACTION_API Inspect3DController : public ICameraController {
                                    vne::events::ModifierKey modifier = vne::events::ModifierKey::eModNone) noexcept;
 
     // -------------------------------------------------------------------------
-    // Sensitivity (delegates to OrbitalCameraManipulator)
+    // Sensitivity (delegates to TrackballManipulator)
     // -------------------------------------------------------------------------
 
     /** Rotation scale (Euler deg/pixel; trackball uses same base field). */
     void setRotateSensitivity(float degrees_per_pixel) noexcept;
     /** Pan speed multiplier. */
     void setPanSensitivity(float multiplier) noexcept;
-    /** Zoom exponent (see OrbitalCameraManipulator::setZoomSpeed). */
+    /** Zoom exponent (see TrackballManipulator::setZoomSpeed). */
     void setZoomSensitivity(float multiplier) noexcept;
 
     // -------------------------------------------------------------------------
-    // Inertia (delegates to OrbitalCameraManipulator)
+    // Inertia (delegates to TrackballManipulator)
     // -------------------------------------------------------------------------
 
     void setRotationInertiaEnabled(bool enabled) noexcept;
@@ -242,8 +242,11 @@ class VNE_INTERACTION_API Inspect3DController : public ICameraController {
     /** Direct access to the underlying InputMapper for full rebind. */
     [[nodiscard]] InputMapper& inputMapper() noexcept;
 
-    /** Direct access to the underlying OrbitalCameraManipulator for fine-tuning. */
-    [[nodiscard]] OrbitalCameraManipulator& orbitalCameraManipulator() noexcept;
+    /** Direct access to the underlying trackball orbit manipulator for fine-tuning. */
+    [[nodiscard]] TrackballManipulator& trackballManipulator() noexcept;
+
+    /** @deprecated Use @ref trackballManipulator(). */
+    [[nodiscard, deprecated("Use trackballManipulator()")]] TrackballManipulator& orbitalCameraManipulator() noexcept;
 
    private:
     void rebuildRules() noexcept;

@@ -52,6 +52,7 @@
 
 // Manipulators
 #include "vertexnova/interaction/camera_manipulator.h"
+#include "vertexnova/interaction/trackball_manipulator.h"
 #include "vertexnova/interaction/orbital_camera_manipulator.h"
 #include "vertexnova/interaction/free_look_manipulator.h"
 #include "vertexnova/interaction/ortho_2d_manipulator.h"

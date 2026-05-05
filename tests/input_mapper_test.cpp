@@ -23,6 +23,7 @@
 #include <algorithm>
 #include <cmath>
 #include <optional>
+#include <vector>
 
 namespace vne_interaction_test {
 
@@ -298,6 +299,24 @@ TEST(InputMapper, OnMouseScroll_UnclampedMidRangeMatchesPow) {
     const float expected = std::pow(kWheelZoomFactorPerLine, 2.0f);
     EXPECT_FLOAT_EQ(*zoom, expected);
     EXPECT_FLOAT_EQ(*zoom, referenceScrollToZoomFactor(2.0f));
+}
+
+TEST(InputMapper, OnTouchPinch_InvertsScaleToMatchWheelZoomConvention) {
+    vne::interaction::InputMapper m;
+    vne::interaction::InputRule r;
+    r.trigger = vne::interaction::InputRule::Trigger::eTouchPinch;
+    r.on_delta = vne::interaction::CameraActionType::eZoomAtCursor;
+    const std::vector<vne::interaction::InputRule> rules{r};
+    m.setRules(rules);
+    std::optional<float> zoom;
+    m.setActionCallback([&zoom](vne::interaction::CameraActionType,
+                                const vne::interaction::CameraCommandPayload& p,
+                                double) { zoom = p.zoom_factor; });
+    vne::interaction::TouchPinch pinch;
+    pinch.scale = 2.0f;
+    m.onTouchPinch(pinch, 0.016);
+    ASSERT_TRUE(zoom.has_value());
+    EXPECT_FLOAT_EQ(*zoom, 0.5f) << "pinch scale 2 -> zoom_factor 0.5 (zoom in, same sense as scroll up)";
 }
 
 }  // namespace vne_interaction_test

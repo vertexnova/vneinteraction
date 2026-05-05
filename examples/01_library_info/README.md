@@ -6,7 +6,7 @@ Verifies linkage and enumerates the entire public API surface at startup.
 
 - **Version** — `get_version()` string
 - **All three controllers** — default-constructs each one and reads default property values:
-  - `Inspect3DController`: trackball projection via `orbitalCameraManipulator().getTrackballProjectionMode`, `getPivotMode`, `isRotationEnabled`, `isPivotOnDoubleClickEnabled`
+  - `Inspect3DController`: trackball projection via `trackballManipulator().getTrackballProjectionMode`, `getPivotMode`, `isRotationEnabled`, `isPivotOnDoubleClickEnabled`
   - `Navigation3DController`: `getMode`, `getMoveSpeed`, `getMouseSensitivity`, `getSprintMultiplier`, `getSlowMultiplier`, `isLookEnabled`, `isMoveEnabled`, `isZoomEnabled`
   - `Ortho2DController`: `isRotationEnabled`
 - **`ZoomMethod` enum** — all three values: `eSceneScale`, `eChangeFov`, `eDollyToCoi`

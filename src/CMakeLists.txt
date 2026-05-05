@@ -14,7 +14,7 @@ set(SOURCE_FILES
     vertexnova/interaction/interaction_utils.cpp
     vertexnova/interaction/camera_manipulator_base.cpp
     vertexnova/interaction/detail/trackball_behavior.cpp
-    vertexnova/interaction/orbital_camera_manipulator.cpp
+    vertexnova/interaction/trackball_manipulator.cpp
     vertexnova/interaction/free_look_manipulator.cpp
     vertexnova/interaction/ortho_2d_manipulator.cpp
     vertexnova/interaction/camera_rig.cpp
@@ -32,6 +32,7 @@ set(HEADER_FILES
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_controller.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_manipulator_base.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_rig.h
+    ${VNE_INCLUDE_DIR}/vertexnova/interaction/trackball_manipulator.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/orbital_camera_manipulator.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/free_look_manipulator.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/ortho_2d_manipulator.h

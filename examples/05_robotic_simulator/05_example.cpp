@@ -2,7 +2,7 @@
 
 #include "vertexnova/interaction/inspect_3d_controller.h"
 #include "vertexnova/interaction/navigation_3d_controller.h"
-#include "vertexnova/interaction/orbital_camera_manipulator.h"
+#include "vertexnova/interaction/trackball_manipulator.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
 
@@ -47,7 +47,7 @@ int runRoboticSimulatorExample() {
     inspect.setPivot(vne::math::Vec3f(0.0f, 0.5f, 0.0f));
     inspect.setPivotMode(vne::interaction::OrbitPivotMode::eFixed);
     inspect.setRotationInertiaEnabled(true);
-    inspect.orbitalCameraManipulator().setRotationDamping(5.0f);
+    inspect.trackballManipulator().setRotationDamping(5.0f);
 
     // ── Navigate: FPS, reasonable speed for a workshop floor ─────────────────
     navigate.setMode(vne::interaction::FreeLookMode::eFps);
@@ -123,7 +123,7 @@ int runRoboticSimulatorExample() {
     navigate.reset();
     inspect.reset();
     inspect.setPivotMode(vne::interaction::OrbitPivotMode::eFixed);
-    inspect.orbitalCameraManipulator().setRotationDamping(8.0f);
+    inspect.trackballManipulator().setRotationDamping(8.0f);
 
     double sim_time = 0.0;
     for (int i = 0; i < 120; ++i) {
@@ -143,7 +143,7 @@ int runRoboticSimulatorExample() {
     // ─────────────────────────────────────────────────────────────────────────
     VNE_LOG_INFO << "--- D: Orbit rotation damping ---";
 
-    inspect.orbitalCameraManipulator().setRotationDamping(20.0f);
+    inspect.trackballManipulator().setRotationDamping(20.0f);
     inspect.setPivot(vne::math::Vec3f(0.0f, 1.0f, 0.0f));
     {
         auto on_event = [&](const vne::events::Event& e, double dt) { inspect.onEvent(e, dt); };
@@ -163,7 +163,7 @@ int runRoboticSimulatorExample() {
         VNE_LOG_INFO << "  High damping (20): eye=(" << pos.x() << "," << pos.y() << "," << pos.z() << ")";
     }
 
-    inspect.orbitalCameraManipulator().setRotationDamping(2.0f);
+    inspect.trackballManipulator().setRotationDamping(2.0f);
     {
         auto on_event = [&](const vne::events::Event& e, double dt) { inspect.onEvent(e, dt); };
         vne::interaction::examples::simulateMouseDrag(on_event,
@@ -187,7 +187,7 @@ int runRoboticSimulatorExample() {
     // ─────────────────────────────────────────────────────────────────────────
     VNE_LOG_INFO << "--- E: Static pivot (robot base) ---";
     inspect.setPivot(vne::math::Vec3f(0.0f, 0.5f, 0.0f));
-    inspect.orbitalCameraManipulator().setRotationDamping(6.0f);
+    inspect.trackballManipulator().setRotationDamping(6.0f);
     for (int i = 0; i < 40; ++i)
         inspect.onUpdate(kDt);
     {

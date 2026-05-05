@@ -498,7 +498,9 @@ void InputMapper::onTouchPinch(const TouchPinch& pinch, double dt) noexcept {
     CameraCommandPayload payload;
     payload.x_px = pinch.center_x_px;
     payload.y_px = pinch.center_y_px;
-    payload.zoom_factor = pinch.scale;
+    // Same multiplicative convention as scroll zoom: factor < 1 moves closer ("zoom in").
+    // Touch APIs typically report scale > 1 when fingers spread (pinch out); invert so pinch matches wheel.
+    payload.zoom_factor = 1.0f / pinch.scale;
 
     const int i = pickBestRuleIndexByModifierSpecificity(rules_, [this](const InputRule& r, int) {
         return r.trigger == InputRule::Trigger::eTouchPinch && modifiersMatch(r.modifier_mask);
@@ -551,7 +553,7 @@ std::vector<InputRule> InputMapper::orbitPreset() {
          .on_delta = CameraActionType::eRotateDelta},
         // Touch pinch: zoom
         makeTouchPinchRule(CameraActionType::eZoomAtCursor),
-        // Double-click LMB: eSetPivotAtCursor (COI along view direction in OrbitalCameraManipulator)
+        // Double-click LMB: eSetPivotAtCursor (COI along view direction in TrackballManipulator)
         makeDblClickRule(left_button, CameraActionType::eSetPivotAtCursor),
     };
 }
@@ -639,7 +641,7 @@ std::vector<InputRule> InputMapper::gamePreset() {
                     CameraActionType::eSprintModifier),
         // Scroll: zoom
         makeScrollRule(CameraActionType::eZoomAtCursor),
-        // Touch pan: rotate (begin/end for correct OrbitalCameraManipulator state)
+        // Touch pan: rotate (begin/end for correct TrackballManipulator state)
         {.trigger = InputRule::Trigger::eTouchPan,
          .on_press = CameraActionType::eBeginRotate,
          .on_release = CameraActionType::eEndRotate,

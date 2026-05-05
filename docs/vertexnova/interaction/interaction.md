@@ -9,7 +9,7 @@ The **Vertexnova Interaction** library provides composable camera **manipulators
 - **Event-driven** — Controllers accept `vne::events::Event` via `onEvent(event, delta_time)` and advance simulation-style state with `onUpdate(delta_time)`.
 - **Intent layer** — `InputMapper` turns low-level events into semantic `CameraActionType` values and `CameraCommandPayload` data; manipulators consume only what they understand.
 - **Composable rigs** — `CameraRig` holds zero or more `ICameraManipulator` instances and forwards every action and update to each (enables hybrid setups, e.g. orbit tooling beside free-look in an editor).
-- **Focused math helpers** — `OrbitalCameraManipulator` implements quaternion virtual-trackball orbit in its `.cpp` (internal rotation state + inertia) and uses `TrackballBehavior` in `src/vertexnova/interaction/detail/` for screen-to-sphere mapping; those types are not registered on the rig as standalone manipulators.
+- **Focused math helpers** — `TrackballManipulator` implements quaternion virtual-trackball orbit in its `.cpp` (internal rotation state + inertia) and uses `TrackballBehavior` in `src/vertexnova/interaction/detail/` for screen-to-sphere mapping; those types are not registered on the rig as standalone manipulators.
 
 ![System context](diagrams/context.png)
 
@@ -36,9 +36,9 @@ If a PNG does not load, export the matching `.drawio` from [diagrams.net](https:
 |-------|--------|
 | Interfaces | `ICameraManipulator`, `ICameraController`. |
 | Base / rig / mapper | `CameraManipulatorBase`, `CameraRig`, `InputMapper`. |
-| Manipulators | `OrbitalCameraManipulator`, `FreeLookManipulator`, `Ortho2DManipulator`, `FollowManipulator`. |
+| Manipulators | `TrackballManipulator`, `FreeLookManipulator`, `Ortho2DManipulator`, `FollowManipulator`. |
 | Controllers | `Inspect3DController`, `Navigation3DController`, `Ortho2DController`, `FollowController`. |
-| Orbit internals | Virtual-trackball mapping via `TrackballBehavior` (`detail/`), composed into `OrbitalCameraManipulator` (quaternion orbit + pivot / pan / zoom in the manipulator implementation). |
+| Orbit internals | Virtual-trackball mapping via `TrackballBehavior` (`detail/`), composed into `TrackballManipulator` (quaternion orbit + pivot / pan / zoom in the manipulator implementation). |
 
 Export `diagrams/class.drawio` → `diagrams/class.png`.
 
@@ -77,7 +77,7 @@ The design is **layered**: application and events sit above controllers; control
 | Swimlane | Contents |
 |----------|----------|
 | Public API | `interaction.h`, `interaction_types.h` (actions, state, bindings, enums), controllers, `CameraRig`, `InputMapper`, manipulators, `ICameraManipulator` / `ICameraController`. |
-| Implementation | `input_event_translator`, controller context helpers, `TrackballBehavior` (`detail/trackball_behavior.*`), internal `interaction_utils` (NDC / screen / world cursor math), and per-class `.cpp` files (orbit quaternion + inertia live in `orbital_camera_manipulator.cpp`). |
+| Implementation | `input_event_translator`, controller context helpers, `TrackballBehavior` (`detail/trackball_behavior.*`), internal `interaction_utils` (NDC / screen / world cursor math), and per-class `.cpp` files (orbit quaternion + inertia live in `trackball_manipulator.cpp`). |
 
 Export `diagrams/component.drawio` → `diagrams/component.png`.
 
@@ -102,9 +102,9 @@ Manipulators **ignore** actions they do not implement; the rig does not filter p
 
 ### Manipulators
 
-#### `OrbitalCameraManipulator`
+#### `TrackballManipulator`
 
-Orbit around a center of interest using a **quaternion virtual trackball** (screen mapping via `TrackballBehavior`), plus pivot modes (`OrbitPivotMode`), pan, zoom-to-cursor / dolly / FOV, rotation and pan inertia, optional **time-eased** perspective `fitToAABB` (`setFitAnimationDuration`, use `0` for instant) and **`animateToViewDirection`** for animated view presets (`setViewDirection` stays instant). **`setOrbitAnimationEnabled(false)`** turns off eased fit and view animation together while keeping the stored fit duration. `Inspect3DController` forwards `fitToAABB` and **`setOrbitAnimationEnabled`**; other tuning via **`orbitalCameraManipulator()`**.
+Orbit around a center of interest using a **quaternion virtual trackball** (screen mapping via `TrackballBehavior`), plus pivot modes (`OrbitPivotMode`), pan, zoom-to-cursor / dolly / FOV, rotation and pan inertia, optional **time-eased** perspective `fitToAABB` (`setFitAnimationDuration`, use `0` for instant) and **`animateToViewDirection`** for animated view presets (`setViewDirection` stays instant). **`setOrbitAnimationEnabled(false)`** turns off eased fit and view animation together while keeping the stored fit duration. `Inspect3DController` forwards `fitToAABB` and **`setOrbitAnimationEnabled`**; other tuning via **`trackballManipulator()`**.
 
 #### `FreeLookManipulator`
 
@@ -122,7 +122,7 @@ Smooth follow of a world target or a callback-provided target; configurable offs
 
 | Class | Role |
 |-------|------|
-| `Inspect3DController` | 3D inspection (medical, CAD-style): `OrbitalCameraManipulator` + `InputMapper` (orbit preset), pivot and DOF toggles, `fitToAABB`; **`setOrbitAnimationEnabled`** to disable eased fit / `animateToViewDirection` without changing stored duration; fine-tuning via `orbitalCameraManipulator()`. |
+| `Inspect3DController` | 3D inspection (medical, CAD-style): `TrackballManipulator` + `InputMapper` (orbit preset), pivot and DOF toggles, `fitToAABB`; **`setOrbitAnimationEnabled`** to disable eased fit / `animateToViewDirection` without changing stored duration; fine-tuning via `trackballManipulator()`. |
 | `Navigation3DController` | World traversal: `FreeLookManipulator` + `InputMapper` (FPS-style preset), mode and binding configuration. |
 | `Ortho2DController` | 2D ortho viewports: `Ortho2DManipulator` + ortho preset. |
 | `FollowController` | Follow camera: `FollowManipulator` only; no user input mapping required. |
@@ -149,7 +149,7 @@ Maps mouse, keyboard, scroll, and touch-style input to **callbacks** invoking `(
 
 ### Implementation layout (`src/vertexnova/interaction/`)
 
-One **`.cpp` per public class** where applicable, plus `input_mapper.cpp`, `camera_rig.cpp`, `camera_manipulator_base.cpp`, `input_event_translator.cpp`, `interaction_utils.cpp`, `version.cpp`, and **`detail/trackball_behavior.cpp`** for virtual-trackball screen mapping (used by `OrbitalCameraManipulator`).
+One **`.cpp` per public class** where applicable, plus `input_mapper.cpp`, `camera_rig.cpp`, `camera_manipulator_base.cpp`, `input_event_translator.cpp`, `interaction_utils.cpp`, `version.cpp`, and **`detail/trackball_behavior.cpp`** for virtual-trackball screen mapping (used by `TrackballManipulator`).
 
 ## Quick start
 

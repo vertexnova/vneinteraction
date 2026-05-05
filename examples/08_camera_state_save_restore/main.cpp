@@ -9,7 +9,7 @@
  *   - TrackballCameraState — save/restore quaternion trackball (COI, distance, quat, up)
  *   - FreeCameraState   — save/restore free-look (position, yaw, pitch, up_hint)
  *   - Typical "undo/bookmark" pattern: save before interaction, restore to jump back
- *   - Reading live state from OrbitalCameraManipulator fields
+ *   - Reading live state from TrackballManipulator fields
  *   - Reading live state from FreeLookManipulator fields
  *   - FreeLookInputState — querying held-key snapshot (diagnostic use)
  *   - OrbitalInteractionState — not exported as snapshot; shown via manipulator API

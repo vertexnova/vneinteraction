@@ -3,7 +3,7 @@
 #include "vertexnova/interaction/camera_rig.h"
 #include "vertexnova/interaction/free_look_manipulator.h"
 #include "vertexnova/interaction/input_mapper.h"
-#include "vertexnova/interaction/orbital_camera_manipulator.h"
+#include "vertexnova/interaction/trackball_manipulator.h"
 #include "vertexnova/scene/camera/camera_factory.h"
 #include "vertexnova/scene/camera/camera_types.h"
 
@@ -79,14 +79,14 @@ int runCameraRigCompositionExample() {
     // ─────────────────────────────────────────────────────────────────────────
     // Section B: Hybrid rig — trackball orbit + fly in the same rig
     //   Both manipulators receive every action.
-    //   OrbitalCameraManipulator handles eBeginRotate/eRotateDelta/eZoomAtCursor.
+    //   TrackballManipulator handles eBeginRotate/eRotateDelta/eZoomAtCursor.
     //   FreeLookManipulator handles eMoveForward/eLookDelta/eZoomAtCursor.
     //   setHandleZoom(false) on FreeLook prevents double-zoom per scroll tick.
     // ─────────────────────────────────────────────────────────────────────────
     VNE_LOG_INFO << "--- B: Hybrid trackball + fly rig ---";
     {
         // Build trackball orbit base manipulator
-        auto orbit_manip = std::make_shared<vne::interaction::OrbitalCameraManipulator>();
+        auto orbit_manip = std::make_shared<vne::interaction::TrackballManipulator>();
         orbit_manip->setRotationInertiaEnabled(true);
         orbit_manip->setRotationDamping(5.0f);
 
@@ -217,7 +217,7 @@ int runCameraRigCompositionExample() {
     // ─────────────────────────────────────────────────────────────────────────
     VNE_LOG_INFO << "--- C: setEnabled() per manipulator ---";
     {
-        auto orbit_manip = std::make_shared<vne::interaction::OrbitalCameraManipulator>();
+        auto orbit_manip = std::make_shared<vne::interaction::TrackballManipulator>();
         auto fly_manip = std::make_shared<vne::interaction::FreeLookManipulator>();
         fly_manip->setHandleZoom(false);
 
@@ -265,7 +265,7 @@ int runCameraRigCompositionExample() {
         rig.onResize(kVpW, kVpH);
 
         // Start with trackball
-        auto m1 = std::make_shared<vne::interaction::OrbitalCameraManipulator>();
+        auto m1 = std::make_shared<vne::interaction::TrackballManipulator>();
         rig.addManipulator(m1);
         VNE_LOG_INFO << "  After addManipulator(trackball): count=" << rig.manipulators().size();
 
@@ -273,7 +273,7 @@ int runCameraRigCompositionExample() {
         rig.clearManipulators();
         VNE_LOG_INFO << "  After clearManipulators(): count=" << rig.manipulators().size();
 
-        auto m2 = std::make_shared<vne::interaction::OrbitalCameraManipulator>();
+        auto m2 = std::make_shared<vne::interaction::TrackballManipulator>();
         m2->setTrackballProjectionMode(vne::interaction::TrackballProjectionMode::eRim);
         rig.addManipulator(m2);
         rig.setCamera(camera);  // re-attach camera after rebuild

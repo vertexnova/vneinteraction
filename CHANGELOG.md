@@ -35,6 +35,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+* **`TrackballManipulator`** — renamed from `OrbitalCameraManipulator` (kept as deprecated `using` in `orbital_camera_manipulator.h`). `Inspect3DController::trackballManipulator()`; `orbitalCameraManipulator()` is deprecated.
+* **Docs:** [`docs/vnetestbed_interaction_debug.md`](docs/vnetestbed_interaction_debug.md) for troubleshooting reversed pan/look in app integration.
+* **Tests:** touch pinch factor `1/scale`, ortho dolly COI sync, `setPivot` → `eCoi`, edge cases (extreme aspect pan, near-polar FreeLook).
+
+### Fixed
+
+* **Inspect3D** touch pan: `eBeginPan` / `eEndPan` for correct pan state and inertia.
+* **Navigation3D** touch pan: `eBeginLook` / `eLookDelta` / `eEndLook` when look is enabled.
+* **Trackball ortho dolly:** sync COI / orbit distance after `applyOrthoZoomToCursor`.
+* **`scaleTrackballQuaternion`:** tiny-angle path when `scale > 1` to reduce noise amplification.
+* **`interaction_utils`:** validate finite inverse of view-projection before unproject / ray (singular matrix fallback).
+
 ### Changed
 
 * **Type headers consolidated**: `CameraActionType`, `CameraCommandPayload`, gesture and behavioral enums, camera state PODs, and `InputRule` / binding types live in a single [`interaction_types.h`](include/vertexnova/interaction/interaction_types.h). The former shim headers `camera_action.h`, `camera_state.h`, and `input_binding.h` are **removed** — include `interaction_types.h` or [`interaction.h`](include/vertexnova/interaction/interaction.h) instead.

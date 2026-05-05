@@ -34,7 +34,7 @@
  *
  * @par Separation from orbit math
  * @ref InputMapper decides which gestures produce @c eBeginRotate, @c ePanDelta, @c eZoomAtCursor,
- * etc. Orbit/trackball geometry lives inside @ref OrbitalCameraManipulator via internal helpers
+ * etc. Orbit/trackball geometry lives inside @ref TrackballManipulator via internal helpers
  * (\c src/vertexnova/interaction/detail/ in sources), not as separate public types.
  */
 
@@ -206,7 +206,7 @@ class VNE_INTERACTION_API InputMapper {
     void bindScroll(GestureAction action, vne::events::ModifierKey modifier = vne::events::ModifierKey::eModNone);
 
     /**
-     * @brief Bind double-click to `eSetPivotAtCursor` (orbit COI along view direction; see OrbitalCameraManipulator).
+     * @brief Bind double-click to `eSetPivotAtCursor` (orbit COI along view direction; see TrackballManipulator).
      * Replaces existing double-click rule for this action.
      */
     void bindDoubleClick(GestureAction action,

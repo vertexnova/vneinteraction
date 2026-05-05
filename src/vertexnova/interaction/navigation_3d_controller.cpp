@@ -359,6 +359,10 @@ void Navigation3DController::rebuild() noexcept {
                                        CameraActionType::eBeginLook,
                                        CameraActionType::eEndLook,
                                        CameraActionType::eLookDelta));
+        rules.push_back({.trigger = InputRule::Trigger::eTouchPan,
+                         .on_press = CameraActionType::eBeginLook,
+                         .on_delta = CameraActionType::eLookDelta,
+                         .on_release = CameraActionType::eEndLook});
     }
     if (impl_->move_enabled_) {
         if (impl_->move_forward_.key != events::KeyCode::eUnknown) {
