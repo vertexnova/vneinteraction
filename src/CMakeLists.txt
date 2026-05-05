@@ -33,7 +33,6 @@ set(HEADER_FILES
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_manipulator_base.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/camera_rig.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/trackball_manipulator.h
-    ${VNE_INCLUDE_DIR}/vertexnova/interaction/orbital_camera_manipulator.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/free_look_manipulator.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/ortho_2d_manipulator.h
     ${VNE_INCLUDE_DIR}/vertexnova/interaction/input_mapper.h

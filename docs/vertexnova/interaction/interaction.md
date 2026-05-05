@@ -42,7 +42,7 @@ If a PNG does not load, export the matching `.drawio` from [diagrams.net](https:
 
 Export `diagrams/class.drawio` → `diagrams/class.png`.
 
-![Runtime pipeline](diagrams/runtime-pipeline.png)
+![Runtime pipeline](diagrams/runtime.png)
 
 **Figure 3 — Runtime pipeline (per event and per frame)**
 
