@@ -224,12 +224,30 @@ void Ortho2DController::setViewDirection(ViewDirection dir) noexcept {
     Vec3f new_pos;
     Vec3f up;
     switch (dir) {
-        case ViewDirection::eFront:   new_pos = target + Vec3f(0.0f, 0.0f,  dist); up = Vec3f(0.0f, 1.0f, 0.0f); break;
-        case ViewDirection::eBack:    new_pos = target + Vec3f(0.0f, 0.0f, -dist); up = Vec3f(0.0f, 1.0f, 0.0f); break;
-        case ViewDirection::eLeft:    new_pos = target + Vec3f(-dist, 0.0f, 0.0f); up = Vec3f(0.0f, 1.0f, 0.0f); break;
-        case ViewDirection::eRight:   new_pos = target + Vec3f( dist, 0.0f, 0.0f); up = Vec3f(0.0f, 1.0f, 0.0f); break;
-        case ViewDirection::eTop:     new_pos = target + Vec3f(0.0f,  dist, 0.0f); up = Vec3f(0.0f, 0.0f,-1.0f); break;
-        case ViewDirection::eBottom:  new_pos = target + Vec3f(0.0f, -dist, 0.0f); up = Vec3f(0.0f, 0.0f, 1.0f); break;
+        case ViewDirection::eFront:
+            new_pos = target + Vec3f(0.0f, 0.0f, dist);
+            up = Vec3f(0.0f, 1.0f, 0.0f);
+            break;
+        case ViewDirection::eBack:
+            new_pos = target + Vec3f(0.0f, 0.0f, -dist);
+            up = Vec3f(0.0f, 1.0f, 0.0f);
+            break;
+        case ViewDirection::eLeft:
+            new_pos = target + Vec3f(-dist, 0.0f, 0.0f);
+            up = Vec3f(0.0f, 1.0f, 0.0f);
+            break;
+        case ViewDirection::eRight:
+            new_pos = target + Vec3f(dist, 0.0f, 0.0f);
+            up = Vec3f(0.0f, 1.0f, 0.0f);
+            break;
+        case ViewDirection::eTop:
+            new_pos = target + Vec3f(0.0f, dist, 0.0f);
+            up = Vec3f(0.0f, 0.0f, -1.0f);
+            break;
+        case ViewDirection::eBottom:
+            new_pos = target + Vec3f(0.0f, -dist, 0.0f);
+            up = Vec3f(0.0f, 0.0f, 1.0f);
+            break;
         case ViewDirection::eIso: {
             constexpr float kInvSqrt3 = 0.57735027f;
             new_pos = target + Vec3f(dist * kInvSqrt3, dist * kInvSqrt3, dist * kInvSqrt3);

@@ -244,7 +244,7 @@ class VNE_INTERACTION_API InputMapper {
     int active_key_rule_[kMaxKeys] =
         {};  //!< Filled with @c -1 in @ref resetState; rule index for key press/release pairing.
 
-    int modifiers_ = 0;              //!< Current modifier bitmask (kModShift | kModCtrl | kModAlt); updated in @ref onKey.
+    int modifiers_ = 0;  //!< Current modifier bitmask (kModShift | kModCtrl | kModAlt); updated in @ref onKey.
     int active_touch_pan_rule_ = -1;  //!< Rule index for the active touch-pan gesture; -1 when idle.
 };
 

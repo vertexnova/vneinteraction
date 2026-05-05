@@ -514,7 +514,7 @@ void TrackballManipulator::applyPanDeltaWorld(const vne::math::Vec3f& delta_worl
 }
 
 void TrackballManipulator::updatePanInertiaFromDragSample(const vne::math::Vec3f& delta_world,
-                                                              double delta_time) noexcept {
+                                                          double delta_time) noexcept {
     if (!pan_inertia_enabled_) {
         return;
     }
@@ -676,8 +676,7 @@ void TrackballManipulator::applyInertia(double delta_time) noexcept {
 // fitToAABB
 // ---------------------------------------------------------------------------
 
-void TrackballManipulator::fitToAABB(const vne::math::Vec3f& min_world,
-                                         const vne::math::Vec3f& max_world) noexcept {
+void TrackballManipulator::fitToAABB(const vne::math::Vec3f& min_world, const vne::math::Vec3f& max_world) noexcept {
     if (!camera_) {
         return;
     }
@@ -841,8 +840,8 @@ void TrackballManipulator::setViewDirection(ViewDirection dir) noexcept {
 }
 
 void TrackballManipulator::animateToViewDirection(ViewDirection dir,
-                                                      float duration_s,
-                                                      vne::math::EaseType easing) noexcept {
+                                                  float duration_s,
+                                                  vne::math::EaseType easing) noexcept {
     if (!orbit_animation_enabled_) {
         setViewDirection(dir);
         return;
@@ -920,8 +919,8 @@ void TrackballManipulator::onUpdate(double delta_time) noexcept {
 // ---------------------------------------------------------------------------
 
 bool TrackballManipulator::onAction(CameraActionType action,
-                                        const CameraCommandPayload& payload,
-                                        double delta_time) noexcept {
+                                    const CameraCommandPayload& payload,
+                                    double delta_time) noexcept {
     if (!enabled_ || !camera_) {
         return false;
     }

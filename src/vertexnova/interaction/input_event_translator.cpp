@@ -102,9 +102,7 @@ void dispatchMouseEvents(InputMapper& mapper,
             break;
         }
         case events::EventType::eTouchRelease: {
-            mapper.onTouchPanEnd(static_cast<float>(cursor.last_x),
-                                 static_cast<float>(cursor.last_y),
-                                 dt);
+            mapper.onTouchPanEnd(static_cast<float>(cursor.last_x), static_cast<float>(cursor.last_y), dt);
             cursor.first = true;
             break;
         }
