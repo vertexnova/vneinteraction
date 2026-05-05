@@ -24,6 +24,8 @@
 namespace {
 CREATE_VNE_LOGGER_CATEGORY("vne.interaction.ortho_2d");
 
+constexpr float kEyeTargetDistanceEpsilon = 1e-6f;  //!< Degenerate eye–target distance guard in setViewDirection
+
 [[nodiscard]] bool hasMouseButtonChord(const std::vector<vne::interaction::InputRule>& rules,
                                        int button,
                                        int modifier_mask) noexcept {
@@ -217,7 +219,7 @@ void Ortho2DController::setViewDirection(ViewDirection dir) noexcept {
     const Vec3f target = camera->getTarget();
     Vec3f eye = camera->getPosition();
     float dist = (eye - target).length();
-    if (dist < 1e-6f) {
+    if (dist < kEyeTargetDistanceEpsilon) {
         dist = 1.0f;
     }
 
