@@ -10,7 +10,7 @@
  */
 
 /**
- * Ortho2DController tests: rotation enabled, fitToAABB, modifier pan binding, and move safety.
+ * Ortho2DController tests: rotation enabled, fitToAABB, setPanDamping, modifier pan binding, and move safety.
  */
 
 #include "vertexnova/interaction/ortho_2d_controller.h"
@@ -46,6 +46,13 @@ TEST(Ortho2DController, FitToAABB) {
     ctrl.onResize(512.0f, 512.0f);
 
     EXPECT_NO_FATAL_FAILURE(ctrl.fitToAABB(vne::math::Vec3f(-2.0f, -2.0f, 0.0f), vne::math::Vec3f(2.0f, 2.0f, 0.0f)));
+}
+
+TEST(Ortho2DController, SetPanDamping) {
+    vne::interaction::Ortho2DController ctrl;
+    auto cam = makeOrthoCamera();
+    ctrl.setCamera(cam);
+    EXPECT_NO_FATAL_FAILURE(ctrl.setPanDamping(12.0f));
 }
 
 TEST(Ortho2DController, ModifierPanBindingRequiresKeyEvents) {

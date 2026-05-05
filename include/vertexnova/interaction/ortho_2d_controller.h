@@ -118,8 +118,6 @@ class VNE_INTERACTION_API Ortho2DController : public ICameraController {
     void setZoomSensitivity(float multiplier) noexcept;
     /** Delegate to Ortho2DManipulator::setPanDamping (higher = faster stop). */
     void setPanDamping(float damping) noexcept;
-    /** @deprecated Use setPanDamping(). */
-    [[deprecated("Use setPanDamping()")]] void setPanSensitivity(float damping) noexcept;
 
     // -------------------------------------------------------------------------
     // Convenience

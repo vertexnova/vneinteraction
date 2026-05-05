@@ -202,10 +202,6 @@ void Ortho2DController::setPanDamping(float damping) noexcept {
     }
 }
 
-void Ortho2DController::setPanSensitivity(float damping) noexcept {
-    setPanDamping(damping);
-}
-
 // ---------------------------------------------------------------------------
 // Convenience
 // ---------------------------------------------------------------------------
