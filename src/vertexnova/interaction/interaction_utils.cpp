@@ -53,7 +53,10 @@ vne::math::Quatf scaleTrackballQuaternion(vne::math::Quatf q, float scale) noexc
     constexpr float kTinyAngleRad = 1e-6f;
     if (scale > 1.0f && imag_sq > 0.0f) {
         const float ang = 2.0f * std::acos(std::clamp(q.w, -1.0f, 1.0f));
-        if (ang < kTinyAngleRad) {
+        const float ang_scaled = ang * scale;
+        // Identity only if the scaled rotation (same as passed to fromAxisAngle below) is still negligible;
+        // a tiny raw ang can become meaningful when scale > 1.
+        if (ang_scaled < kTinyAngleRad) {
             return vne::math::Quatf::identity();
         }
     }

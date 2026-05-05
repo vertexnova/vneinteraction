@@ -77,6 +77,20 @@ static InputRule makeTouchPanRule(CameraActionType delta) {
     return r;
 }
 
+/** Touch pan with begin/end + delta (MSVC: avoid designated initializers on @c InputRule — nested @c Trigger). */
+static InputRule makeTouchPanChordRule(CameraActionType press,
+                                       CameraActionType release,
+                                       CameraActionType delta) noexcept {
+    InputRule r;
+    r.trigger = InputRule::Trigger::eTouchPan;
+    r.code = 0;
+    r.modifier_mask = kModNone;
+    r.on_press = press;
+    r.on_release = release;
+    r.on_delta = delta;
+    return r;
+}
+
 static InputRule makeTouchPinchRule(CameraActionType delta) {
     InputRule r;
     r.trigger = InputRule::Trigger::eTouchPinch;
@@ -483,21 +497,33 @@ void InputMapper::onTouchPanEnd(float x, float y, double dt) noexcept {
 }
 
 void InputMapper::onTouchPan(const TouchPan& pan, double dt) noexcept {
-    CameraCommandPayload payload;
-    payload.x_px = pan.x_px;
-    payload.y_px = pan.y_px;
-    payload.delta_x_px = pan.delta_x_px;
-    payload.delta_y_px = pan.delta_y_px;
-
     // If a gesture began via onTouchPanBegin, use its rule; otherwise fall back to best match.
     const int i = (active_touch_pan_rule_ >= 0)
                       ? active_touch_pan_rule_
                       : pickBestRuleIndexByModifierSpecificity(rules_, [this](const InputRule& r, int) {
                             return r.trigger == InputRule::Trigger::eTouchPan && modifiersMatch(r.modifier_mask);
                         });
-    if (i >= 0) {
-        emit(rules_[static_cast<std::size_t>(i)].on_delta, payload, dt);
+    if (i < 0) {
+        return;
     }
+
+    if (!active_touch_pan_pos_valid_) {
+        // No onTouchPanBegin: seed from reported position (e.g. translator passes absolute per move).
+        active_touch_pan_x_ = pan.x_px;
+        active_touch_pan_y_ = pan.y_px;
+        active_touch_pan_pos_valid_ = true;
+    } else {
+        active_touch_pan_x_ += pan.delta_x_px;
+        active_touch_pan_y_ += pan.delta_y_px;
+    }
+
+    CameraCommandPayload payload;
+    payload.x_px = active_touch_pan_x_;
+    payload.y_px = active_touch_pan_y_;
+    payload.delta_x_px = pan.delta_x_px;
+    payload.delta_y_px = pan.delta_y_px;
+
+    emit(rules_[static_cast<std::size_t>(i)].on_delta, payload, dt);
 }
 
 void InputMapper::onTouchPinch(const TouchPinch& pinch, double dt) noexcept {
@@ -556,10 +582,9 @@ std::vector<InputRule> InputMapper::orbitPreset() {
         // Scroll: zoom
         makeScrollRule(CameraActionType::eZoomAtCursor),
         // Touch pan: rotate (on_press/on_release so eBeginRotate/eEndRotate fire via onTouchPanBegin/End)
-        {.trigger = InputRule::Trigger::eTouchPan,
-         .on_press = CameraActionType::eBeginRotate,
-         .on_release = CameraActionType::eEndRotate,
-         .on_delta = CameraActionType::eRotateDelta},
+        makeTouchPanChordRule(CameraActionType::eBeginRotate,
+                              CameraActionType::eEndRotate,
+                              CameraActionType::eRotateDelta),
         // Touch pinch: zoom
         makeTouchPinchRule(CameraActionType::eZoomAtCursor),
         // Double-click LMB: eSetPivotAtCursor (COI along view direction in TrackballManipulator)
@@ -604,10 +629,8 @@ std::vector<InputRule> InputMapper::fpsPreset() {
         // Scroll: zoom
         makeScrollRule(CameraActionType::eZoomAtCursor),
         // Touch pan: look (begin/end for correct FreeLookManipulator state)
-        {.trigger = InputRule::Trigger::eTouchPan,
-         .on_press = CameraActionType::eBeginLook,
-         .on_release = CameraActionType::eEndLook,
-         .on_delta = CameraActionType::eLookDelta},
+        makeTouchPanChordRule(
+            CameraActionType::eBeginLook, CameraActionType::eEndLook, CameraActionType::eLookDelta),
         // Touch pinch: zoom
         makeTouchPinchRule(CameraActionType::eZoomAtCursor),
     };
@@ -651,10 +674,9 @@ std::vector<InputRule> InputMapper::gamePreset() {
         // Scroll: zoom
         makeScrollRule(CameraActionType::eZoomAtCursor),
         // Touch pan: rotate (begin/end for correct TrackballManipulator state)
-        {.trigger = InputRule::Trigger::eTouchPan,
-         .on_press = CameraActionType::eBeginRotate,
-         .on_release = CameraActionType::eEndRotate,
-         .on_delta = CameraActionType::eRotateDelta},
+        makeTouchPanChordRule(CameraActionType::eBeginRotate,
+                              CameraActionType::eEndRotate,
+                              CameraActionType::eRotateDelta),
         // Touch pinch: zoom
         makeTouchPinchRule(CameraActionType::eZoomAtCursor),
         // Double-click LMB: eSetPivotAtCursor (COI along view direction)
@@ -681,10 +703,8 @@ std::vector<InputRule> InputMapper::cadPreset() {
         // Scroll: zoom
         makeScrollRule(CameraActionType::eZoomAtCursor),
         // Touch pan: pan (begin/end for correct state tracking)
-        {.trigger = InputRule::Trigger::eTouchPan,
-         .on_press = CameraActionType::eBeginPan,
-         .on_release = CameraActionType::eEndPan,
-         .on_delta = CameraActionType::ePanDelta},
+        makeTouchPanChordRule(
+            CameraActionType::eBeginPan, CameraActionType::eEndPan, CameraActionType::ePanDelta),
         // Touch pinch: zoom
         makeTouchPinchRule(CameraActionType::eZoomAtCursor),
         // Double-click MMB: eSetPivotAtCursor (COI along view direction)

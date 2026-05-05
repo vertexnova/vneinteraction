@@ -162,6 +162,8 @@ class VNE_INTERACTION_API Ortho2DManipulator final : public CameraManipulatorBas
     bool panning_ = false;
     bool rotating_ = false;
     vne::math::Vec3f pan_velocity_{0.0f, 0.0f, 0.0f};
+
+    bool warned_no_camera_ = false;  //!< Log at most once per instance if @c onAction runs with no camera
 };
 
 }  // namespace vne::interaction

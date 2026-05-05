@@ -193,20 +193,22 @@ static std::vector<InputRule> buildInspectRules(const InspectRuleConfig& cfg) {
                                                 CameraActionType::eEndPan,
                                                 CameraActionType::ePanDelta));
         }
-        rules.push_back({
-            .trigger = InputRule::Trigger::eTouchPan,
-            .on_press = CameraActionType::eBeginPan,
-            .on_delta = CameraActionType::ePanDelta,
-            .on_release = CameraActionType::eEndPan,
-        });
+        rules.push_back(InputRule{InputRule::Trigger::eTouchPan,
+                                   0,
+                                   kModNone,
+                                   CameraActionType::eBeginPan,
+                                   CameraActionType::eEndPan,
+                                   CameraActionType::ePanDelta});
     }
 
     if (cfg.zoom_enabled) {
         rules.push_back(makeScrollRule(static_cast<int>(cfg.zoom_scroll_modifier)));
-        rules.push_back({
-            .trigger = InputRule::Trigger::eTouchPinch,
-            .on_delta = CameraActionType::eZoomAtCursor,
-        });
+        rules.push_back(InputRule{InputRule::Trigger::eTouchPinch,
+                                   0,
+                                   kModNone,
+                                   CameraActionType::eNone,
+                                   CameraActionType::eNone,
+                                   CameraActionType::eZoomAtCursor});
     }
 
     if (cfg.increase_interaction_key != events::KeyCode::eUnknown) {
