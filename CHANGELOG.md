@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.2](https://github.com/vertexnova/vneinteraction/compare/v1.8.1...v1.8.2) (2026-05-22)
+
+
+### Bug Fixes
+
+* Update subproject commits for vneevents, vnelogging, vnemath, and vnescene to latest versions ([#44](https://github.com/vertexnova/vneinteraction/issues/44)) ([9d981c6](https://github.com/vertexnova/vneinteraction/commit/9d981c6e076623a4a493e989cde54096cdb6800f))
+
 ## [1.8.1](https://github.com/vertexnova/vneinteraction/compare/v1.8.0...v1.8.1) (2026-05-18)
 
 
