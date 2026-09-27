@@ -311,6 +311,7 @@ TEST(TrackballManipulator, ChangeFovAtClampDoesNotChangeOrbitDistance) {
     vne::interaction::TrackballManipulator b;
     b.setCamera(cam);
     b.onResize(800.0f, 600.0f);
+    b.setRotationInertiaEnabled(true);
 
     constexpr double kDt = 0.016;
     vne::interaction::CameraCommandPayload p;
@@ -341,6 +342,7 @@ TEST(TrackballManipulator, TrackballInertiaNotUpdatedWhenDeltaTimeBelowInertiaTh
     vne::interaction::TrackballManipulator b;
     b.setCamera(cam);
     b.onResize(800.0f, 600.0f);
+    b.setRotationInertiaEnabled(true);
 
     vne::interaction::CameraCommandPayload p;
     p.x_px = 400.0f;
