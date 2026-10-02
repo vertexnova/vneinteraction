@@ -105,7 +105,7 @@ class VNE_INTERACTION_API Ortho2DManipulator final : public CameraManipulatorBas
     void setPanDamping(float damping) noexcept { pan_damping_ = std::max(0.0f, damping); }
     [[nodiscard]] float getPanDamping() const noexcept { return pan_damping_; }
 
-    /** When false, pan release does not coast. Default: true. */
+    /** When false, pan release does not coast. Default: false. */
     void setPanInertiaEnabled(bool enabled) noexcept { pan_inertia_enabled_ = enabled; }
     [[nodiscard]] bool isPanInertiaEnabled() const noexcept { return pan_inertia_enabled_; }
 
@@ -155,7 +155,7 @@ class VNE_INTERACTION_API Ortho2DManipulator final : public CameraManipulatorBas
     float pan_damping_ = 10.0f;
     float rotation_deg_per_px_ = 0.2f;
 
-    bool pan_inertia_enabled_ = true;
+    bool pan_inertia_enabled_ = false;
     bool rotate_enabled_ = true;
     bool pan_enabled_ = true;
 

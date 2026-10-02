@@ -29,6 +29,7 @@ static std::shared_ptr<vne::scene::OrthographicCamera> makeOrthoCamera() {
 TEST(Ortho2DManipulator, DefaultValues) {
     vne::interaction::Ortho2DManipulator b;
     EXPECT_GT(b.getZoomSpeed(), 0.0f);
+    EXPECT_FALSE(b.isPanInertiaEnabled());
 }
 
 TEST(Ortho2DManipulator, CameraIntegration) {
